@@ -139,13 +139,66 @@ Nav: Vender | Produtos | Vendas | Relatórios | Caixa | Config | Faturamento
 └─────────────────────────────────────┘
 ```
 
+**Ao tocar em Acréscimo — mesmo painel, ferramenta Majoração:**
+
+```
+┌─────────────────────────────────────┐
+│ Majoração                           │
+├─────────────────────────────────────┤
+│ Tipo                                │
+│ (•) Valor                           │
+│ ( ) Percentual                      │
+├─────────────────────────────────────┤
+│ Valor + teclado (00 0 ←)            │
+├─────────────────────────────────────┤
+│ Cancelar            Aplicar         │
+└─────────────────────────────────────┘
+```
+
+**Parcelamento — muda a ferramenta (não é o mesmo que Majoração):**
+
+```
+┌─────────────────────────────────────┐
+│ Parcelamento                        │
+├─────────────────────────────────────┤
+│ Valor Total                         │
+│ R$ 1.250,00                         │
+├─────────────────────────────────────┤
+│ Parcelas                            │
+│ 10                                  │
+├─────────────────────────────────────┤
+│ Juros                               │
+│ 2%                                  │
+├─────────────────────────────────────┤
+│ Resultado                           │
+│ 10 × R$ 137,49                      │
+├─────────────────────────────────────┤
+│ teclado (edita o campo focado)      │
+│ Cancelar            Aplicar         │
+└─────────────────────────────────────┘
+```
+
+**Quantidade / Peso / Valor Manual — teclado com rótulo da ferramenta:**
+
+```
+Quantidade → display 25
+Peso       → display 1,275 kg
+Valor Manual → Preço Unitário → R$ 42,80
+```
+
+**Observação — teclado desaparece; entra editor de texto.**
+
 | Tarefa atual | Contexto do Smart Panel |
 |--------------|-------------------------|
 | Durante a venda (padrão) | **Resumo do Pedido** |
-| Selecionar / buscar cliente | **Pesquisa de Clientes** |
-| Aplicar desconto / acréscimo | **Desconto** / **Acréscimo** (tipo + numpad) |
-| Editar quantidade / peso / valor | **Teclado Numérico** |
-| Editar observação | **Editor de Texto** |
+| Selecionar cliente | **Pesquisa de Clientes** |
+| Desconto | **Desconto** (Valor/Percentual + teclado) |
+| Acréscimo | **Majoração** (mesmo painel do desconto) |
+| Parcelamento | **Parcelamento** (total, parcelas, juros, resultado) |
+| Quantidade | **Quantidade** + teclado |
+| Peso | **Peso** + teclado |
+| Valor manual | **Valor Manual** (Preço Unitário) + teclado |
+| Observação | **Observação** (editor de texto, sem numpad) |
 | Pagar (caixa) | **Pagamento** |
 | Consultar estoque | **Estoque** |
 
@@ -169,21 +222,23 @@ Regras:
 - Ações inline: `+`/`−`, toque na qtd → Teclado Numérico, desconto, remover, observação → Editor de Texto
 - Indicador visual de itens com estoque crítico
 
-### 2.2.1 Contexto: Desconto / Acréscimo
-Painel dedicado (não só um numpad genérico): tipo (valor / percentual), display, teclado `00 0 ←`, Cancelar / Aplicar.
+### 2.2.1 Contexto: Desconto / Majoração
+Mesmo painel. Título **Desconto** ou **Majoração**. Tipo (valor / percentual), display, teclado `00 0 ←`, Cancelar / Aplicar.
 
-### 2.2.2 Contexto: Teclado Numérico
-Para quantidade, peso e valor manual / pagamento:
+### 2.2.2 Contexto: Parcelamento
+Ferramenta própria: Valor Total (pedido), Parcelas, Juros %, Resultado (`N × R$ …`). Teclado edita o campo focado.
 
-| Gatilho | Título |
-|---------|--------|
-| Alterar quantidade | Quantidade · item |
-| Informar peso | Peso (kg) · item |
-| Valor manual | Valor · item |
-| Pagamento (dinheiro) | Valor recebido |
+### 2.2.3 Contextos com teclado: Quantidade, Peso, Valor Manual
+| Contexto | Rótulo do campo | Display |
+|----------|-----------------|---------|
+| Quantidade | Quantidade | `25` |
+| Peso | Peso | `1,275 kg` |
+| Valor Manual | Preço Unitário | `R$ 42,80` |
 
-### 2.2.3 Demais contextos
-- **Editor de Texto** — observação
+### 2.2.4 Observação
+Teclado numérico **desaparece**. Entra editor de texto + Cancelar / Aplicar.
+
+### 2.2.5 Demais
 - **Pagamento** — terminal Caixa
 - **Estoque** — disponibilidade / promise
 
@@ -197,6 +252,21 @@ Para quantidade, peso e valor manual / pagamento:
 - Faixa de sessões à esquerda (já no layout)
 - Lista de vendas suspensas com data, cliente, valor
 - Um clique para retomar
+
+### 2.5 Produtividade do vendedor (PDV)
+
+Implementado em `pages/pos.html` + `js/pos-pdv.js` + `css/pos.css` (mock/local):
+
+1. **Suspender/retomar sessões** — trilho esquerdo com sessões ativas e suspensas (cliente, itens, total, tempo relativo); Suspender grava e abre sessão nova; toque retoma; botão **+** cria sessão.
+2. **Cliente recorrente rápido** — busca por nome/CPF/telefone com parceiros mock (João da Silva com crediário e última compra); chip do resumo atualiza com hint contextual.
+3. **Favoritos / últimos produtos** — abas Todos | Favoritos | Últimos; persistência em `localStorage`; estrela ou long-press no card; adicionar ao pedido alimenta recentes.
+4. **Variações no Smart Panel** — Camisa Polo (cores/tamanhos); contexto **Variação** no painel; ativo em modo Moda ou sempre para esse SKU.
+5. **Linguagem humana de estoque** — consulta e badge nos cards (`stockStatus`: na loja, filial ~2h, trânsito, sem previsão).
+6. **Desfazer último item** — botão **Desfazer** com pilha simples (add/remove/qty/preço/obs).
+7. **Frases rápidas de observação** — chips na contexto Observação que appendam ao textarea.
+8. **Orçamento ↔ Pedido** — toggle no painel central; CTA **Salvar orçamento** / **Virar pedido**; envio ao caixa só em Pedido.
+9. **Feedback pós-envio ao caixa** — banner no resumo + status bar; estados mock Aguardando → Em pagamento → Pago; item entra na fila do Caixa; permanece no PDV.
+10. **Perfil da loja** — seletor Mercearia | Moda | Serviço na topbar; filtra ênfase do catálogo; persistido; label na barra de status.
 
 ---
 
