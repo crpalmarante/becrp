@@ -4,15 +4,15 @@
 
 ## Status
 
-Proposta
+Proposta (atualizada com decisões de UX POS / Caixa)
 
 ## Versão
 
-1.0
+1.1
 
 ## Data
 
-28/07/2026
+30/07/2026
 
 ## Autor
 
@@ -123,7 +123,35 @@ Não permitido:
 - Abrir caixa.
 - Fechar caixa.
 - Fazer sangria.
+- Fazer suprimento.
 - Alterar movimentação financeira.
+
+## UI do PDV (Operator Console / Smart Panel)
+
+O lado direito do PDV **não** é um “carrinho” nem um numpad fixo.
+
+É o **Operator Console** (Smart Panel): painel contextual que exibe a ferramenta da tarefa atual.
+
+| Tarefa | Contexto |
+|--------|----------|
+| Venda (padrão) | Resumo do Pedido |
+| Cliente | Pesquisa de Clientes |
+| Desconto | Desconto (valor / %) |
+| Acréscimo | Majoração (mesmo painel do desconto) |
+| Parcelamento | Parcelamento (total, parcelas, juros, resultado) |
+| Quantidade / Peso / Valor manual | Teclado numérico |
+| Observação | Editor de texto (sem numpad) |
+| Estoque | Disponibilidade em linguagem humana |
+
+Regras de UI no PDV:
+
+- Coluna central = itens do **Pedido** (não carrinho).
+- Console direito = ferramenta; troca **substitui** o conteúdo do painel.
+- Sem teclas de função (F1…); ações por botões.
+- **Não** exibir formas de pagamento (Dinheiro / PIX / …) no PDV.
+- Após “Enviar ao caixa”, o vendedor acompanha status (ex.: Aguardando → Em pagamento → Pago).
+
+Detalhamento de produtividade do vendedor: `PLANO_EXPERIENCIA_VENDEDOR.md`.
 
 ---
 
@@ -135,14 +163,56 @@ O Caixa representa o terminal financeiro.
 
 Permitido:
 
-- Receber pedidos.
+- Receber pedidos da fila.
 - Confirmar pagamento.
 - Operar dinheiro.
 - Operar cartão.
 - Operar PIX.
-- Realizar sangria.
-- Realizar suprimento.
-- Fechar sessão.
+- Operar voucher.
+- Realizar sangria (out).
+- Realizar suprimento (in).
+- Abrir / fechar sessão de caixa.
+
+Não permitido:
+
+- Criar pedido comercial (exceto fluxos excepcionais definidos por permissão).
+
+## UI do Caixa
+
+Layout típico:
+
+1. **Fila de pagamento** (pedidos enviados pelos PDVs).
+2. **Console contextual** (pagamento, valor recebido, troco, ou movimento de caixa).
+3. **Barra inferior contextual** — somente no Caixa:
+   - Dinheiro · PIX · Débito · Crédito · Voucher
+   - Suprimento · Sangria
+
+A barra **não** abre outra tela: muda o contexto do console.
+
+Pagamento em dinheiro usa numpad sob demanda (valor recebido / troco).
+
+## Movimentos de caixa (Suprimento / Sangria)
+
+**Não usar modal flutuante.** O console do Caixa muda para o contexto Suprimento ou Sangria.
+
+Campos obrigatórios:
+
+- Valor (numpad);
+- Motivo (lista rápida + detalhe opcional).
+
+Documento relacionado (**opcional**, recomendado para auditoria):
+
+| Tipo | Exemplo |
+|------|---------|
+| Sem documento | Fundo de troco interno |
+| Recibo / NF | Compra mercado, material |
+| Vale / adiantamento | Pagamento de vale funcionário |
+| Comprovante banco | Depósito / sangria para cofre |
+| Pedido / OS | Referência interna |
+
+Se o tipo de documento for informado, a referência (número) torna-se obrigatória.
+
+Todo movimento entra no diário financeiro do caixa e no log da sessão (para fechamento e auditoria).
 
 ---
 
@@ -491,18 +561,35 @@ Fechamento de caixa nunca utiliza diário fiscal.
 
 Diários fiscais devem permanecer separados dos diários operacionais.
 
+## Regra 6
+
+Formas de pagamento e barra de recebimento existem **somente** no terminal Caixa (ou perfil híbrido explicitamente autorizado).
+
+## Regra 7
+
+Suprimento e sangria usam console contextual (valor + motivo + documento opcional); não usam modal genérico.
+
+## Regra 8
+
+O conceito de “carrinho” não é usado. A unidade comercial no PDV é o **Pedido** (Sale Order).
+
 ---
 
 # 15. Implementação futura
 
 Este RFC deverá orientar:
 
-- módulo POS;
-- módulo Caixa;
+- módulo POS (PDV + Operator Console);
+- módulo Caixa (fila, pagamento, suprimento/sangria);
 - módulo Fiscal;
 - módulo Venda;
 - módulo Permissões;
 - módulo Auditoria.
+
+Referências de UX já em andamento:
+
+- `PLANO_EXPERIENCIA_VENDEDOR.md` — Smart Panel e produtividade do vendedor;
+- `pages/pos.html` + `js/pos-pdv.js` — protótipo UI PDV/Caixa.
 
 ---
 
@@ -516,3 +603,5 @@ O modelo permite atender desde pequenas lojas até operações corporativas mant
 - escalabilidade;
 - segurança;
 - conformidade fiscal.
+
+**Changelog 1.1 (30/07/2026):** documenta Operator Console / Smart Panel no PDV; barra contextual e movimentos de caixa (suprimento/sangria + documento) no Caixa; reforça ausência de “carrinho” e de pagamento no PDV.
