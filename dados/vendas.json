@@ -1,0 +1,17 @@
+{"vendas":[
+{"id":1,"data":"2026-07-12","hora":"09:15:00","cliente":"Cliente A","total":65.80,"forma_pg":"Dinheiro","filial_id":0,"itens":[
+{"prod_id":1,"produto":"Arroz 5kg","qtd":2,"preco":32.90,"subtotal":65.80,"filial_id":0}
+]}
+,
+{"id":2,"data":"2026-07-12","hora":"14:30:00","cliente":"Cliente B","total":37.80,"forma_pg":"Cartao","filial_id":0,"itens":[
+{"prod_id":5,"produto":"Cafe 500g","qtd":1,"preco":18.90,"subtotal":18.90,"filial_id":0}
+,
+{"prod_id":7,"produto":"Paozinho","qtd":3,"preco":3.50,"subtotal":10.50,"filial_id":0}
+,
+{"prod_id":10,"produto":"Detergente 500ml","qtd":2,"preco":4.20,"subtotal":8.40,"filial_id":0}
+]}
+,
+{"id":3,"data":"2026-07-12","hora":"18:00:00","cliente":"Cliente C","total":9.80,"forma_pg":"PIX","filial_id":0,"itens":[
+{"prod_id":8,"produto":"Refrigerante 2L","qtd":1,"preco":9.80,"subtotal":9.80,"filial_id":0}
+]}
+],"total_vendas":3}

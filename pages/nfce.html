@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — NFC-e</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item active" href="nfce.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg>
+                <span class="menu-label">NFC-e</span>
+            </a>
+            <a class="menu-item" href="certificados.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-lock"/></svg>
+                <span class="menu-label">Certificados</span>
+            </a>
+            <a class="menu-item" href="produtos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+                <span class="menu-label">Produtos</span>
+            </a>
+            <a class="menu-item" href="../index4.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                <span class="menu-label">Dashboard</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg>
+                <span class="topbar-title">NFC-e (Modelo 65)</span>
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <span class="topbar-user-info">
+                    <span id="user-name-display">Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex;gap:var(--space-4)">
+                <!-- Side Panel: Configuração -->
+                <div style="width:340px;flex-shrink:0">
+                    <div class="glass-panel" style="padding:var(--space-4)">
+                        <h3 style="margin-bottom:var(--space-4)">Configuração</h3>
+                        <div class="field">
+                            <label>Certificado A1</label>
+                            <select class="form-input" id="cert-id">
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Senha do certificado</label>
+                            <input class="form-input" id="cert-senha" type="password" placeholder="Senha do PFX">
+                        </div>
+                        <div class="field">
+                            <label>Ambiente</label>
+                            <select class="form-input" id="ambiente">
+                                <option value="2">Homologação</option>
+                                <option value="1">Produção</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>Série</label>
+                            <input class="form-input" id="serie" type="number" value="1" min="0" max="999">
+                        </div>
+                        <div class="field">
+                            <label>Número (deixe 0 para automático)</label>
+                            <input class="form-input" id="numero" type="number" value="0" min="0">
+                        </div>
+                        <div class="field">
+                            <label>Venda</label>
+                            <select class="form-input" id="venda-id">
+                                <option value="">Selecione uma venda...</option>
+                            </select>
+                        </div>
+                        <hr style="margin:var(--space-4) 0;border:none;border-top:1px solid var(--border-color)">
+                        <h4 style="margin-bottom:var(--space-3)">Emitente / CSC</h4>
+                        <div class="field">
+                            <label>CRT (Regime tributário)</label>
+                            <select class="form-input" id="crt">
+                                <option value="1">1 — Simples Nacional</option>
+                                <option value="2">2 — Simples Nacional (excesso sublimite)</option>
+                                <option value="3">3 — Regime Normal</option>
+                            </select>
+                        </div>
+                        <div class="field">
+                            <label>CSC ID (token)</label>
+                            <input class="form-input" id="csc-id" type="text" placeholder="1" autocomplete="off">
+                        </div>
+                        <div class="field">
+                            <label>CSC (Código de Segurança)</label>
+                            <input class="form-input" id="csc" type="password" placeholder="CSC da SEFAZ" autocomplete="off">
+                        </div>
+                        <div id="csc-warning" style="display:none;padding:var(--space-2) var(--space-3);margin-bottom:var(--space-3);border-radius:var(--radius-sm);background:var(--color-warning-bg);color:var(--color-warning);font-size:var(--font-xs)">
+                            CSC vazio — configure o código de homologação/produção da SEFAZ antes de emitir.
+                        </div>
+                        <button class="dialog-btn" style="width:100%;margin-bottom:var(--space-2)" onclick="salvarEmitente()" id="btn-salvar-emitente">
+                            Salvar emitente
+                        </button>
+                        <button class="dialog-btn dialog-btn-primary" style="width:100%;margin-top:var(--space-2)" onclick="emitir()" id="btn-emitir">
+                            Emitir NFC-e
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Panel: Resultado -->
+                <div style="flex:1;min-width:0">
+                    <div class="workspace-header" style="padding-top:0">
+                        <div class="workspace-breadcrumb">FiscalBrasil / Fiscal / NFC-e</div>
+                        <h2 class="workspace-title">Emissão de NFC-e</h2>
+                    </div>
+                    <div class="workspace-content">
+                        <div id="result-area">
+                            <div class="glass-panel" style="padding:var(--space-6);text-align:center;color:var(--text-secondary)">
+                                <svg class="icon" style="width:48px;height:48px;opacity:.3;margin-bottom:var(--space-3)"><use href="../assets/images/icons.svg#icon-printer"/></svg>
+                                <h3>NFC-e</h3>
+                                <p style="font-size:var(--font-sm);margin-top:var(--space-2)">Selecione uma venda e configure o certificado para emitir</p>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:var(--space-4)">
+                            <h3 style="margin-bottom:var(--space-3)">Notas emitidas</h3>
+                            <div id="historico-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .status-badge {display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:var(--font-xs);font-weight:var(--font-semibold)}
+    .status-badge.autorizado {background:var(--color-success-bg);color:var(--color-success)}
+    .status-badge.rejeitado {background:var(--color-danger-bg);color:var(--color-danger)}
+    .status-badge.denegado {background:var(--color-warning-bg);color:var(--color-warning)}
+    .status-badge.processando {background:var(--color-info-bg);color:var(--color-info)}
+    .status-badge.erro {background:var(--color-danger-bg);color:var(--color-danger)}
+    .result-panel {padding:var(--space-4);border-radius:var(--radius-sm);margin-bottom:var(--space-3)}
+    .result-panel.success {border-left:4px solid var(--color-success);background:var(--color-success-bg)}
+    .result-panel.error {border-left:4px solid var(--color-danger);background:var(--color-danger-bg)}
+    .result-panel.warning {border-left:4px solid var(--color-warning);background:var(--color-warning-bg)}
+    .xml-preview {max-height:300px;overflow:auto;background:var(--bg-elevated);padding:var(--space-3);border-radius:var(--radius-sm);font-family:monospace;font-size:var(--font-xs);white-space:pre-wrap;word-break:break-all}
+</style>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+    async function api(path, opts = {}) {
+        return window.api(path, opts);
+    }
+function atualizarAvisoCsc() {
+        const csc = (document.getElementById("csc").value || "").trim();
+        const warn = document.getElementById("csc-warning");
+        warn.style.display = csc ? "none" : "block";
+    }
+
+async function loadConfig() {
+        const data = await api("/api/admin/fiscal/nfce/empresa");
+        if (data.status !== "ok") return;
+        const empresa = data.empresa || {};
+        const certs = data.certificados || [];
+
+        const sel = document.getElementById("cert-id");
+        sel.innerHTML = '<option value="">Selecione...</option>';
+        certs.forEach(c => {
+            if (c.ativo !== false) {
+                const opt = document.createElement("option");
+                opt.value = c.id;
+                opt.textContent = `${c.nome || c.razao_social} (${c.documento})`;
+                sel.appendChild(opt);
+            }
+        });
+
+        if (empresa.certificado) {
+            for (const c of certs) {
+                if (c.arquivo === empresa.certificado || c.documento === empresa.cnpj) {
+                    sel.value = c.id;
+                    break;
+                }
+            }
+        }
+
+        document.getElementById("crt").value = String(empresa.crt || 1);
+        document.getElementById("csc-id").value = empresa.csc_id || "1";
+        document.getElementById("csc").value = empresa.csc || "";
+        atualizarAvisoCsc();
+        document.getElementById("csc").oninput = atualizarAvisoCsc;
+    }
+
+    async function salvarEmitente() {
+        const btn = document.getElementById("btn-salvar-emitente");
+        btn.disabled = true;
+        btn.textContent = "Salvando...";
+        try {
+            const data = await api("/api/admin/fiscal/empresa", {
+                method: "POST",
+                body: JSON.stringify({
+                    crt: parseInt(document.getElementById("crt").value, 10),
+                    csc_id: document.getElementById("csc-id").value.trim() || "1",
+                    csc: document.getElementById("csc").value.trim(),
+                })
+            });
+            if (data.status === "ok") {
+                alert("Emitente salvo com sucesso");
+                atualizarAvisoCsc();
+            } else {
+                alert(data.message || "Erro ao salvar emitente");
+            }
+        } catch (e) {
+            alert(e.message || "Erro de conexão");
+        }
+        btn.disabled = false;
+        btn.textContent = "Salvar emitente";
+    }
+
+    async function loadVendas() {
+        const vendasRes = await api("/api/vendas").catch(()=>null);
+        let vendas = [];
+        if (vendasRes && vendasRes.vendas) {
+            vendas = vendasRes.vendas;
+        }
+        const sel = document.getElementById("venda-id");
+        sel.innerHTML = '<option value="">Selecione uma venda...</option>';
+        vendas.forEach(v => {
+            const opt = document.createElement("option");
+            opt.value = v.id;
+            opt.textContent = `#${v.id} - ${v.cliente||"Consumidor"} - R$ ${parseFloat(v.total||0).toFixed(2)} (${v.data||""})`;
+            sel.appendChild(opt);
+        });
+    }
+
+    async function loadHistorico() {
+        const container = document.getElementById("historico-container");
+        const data = await api("/api/admin/fiscal/nfce/listar");
+        if (data.status !== "ok" || !data.nfce || data.nfce.length === 0) {
+            container.innerHTML = '<div class="glass-panel" style="padding:var(--space-4);text-align:center;color:var(--text-secondary)">Nenhuma NFC-e emitida</div>';
+            return;
+        }
+        const statusClass = s => {
+            if (s === "AUTORIZADO") return "autorizado";
+            if (s === "DENEGADO") return "denegado";
+            if (s?.startsWith("REJEITADO")) return "rejeitado";
+            if (s === "PROCESSANDO") return "processando";
+            return "erro";
+        };
+        container.innerHTML = `
+            <div class="dg-wrapper">
+                <div class="dg-scroll">
+                    <table class="dg-table">
+                        <thead><tr class="dg-header">
+                            <th class="dg-th" style="width:40px">#</th>
+                            <th class="dg-th">Número</th>
+                            <th class="dg-th">Chave</th>
+                            <th class="dg-th">Status</th>
+                            <th class="dg-th">Protocolo</th>
+                            <th class="dg-th">Data</th>
+                            <th class="dg-th">Ações</th>
+                        </tr></thead>
+                        <tbody>
+                            ${[...data.nfce].reverse().map(n => `
+                            <tr class="dg-row">
+                                <td class="dg-cell dg-cell-center" onclick='viewXml(${JSON.stringify(n).replace(/'/g,"&#39;")})' style="cursor:pointer">${n.venda_id}</td>
+                                <td class="dg-cell" onclick='viewXml(${JSON.stringify(n).replace(/'/g,"&#39;")})' style="cursor:pointer">${n.serie||1}-${n.numero}</td>
+                                <td class="dg-cell" style="font-size:var(--font-xs);max-width:250px;overflow:hidden;text-overflow:ellipsis;cursor:pointer" onclick='viewXml(${JSON.stringify(n).replace(/'/g,"&#39;")})'>${n.chave||'-'}</td>
+                                <td class="dg-cell"><span class="status-badge ${statusClass(n.status)}">${n.status||'?'}</span></td>
+                                <td class="dg-cell" style="font-size:var(--font-xs)">${n.protocolo||n.nProt||'-'}</td>
+                                <td class="dg-cell" style="font-size:var(--font-xs)">${n.data||''}</td>
+                                <td class="dg-cell" style="white-space:nowrap" onclick="event.stopPropagation()">
+                                    ${n.status === 'AUTORIZADO' ? `<button class="btn btn-sm btn-danger" onclick="cancelar('${n.chave||''}','${n.protocolo||n.nProt||''}')">Cancelar</button>` : ''}
+                                    ${n.chave ? `<button class="btn btn-sm btn-primary" onclick="downloadDanfe('${n.chave}')">DANFE</button>` : ''}
+                                </td>
+                            </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding:var(--space-3);text-align:center;color:var(--text-secondary);font-size:var(--font-sm)">
+                    ${data.nfce.length} nota${data.nfce.length!==1?'s':''} emitida${data.nfce.length!==1?'s':''}
+                </div>
+            </div>
+        `;
+    }
+
+    async function emitir() {
+        const certId = document.getElementById("cert-id").value;
+        const certSenha = document.getElementById("cert-senha").value;
+        const ambiente = document.getElementById("ambiente").value;
+        const serie = document.getElementById("serie").value;
+        const numero = document.getElementById("numero").value;
+        const vendaId = document.getElementById("venda-id").value;
+
+        const errs = [];
+        if (!certId) errs.push("Certificado");
+        if (!certSenha) errs.push("Senha do certificado");
+        if (!vendaId) errs.push("Venda");
+        if (errs.length) {
+            alert("Preencha: " + errs.join(", "));
+            return;
+        }
+
+        const btn = document.getElementById("btn-emitir");
+        btn.disabled = true;
+        btn.textContent = "Emitindo...";
+        document.getElementById("result-area").innerHTML = '<div class="glass-panel" style="padding:var(--space-4);text-align:center">Emitindo NFC-e junto à SEFAZ...</div>';
+
+        try {
+            const data = await api("/api/admin/fiscal/nfce/autorizar", {
+                method: "POST",
+                body: JSON.stringify({
+                    venda_id: vendaId,
+                    cert_id: certId,
+                    cert_senha: certSenha,
+                    ambiente: parseInt(ambiente),
+                    serie: parseInt(serie),
+                    numero: parseInt(numero),
+                })
+            });
+
+            if (data.status === "ok") {
+                const r = data.resultado || {};
+                const isOk = r.status === "AUTORIZADO";
+                const panelClass = isOk ? "success" : r.status === "DENEGADO" ? "warning" : "error";
+                let motivoHtml = r.xMotivo ? `<p style="margin-top:var(--space-2);font-size:var(--font-sm)"><strong>Motivo:</strong> ${r.xMotivo}</p>` : "";
+
+                document.getElementById("result-area").innerHTML = `
+                    <div class="result-panel ${panelClass}">
+                        <h3 style="display:flex;align-items:center;gap:8px">
+                            ${isOk ? '✓ NFC-e AUTORIZADA' : '✗ NFC-e ' + r.status}
+                            <span class="status-badge ${isOk?'autorizado':'erro'}" style="margin-left:auto">${r.cStat||''}</span>
+                        </h3>
+                        ${r.chave ? `<p style="margin-top:var(--space-2)"><strong>Chave:</strong> ${r.chave}</p>` : ""}
+                        ${r.nProt || r.protocolo ? `<p><strong>Protocolo:</strong> ${r.nProt || r.protocolo}</p>` : ""}
+                        ${motivoHtml}
+                        ${data.numero ? `<p><strong>Número:</strong> ${serie}-${data.numero}</p>` : ""}
+                    </div>
+                `;
+                loadHistorico();
+            } else {
+                document.getElementById("result-area").innerHTML = `
+                    <div class="result-panel error">
+                        <h3>✗ Erro na emissão</h3>
+                        <p style="margin-top:var(--space-2)">${data.message || "Erro desconhecido"}</p>
+                    </div>
+                `;
+            }
+        } catch (e) {
+            document.getElementById("result-area").innerHTML = `
+                <div class="result-panel error">
+                    <h3>✗ Erro de conexão</h3>
+                    <p style="margin-top:var(--space-2)">${e.message}</p>
+                </div>
+            `;
+        }
+
+        btn.disabled = false;
+        btn.textContent = "Emitir NFC-e";
+    }
+
+    function viewXml(data) {
+        const xml = data.xml || "";
+        const area = document.getElementById("result-area");
+        const statusClass = s => {
+            if (s === "AUTORIZADO") return "success";
+            if (s === "DENEGADO") return "warning";
+            if (s === "ERRO_TRANSMISSAO" || s?.startsWith("REJEITADO")) return "error";
+            return "";
+        };
+        area.innerHTML = `
+            <div class="result-panel ${statusClass(data.status)}">
+                <h3>NFC-e #${data.serie||1}-${data.numero}</h3>
+                <p><strong>Status:</strong> <span class="status-badge ${statusClass(data.status)}">${data.status||'?'}</span></p>
+                <p><strong>Chave:</strong> ${data.chave||'-'}</p>
+                <p><strong>Protocolo:</strong> ${data.protocolo||data.nProt||'-'}</p>
+                ${data.cStat ? `<p><strong>cStat:</strong> ${data.cStat}</p>` : ""}
+                ${data.xMotivo ? `<p><strong>Motivo:</strong> ${data.xMotivo}</p>` : ""}
+                ${xml ? `
+                <details style="margin-top:var(--space-3)">
+                    <summary style="cursor:pointer;font-weight:var(--font-semibold);color:var(--text-secondary)">Ver XML</summary>
+                    <div class="xml-preview">${escapeXml(xml)}</div>
+                </details>` : ""}
+            </div>
+        `;
+    }
+
+    function escapeXml(s) {
+        return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function cancelar(chave, protocolo) {
+        if (!chave || !protocolo) return alert("Chave/protocolo inválidos");
+        if (!confirm("Confirmar cancelamento desta NFC-e?")) return;
+        const cert = document.getElementById("cert-id").value;
+        const senha = document.getElementById("cert-senha").value;
+        if (!cert || !senha) return alert("Selecione o certificado e informe a senha");
+        try {
+            const d = await api("/api/admin/fiscal/nfce/cancelar", {
+                method: "POST",
+                body: JSON.stringify({
+                    chave, protocolo,
+                    cert_id: cert,
+                    cert_senha: senha,
+                    ambiente: parseInt(document.getElementById("ambiente").value, 10),
+                    justificativa: "Cancelamento manual",
+                })
+            });
+            alert(d.resultado?.xMotivo || d.message || "Cancelado");
+            loadHistorico();
+        } catch (e) {
+            alert(e.message || "Erro ao cancelar");
+        }
+    }
+
+    async function downloadDanfe(chave) {
+        if (!chave) return alert("Chave inválida");
+        const res = await Auth.fetch("/api/admin/fiscal/danfe", {
+            method: "POST",
+            body: JSON.stringify({ chave, modelo: "65" }),
+        });
+        if (res.ok) {
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            window.open(url, "_blank");
+        } else {
+            try {
+                const err = await res.json();
+                alert(err.message || "Erro ao gerar DANFE");
+            } catch (_) {
+                alert("Erro ao gerar DANFE");
+            }
+        }
+    }
+
+    document.addEventListener("auth:ready", function () {
+        loadConfig();
+        loadVendas();
+        loadHistorico();
+        });
+</script>
+
+</body>
+</html>

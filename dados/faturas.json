@@ -1,0 +1,140 @@
+{
+  "faturas": [
+    {
+      "id": 1,
+      "chave": "29250905949989000289550010002485661311213556",
+      "fornecedor": "REISTAR INDUSTRIA E COMERCIO DE ELETRONICOS LTDA",
+      "fornecedor_cnpj": "05949989000289",
+      "numero_nf": "248566",
+      "valor": 10399.91,
+      "data_emissao": "2025-09-17",
+      "data_vencimento": "2025-10-17",
+      "data_importacao": "2026-07-17 18:09:42",
+      "status": "PAGO",
+      "data_pagamento": "2026-07-17"
+    },
+    {
+      "id": 2,
+      "chave": "41250977500049008465550010016007721017394160",
+      "fornecedor": "MERCADOMOVEIS LTDA",
+      "fornecedor_cnpj": "77500049008465",
+      "numero_nf": "1600772",
+      "valor": 51000.0,
+      "data_emissao": "2025-09-07",
+      "data_vencimento": "2025-10-07",
+      "data_importacao": "2026-07-17 18:09:49",
+      "status": "PENDENTE"
+    },
+    {
+      "id": 3,
+      "chave": "52250922962737000128550010017599091090361420",
+      "fornecedor": "GAZIN ATACADO CENTRO-OESTE LTDA",
+      "fornecedor_cnpj": "22962737000128",
+      "numero_nf": "1759909",
+      "valor": 8899.0,
+      "data_emissao": "2025-09-10",
+      "data_vencimento": "2025-10-10",
+      "data_importacao": "2026-07-17 18:09:49",
+      "status": "PENDENTE"
+    },
+    {
+      "id": 4,
+      "chave": "35250944742211001228550010000334171090334170",
+      "fornecedor": "MOVEIS LANZA LTDA",
+      "fornecedor_cnpj": "44742211001228",
+      "numero_nf": "33417",
+      "valor": 19920.38,
+      "data_emissao": "2025-09-11",
+      "data_vencimento": "2025-10-11",
+      "data_importacao": "2026-07-17 18:12:28",
+      "status": "PENDENTE"
+    },
+    {
+      "id": 5,
+      "chave": "41250911494894000130550010000264941000307644",
+      "fornecedor": "MOPAR INDUSTRIA E COMERCIO DE MOVEIS LTDA",
+      "fornecedor_cnpj": "11494894000130",
+      "numero_nf": "26494",
+      "valor": 12369.41,
+      "data_emissao": "2025-09-05",
+      "data_vencimento": "2025-10-05",
+      "data_importacao": "2026-07-17 18:12:28",
+      "status": "PENDENTE"
+    },
+    {
+      "id": 6,
+      "chave": "41250975341800000175550010004011441094011440",
+      "fornecedor": "ARAMOVEIS INDUSTRIA DE MOVEIS LTDA-EM REC JUDICIAL",
+      "fornecedor_cnpj": "75341800000175",
+      "numero_nf": "401144",
+      "valor": 8086.54,
+      "data_emissao": "2025-09-17",
+      "data_vencimento": "2025-10-17",
+      "data_importacao": "2026-07-17 18:12:28",
+      "status": "PENDENTE"
+    },
+    {
+      "id": 7,
+      "chave": "41250985074623000242550020007489921576219703",
+      "fornecedor": "DJ-INDUSTRIA E COMERCIO DE MOVEIS LTDA",
+      "fornecedor_cnpj": "85074623000242",
+      "numero_nf": "748992",
+      "valor": 5169.78,
+      "data_emissao": "2025-09-08",
+      "data_vencimento": "2025-10-08",
+      "data_importacao": "2026-07-17 18:12:28",
+      "status": "PENDENTE"
+    },
+    {
+      "id": 8,
+      "chave": "41250995443594000111550010000277311213406369",
+      "fornecedor": "FORMA STYLO COLCHOES E ESPUMAS LTDA",
+      "fornecedor_cnpj": "95443594000111",
+      "numero_nf": "27731",
+      "valor": 10530.0,
+      "data_emissao": "2025-09-11",
+      "data_vencimento": "2025-10-11",
+      "data_importacao": "2026-07-17 18:12:28",
+      "status": "PENDENTE"
+    },
+    {
+      "id": 9,
+      "chave": "42250901789035000114550010000202221760938912",
+      "fornecedor": "FAIMEC - INDUSTRIA E COMERCIO DE MOVEIS LTDA",
+      "fornecedor_cnpj": "01789035000114",
+      "numero_nf": "20222",
+      "valor": 15373.92,
+      "data_emissao": "2025-09-05",
+      "data_vencimento": "2025-10-05",
+      "data_importacao": "2026-07-17 18:12:28",
+      "status": "PENDENTE"
+    },
+    {
+      "id": 10,
+      "chave": "42250909104629000156550020001537851320420873",
+      "fornecedor": "BEST COMERCIAL IMPORTADORA LTDA",
+      "fornecedor_cnpj": "09104629000156",
+      "numero_nf": "153785",
+      "valor": 15938.51,
+      "data_emissao": "2025-09-11",
+      "data_vencimento": "2025-10-11",
+      "data_importacao": "2026-07-17 18:12:28",
+      "status": "PENDENTE"
+    },
+    {
+      "id": 11,
+      "chave": "42250911416589000120550010000411451481100105",
+      "fornecedor": "CHAMALUX IND. COM. IMP. E EXP. LTDA",
+      "fornecedor_cnpj": "11416589000120",
+      "numero_nf": "41145",
+      "valor": 7313.33,
+      "data_emissao": "2025-09-16",
+      "data_vencimento": "2025-10-16",
+      "data_importacao": "2026-07-17 18:12:28",
+      "status": "PENDENTE"
+    }
+  ],
+  "total": 11,
+  "total_pendente": 154600.87,
+  "total_pago": 10399.91
+}

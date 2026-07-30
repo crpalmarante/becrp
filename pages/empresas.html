@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — Empresas</title>
+    <meta name="theme-color" content="#714B67">
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item" href="configuracoes.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+                <span class="menu-label">Configurações</span>
+            </a>
+            <a class="menu-item" href="usuarios.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-heart"/></svg>
+                <span class="menu-label">Usuários</span>
+            </a>
+            <a class="menu-item active" href="empresas.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="menu-label">Empresas</span>
+            </a>
+            <a class="menu-item" href="../index4.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                <span class="menu-label">Dashboard</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="topbar-title">Empresas / Filiais</span>
+            </div>
+            <div class="topbar-search">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+                <input class="topbar-search-input" id="empresa-search" placeholder="Buscar empresas...">
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <button class="topbar-icon-btn" onclick="openModal()" title="Nova empresa">
+                    <svg class="icon"><use href="../assets/images/icons.svg#icon-plus"/></svg>
+                </button>
+                <span class="topbar-user-info">
+                    <span id="user-name-display">Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
+                <div class="workspace-header">
+                    <div class="workspace-breadcrumb">FiscalBrasil / Administração / Empresas</div>
+                    <h2 class="workspace-title">Gerenciar Empresas e Filiais</h2>
+                </div>
+                <div class="workspace-content">
+                    <div id="empresas-container"></div>
+                </div>
+                <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+                    <div class="status-bar-left">
+                        <span id="status-user-info">Usuário: Administrador</span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span>Versão 1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dialog-overlay" id="empresa-modal">
+    <div class="dialog-box">
+        <div class="dialog-header">
+            <h3 class="dialog-title" id="modal-title">Nova Empresa</h3>
+            <button class="dialog-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <form id="empresa-form">
+                <div class="field">
+                    <label>Nome fantasia</label>
+                    <input class="form-input" id="edit-nome" required>
+                </div>
+                <div class="field">
+                    <label>CNPJ</label>
+                    <input class="form-input" id="edit-cnpj" placeholder="00.000.000/0001-00">
+                </div>
+                <div class="field">
+                    <label>Inscrição Estadual</label>
+                    <input class="form-input" id="edit-ie" placeholder="123.456.789.000">
+                </div>
+                <div class="grid grid-cols-2" style="gap:var(--space-3)">
+                    <div class="field">
+                        <label>Cidade</label>
+                        <input class="form-input" id="edit-cidade">
+                    </div>
+                    <div class="field">
+                        <label>UF</label>
+                        <select class="form-input" id="edit-uf">
+                            <option value="">--</option>
+                            <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+                            <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+                            <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+                            <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+                            <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+                            <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
+                            <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+                            <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+                            <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-error" id="empresa-form-error"></div>
+            </form>
+        </div>
+        <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="dialog-btn dialog-btn-primary" onclick="save()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+    let editingId = null;
+    let allEmpresas = [];
+    async function api(path, opts = {}) {
+        return window.api(path, opts);
+    }
+async function load() {
+        const container = document.getElementById("empresas-container");
+        container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem">Carregando...</div>';
+        const data = await api("/api/admin/empresas");
+        if (data.status !== "ok") {
+            container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem;color:var(--color-danger)">Acesso negado</div>';
+            return;
+        }
+        allEmpresas = data.empresas || [];
+        render();
+    }
+
+    function render() {
+        const q = (document.getElementById("empresa-search").value || "").toLowerCase();
+        const filtered = q ? allEmpresas.filter(e => e.nome.toLowerCase().includes(q) || (e.cnpj||"").includes(q)) : allEmpresas;
+
+        document.getElementById("empresas-container").innerHTML = `
+            <div class="dg-wrapper">
+                <div class="dg-scroll">
+                    <table class="dg-table">
+                        <thead><tr class="dg-header">
+                            <th class="dg-th" style="width:40px"><div class="dg-th-content">#</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Empresa</div></th>
+                            <th class="dg-th"><div class="dg-th-content">CNPJ</div></th>
+                            <th class="dg-th"><div class="dg-th-content">IE</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Cidade/UF</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Status</div></th>
+                            <th class="dg-th" style="width:100px"><div class="dg-th-content">Ações</div></th>
+                        </tr></thead>
+                        <tbody>
+                            ${filtered.map(e => `
+                            <tr class="dg-row" style="${e.ativo===false?'opacity:.5':''}">
+                                <td class="dg-cell dg-cell-center">${e.id.substring(0,6)}</td>
+                                <td class="dg-cell"><strong>${e.nome}</strong></td>
+                                <td class="dg-cell">${e.cnpj||'-'}</td>
+                                <td class="dg-cell">${e.ie||'-'}</td>
+                                <td class="dg-cell">${e.cidade||'-'}/${e.uf||'-'}</td>
+                                <td class="dg-cell"><span class="badge badge-${e.ativo!==false?'success':'danger'}">${e.ativo!==false?'Ativo':'Inativo'}</span></td>
+                                <td class="dg-cell">
+                                    <button class="dg-page" onclick='edit(${JSON.stringify(e).replace(/'/g,"&#39;")})' title="Editar">✎</button>
+                                    <button class="dg-page" onclick="toggle('${e.id}')" title="${e.ativo!==false?'Desativar':'Ativar'}">${e.ativo!==false?'⏸':'▶'}</button>
+                                </td>
+                            </tr>`).join('')}
+                            ${filtered.length===0?'<tr><td class="dg-cell" colspan="7" style="text-align:center;padding:2rem">Nenhuma empresa cadastrada</td></tr>':''}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding:var(--space-4);text-align:center;color:var(--text-secondary);font-size:var(--font-sm)">
+                    ${filtered.length} empresa${filtered.length!==1?'s':''} cadastrada${filtered.length!==1?'s':''}
+                </div>
+            </div>
+        `;
+    }
+
+    function edit(data) {
+        editingId = data.id;
+        document.getElementById("modal-title").textContent = "Editar Empresa";
+        document.getElementById("edit-nome").value = data.nome||"";
+        document.getElementById("edit-cnpj").value = data.cnpj||"";
+        document.getElementById("edit-ie").value = data.ie||"";
+        document.getElementById("edit-cidade").value = data.cidade||"";
+        document.getElementById("edit-uf").value = data.uf||"";
+        document.getElementById("empresa-form-error").classList.remove("visible");
+        document.getElementById("empresa-modal").classList.add("dialog-open");
+    }
+
+    function openModal() {
+        editingId = null;
+        document.getElementById("modal-title").textContent = "Nova Empresa";
+        document.getElementById("edit-nome").value = "";
+        document.getElementById("edit-cnpj").value = "";
+        document.getElementById("edit-ie").value = "";
+        document.getElementById("edit-cidade").value = "";
+        document.getElementById("edit-uf").value = "";
+        document.getElementById("empresa-form-error").classList.remove("visible");
+        document.getElementById("empresa-modal").classList.add("dialog-open");
+    }
+
+    function closeModal() {
+        document.getElementById("empresa-modal").classList.remove("dialog-open");
+        editingId = null;
+    }
+
+    async function save() {
+        const nome = document.getElementById("edit-nome").value.trim();
+        const cnpj = document.getElementById("edit-cnpj").value.trim();
+        const ie = document.getElementById("edit-ie").value.trim();
+        const cidade = document.getElementById("edit-cidade").value.trim();
+        const uf = document.getElementById("edit-uf").value;
+        const errEl = document.getElementById("empresa-form-error");
+        errEl.classList.remove("visible");
+
+        if (!nome) { errEl.textContent = "Nome é obrigatório"; errEl.classList.add("visible"); return; }
+
+        let data;
+        if (editingId) {
+            data = await api("/api/admin/empresas/"+editingId, {
+                method: "POST",
+                body: JSON.stringify({ action: "update", nome, cnpj, ie, cidade, uf })
+            });
+        } else {
+            data = await api("/api/admin/empresas", {
+                method: "POST",
+                body: JSON.stringify({ nome, cnpj, ie, cidade, uf })
+            });
+        }
+
+        if (data.status !== "ok") {
+            errEl.textContent = data.message || "Erro ao salvar";
+            errEl.classList.add("visible");
+            return;
+        }
+        closeModal();
+        load();
+    }
+
+    async function toggle(id) {
+        await api("/api/admin/empresas/"+id, {
+            method: "POST",
+            body: JSON.stringify({ action: "toggle" })
+        });
+        load();
+    }
+
+    document.addEventListener("auth:ready", function () {
+        load();
+        document.getElementById("empresa-search").addEventListener("input", render);
+        });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Vendas Corporativas</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.scope-note{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600;
+  background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.25);
+}
+.view{display:none}
+.view.active{display:block}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel)}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{
+  text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);
+  color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap;
+}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+table.data tr{cursor:pointer}
+.badge{
+  display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;
+  background:rgba(20,184,166,.15);color:#5eead4;
+}
+.badge-pendente{background:rgba(234,179,8,.15);color:#fde68a}
+.badge-aprovado{background:rgba(59,130,246,.15);color:#93c5fd}
+.badge-faturado{background:rgba(34,197,94,.15);color:#86efac}
+.badge-rascunho{background:rgba(148,163,184,.15);color:#cbd5e1}
+.money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.cnpj{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace;font-size:12px;color:var(--text-muted)}
+.empresa-cell{display:flex;flex-direction:column;gap:2px}
+.empresa-cell strong{font-weight:600}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
+.toolbar .form-input{max-width:320px}
+.tab-btn{
+  border:1px solid var(--border-color);background:var(--surface-panel);
+  color:var(--text-secondary);padding:8px 16px;border-radius:999px;
+  cursor:pointer;font-size:var(--font-sm);font-weight:600;
+}
+.tab-btn:hover{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:var(--text-primary)}
+.detail{
+  margin-top:var(--space-4);padding:var(--space-4);
+  background:var(--surface-panel);border:1px solid var(--border-color);
+  border-radius:var(--radius-panel);display:none;
+}
+.detail.show{display:block}
+.muted{color:var(--text-muted)}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.dash-header{margin-bottom:var(--space-4)}
+.dash-header h2{margin:0;font-size:1.4rem;letter-spacing:-.02em}
+.dash-header p{margin:6px 0 0;color:var(--text-muted);font-size:var(--font-sm)}
+.menu-submenu.open{max-height:640px}
+.menu-item.has-children .menu-arrow{margin-left:auto;transition:transform .2s}
+.menu-item.has-children.open .menu-arrow{transform:rotate(180deg)}
+.menu-item.soon .menu-label{opacity:.75}
+.menu-item .soon-tag{
+  margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--text-muted);opacity:.8;
+}
+
+/* Formulário Cotação / Pedido */
+.so-smart{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.so-smart-btn{
+  min-width:88px;padding:10px 12px;border-radius:12px;text-align:center;
+  background:var(--surface-panel);border:1px solid var(--border-color);
+  cursor:pointer;color:var(--text-primary);font-size:12px;
+}
+.so-smart-btn strong{display:block;font-size:1.1rem;font-weight:700}
+.so-smart-btn span{color:var(--text-muted)}
+.so-smart-btn:hover{border-color:rgba(20,184,166,.45);background:rgba(20,184,166,.1)}
+.so-actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.so-btn{
+  border:1px solid var(--border-color);background:var(--surface-panel);
+  color:var(--text-primary);padding:8px 14px;border-radius:8px;
+  cursor:pointer;font-size:13px;font-weight:600;
+}
+.so-btn:hover{background:rgba(255,255,255,.08)}
+.so-btn.primary{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
+.toolbar .so-btn.primary{margin-left:auto}
+.so-btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fca5a5}
+.so-btn.ghost{opacity:.85}
+.so-status{
+  display:inline-flex;align-items:center;gap:8px;margin-bottom:16px;
+  padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;
+}
+.so-card{
+  background:var(--surface-panel);border:1px solid var(--border-color);
+  border-radius:var(--radius-panel);padding:16px;margin-bottom:16px;
+}
+.so-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 16px}
+.so-field label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.so-field .val,.so-field input,.so-field textarea,.so-field select{
+  width:100%;background:rgba(0,0,0,.2);border:1px solid var(--border-color);
+  border-radius:8px;color:var(--text-primary);padding:8px 10px;font-size:13px;
+}
+.so-field textarea{min-height:90px;resize:vertical}
+.so-field .val{min-height:38px;display:flex;align-items:center}
+.so-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;border-bottom:1px solid var(--border-color);padding-bottom:8px}
+.so-tab{
+  border:0;background:transparent;color:var(--text-muted);padding:8px 12px;
+  cursor:pointer;font-weight:600;font-size:13px;border-radius:8px 8px 0 0;
+}
+.so-tab.active{color:#5eead4;background:rgba(20,184,166,.12)}
+.so-pane{display:none}
+.so-pane.active{display:block}
+.so-lines th,.so-lines td{font-size:12px;white-space:nowrap}
+.so-lines td.wrap{white-space:normal;min-width:140px}
+.so-totals{
+  margin-top:14px;margin-left:auto;width:min(320px,100%);
+  background:rgba(255,255,255,.03);border:1px solid var(--border-color);
+  border-radius:12px;padding:12px 14px;
+}
+.so-totals .row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
+.so-totals .row.total{font-weight:700;font-size:1.05rem;border-top:1px solid var(--border-color);margin-top:6px;padding-top:10px;color:#5eead4}
+.so-back{margin-bottom:12px}
+
+</style>
+</head>
+<body>
+
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav" id="vendas-nav"></nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="topbar-title">Vendas Corporativas</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="scope-note">CNPJ → CNPJ</span>
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex;flex-direction:column">
+
+        <div class="view active" id="view-dashboard">
+          <div class="workspace-content">
+            <div class="dash-header">
+              <div class="workspace-breadcrumb">BECRP / Vendas Corporativas</div>
+              <h2>Dashboard do módulo</h2>
+              <p>Visão B2B — o que aconteceu, o que está em andamento e o que exige atenção.</p>
+            </div>
+            <div class="dashboard-kpis" id="dash-kpis"></div>
+            <div class="dashboard-widgets" id="dash-widgets"></div>
+          </div>
+        </div>
+
+        <div class="view" id="view-pedidos">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Pedidos de Venda</div>
+            <h2 class="workspace-title">Pedidos de Venda (B2B)</h2>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar">
+              <input class="form-input" id="search" placeholder="Buscar por CNPJ, razão social, UF...">
+              <button type="button" class="tab-btn" id="btn-refresh">Atualizar</button>
+              <button type="button" class="so-btn primary" id="btn-novo-pedido">+ Novo Pedido</button>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Número</th>
+                    <th>Data</th>
+                    <th>Empresa (CNPJ)</th>
+                    <th>UF</th>
+                    <th>Condição</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="vendas-tbody">
+                  <tr><td colspan="7" class="empty">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="view" id="view-cotacoes">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Cotações</div>
+            <h2 class="workspace-title">Cotações (Quotations)</h2>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar">
+              <button type="button" class="tab-btn" id="btn-refresh-cotacoes">Atualizar</button>
+              <button type="button" class="so-btn primary" id="btn-nova-cotacao">+ Nova Cotação</button>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Número</th>
+                    <th>Data</th>
+                    <th>Validade</th>
+                    <th>Empresa (CNPJ)</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="cotacoes-tbody">
+                  <tr><td colspan="6" class="empty">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulário Cotação / Pedido -->
+        <div class="view" id="view-form">
+          <div class="workspace-content">
+            <button type="button" class="so-btn ghost so-back" id="btn-back-list">← Voltar à lista</button>
+
+            <div class="so-smart" id="so-smart"></div>
+            <div class="so-actions" id="so-actions"></div>
+            <div id="so-status"></div>
+
+            <div class="so-card">
+              <div class="so-grid" id="so-header"></div>
+            </div>
+
+            <div class="so-tabs" role="tablist">
+              <button type="button" class="so-tab active" data-pane="linhas">Linhas do Pedido</button>
+              <button type="button" class="so-tab" data-pane="extras">Informações Extras</button>
+              <button type="button" class="so-tab" data-pane="notas">Notas</button>
+            </div>
+
+            <div class="so-pane active" id="pane-linhas">
+              <div class="table-wrap">
+                <table class="data so-lines">
+                  <thead>
+                    <tr>
+                      <th>Produto</th>
+                      <th>Descrição</th>
+                      <th>Qtd</th>
+                      <th>Unidade</th>
+                      <th>Preço Unit.</th>
+                      <th>Desc. %</th>
+                      <th>Impostos %</th>
+                      <th>Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody id="so-lines-body"></tbody>
+                </table>
+              </div>
+              <div class="so-totals" id="so-totals"></div>
+            </div>
+
+            <div class="so-pane" id="pane-extras">
+              <div class="so-card"><div class="so-field"><label>Informações extras</label><div class="val" id="so-extras">—</div></div></div>
+            </div>
+            <div class="so-pane" id="pane-notas">
+              <div class="so-card"><div class="so-field"><label>Notas</label><div class="val" id="so-notas" style="min-height:90px;align-items:flex-start">—</div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="view" id="view-placeholder">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb" id="ph-crumb">BECRP / Vendas</div>
+            <h2 class="workspace-title" id="ph-title">Em construção</h2>
+          </div>
+          <div class="workspace-content">
+            <div class="glass-panel empty">
+              <p><strong id="ph-name">Componente</strong></p>
+              <p class="muted" style="margin-top:8px" id="ph-desc">Esta área do módulo de Vendas Corporativas será implementada em seguida.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+          <div class="status-bar-left"><span id="status-user-info">Usuário: —</span></div>
+          <div class="status-bar-right"><span>Vendas B2B · BECRP v1.0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+(function () {
+  let pedidos = [];
+
+  const I = "../assets/images/icons.svg";
+
+  /* Estrutura oficial do menu Vendas */
+  const MENU = [
+    { id: "dashboard", label: "Dashboard", icon: "icon-home", type: "view" },
+    {
+      id: "grp-pedidos", label: "Pedidos", icon: "icon-file-text", type: "group", open: true,
+      items: [
+        { id: "cotacoes", label: "Cotações", icon: "icon-file-text", type: "view", section: "Pedidos" },
+        { id: "pedidos", label: "Pedidos de Venda", icon: "icon-dollar", type: "view", section: "Pedidos" },
+        { id: "clientes", label: "Clientes", icon: "icon-users", type: "link", href: "contatos.html", section: "Pedidos" },
+        { id: "produtos-atalho", label: "Produtos", icon: "icon-box", type: "link", href: "produtos.html", section: "Pedidos" },
+      ]
+    },
+    {
+      id: "grp-produtos", label: "Produtos", icon: "icon-box", type: "group",
+      items: [
+        { id: "produtos", label: "Produtos", icon: "icon-box", type: "link", href: "produtos.html", section: "Produtos" },
+        { id: "variantes", label: "Variantes", icon: "icon-filter", type: "soon", section: "Produtos" },
+        { id: "lista-precos", label: "Lista de Preços", icon: "icon-dollar", type: "soon", section: "Produtos" },
+        { id: "descontos", label: "Descontos", icon: "icon-percent", type: "soon", section: "Produtos",
+          fallbackIcon: "icon-dollar" },
+        { id: "uom", label: "Unidades de Medida", icon: "icon-box", type: "soon", section: "Produtos" },
+        { id: "embalagens", label: "Embalagens", icon: "icon-box", type: "soon", section: "Produtos" },
+        { id: "categorias", label: "Categorias de Produtos", icon: "icon-filter", type: "link", href: "categorias.html", section: "Produtos" },
+        { id: "atributos", label: "Atributos", icon: "icon-settings", type: "soon", section: "Produtos" },
+        { id: "etiquetas", label: "Etiquetas (Tags)", icon: "icon-file-text", type: "soon", section: "Produtos" },
+      ]
+    },
+    {
+      id: "grp-clientes", label: "Clientes", icon: "icon-users", type: "group",
+      items: [
+        { id: "clientes-pj", label: "Clientes", icon: "icon-users", type: "link", href: "contatos.html", section: "Clientes" },
+        { id: "contatos", label: "Contatos", icon: "icon-users", type: "link", href: "contatos.html", section: "Clientes" },
+        { id: "enderecos", label: "Endereços de entrega", icon: "icon-truck", type: "soon", section: "Clientes" },
+        { id: "historico", label: "Histórico de compras", icon: "icon-clock", type: "soon", section: "Clientes" },
+      ]
+    },
+    {
+      id: "grp-relatorios", label: "Relatórios", icon: "icon-file-text", type: "group",
+      items: [
+        { id: "rel-analise", label: "Análise de Vendas", icon: "icon-file-text", type: "soon", section: "Relatórios" },
+        { id: "rel-receita", label: "Receita", icon: "icon-dollar", type: "soon", section: "Relatórios" },
+        { id: "rel-margem", label: "Margem", icon: "icon-dollar", type: "soon", section: "Relatórios" },
+        { id: "rel-produtos", label: "Produtos vendidos", icon: "icon-box", type: "soon", section: "Relatórios" },
+        { id: "rel-vendedores", label: "Vendedores", icon: "icon-users", type: "soon", section: "Relatórios" },
+        { id: "rel-comissoes", label: "Comissões", icon: "icon-dollar", type: "soon", section: "Relatórios" },
+        { id: "dashboard", label: "KPI Dashboard", icon: "icon-home", type: "view", section: "Relatórios" },
+      ]
+    },
+    {
+      id: "grp-config", label: "Configurações", icon: "icon-settings", type: "group",
+      items: [
+        { id: "cfg-equipes", label: "Equipes de Venda", icon: "icon-users", type: "soon", section: "Configurações" },
+        { id: "cfg-faturamento", label: "Métodos de Faturamento", icon: "icon-dollar", type: "soon", section: "Configurações" },
+        { id: "cfg-precos", label: "Lista de Preços", icon: "icon-dollar", type: "soon", section: "Configurações" },
+        { id: "cfg-pagamento", label: "Termos de Pagamento", icon: "icon-file-text", type: "soon", section: "Configurações" },
+        { id: "cfg-entrega", label: "Métodos de Entrega", icon: "icon-truck", type: "soon", section: "Configurações" },
+        { id: "cfg-incoterms", label: "Incoterms", icon: "icon-globe", type: "soon", section: "Configurações",
+          fallbackIcon: "icon-file-text" },
+        { id: "cfg-assinaturas", label: "Assinaturas digitais", icon: "icon-lock", type: "soon", section: "Configurações" },
+        { id: "cfg-portal", label: "Portal do Cliente", icon: "icon-users", type: "soon", section: "Configurações" },
+        { id: "cfg-catalogo", label: "Catálogo de Produtos", icon: "icon-box", type: "soon", section: "Configurações" },
+        { id: "cfg-aprovacao", label: "Aprovação de descontos", icon: "icon-lock", type: "soon", section: "Configurações" },
+        { id: "cfg-multiempresa", label: "Multiempresa", icon: "icon-building", type: "link", href: "empresas.html", section: "Configurações" },
+      ]
+    },
+  ];
+
+  const money = (n) =>
+    (Number(n) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const STATUS_LABEL = {
+    pendente: "Pendente",
+    aprovado: "Aprovado",
+    faturado: "Faturado",
+    rascunho: "Rascunho",
+  };
+  function onlyDigits(s) { return String(s || "").replace(/\D/g, ""); }
+  function isCnpj(doc) { return onlyDigits(doc).length === 14; }
+  function escapeHtml(s) {
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function iconOf(item) {
+    return item.icon || item.fallbackIcon || "icon-file-text";
+  }
+
+  function renderNav() {
+    const nav = document.getElementById("vendas-nav");
+    let html = "";
+    for (const node of MENU) {
+      if (node.type === "view") {
+        html += `<a class="menu-item" href="#${node.id}" data-nav="${node.id}">
+          <svg class="icon"><use href="${I}#${node.icon}"/></svg>
+          <span class="menu-label">${node.label}</span>
+        </a>`;
+        continue;
+      }
+      if (node.type === "group") {
+        html += `<div class="menu-item has-children ${node.open ? "open" : ""}" data-group="${node.id}">
+          <svg class="icon"><use href="${I}#${node.icon}"/></svg>
+          <span class="menu-label">${node.label}</span>
+          <svg class="icon icon-16 menu-arrow"><use href="${I}#icon-chevron-down"/></svg>
+        </div>`;
+        html += `<div class="menu-submenu ${node.open ? "open" : ""}" id="sub-${node.id}">`;
+        for (const item of node.items) {
+          if (item.type === "link") {
+            html += `<a class="menu-item" href="${item.href}">
+              <svg class="icon"><use href="${I}#${iconOf(item)}"/></svg>
+              <span class="menu-label">${item.label}</span>
+            </a>`;
+          } else if (item.type === "view") {
+            html += `<a class="menu-item" href="#${item.id}" data-nav="${item.id}">
+              <svg class="icon"><use href="${I}#${iconOf(item)}"/></svg>
+              <span class="menu-label">${item.label}</span>
+            </a>`;
+          } else {
+            html += `<a class="menu-item soon" href="#${item.id}" data-nav="${item.id}" data-soon="1"
+              data-section="${item.section || node.label}" data-label="${item.label}">
+              <svg class="icon"><use href="${I}#${iconOf(item)}"/></svg>
+              <span class="menu-label">${item.label}</span>
+              <span class="soon-tag">em breve</span>
+            </a>`;
+          }
+        }
+        html += `</div>`;
+      }
+    }
+    html += `<a class="menu-item" href="../index4.html">
+      <svg class="icon"><use href="${I}#icon-chevron-left"/></svg>
+      <span class="menu-label">Menu</span>
+    </a>`;
+    nav.innerHTML = html;
+
+    nav.querySelectorAll("[data-group]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.dataset.group;
+        const sub = document.getElementById("sub-" + id);
+        el.classList.toggle("open");
+        if (sub) sub.classList.toggle("open");
+      });
+    });
+
+    nav.querySelectorAll("[data-nav]").forEach((a) => {
+      a.addEventListener("click", (e) => {
+        e.preventDefault();
+        showView(a.dataset.nav, {
+          soon: a.dataset.soon === "1",
+          label: a.dataset.label || a.querySelector(".menu-label")?.textContent,
+          section: a.dataset.section || "",
+        });
+      });
+    });
+  }
+
+  let currentDoc = null;
+  let listReturn = "pedidos";
+
+  function showView(id, meta = {}) {
+    const target = id || "dashboard";
+    document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+
+    if (target === "dashboard") {
+      document.getElementById("view-dashboard").classList.add("active");
+    } else if (target === "pedidos") {
+      listReturn = "pedidos";
+      document.getElementById("view-pedidos").classList.add("active");
+      applyFilter();
+    } else if (target === "cotacoes") {
+      listReturn = "cotacoes";
+      document.getElementById("view-cotacoes").classList.add("active");
+      renderCotacoes();
+    } else if (target === "form" || target.startsWith("doc-")) {
+      document.getElementById("view-form").classList.add("active");
+    } else {
+      document.getElementById("view-placeholder").classList.add("active");
+      const section = meta.section || "Vendas";
+      const label = meta.label || target;
+      document.getElementById("ph-crumb").textContent = `BECRP / Vendas / ${section}`;
+      document.getElementById("ph-title").textContent = label;
+      document.getElementById("ph-name").textContent = label;
+      document.getElementById("ph-desc").textContent = meta.soon
+        ? "Componente previsto no módulo de Vendas Corporativas (B2B). Em implementação."
+        : "Área do módulo de Vendas.";
+    }
+
+    document.querySelectorAll("#vendas-nav [data-nav]").forEach((a) => {
+      const activeNav = target === "form" ? listReturn : target;
+      a.classList.toggle("active", a.dataset.nav === activeNav);
+    });
+    if (!target.startsWith("doc-") && target !== "form") {
+      history.replaceState(null, "", "#" + target);
+    }
+  }
+
+  window.addEventListener("hashchange", () => {
+    const raw = (location.hash || "#dashboard").slice(1);
+    if (raw.startsWith("doc-")) {
+      openForm(raw.replace("doc-", ""));
+      return;
+    }
+    const link = document.querySelector(`#vendas-nav [data-nav="${raw}"]`);
+    showView(raw, {
+      soon: link?.dataset.soon === "1",
+      label: link?.dataset.label || link?.querySelector(".menu-label")?.textContent,
+      section: link?.dataset.section || "",
+    });
+  });
+
+  function calcLine(i) {
+    const qtd = Number(i.qtd) || 0;
+    const preco = Number(i.preco) || 0;
+    const desc = Number(i.desconto) || 0;
+    const base = qtd * preco * (1 - desc / 100);
+    return Number(i.subtotal != null ? i.subtotal : base);
+  }
+
+  function calcTotals(doc) {
+    const lines = doc.itens || [];
+    let subtotal = 0;
+    let impostos = 0;
+    lines.forEach((i) => {
+      const line = calcLine(i);
+      const tax = Number(i.imposto) || 0;
+      subtotal += line;
+      impostos += line * (tax / 100);
+    });
+    return { subtotal, impostos, total: subtotal + impostos };
+  }
+
+  function nextId() {
+    return pedidos.reduce((m, p) => Math.max(m, Number(p.id) || 0), 1000) + 1;
+  }
+
+  function nextNumero(tipo) {
+    const prefix = tipo === "cotacao" ? "S" : "PV";
+    const same = pedidos.filter((p) => p.tipo === tipo || (!p.tipo && tipo === "pedido"));
+    const n = same.length + 1;
+    return prefix + String(n).padStart(5, "0");
+  }
+
+  function createNew(tipo) {
+    const hoje = new Date();
+    const ymd = hoje.toISOString().slice(0, 10);
+    const validade = new Date(hoje.getTime() + 15 * 86400000).toISOString().slice(0, 10);
+    const id = nextId();
+    const doc = {
+      id,
+      numero: nextNumero(tipo),
+      tipo,
+      data: ymd,
+      hora: hoje.toTimeString().slice(0, 8),
+      validade,
+      razao_social: "",
+      cnpj: "",
+      ie: "",
+      cidade: "",
+      uf: "",
+      endereco_cobranca: "",
+      endereco_entrega: "",
+      lista_precos: "Lista padrão B2B",
+      vendedor: (JSON.parse(localStorage.getItem("user_data") || "{}").nome) || "Admin",
+      equipe: "",
+      ref_cliente: "",
+      empresa: "BECRP Matriz",
+      condicao_pg: "",
+      forma_pg: "",
+      status: "rascunho",
+      notas: "",
+      info_extra: "",
+      smart: { entregas: 0, faturas: 0, compras: 0, assinaturas: 0, projetos: 0, tarefas: 0 },
+      itens: [],
+    };
+    pedidos.unshift(doc);
+    STATUS_LABEL.rascunho = STATUS_LABEL.rascunho || "Rascunho";
+    openForm(id);
+  }
+
+  function openForm(id) {
+    const v = pedidos.find((x) => String(x.id) === String(id));
+    if (!v) return;
+    currentDoc = v;
+    listReturn = v.tipo === "cotacao" ? "cotacoes" : "pedidos";
+    const totals = calcTotals(v);
+    const tipoLabel = v.tipo === "cotacao" ? "Cotação" : "Pedido de Venda";
+    const st = v.status || "pendente";
+    const smart = v.smart || {};
+
+    document.getElementById("so-smart").innerHTML = [
+      ["Entregas", smart.entregas || 0],
+      ["Faturas", smart.faturas || 0],
+      ["Compras", smart.compras || 0],
+      ["Assinaturas", smart.assinaturas || 0],
+      ["Projetos", smart.projetos || 0],
+      ["Tarefas", smart.tarefas || 0],
+    ].map(([label, n]) => `
+      <button type="button" class="so-smart-btn" data-smart="${label}">
+        <strong>${n}</strong><span>${label}</span>
+      </button>`).join("");
+
+    document.getElementById("so-actions").innerHTML = `
+      <button type="button" class="so-btn primary" data-action="confirmar">Confirmar</button>
+      <button type="button" class="so-btn" data-action="email">Enviar por E-mail</button>
+      <button type="button" class="so-btn" data-action="imprimir">Imprimir</button>
+      <button type="button" class="so-btn" data-action="fatura">Criar Fatura</button>
+      <button type="button" class="so-btn" data-action="duplicar">Duplicar</button>
+      <button type="button" class="so-btn" data-action="bloquear">Bloquear</button>
+      <button type="button" class="so-btn danger" data-action="cancelar">Cancelar</button>
+    `;
+
+    document.getElementById("so-status").innerHTML =
+      `<div class="so-status badge badge-${escapeHtml(st)}">${tipoLabel} · ${STATUS_LABEL[st] || st}</div>`;
+
+    document.getElementById("so-header").innerHTML = [
+      ["Número", v.numero || ("#" + v.id)],
+      ["Cliente", `${v.razao_social || "—"} · ${v.cnpj || ""}`],
+      ["Endereço de cobrança", v.endereco_cobranca || "—"],
+      ["Endereço de entrega", v.endereco_entrega || "—"],
+      ["Lista de preços", v.lista_precos || "—"],
+      ["Vendedor", v.vendedor || "—"],
+      ["Equipe", v.equipe || "—"],
+      ["Referência do cliente", v.ref_cliente || "—"],
+      ["Data", `${v.data || "—"} ${v.hora || ""}`],
+      ["Validade da cotação", v.validade || "—"],
+      ["Empresa", v.empresa || "—"],
+      ["Condição / Pagamento", `${v.condicao_pg || "—"} · ${v.forma_pg || ""}`],
+    ].map(([label, val]) => `
+      <div class="so-field">
+        <label>${label}</label>
+        <div class="val">${escapeHtml(String(val))}</div>
+      </div>`).join("");
+
+    document.getElementById("so-lines-body").innerHTML = (v.itens || []).map((i) => `
+      <tr>
+        <td>${escapeHtml(i.produto || i.prod_id)}</td>
+        <td class="wrap">${escapeHtml(i.descricao || "—")}</td>
+        <td>${i.qtd}</td>
+        <td>${escapeHtml(i.uom || "UN")}</td>
+        <td class="money">${money(i.preco)}</td>
+        <td>${Number(i.desconto) || 0}%</td>
+        <td>${Number(i.imposto) || 0}%</td>
+        <td class="money">${money(calcLine(i))}</td>
+      </tr>`).join("") || '<tr><td colspan="8" class="empty">Sem linhas</td></tr>';
+
+    document.getElementById("so-totals").innerHTML = `
+      <div class="row"><span>Subtotal</span><span class="money">${money(totals.subtotal)}</span></div>
+      <div class="row"><span>Impostos</span><span class="money">${money(totals.impostos)}</span></div>
+      <div class="row total"><span>Total</span><span class="money">${money(totals.total)}</span></div>
+    `;
+
+    document.getElementById("so-extras").textContent = v.info_extra || "—";
+    document.getElementById("so-notas").textContent = v.notas || "—";
+
+    document.querySelectorAll(".so-tab").forEach((t) => t.classList.toggle("active", t.dataset.pane === "linhas"));
+    document.querySelectorAll(".so-pane").forEach((p) => p.classList.toggle("active", p.id === "pane-linhas"));
+
+    showView("form");
+    history.replaceState(null, "", "#doc-" + v.id);
+
+    document.querySelectorAll("#so-actions [data-action]").forEach((btn) => {
+      btn.onclick = () => {
+        const a = btn.dataset.action;
+        alert(`Ação "${a}" no ${tipoLabel} ${v.numero || v.id} — em breve (workflow B2B).`);
+      };
+    });
+    document.querySelectorAll("#so-smart [data-smart]").forEach((btn) => {
+      btn.onclick = () => {
+        alert(`Smart button "${btn.dataset.smart}" — em breve.`);
+      };
+    });
+  }
+
+  document.querySelectorAll(".so-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".so-tab").forEach((t) => t.classList.toggle("active", t === tab));
+      document.querySelectorAll(".so-pane").forEach((p) => {
+        p.classList.toggle("active", p.id === "pane-" + tab.dataset.pane);
+      });
+    });
+  });
+
+  document.getElementById("btn-back-list").addEventListener("click", () => {
+    showView(listReturn);
+  });
+
+  function renderList(list) {
+    const tbody = document.getElementById("vendas-tbody");
+    const onlyPedidos = list.filter((v) => v.tipo !== "cotacao");
+    if (!onlyPedidos.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">Nenhum pedido corporativo (CNPJ) encontrado</td></tr>';
+      return;
+    }
+    tbody.innerHTML = onlyPedidos.map((v) => {
+      const st = v.status || "pendente";
+      const tot = calcTotals(v).total;
+      return `<tr data-id="${v.id}">
+        <td><span class="badge">${escapeHtml(v.numero || "#" + v.id)}</span></td>
+        <td>${v.data || "—"}</td>
+        <td><div class="empresa-cell"><strong>${escapeHtml(v.razao_social || "—")}</strong><span class="cnpj">${escapeHtml(v.cnpj || "—")}</span></div></td>
+        <td>${escapeHtml(v.uf || "—")}</td>
+        <td>${escapeHtml(v.condicao_pg || v.forma_pg || "—")}</td>
+        <td><span class="badge badge-${escapeHtml(st)}">${STATUS_LABEL[st] || st}</span></td>
+        <td class="money">${money(tot)}</td>
+      </tr>`;
+    }).join("");
+    tbody.querySelectorAll("tr[data-id]").forEach((tr) => {
+      tr.addEventListener("click", () => openForm(tr.dataset.id));
+    });
+  }
+
+  function renderCotacoes() {
+    const tbody = document.getElementById("cotacoes-tbody");
+    const list = pedidos.filter((v) => v.tipo === "cotacao");
+    if (!list.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhuma cotação encontrada</td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map((v) => {
+      const st = v.status || "pendente";
+      const tot = calcTotals(v).total;
+      return `<tr data-id="${v.id}">
+        <td><span class="badge">${escapeHtml(v.numero || "#" + v.id)}</span></td>
+        <td>${v.data || "—"}</td>
+        <td>${v.validade || "—"}</td>
+        <td><div class="empresa-cell"><strong>${escapeHtml(v.razao_social || "—")}</strong><span class="cnpj">${escapeHtml(v.cnpj || "—")}</span></div></td>
+        <td><span class="badge badge-${escapeHtml(st)}">${STATUS_LABEL[st] || st}</span></td>
+        <td class="money">${money(tot)}</td>
+      </tr>`;
+    }).join("");
+    tbody.querySelectorAll("tr[data-id]").forEach((tr) => {
+      tr.addEventListener("click", () => openForm(tr.dataset.id));
+    });
+  }
+
+  function applyFilter() {
+    const q = (document.getElementById("search").value || "").trim().toLowerCase();
+    const qDigits = onlyDigits(q);
+    const base = pedidos.filter((v) => v.tipo !== "cotacao");
+    const filtered = !q ? base : base.filter((v) => {
+      const blob = [v.razao_social, v.cnpj, v.uf, v.cidade, v.condicao_pg, v.status, v.numero, v.id].join(" ").toLowerCase();
+      return blob.includes(q) || (qDigits && onlyDigits(v.cnpj).includes(qDigits));
+    });
+    renderList(filtered);
+  }
+  function renderDashboard() {
+    const total = pedidos.reduce((s, p) => s + calcTotals(p).total, 0);
+    const pendentes = pedidos.filter((p) => p.status === "pendente").length;
+    const faturados = pedidos.filter((p) => p.status === "faturado").length;
+    const empresas = new Set(pedidos.map((p) => onlyDigits(p.cnpj))).size;
+
+    document.getElementById("dash-kpis").innerHTML = [
+      { label: "Volume negociado", value: money(total), icon: "icon-dollar", color: "primary", change: "+12%" },
+      { label: "Pedidos pendentes", value: String(pendentes), icon: "icon-file-text", color: "warning", change: pendentes ? "atenção" : "ok" },
+      { label: "Pedidos faturados", value: String(faturados), icon: "icon-printer", color: "success", change: "+8%" },
+      { label: "Empresas (CNPJ)", value: String(empresas), icon: "icon-building", color: "info", change: String(empresas) },
+    ].map((k) => `
+      <div class="kpi-card kpi-${k.color}">
+        <div class="kpi-header">
+          <span class="kpi-icon"><svg class="icon icon-lg"><use href="${I}#${k.icon}"/></svg></span>
+          <span class="kpi-change">${k.change}</span>
+        </div>
+        <div class="kpi-value">${k.value}</div>
+        <div class="kpi-label">${k.label}</div>
+      </div>`).join("");
+
+    const recent = [...pedidos].sort((a, b) => String(b.data).localeCompare(String(a.data))).slice(0, 5);
+    const maxBar = Math.max(...pedidos.map((p) => calcTotals(p).total), 1);
+
+    document.getElementById("dash-widgets").innerHTML = `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header">
+          <svg class="icon icon-md"><use href="${I}#icon-plus"/></svg>
+          <span class="widget-title">Ações rápidas</span>
+        </div>
+        <div class="quick-actions-grid">
+          <a class="quick-action-btn" href="#pedidos" data-go="pedidos"><svg class="icon"><use href="${I}#icon-dollar"/></svg><span>Pedidos de Venda</span></a>
+          <a class="quick-action-btn" href="#cotacoes" data-go="cotacoes"><svg class="icon"><use href="${I}#icon-file-text"/></svg><span>Cotações</span></a>
+          <a class="quick-action-btn" href="contatos.html"><svg class="icon"><use href="${I}#icon-users"/></svg><span>Clientes</span></a>
+          <a class="quick-action-btn" href="produtos.html"><svg class="icon"><use href="${I}#icon-box"/></svg><span>Produtos</span></a>
+          <a class="quick-action-btn" href="produtos.html?novo=1&retorno=${encodeURIComponent('/pages/vendas.html#dashboard')}"><svg class="icon"><use href="${I}#icon-plus"/></svg><span>Novo produto</span></a>
+        </div>
+      </div>
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header">
+          <svg class="icon icon-md"><use href="${I}#icon-clock"/></svg>
+          <span class="widget-title">Atividade recente</span>
+        </div>
+        <div class="activity-list">
+          ${recent.length ? recent.map((p) => `
+            <div class="activity-item">
+              <span class="activity-dot activity-${p.status === "pendente" ? "warning" : p.status === "faturado" ? "success" : "info"}"></span>
+              <div class="activity-content">
+                <span class="activity-text">${escapeHtml(p.numero || "#" + p.id)} · ${escapeHtml(p.razao_social || "")}</span>
+                <span class="activity-time">${escapeHtml(p.data || "")} · ${STATUS_LABEL[p.status] || p.status} · ${money(calcTotals(p).total)}</span>
+              </div>
+            </div>`).join("") : '<div class="empty">Sem atividade</div>'}
+        </div>
+      </div>
+      <div class="dashboard-widget widget-lg">
+        <div class="widget-header">
+          <svg class="icon icon-md"><use href="${I}#icon-dollar"/></svg>
+          <span class="widget-title">Volume por pedido</span>
+        </div>
+        <div class="chart-bars">
+          ${pedidos.map((p) => `
+            <div class="chart-bar-col">
+              <div class="chart-bar" style="height:${(calcTotals(p).total / maxBar) * 100}%">
+                <span class="chart-bar-value">${money(calcTotals(p).total)}</span>
+              </div>
+              <span class="chart-bar-label">${escapeHtml(p.numero || "#" + p.id)}</span>
+            </div>`).join("")}
+        </div>
+      </div>`;
+
+    document.querySelectorAll("[data-go]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.preventDefault();
+        const link = document.querySelector(`#vendas-nav [data-nav="${el.dataset.go}"]`);
+        showView(el.dataset.go, {
+          soon: link?.dataset.soon === "1",
+          label: link?.dataset.label || el.textContent.trim(),
+          section: link?.dataset.section || "Pedidos",
+        });
+      });
+    });
+  }
+
+  async function load() {
+    try {
+      const data = await window.api("/api/vendas/b2b");
+      const drafts = pedidos.filter((p) => p.status === "rascunho");
+      const remote = (data.pedidos || []).filter((p) => isCnpj(p.cnpj));
+      const draftIds = new Set(drafts.map((d) => d.id));
+      pedidos = [...drafts, ...remote.filter((p) => !draftIds.has(p.id))];
+      renderDashboard();
+      applyFilter();
+      if (listReturn === "cotacoes") renderCotacoes();
+    } catch (e) {
+      document.getElementById("dash-kpis").innerHTML =
+        '<div class="empty" style="color:#fca5a5">Erro ao carregar dashboard B2B</div>';
+    }
+  }
+
+  const initial = (location.hash || "#dashboard").slice(1);
+  renderNav();
+  document.getElementById("search").addEventListener("input", applyFilter);
+  document.getElementById("btn-refresh").addEventListener("click", load);
+  document.getElementById("btn-refresh-cotacoes").addEventListener("click", () => {
+    load().then(() => renderCotacoes());
+  });
+  document.getElementById("btn-novo-pedido").addEventListener("click", () => createNew("pedido"));
+  document.getElementById("btn-nova-cotacao").addEventListener("click", () => createNew("cotacao"));
+
+  if (initial.startsWith("doc-")) {
+    load().then(() => openForm(initial.replace("doc-", "")));
+  } else {
+    const link = document.querySelector(`#vendas-nav [data-nav="${initial}"]`);
+    if (initial === "pedidos" || initial === "cotacoes" || initial === "dashboard" || link) {
+      showView(initial, {
+        soon: link?.dataset.soon === "1",
+        label: link?.dataset.label || link?.querySelector(".menu-label")?.textContent,
+        section: link?.dataset.section || "",
+      });
+    } else {
+      showView("dashboard");
+    }
+    load();
+  }
+})();
+</script>
+</body>
+</html>

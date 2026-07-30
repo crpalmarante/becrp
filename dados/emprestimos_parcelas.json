@@ -1,0 +1,25 @@
+{
+  "parcelas": [
+    {
+      "id": 1,
+      "emprestimo_id": 1,
+      "numero": 1,
+      "valor": 520.0,
+      "data_vencimento": "2026-08-01",
+      "data_pagamento": "2026-07-19",
+      "status": "paid",
+      "holerite_id": ""
+    },
+    {
+      "id": 2,
+      "emprestimo_id": 1,
+      "numero": 2,
+      "valor": 520.0,
+      "data_vencimento": "2026-08-31",
+      "data_pagamento": "2026-07-19",
+      "status": "paid",
+      "holerite_id": ""
+    }
+  ],
+  "prox_id": 3
+}

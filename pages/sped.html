@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — SPED</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item" href="cte.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">CT-e</span></a>
+            <a class="menu-item" href="mdfe.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-map"/></svg><span class="menu-label">MDF-e</span></a>
+            <a class="menu-item active" href="sped.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">SPED</span></a>
+            <a class="menu-item" href="nfe.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">NF-e</span></a>
+            <a class="menu-item" href="nfce.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg><span class="menu-label">NFC-e</span></a>
+            <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+        </nav>
+    </aside>
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+                <span>SPED — Sistema Público de Escrituração Digital</span>
+            </div>
+            <div id="user-info" class="topbar-user"></div>
+        </header>
+        <div class="content">
+            <div class="card">
+                <div class="card-header"><h3>SPED Fiscal (ICMS/IPI)</h3></div>
+                <div class="card-body">
+                    <p>Gera o arquivo SPED Fiscal (EFD ICMS/IPI) com base nas NF-e e NFC-e emitidas no período.</p>
+                    <div style="margin-top:12px">
+                        <label>Competência (MM/AAAA):</label>
+                        <input type="month" id="competencia">
+                        <button class="btn btn-primary" onclick="gerarFiscal()">Gerar SPED Fiscal</button>
+                    </div>
+                    <pre id="sped-fiscal-out" style="margin-top:12px;background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:8px;max-height:400px;overflow:auto;font-size:11px;display:none"></pre>
+                </div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <div class="card-header"><h3>SPED PIS/COFINS</h3></div>
+                <div class="card-body">
+                    <p>Gera o arquivo SPED PIS/COFINS (EFD Contribuições).</p>
+                    <div style="margin-top:12px">
+                        <label>Competência (MM/AAAA):</label>
+                        <input type="month" id="competencia-pis">
+                        <button class="btn btn-primary" onclick="gerarPIS()">Gerar SPED PIS/COFINS</button>
+                    </div>
+                    <pre id="sped-pis-out" style="margin-top:12px;background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:8px;max-height:400px;overflow:auto;font-size:11px;display:none"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+const API = "/api/admin/fiscal";
+
+async function api(path, body) {
+    const opts = {};
+    if (body) { opts.method = "POST"; opts.body = JSON.stringify(body); }
+    return Auth.fetch(path, opts);
+}
+
+async function gerarFiscal() {
+    const competencia = document.getElementById("competencia").value.replace("-", "");
+    const d = await api(API + "/sped/fiscal?competencia=" + competencia);
+    const pre = document.getElementById("sped-fiscal-out");
+    pre.style.display = "block";
+    if (d.conteudo) {
+        pre.textContent = d.conteudo;
+        downloadTxt(d.conteudo, d.filename || "sped_fiscal.txt");
+    } else {
+        pre.textContent = d.message || "Erro ao gerar SPED";
+    }
+}
+
+async function gerarPIS() {
+    const competencia = document.getElementById("competencia-pis").value.replace("-", "");
+    const d = await api(API + "/sped/pis?competencia=" + competencia);
+    const pre = document.getElementById("sped-pis-out");
+    pre.style.display = "block";
+    if (d.conteudo) {
+        pre.textContent = d.conteudo;
+        downloadTxt(d.conteudo, d.filename || "sped_pis.txt");
+    } else {
+        pre.textContent = d.message || "Erro ao gerar SPED";
+    }
+}
+
+function downloadTxt(content, filename) {
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+}
+
+// Set default month
+const now = new Date();
+const mes = String(now.getMonth() + 1).padStart(2, "0");
+document.getElementById("competencia").value = now.getFullYear() + "-" + mes;
+document.getElementById("competencia-pis").value = now.getFullYear() + "-" + mes;
+</script>
+</body>
+</html>

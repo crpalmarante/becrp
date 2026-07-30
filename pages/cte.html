@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — CT-e</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item active" href="cte.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+                <span class="menu-label">CT-e</span>
+            </a>
+            <a class="menu-item" href="mdfe.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-map"/></svg>
+                <span class="menu-label">MDF-e</span>
+            </a>
+            <a class="menu-item" href="sped.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+                <span class="menu-label">SPED</span>
+            </a>
+            <a class="menu-item" href="nfe.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">NF-e</span></a>
+            <a class="menu-item" href="nfce.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg><span class="menu-label">NFC-e</span></a>
+            <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+        </nav>
+    </aside>
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+                <span>CT-e — Conhecimento de Transporte Eletrônico</span>
+            </div>
+            <div id="user-info" class="topbar-user"></div>
+        </header>
+        <div class="content">
+            <div class="card">
+                <div class="card-header"><h3>Cadastro CT-e</h3></div>
+                <div class="card-body">
+                    <div class="grid-3">
+                        <div><label>Número</label><input type="number" id="num" value="1"></div>
+                        <div><label>Série</label><input type="number" id="serie" value="1"></div>
+                        <div><label>Chave</label><input type="text" id="chave"></div>
+                        <div><label>Emitente CNPJ</label><input type="text" id="cnpj_emit"></div>
+                        <div><label>Emitente Nome</label><input type="text" id="nome_emit"></div>
+                        <div><label>Destinatário CNPJ</label><input type="text" id="cnpj_dest"></div>
+                        <div><label>Destinatário Nome</label><input type="text" id="nome_dest"></div>
+                        <div><label>Mun. Origem</label><input type="text" id="mun_ini"></div>
+                        <div><label>UF Origem</label><input type="text" id="uf_ini" maxlength="2"></div>
+                        <div><label>Mun. Destino</label><input type="text" id="mun_fim"></div>
+                        <div><label>UF Destino</label><input type="text" id="uf_fim" maxlength="2"></div>
+                        <div><label>Valor</label><input type="number" id="valor" step="0.01"></div>
+                    </div>
+                    <div style="margin-top:12px">
+                        <button class="btn btn-primary" onclick="salvar()">Salvar</button>
+                        <button class="btn btn-secondary" onclick="limpar()">Novo</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <div class="card-header"><h3>Lista CT-e</h3><button class="btn btn-sm btn-secondary" onclick="listar()">Atualizar</button></div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead><tr><th>ID</th><th>Número</th><th>Série</th><th>Emitente</th><th>Destinatário</th><th>Origem</th><th>Destino</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+const API = "/api/admin/fiscal/cte";
+async function api(path, body) {
+    const opts = {};
+    if (body) { opts.method = "POST"; opts.body = JSON.stringify(body); }
+    return Auth.fetch(path, opts);
+}
+function get(f) { return document.getElementById(f).value; }
+function set(f, v) { document.getElementById(f).value = v; }
+
+async function salvar() {
+    const id = document.getElementById("edit-id")?.value;
+    const body = {
+        action: id ? "alterar" : "incluir",
+        numero: get("num"), serie: get("serie"), chave: get("chave"),
+        cnpj_emit: get("cnpj_emit"), nome_emit: get("nome_emit"),
+        cnpj_dest: get("cnpj_dest"), nome_dest: get("nome_dest"),
+        mun_ini: get("mun_ini"), uf_ini: get("uf_ini"),
+        mun_fim: get("mun_fim"), uf_fim: get("uf_fim"),
+        valor: get("valor"), status: "CADASTRADO",
+    };
+    if (id) body.id = id;
+    const d = await api(API, body);
+    alert(d.message || "OK");
+    limpar(); document.addEventListener("auth:ready", function () {
+    listar();
+});
+}
+async function editar(id) {
+    const d = await api(API, {action:"incluir",id});
+    // reload list and fill form
+    const r = await api(API);
+    const item = (r.cte||[]).find(x => x.id == id);
+    if (!item) return;
+    document.getElementById("edit-id")?.remove();
+    const inp = document.createElement("input");
+    inp.type = "hidden"; inp.id = "edit-id"; inp.value = id;
+    document.querySelector(".card .card-body").prepend(inp);
+    for (const k of ["num","serie","chave","cnpj_emit","nome_emit","cnpj_dest","nome_dest","mun_ini","uf_ini","mun_fim","uf_fim","valor"]) {
+        const v = item[k.replace("num","numero")];
+        if (v !== undefined) set(k, v);
+    }
+}
+async function excluir(id) {
+    if (!confirm("Excluir CT-e?")) return;
+    const d = await api(API, {action:"excluir", id});
+    alert(d.message); document.addEventListener("auth:ready", function () {
+    listar();
+});
+}
+async function listar() {
+    const d = await api(API);
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+    for (const item of (d.cte||[])) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${item.id}</td><td>${item.numero}</td><td>${item.serie}</td>
+            <td>${(item.nome_emit||"").slice(0,20)}</td><td>${(item.nome_dest||"").slice(0,20)}</td>
+            <td>${item.mun_ini||""}/${item.uf_ini||""}</td><td>${item.mun_fim||""}/${item.uf_fim||""}</td>
+            <td>R$ ${parseFloat(item.valor||0).toFixed(2)}</td>
+            <td>${item.status||""}</td>
+            <td><button class="btn btn-sm btn-secondary" onclick="editar(${item.id})">Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="excluir(${item.id})">Excluir</button></td>`;
+        tbody.appendChild(tr);
+    }
+}
+function limpar() {
+    document.getElementById("edit-id")?.remove();
+    for (const f of ["num","serie","chave","cnpj_emit","nome_emit","cnpj_dest","nome_dest","mun_ini","uf_ini","mun_fim","uf_fim","valor"])
+        set(f, "");
+    set("num", "1"); set("serie", "1");
+}
+document.addEventListener("auth:ready", function () {
+    listar();
+});
+</script>
+</body>
+</html>

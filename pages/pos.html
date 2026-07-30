@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — POS</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/pos.css">
+</head>
+<body>
+
+<div id="pos-app">
+  <header id="pos-topbar">
+    <div class="pos-brand" onclick="location.href='../index4.html'" title="Menu">
+      <div class="mark">BF</div>
+      <div>
+        <strong>BECRP POS</strong>
+        <span id="top-mode-label">Terminal PDV</span>
+      </div>
+    </div>
+
+    <div class="pos-mode" role="tablist" aria-label="Modo do terminal">
+      <button type="button" class="active" data-mode="pdv">PDV</button>
+      <button type="button" data-mode="caixa">Caixa</button>
+    </div>
+
+    <div class="pos-top-spacer"></div>
+
+    <div class="pos-meta">
+      <span class="dot" title="Online"></span>
+      <span id="op-name">Operador</span>
+      <span id="clock">--:--</span>
+      <button type="button" class="pos-icon-btn" title="Voltar ao menu" onclick="location.href='../index4.html'">☰</button>
+    </div>
+  </header>
+
+  <!-- ═══ PDV ═══ -->
+  <div id="view-pdv" class="active">
+    <div id="pos-body">
+      <aside id="pos-sessions" aria-label="Sessões de venda">
+        <button type="button" class="ss-btn active" data-session="1"><strong>1</strong><span>ativa</span></button>
+        <button type="button" class="ss-btn" data-session="2"><strong>2</strong><span>susp.</span><span class="ss-badge">3</span></button>
+        <button type="button" class="ss-btn new" title="Nova venda" id="btn-new-session">+</button>
+      </aside>
+
+      <div id="pos-workspace">
+        <!-- Catálogo -->
+        <section class="pos-panel" id="pos-catalog">
+          <div class="pos-panel-head">
+            <input class="pos-search" id="prod-search" placeholder="Buscar produto, EAN ou SKU" autocomplete="off">
+          </div>
+          <div class="pos-cats" id="prod-cats"></div>
+          <div id="prod-grid"></div>
+        </section>
+
+        <!-- Pedido (itens) -->
+        <section class="pos-panel" id="pos-order">
+          <div class="pos-panel-head">
+            <h2>Pedido</h2>
+            <span class="muted" id="order-count">0 itens</span>
+          </div>
+          <div id="order-lines">
+            <div class="order-empty" id="order-empty">
+              Escaneie um código ou escolha um produto<br>
+              <span style="font-size:11px;opacity:.8">Os itens entram neste pedido</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Smart Panel: console contextual do operador -->
+        <aside class="pos-panel" id="pos-smart" data-ctx="summary" aria-label="Smart Panel">
+          <div class="smart-bar">
+            <strong id="smart-ctx-name">Resumo do Pedido</strong>
+          </div>
+
+          <!-- Resumo (padrão durante a venda) -->
+          <div id="smart-ctx-summary" class="smart-ctx">
+            <div class="side-block">
+              <h3>Cliente</h3>
+              <button type="button" class="client-chip" id="btn-client" title="Selecionar cliente">
+                <div class="av" id="client-av">CF</div>
+                <div class="who">
+                  <strong id="client-name">Consumidor final</strong>
+                  <span id="client-hint">Toque para buscar</span>
+                </div>
+              </button>
+            </div>
+
+            <div class="side-block">
+              <h3>Itens</h3>
+              <p class="summary-itens" id="summary-items-label">0 produtos</p>
+            </div>
+
+            <div class="side-block grow-summary">
+              <div class="summary-rows console">
+                <div><span>Subtotal</span><strong id="summary-sub">R$ 0,00</strong></div>
+                <div class="actionable" id="btn-open-discount" role="button" tabindex="0">
+                  <span>Desconto</span><strong id="summary-disc">R$ 0,00</strong>
+                </div>
+                <div class="actionable" id="btn-open-surcharge" role="button" tabindex="0">
+                  <span>Acréscimo</span><strong id="summary-acr">R$ 0,00</strong>
+                </div>
+                <div class="total"><span>Total</span><strong id="order-total">R$ 0,00</strong></div>
+              </div>
+            </div>
+
+            <div class="side-block smart-footer">
+              <button type="button" class="pos-cta" id="btn-send-cashier" disabled>Enviar ao caixa</button>
+              <div class="cta-stack">
+                <button type="button" class="pos-cta secondary" id="btn-suspend">Suspender</button>
+                <button type="button" class="pos-cta secondary" id="btn-clear">Limpar</button>
+              </div>
+              <div class="cta-stack" style="grid-template-columns:1fr;margin-top:8px">
+                <button type="button" class="pos-cta secondary" id="btn-side-note" disabled>Observação</button>
+                <button type="button" class="pos-cta secondary" id="btn-side-stock">Consultar estoque</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Desconto (contexto dedicado) -->
+          <div id="smart-ctx-discount" class="smart-ctx" hidden>
+            <div class="side-block">
+              <h3>Tipo</h3>
+              <div class="smart-radios" id="disc-type">
+                <label class="smart-radio"><input type="radio" name="disc-type" value="val" checked> Valor</label>
+                <label class="smart-radio"><input type="radio" name="disc-type" value="pct"> Percentual</label>
+              </div>
+            </div>
+            <div class="side-block">
+              <h3>Valor</h3>
+              <div class="numpad-display" id="disc-display">R$ 0,00</div>
+            </div>
+            <div class="numpad-keys money" id="disc-keys" aria-label="Teclado numérico">
+              <button type="button" data-k="7">7</button>
+              <button type="button" data-k="8">8</button>
+              <button type="button" data-k="9">9</button>
+              <button type="button" data-k="4">4</button>
+              <button type="button" data-k="5">5</button>
+              <button type="button" data-k="6">6</button>
+              <button type="button" data-k="1">1</button>
+              <button type="button" data-k="2">2</button>
+              <button type="button" data-k="3">3</button>
+              <button type="button" data-k="00">00</button>
+              <button type="button" data-k="0">0</button>
+              <button type="button" data-k="bk" title="Apagar">←</button>
+            </div>
+            <div class="numpad-actions">
+              <button type="button" class="pos-cta secondary" id="disc-cancel">Cancelar</button>
+              <button type="button" class="pos-cta" id="disc-apply">Aplicar</button>
+            </div>
+          </div>
+
+          <!-- Pesquisa de Clientes -->
+          <div id="smart-ctx-customer" class="smart-ctx" hidden>
+            <div class="side-block">
+              <input class="pos-search" id="client-search" placeholder="Nome, CPF ou telefone" autocomplete="off">
+            </div>
+            <div class="side-block grow-summary">
+              <p class="mode-note">Lookup de parceiro (ClienteProvider) — resultados aqui.</p>
+              <button type="button" class="client-chip" data-pick-client="cf" style="width:100%;margin-top:8px;text-align:left">
+                <div class="av">CF</div>
+                <div class="who">
+                  <strong>Consumidor final</strong>
+                  <span>Venda sem identificação</span>
+                </div>
+              </button>
+              <button type="button" class="client-chip" data-pick-client="joao" style="width:100%;margin-top:8px;text-align:left">
+                <div class="av">JS</div>
+                <div class="who">
+                  <strong>João da Silva</strong>
+                  <span>Cliente exemplo</span>
+                </div>
+              </button>
+            </div>
+            <div class="side-block smart-footer">
+              <button type="button" class="pos-cta secondary" id="btn-customer-back" style="width:100%">Cancelar</button>
+            </div>
+          </div>
+
+          <!-- Teclado Numérico (qtd / peso / pagamento) -->
+          <div id="smart-ctx-numpad" class="smart-ctx" hidden>
+            <div class="numpad-head">
+              <h3 id="numpad-title">Quantidade</h3>
+              <p class="numpad-sub" id="numpad-sub">—</p>
+            </div>
+            <div class="numpad-display" id="numpad-display">0</div>
+            <div class="numpad-keys" id="numpad-keys" aria-label="Teclado numérico">
+              <button type="button" data-k="7">7</button>
+              <button type="button" data-k="8">8</button>
+              <button type="button" data-k="9">9</button>
+              <button type="button" data-k="4">4</button>
+              <button type="button" data-k="5">5</button>
+              <button type="button" data-k="6">6</button>
+              <button type="button" data-k="1">1</button>
+              <button type="button" data-k="2">2</button>
+              <button type="button" data-k="3">3</button>
+              <button type="button" data-k="00">00</button>
+              <button type="button" data-k="0">0</button>
+              <button type="button" data-k="bk" title="Apagar">←</button>
+            </div>
+            <div class="numpad-actions">
+              <button type="button" class="pos-cta secondary" id="numpad-cancel">Cancelar</button>
+              <button type="button" class="pos-cta" id="numpad-ok">Aplicar</button>
+            </div>
+          </div>
+
+          <!-- Editor de Texto -->
+          <div id="smart-ctx-text" class="smart-ctx" hidden>
+            <div class="numpad-head">
+              <h3 id="text-title">Observação</h3>
+              <p class="numpad-sub" id="text-sub">—</p>
+            </div>
+            <div class="side-block grow-summary">
+              <textarea id="text-editor" class="smart-textarea" rows="6" placeholder="Digite a observação…"></textarea>
+            </div>
+            <div class="numpad-actions">
+              <button type="button" class="pos-cta secondary" id="text-cancel">Cancelar</button>
+              <button type="button" class="pos-cta" id="text-ok">Aplicar</button>
+            </div>
+          </div>
+
+          <!-- Estoque -->
+          <div id="smart-ctx-stock" class="smart-ctx" hidden>
+            <div class="numpad-head">
+              <h3>Estoque</h3>
+              <p class="numpad-sub" id="stock-sub">Consulta rápida</p>
+            </div>
+            <div class="side-block grow-summary">
+              <p class="mode-note" id="stock-body">
+                Selecione um item do pedido ou um produto do mostruário para ver disponibilidade.
+              </p>
+            </div>
+            <div class="side-block smart-footer">
+              <button type="button" class="pos-cta secondary" id="btn-stock-back" style="width:100%">Voltar</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CAIXA ═══ -->
+  <div id="view-caixa">
+    <div class="caixa-board">
+      <div class="caixa-card">
+        <h2>Fila de pagamento</h2>
+        <div id="fila-list">
+          <div class="fila-item active">
+            <div>
+              <strong>Pedido #1042 · Ana Compras</strong>
+              <span>PDV 1 · há 2 min · 4 itens</span>
+            </div>
+            <div class="val">R$ 186,40</div>
+          </div>
+          <div class="fila-item">
+            <div>
+              <strong>Pedido #1041 · Consumidor final</strong>
+              <span>PDV 2 · há 5 min · 1 item</span>
+            </div>
+            <div class="val">R$ 12,90</div>
+          </div>
+          <div class="fila-item">
+            <div>
+              <strong>Pedido #1039 · Sul Alimentos</strong>
+              <span>PDV 1 · há 12 min · 8 itens</span>
+            </div>
+            <div class="val">R$ 1.240,00</div>
+          </div>
+        </div>
+      </div>
+      <div class="caixa-card" id="caixa-receive" data-ctx="default">
+        <div id="caixa-ctx-default">
+          <h2>Pagamento</h2>
+          <p class="mode-note" style="margin-bottom:12px">
+            Contexto Smart Panel no caixa: formas de pagamento; numpad só com valor.
+          </p>
+          <div class="total-row">
+            <span class="label">A receber</span>
+            <span class="value" id="caixa-due">R$ 186,40</span>
+          </div>
+          <div class="pay-grid">
+            <button type="button" id="pay-dinheiro">Dinheiro</button>
+            <button type="button" id="pay-pix">PIX</button>
+            <button type="button" id="pay-debito">Débito</button>
+            <button type="button" id="pay-credito">Crédito</button>
+          </div>
+          <p class="mode-note" id="pay-hint" style="margin-top:12px">
+            Toque em <strong>Dinheiro</strong> para informar o valor recebido.
+          </p>
+          <button type="button" class="pos-cta" id="btn-confirm-pay" style="width:100%;margin-top:12px" disabled>Confirmar pagamento</button>
+        </div>
+        <div id="caixa-ctx-numpad" hidden>
+          <div class="numpad-head">
+            <h3 id="caixa-numpad-title">Valor recebido</h3>
+            <p class="numpad-sub" id="caixa-numpad-sub">Pedido #1042 · a receber R$ 186,40</p>
+          </div>
+          <div class="numpad-display" id="caixa-numpad-display">0,00</div>
+          <div class="numpad-keys" id="caixa-numpad-keys" aria-label="Teclado numérico">
+            <button type="button" data-k="7">7</button>
+            <button type="button" data-k="8">8</button>
+            <button type="button" data-k="9">9</button>
+            <button type="button" data-k="4">4</button>
+            <button type="button" data-k="5">5</button>
+            <button type="button" data-k="6">6</button>
+            <button type="button" data-k="1">1</button>
+            <button type="button" data-k="2">2</button>
+            <button type="button" data-k="3">3</button>
+            <button type="button" data-k=".">.</button>
+            <button type="button" data-k="0">0</button>
+            <button type="button" data-k="bk" title="Apagar">⌫</button>
+          </div>
+          <div class="numpad-actions">
+            <button type="button" class="pos-cta secondary" id="caixa-numpad-cancel">Cancelar</button>
+            <button type="button" class="pos-cta" id="caixa-numpad-ok">Confirmar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer id="pos-status">
+    <span>Sessão local</span>
+    <span id="status-mode">Modo PDV</span>
+    <span class="grow" id="status-hint">Smart Panel — console contextual do operador</span>
+    <span id="status-user">—</span>
+  </footer>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+(function () {
+  const SAMPLE = [
+    { id: 1, nome: "Arroz 5kg", preco: 32.9, stock: 40, cat: "Mercearia", sku: "000001" },
+    { id: 2, nome: "Feijão 1kg", preco: 8.5, stock: 55, cat: "Mercearia", sku: "000002" },
+    { id: 3, nome: "Óleo Soja 900ml", preco: 7.9, stock: 30, cat: "Mercearia", sku: "000003" },
+    { id: 4, nome: "Café 500g", preco: 18.9, stock: 22, cat: "Mercearia", sku: "000004" },
+    { id: 5, nome: "Leite 1L", preco: 5.49, stock: 80, cat: "Frios", sku: "000005" },
+    { id: 6, nome: "Queijo Mussarela", preco: 42.0, stock: 12, cat: "Frios", sku: "000006" },
+    { id: 7, nome: "Detergente", preco: 2.99, stock: 60, cat: "Limpeza", sku: "000007" },
+    { id: 8, nome: "Sabão em pó", preco: 24.5, stock: 18, cat: "Limpeza", sku: "000008" },
+    { id: 9, nome: "Banana prata", preco: 6.9, stock: 25, cat: "Hortifrúti", sku: "000009", peso: true },
+  ];
+
+  let mode = "pdv";
+  let cat = "";
+  let orderLines = [];
+  let selectedLine = -1;
+  let caixaDue = 186.4;
+  let cashReceived = 0;
+
+  /** @type {null | { kind: string, host: 'side'|'caixa', lineIdx?: number, raw: string, allowDecimal: boolean, title: string, sub: string }} */
+  let numpad = null;
+
+  const money = (v) =>
+    "R$ " + (Number(v) || 0).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+
+  function parseNumpadRaw(raw, allowDecimal) {
+    if (!raw || raw === ".") return 0;
+    const n = allowDecimal ? parseFloat(raw) : parseInt(raw, 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function formatDisplay(raw, allowDecimal) {
+    if (!raw) return allowDecimal ? "0,00" : "0";
+    if (allowDecimal) {
+      if (raw.includes(".")) {
+        const [a, b = ""] = raw.split(".");
+        return (a || "0") + "," + b.slice(0, 3);
+      }
+      return raw + ",00";
+    }
+    return raw;
+  }
+
+  let orderDisc = { type: "val", value: 0 }; // value = R$ or %
+  let orderAcr = 0; // R$
+  /** @type {null | { field: 'disc'|'acr', type: 'val'|'pct', cents: number, pctRaw: string }} */
+  let adjPad = null;
+
+  const SMART_NAMES = {
+    summary: "Cliente",
+    customer: "Pesquisa de Clientes",
+    discount: "Desconto",
+    surcharge: "Acréscimo",
+    numpad: "Teclado Numérico",
+    text: "Editor de Texto",
+    stock: "Estoque",
+    payment: "Pagamento",
+  };
+
+  const SMART_CTX_IDS = ["summary", "customer", "discount", "numpad", "text", "stock"];
+
+  function setSmartCtx(ctx, titleOverride) {
+    const panel = document.getElementById("pos-smart");
+    if (!SMART_CTX_IDS.includes(ctx)) ctx = "summary";
+    panel.dataset.ctx = ctx;
+    SMART_CTX_IDS.forEach((id) => {
+      const el = document.getElementById("smart-ctx-" + id);
+      if (el) el.hidden = id !== ctx;
+    });
+    let name = titleOverride || SMART_NAMES[ctx] || ctx;
+    if (ctx === "summary") name = "Resumo do Pedido";
+    document.getElementById("smart-ctx-name").textContent = name;
+    panel.classList.toggle("tool-open", ctx !== "summary");
+  }
+
+  function setCaixaCtx(ctx) {
+    const card = document.getElementById("caixa-receive");
+    card.dataset.ctx = ctx;
+    document.getElementById("caixa-ctx-default").hidden = ctx !== "default";
+    document.getElementById("caixa-ctx-numpad").hidden = ctx !== "numpad";
+  }
+
+  function syncNumpadUI() {
+    if (!numpad) return;
+    const isSide = numpad.host === "side";
+    const display = document.getElementById(isSide ? "numpad-display" : "caixa-numpad-display");
+    const title = document.getElementById(isSide ? "numpad-title" : "caixa-numpad-title");
+    const sub = document.getElementById(isSide ? "numpad-sub" : "caixa-numpad-sub");
+    title.textContent = numpad.title;
+    sub.textContent = numpad.sub;
+    display.textContent = formatDisplay(numpad.raw, numpad.allowDecimal);
+  }
+
+  function syncAdjPadUI() {
+    if (!adjPad) return;
+    const el = document.getElementById("disc-display");
+    if (adjPad.type === "pct") {
+      const n = adjPad.pctRaw || "0";
+      el.textContent = n.replace(".", ",") + " %";
+    } else {
+      el.textContent = money(adjPad.cents / 100);
+    }
+  }
+
+  function openAdjPad(field) {
+    if (!orderLines.length && field === "disc") {
+      document.getElementById("status-hint").textContent = "Adicione itens antes do desconto";
+      return;
+    }
+    adjPad = {
+      field,
+      type: field === "disc" ? orderDisc.type || "val" : "val",
+      cents: 0,
+      pctRaw: "",
+    };
+    if (field === "disc") {
+      if (orderDisc.type === "pct") {
+        adjPad.type = "pct";
+        adjPad.pctRaw = orderDisc.value ? String(orderDisc.value) : "";
+      } else {
+        adjPad.cents = Math.round((orderDisc.value || 0) * 100);
+      }
+    } else {
+      adjPad.cents = Math.round((orderAcr || 0) * 100);
+    }
+
+    const typeVal = document.querySelector('input[name="disc-type"][value="val"]');
+    const typePct = document.querySelector('input[name="disc-type"][value="pct"]');
+    if (typeVal && typePct) {
+      typeVal.checked = adjPad.type === "val";
+      typePct.checked = adjPad.type === "pct";
+      typePct.disabled = field === "acr";
+      typeVal.disabled = false;
+    }
+
+    setSmartCtx("discount", field === "acr" ? "Acréscimo" : "Desconto");
+    syncAdjPadUI();
+  }
+
+  function adjPadKey(k) {
+    if (!adjPad) return;
+    if (adjPad.type === "pct") {
+      if (k === "bk") adjPad.pctRaw = adjPad.pctRaw.slice(0, -1);
+      else if (k === "00") adjPad.pctRaw += "00";
+      else if (k === ".") {
+        if (!adjPad.pctRaw.includes(".")) adjPad.pctRaw = (adjPad.pctRaw || "0") + ".";
+      } else if (/^\d$/.test(k)) {
+        const dec = adjPad.pctRaw.split(".")[1];
+        if (dec && dec.length >= 2) return;
+        if (adjPad.pctRaw.replace(".", "").length >= 5) return;
+        adjPad.pctRaw += k;
+      }
+    } else {
+      if (k === "bk") adjPad.cents = Math.floor(adjPad.cents / 10);
+      else if (k === "00") adjPad.cents = Math.min(adjPad.cents * 100, 999999999);
+      else if (/^\d$/.test(k)) adjPad.cents = Math.min(adjPad.cents * 10 + Number(k), 999999999);
+    }
+    syncAdjPadUI();
+  }
+
+  function applyAdjPad() {
+    if (!adjPad) return;
+    const sub = orderSubtotal();
+    if (adjPad.field === "disc") {
+      if (adjPad.type === "pct") {
+        const pct = Math.min(100, Math.max(0, parseFloat(adjPad.pctRaw) || 0));
+        orderDisc = { type: "pct", value: pct };
+      } else {
+        const val = Math.min(sub, Math.max(0, adjPad.cents / 100));
+        orderDisc = { type: "val", value: val };
+      }
+    } else {
+      orderAcr = Math.max(0, adjPad.cents / 100);
+    }
+    adjPad = null;
+    setSmartCtx("summary");
+    renderOrder();
+  }
+
+  function cancelAdjPad() {
+    adjPad = null;
+    setSmartCtx("summary");
+  }
+
+  function openNumpad(opts) {
+    numpad = {
+      kind: opts.kind,
+      host: opts.host || "side",
+      lineIdx: opts.lineIdx,
+      raw: opts.initial != null ? String(opts.initial) : "",
+      allowDecimal: !!opts.allowDecimal,
+      title: opts.title,
+      sub: opts.sub || "",
+    };
+    if (numpad.host === "side") {
+      setSmartCtx("numpad");
+      setCaixaCtx("default");
+    } else {
+      setCaixaCtx("numpad");
+      setSmartCtx("summary");
+    }
+    syncNumpadUI();
+  }
+
+  function closeNumpad() {
+    numpad = null;
+    setSmartCtx("summary");
+    setCaixaCtx("default");
+  }
+
+  function confirmNumpad() {
+    if (!numpad) return;
+    const val = parseNumpadRaw(numpad.raw, numpad.allowDecimal);
+    const kind = numpad.kind;
+    const idx = numpad.lineIdx;
+
+    if (kind === "qty") {
+      if (val < 1) {
+        document.getElementById("status-hint").textContent = "Quantidade mínima: 1";
+        return;
+      }
+      if (orderLines[idx]) {
+        orderLines[idx].qtd = Math.floor(val);
+        selectedLine = idx;
+        renderOrder();
+      }
+    } else if (kind === "weight") {
+      if (val <= 0) {
+        document.getElementById("status-hint").textContent = "Informe o peso";
+        return;
+      }
+      if (orderLines[idx]) {
+        orderLines[idx].qtd = Math.round(val * 1000) / 1000;
+        selectedLine = idx;
+        renderOrder();
+      }
+    } else if (kind === "payment") {
+      cashReceived = val;
+      const troco = Math.max(0, cashReceived - caixaDue);
+      document.getElementById("pay-hint").innerHTML =
+        "Recebido <strong>" +
+        money(cashReceived) +
+        "</strong> · Troco <strong>" +
+        money(troco) +
+        "</strong>";
+      document.getElementById("btn-confirm-pay").disabled = cashReceived < caixaDue;
+      document.getElementById("status-hint").textContent =
+        cashReceived >= caixaDue
+          ? "Valor ok — confirme o pagamento"
+          : "Valor insuficiente";
+    }
+
+    closeNumpad();
+  }
+
+  function numpadKey(k) {
+    if (!numpad) return;
+    if (k === "bk") {
+      numpad.raw = numpad.raw.slice(0, -1);
+    } else if (k === "00") {
+      if (!numpad.allowDecimal && numpad.raw.length >= 5) return;
+      numpad.raw = (numpad.raw === "0" || !numpad.raw ? "0" : numpad.raw) + "00";
+      if (numpad.raw.startsWith("00") && numpad.raw.length > 2) numpad.raw = String(parseInt(numpad.raw, 10) || 0);
+    } else if (k === ".") {
+      if (!numpad.allowDecimal) return;
+      if (numpad.raw.includes(".")) return;
+      numpad.raw = (numpad.raw || "0") + ".";
+    } else if (/^\d$/.test(k)) {
+      if (!numpad.allowDecimal && numpad.raw.length >= 6) return;
+      if (numpad.allowDecimal) {
+        const dec = numpad.raw.split(".")[1];
+        if (dec && dec.length >= 3) return;
+      }
+      numpad.raw = (numpad.raw === "0" ? k : numpad.raw + k);
+    }
+    syncNumpadUI();
+  }
+
+  function openQtyPad(i) {
+    const line = orderLines[i];
+    if (!line) return;
+    selectedLine = i;
+    renderOrder();
+    if (line.peso) {
+      openNumpad({
+        kind: "weight",
+        host: "side",
+        lineIdx: i,
+        allowDecimal: true,
+        initial: line.qtd,
+        title: "Peso (kg)",
+        sub: line.nome,
+      });
+    } else {
+      openNumpad({
+        kind: "qty",
+        host: "side",
+        lineIdx: i,
+        allowDecimal: false,
+        initial: line.qtd,
+        title: "Quantidade",
+        sub: line.nome,
+      });
+    }
+  }
+
+  function openNoteEditor() {
+    if (selectedLine < 0 || !orderLines[selectedLine]) return;
+    const line = orderLines[selectedLine];
+    document.getElementById("text-title").textContent = "Observação";
+    document.getElementById("text-sub").textContent = line.nome;
+    document.getElementById("text-editor").value = line.obs || "";
+    setSmartCtx("text");
+    document.getElementById("text-editor").focus();
+  }
+
+  function confirmText() {
+    if (selectedLine >= 0 && orderLines[selectedLine]) {
+      orderLines[selectedLine].obs = (document.getElementById("text-editor").value || "").trim();
+      renderOrder();
+    }
+    setSmartCtx("summary");
+  }
+
+  function openStock() {
+    const line = selectedLine >= 0 ? orderLines[selectedLine] : null;
+    if (line) {
+      document.getElementById("stock-sub").textContent = line.nome;
+      document.getElementById("stock-body").innerHTML =
+        "<strong>Disponível nesta filial</strong><br>Consulta mock — Promise Engine na Fase 5.<br><br>" +
+        "Status: <span style='color:#5eead4'>Em estoque</span>";
+    } else {
+      document.getElementById("stock-sub").textContent = "Consulta rápida";
+      document.getElementById("stock-body").textContent =
+        "Selecione um item do pedido ou um produto do mostruário para ver disponibilidade.";
+    }
+    setSmartCtx("stock");
+  }
+
+  function openPaymentPad() {
+    setMode("caixa");
+    openNumpad({
+      kind: "payment",
+      host: "caixa",
+      allowDecimal: true,
+      initial: "",
+      title: "Valor recebido",
+      sub: "A receber " + money(caixaDue),
+    });
+  }
+
+  function lineTotal(l) {
+    return (Number(l.qtd) || 0) * (Number(l.preco) || 0);
+  }
+
+  function orderSubtotal() {
+    return orderLines.reduce((s, l) => s + lineTotal(l), 0);
+  }
+
+  function orderDiscAmount() {
+    const sub = orderSubtotal();
+    if (orderDisc.type === "pct") return Math.min(sub, (sub * (orderDisc.value || 0)) / 100);
+    return Math.min(sub, orderDisc.value || 0);
+  }
+
+  function orderTotal() {
+    return Math.max(0, orderSubtotal() - orderDiscAmount() + (orderAcr || 0));
+  }
+
+  function renderCats() {
+    const cats = ["", ...new Set(SAMPLE.map((p) => p.cat))];
+    document.getElementById("prod-cats").innerHTML = cats
+      .map(
+        (c) =>
+          `<button type="button" class="pos-cat ${c === cat ? "active" : ""}" data-cat="${c}">${
+            c || "Todos"
+          }</button>`
+      )
+      .join("");
+  }
+
+  function renderProducts() {
+    const q = (document.getElementById("prod-search").value || "").toLowerCase().trim();
+    const list = SAMPLE.filter((p) => {
+      if (cat && p.cat !== cat) return false;
+      if (!q) return true;
+      return (
+        p.nome.toLowerCase().includes(q) ||
+        p.sku.includes(q) ||
+        String(p.id).includes(q)
+      );
+    });
+    document.getElementById("prod-grid").innerHTML = list
+      .map(
+        (p) => `
+      <button type="button" class="prod-card" data-id="${p.id}">
+        <div class="thumb">${p.peso ? "KG" : p.cat.slice(0, 3).toUpperCase()}</div>
+        <div class="name">${p.nome}</div>
+        <div class="price">${money(p.preco)}${p.peso ? "<small>/kg</small>" : ""}</div>
+        <div class="stock">Estoque ${p.stock}</div>
+      </button>`
+      )
+      .join("");
+  }
+
+  function renderOrder() {
+    const box = document.getElementById("order-lines");
+    const empty = document.getElementById("order-empty");
+    const n = orderLines.length;
+    document.getElementById("order-count").textContent = n + (n === 1 ? " item" : " itens");
+    document.getElementById("summary-items-label").textContent =
+      n + (n === 1 ? " produto" : " produtos");
+    document.getElementById("summary-sub").textContent = money(orderSubtotal());
+    const discAmt = orderDiscAmount();
+    document.getElementById("summary-disc").textContent =
+      orderDisc.type === "pct" && orderDisc.value
+        ? money(discAmt) + " (" + orderDisc.value + "%)"
+        : money(discAmt);
+    document.getElementById("summary-acr").textContent = money(orderAcr || 0);
+    document.getElementById("order-total").textContent = money(orderTotal());
+    document.getElementById("btn-send-cashier").disabled = n === 0;
+    document.getElementById("btn-side-note").disabled = selectedLine < 0 || !orderLines[selectedLine];
+
+    if (!n) {
+      box.innerHTML = "";
+      box.appendChild(empty);
+      empty.style.display = "grid";
+      return;
+    }
+    empty.style.display = "none";
+    box.innerHTML = orderLines
+      .map((l, i) => {
+        const qtyLabel = l.peso ? String(l.qtd).replace(".", ",") + " kg" : String(l.qtd);
+        const note = l.obs ? `<span class="disc" title="${l.obs}">obs</span>` : "";
+        return `
+      <div class="order-line ${i === selectedLine ? "sel" : ""}" data-idx="${i}">
+        <div class="title">${l.nome} ${note}</div>
+        <div class="line-total">${money(lineTotal(l))}</div>
+        <div class="meta">${money(l.preco)}${l.peso ? "/kg" : " un."}</div>
+        <div></div>
+        <div class="qty-row">
+          <button type="button" data-act="dec" data-idx="${i}">−</button>
+          <button type="button" class="qty qty-btn" data-act="qty" data-idx="${i}" title="Alterar">${qtyLabel}</button>
+          <button type="button" data-act="inc" data-idx="${i}">+</button>
+          <button type="button" data-act="rm" data-idx="${i}" title="Remover">×</button>
+        </div>
+      </div>`;
+      })
+      .join("");
+  }
+
+  function addProduct(id) {
+    const p = SAMPLE.find((x) => x.id === Number(id));
+    if (!p) return;
+    if (p.peso) {
+      const hit = orderLines.find((l) => l.id === p.id);
+      if (!hit) {
+        orderLines.push({ id: p.id, nome: p.nome, preco: p.preco, qtd: 0, peso: true, descPct: 0 });
+      }
+      selectedLine = orderLines.findIndex((l) => l.id === p.id);
+      renderOrder();
+      openQtyPad(selectedLine);
+      return;
+    }
+    const hit = orderLines.find((l) => l.id === p.id && !l.peso);
+    if (hit) hit.qtd += 1;
+    else orderLines.push({ id: p.id, nome: p.nome, preco: p.preco, qtd: 1, descPct: 0 });
+    selectedLine = orderLines.findIndex((l) => l.id === p.id && !l.peso);
+    renderOrder();
+  }
+
+  function setMode(next) {
+    mode = next;
+    if (numpad && numpad.host === "side" && mode !== "pdv") closeNumpad();
+    if (numpad && numpad.host === "caixa" && mode !== "caixa") closeNumpad();
+    if (mode !== "pdv") setSmartCtx("summary");
+    document.querySelectorAll(".pos-mode button").forEach((b) => {
+      b.classList.toggle("active", b.dataset.mode === mode);
+    });
+    document.getElementById("view-pdv").classList.toggle("active", mode === "pdv");
+    document.getElementById("view-caixa").classList.toggle("active", mode === "caixa");
+    document.getElementById("top-mode-label").textContent =
+      mode === "pdv" ? "Terminal PDV" : "Terminal Caixa";
+    document.getElementById("status-mode").textContent =
+      mode === "pdv" ? "Modo PDV" : "Modo Caixa";
+  }
+
+  function bindNumpadKeys(el) {
+    el.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-k]");
+      if (btn) numpadKey(btn.dataset.k);
+    });
+  }
+
+  function boot() {
+    const user = (window.AuthService && window.AuthService.getUser()) || {};
+    const name = user.nome || user.usuario || "Operador";
+    document.getElementById("op-name").textContent = name;
+    document.getElementById("status-user").textContent = name;
+
+    renderCats();
+    renderProducts();
+    renderOrder();
+    setSmartCtx("summary");
+    setCaixaCtx("default");
+    setMode("pdv");
+
+    setInterval(() => {
+      const d = new Date();
+      document.getElementById("clock").textContent = d.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }, 1000);
+
+    document.querySelectorAll(".pos-mode button").forEach((btn) => {
+      btn.addEventListener("click", () => setMode(btn.dataset.mode));
+    });
+
+    document.getElementById("prod-cats").addEventListener("click", (e) => {
+      const btn = e.target.closest(".pos-cat");
+      if (!btn) return;
+      cat = btn.dataset.cat || "";
+      renderCats();
+      renderProducts();
+    });
+
+    document.getElementById("prod-search").addEventListener("input", renderProducts);
+    document.getElementById("prod-grid").addEventListener("click", (e) => {
+      const card = e.target.closest(".prod-card");
+      if (card) addProduct(card.dataset.id);
+    });
+
+    document.getElementById("order-lines").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-act]");
+      if (btn) {
+        const i = Number(btn.dataset.idx);
+        const act = btn.dataset.act;
+        if (act === "qty") {
+          openQtyPad(i);
+          return;
+        }
+        if (act === "inc") {
+          if (orderLines[i].peso) {
+            openQtyPad(i);
+            return;
+          }
+          orderLines[i].qtd += 1;
+        }
+        if (act === "dec") {
+          if (orderLines[i].peso) {
+            openQtyPad(i);
+            return;
+          }
+          orderLines[i].qtd = Math.max(1, orderLines[i].qtd - 1);
+        }
+        if (act === "rm") {
+          orderLines.splice(i, 1);
+          selectedLine = Math.min(i, orderLines.length - 1);
+          if (!orderLines.length) selectedLine = -1;
+          if (numpad && numpad.lineIdx === i) closeNumpad();
+        }
+        selectedLine = orderLines.length ? Math.min(Math.max(selectedLine, 0), orderLines.length - 1) : -1;
+        renderOrder();
+        return;
+      }
+      const line = e.target.closest(".order-line");
+      if (line) {
+        selectedLine = Number(line.dataset.idx);
+        renderOrder();
+      }
+    });
+
+    bindNumpadKeys(document.getElementById("numpad-keys"));
+    bindNumpadKeys(document.getElementById("caixa-numpad-keys"));
+    document.getElementById("numpad-ok").addEventListener("click", confirmNumpad);
+    document.getElementById("numpad-cancel").addEventListener("click", closeNumpad);
+    document.getElementById("caixa-numpad-ok").addEventListener("click", confirmNumpad);
+    document.getElementById("caixa-numpad-cancel").addEventListener("click", closeNumpad);
+
+    document.getElementById("btn-clear").addEventListener("click", () => {
+      orderLines = [];
+      selectedLine = -1;
+      orderDisc = { type: "val", value: 0 };
+      orderAcr = 0;
+      closeNumpad();
+      cancelAdjPad();
+      renderOrder();
+    });
+
+    document.getElementById("btn-suspend").addEventListener("click", () => {
+      document.getElementById("status-hint").textContent =
+        "Suspender pedido — será ligado ao backend na próxima etapa";
+    });
+
+    document.getElementById("btn-send-cashier").addEventListener("click", () => {
+      if (!orderLines.length) return;
+      caixaDue = orderTotal();
+      document.getElementById("caixa-due").textContent = money(caixaDue);
+      document.getElementById("status-hint").textContent =
+        "Pedido enviado à fila do caixa (mock) — " + money(caixaDue);
+      document.getElementById("btn-confirm-pay").disabled = true;
+      cashReceived = 0;
+      setMode("caixa");
+    });
+
+    document.getElementById("btn-client").addEventListener("click", () => {
+      setSmartCtx("customer");
+      document.getElementById("client-search").focus();
+    });
+    document.getElementById("btn-customer-back").addEventListener("click", () => setSmartCtx("summary"));
+    document.getElementById("btn-stock-back").addEventListener("click", () => setSmartCtx("summary"));
+    document.getElementById("btn-side-note").addEventListener("click", openNoteEditor);
+    document.getElementById("btn-side-stock").addEventListener("click", openStock);
+    document.getElementById("text-ok").addEventListener("click", confirmText);
+    document.getElementById("text-cancel").addEventListener("click", () => setSmartCtx("summary"));
+
+    document.getElementById("btn-open-discount").addEventListener("click", () => openAdjPad("disc"));
+    document.getElementById("btn-open-surcharge").addEventListener("click", () => openAdjPad("acr"));
+    document.getElementById("disc-cancel").addEventListener("click", cancelAdjPad);
+    document.getElementById("disc-apply").addEventListener("click", applyAdjPad);
+    document.getElementById("disc-keys").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-k]");
+      if (btn && adjPad) adjPadKey(btn.dataset.k);
+    });
+    document.querySelectorAll('input[name="disc-type"]').forEach((r) => {
+      r.addEventListener("change", () => {
+        if (!adjPad || adjPad.field !== "disc") return;
+        adjPad.type = r.value;
+        adjPad.cents = 0;
+        adjPad.pctRaw = "";
+        syncAdjPadUI();
+      });
+    });
+
+    document.querySelectorAll("[data-pick-client]").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = el.getAttribute("data-pick-client");
+        if (id === "joao") {
+          document.getElementById("client-name").textContent = "João da Silva";
+          document.getElementById("client-av").textContent = "JS";
+          document.getElementById("client-hint").textContent = "Cliente";
+        } else {
+          document.getElementById("client-name").textContent = "Consumidor final";
+          document.getElementById("client-av").textContent = "CF";
+          document.getElementById("client-hint").textContent = "Toque para buscar";
+        }
+        setSmartCtx("summary");
+      });
+    });
+
+    document.getElementById("btn-new-session").addEventListener("click", () => {
+      document.getElementById("status-hint").textContent = "Nova sessão — em breve";
+    });
+
+    document.getElementById("pay-dinheiro").addEventListener("click", openPaymentPad);
+    document.getElementById("pay-pix").addEventListener("click", () => {
+      document.getElementById("pay-hint").textContent = "PIX — QR na próxima etapa (sem numpad)";
+      document.getElementById("btn-confirm-pay").disabled = false;
+    });
+    document.getElementById("pay-debito").addEventListener("click", () => {
+      document.getElementById("pay-hint").textContent = "Débito — TEF na próxima etapa";
+      document.getElementById("btn-confirm-pay").disabled = false;
+    });
+    document.getElementById("pay-credito").addEventListener("click", () => {
+      document.getElementById("pay-hint").textContent = "Crédito — TEF na próxima etapa";
+      document.getElementById("btn-confirm-pay").disabled = false;
+    });
+    document.getElementById("btn-confirm-pay").addEventListener("click", () => {
+      document.getElementById("status-hint").textContent =
+        "Pagamento confirmado (mock) — NFC-e na próxima etapa";
+      document.getElementById("btn-confirm-pay").disabled = true;
+    });
+
+    document.querySelectorAll("#fila-list .fila-item").forEach((el) => {
+      el.addEventListener("click", () => {
+        document.querySelectorAll("#fila-list .fila-item").forEach((x) => x.classList.remove("active"));
+        el.classList.add("active");
+        const val = el.querySelector(".val");
+        if (val) {
+          caixaDue = parseFloat(val.textContent.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
+          document.getElementById("caixa-due").textContent = money(caixaDue);
+        }
+      });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (adjPad) {
+          e.preventDefault();
+          cancelAdjPad();
+          return;
+        }
+        const ctx = document.getElementById("pos-smart").dataset.ctx;
+        if (numpad) {
+          e.preventDefault();
+          closeNumpad();
+          return;
+        }
+        if (ctx && ctx !== "summary") {
+          e.preventDefault();
+          setSmartCtx("summary");
+          return;
+        }
+      }
+      if (adjPad) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          applyAdjPad();
+          return;
+        }
+        if (e.key === "Backspace") {
+          e.preventDefault();
+          adjPadKey("bk");
+          return;
+        }
+        if (/^\d$/.test(e.key)) {
+          e.preventDefault();
+          adjPadKey(e.key);
+          return;
+        }
+        if (e.key === "." || e.key === ",") {
+          e.preventDefault();
+          adjPadKey(".");
+        }
+        return;
+      }
+      if (!numpad) return;
+      if (e.key === "Enter") {
+        e.preventDefault();
+        confirmNumpad();
+        return;
+      }
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        numpadKey("bk");
+        return;
+      }
+      if (/^\d$/.test(e.key)) {
+        e.preventDefault();
+        numpadKey(e.key);
+        return;
+      }
+      if (e.key === "." || e.key === ",") {
+        e.preventDefault();
+        numpadKey(".");
+      }
+    });
+  }
+
+  let booted = false;
+  function bootOnce() {
+    if (booted) return;
+    booted = true;
+    boot();
+  }
+  document.addEventListener("auth:ready", bootOnce);
+  if (window.__authReady || (window.AuthService && window.AuthService.getToken())) bootOnce();
+})();
+</script>
+</body>
+</html>

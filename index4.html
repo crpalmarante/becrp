@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Menu Principal</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/variaveis.css">
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/icons.css">
+<style>
+:root{
+  --hub-bg:#0b1220;
+  --hub-surface:rgba(255,255,255,.06);
+  --hub-surface-hover:rgba(255,255,255,.11);
+  --hub-border:rgba(255,255,255,.12);
+  --hub-text:#f3f6fb;
+  --hub-muted:#9aa6b8;
+  --hub-accent:#14b8a6;
+  --hub-accent-soft:rgba(20,184,166,.16);
+  --hub-radius:18px;
+  --hub-shadow:0 18px 50px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  min-height:100vh;
+  color:var(--hub-text);
+  font-family:var(--font-family, "Inter", system-ui, sans-serif);
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(20,184,166,.22), transparent 55%),
+    radial-gradient(900px 500px at 100% 100%, rgba(59,130,246,.12), transparent 50%),
+    linear-gradient(160deg, #071018 0%, #0b1220 45%, #101826 100%);
+}
+
+.hub{
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:28px 20px 40px;
+}
+
+.hub-top{
+  width:min(1080px,100%);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:28px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.brand-mark{
+  width:42px;height:42px;border-radius:12px;
+  display:grid;place-items:center;
+  background:var(--hub-accent-soft);
+  color:var(--hub-accent);
+  font-size:22px;font-weight:700;
+}
+.brand h1{
+  margin:0;font-size:1.35rem;letter-spacing:-.02em;font-weight:700;
+}
+.brand p{
+  margin:2px 0 0;font-size:.82rem;color:var(--hub-muted);
+}
+.user-box{
+  display:flex;align-items:center;gap:12px;
+  background:var(--hub-surface);
+  border:1px solid var(--hub-border);
+  border-radius:999px;
+  padding:8px 8px 8px 14px;
+}
+.user-box strong{font-size:.9rem;font-weight:600}
+.user-box span{display:block;font-size:.72rem;color:var(--hub-muted)}
+.btn-logout{
+  border:0;cursor:pointer;
+  background:rgba(239,68,68,.15);
+  color:#fca5a5;
+  border-radius:999px;
+  padding:8px 14px;
+  font-size:.8rem;font-weight:600;
+}
+.btn-logout:hover{background:rgba(239,68,68,.28)}
+
+.hub-center{
+  width:min(1080px,100%);
+  text-align:center;
+}
+.hub-center .greeting{
+  margin:0 0 6px;
+  font-size:1.75rem;
+  font-weight:700;
+  letter-spacing:-.03em;
+}
+.hub-center .subtitle{
+  margin:0 0 28px;
+  color:var(--hub-muted);
+  font-size:.95rem;
+}
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+  gap:16px;
+  max-width:920px;
+  margin:0 auto;
+}
+
+.card{
+  appearance:none;
+  text-decoration:none;
+  color:inherit;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  min-height:148px;
+  padding:22px 14px;
+  border-radius:var(--hub-radius);
+  background:var(--hub-surface);
+  border:1px solid var(--hub-border);
+  box-shadow:var(--hub-shadow);
+  backdrop-filter:blur(10px);
+  transition:transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
+  cursor:pointer;
+}
+.card:hover,.card:focus-visible{
+  transform:translateY(-4px);
+  background:var(--hub-surface-hover);
+  border-color:rgba(20,184,166,.45);
+  box-shadow:0 22px 55px rgba(0,0,0,.4);
+  outline:none;
+}
+.card-icon{
+  width:54px;height:54px;border-radius:16px;
+  display:grid;place-items:center;
+  background:var(--hub-accent-soft);
+  color:var(--hub-accent);
+}
+.card-icon .icon{width:28px;height:28px}
+.card-label{
+  font-size:.95rem;
+  font-weight:600;
+  letter-spacing:-.01em;
+}
+.card-hint{
+  font-size:.72rem;
+  color:var(--hub-muted);
+  margin-top:-4px;
+}
+
+.hub-footer{
+  margin-top:32px;
+  font-size:.75rem;
+  color:var(--hub-muted);
+}
+
+.loading,.error{
+  color:var(--hub-muted);
+  padding:40px 0;
+}
+.error{color:#fca5a5}
+
+@media (max-width:640px){
+  .hub{justify-content:flex-start;padding-top:20px}
+  .hub-top{flex-direction:column;align-items:stretch}
+  .user-box{justify-content:space-between}
+  .hub-center .greeting{font-size:1.4rem}
+  .cards{grid-template-columns:repeat(2,1fr);gap:12px}
+  .card{min-height:128px}
+}
+</style>
+</head>
+<body>
+
+<div class="hub">
+  <header class="hub-top">
+    <div class="brand">
+      <div class="brand-mark">✦</div>
+      <div>
+        <h1>BECRP</h1>
+        <p>BusinessCore Retail CRP</p>
+      </div>
+    </div>
+    <div class="user-box">
+      <div>
+        <strong id="user-name">—</strong>
+        <span id="user-role">usuário</span>
+      </div>
+      <button type="button" class="btn-logout" id="btn-logout">Sair</button>
+    </div>
+  </header>
+
+  <section class="hub-center">
+    <h2 class="greeting" id="greeting">Olá</h2>
+    <p class="subtitle">Escolha um módulo para continuar</p>
+    <div class="cards" id="cards">
+      <div class="loading">Carregando módulos...</div>
+    </div>
+  </section>
+
+  <footer class="hub-footer">✦ Palmarante Sistemas — BECRP v1.0</footer>
+</div>
+
+<script>
+(function () {
+  const token = localStorage.getItem("auth_token");
+  const raw = localStorage.getItem("user_data");
+  if (!token || !raw) {
+    location.href = "index.html";
+    return;
+  }
+
+  let user;
+  try { user = JSON.parse(raw); } catch { location.href = "index.html"; return; }
+
+  const PAGE_MAP = {
+    nfe: "pages/nfe.html",
+    nfce: "pages/nfce.html",
+    nfse: "pages/nfse.html",
+    cte: "pages/cte.html",
+    mdfe: "pages/mdfe.html",
+    sped: "pages/sped.html",
+    produtos: "pages/produtos.html",
+    categorias: "pages/categorias.html",
+    fornecedores: "pages/fornecedores.html",
+    contatos: "pages/contatos.html",
+    certificados: "pages/certificados.html",
+    empresas: "pages/empresas.html",
+    usuarios: "pages/usuarios.html",
+    permissoes: "pages/permissoes.html",
+    configuracoes: "pages/configuracoes.html",
+    faturamento: "pages/faturamento.html",
+    funcionarios: "pages/funcionarios.html",
+    folha: "pages/folha.html",
+    ponto: "pages/ponto.html",
+    pos: "pages/pos.html",
+    pdv: "pages/pos.html",
+    vendas: "pages/vendas.html#dashboard",
+    "pedidos-venda": "pages/vendas.html#pedidos",
+    orcamentos: "pages/vendas.html#orcamentos",
+    contratos: "pages/vendas.html#contratos",
+    dashboard: "index4.html"
+  };
+
+  function resolveHref(item) {
+    if (item.href && item.href !== "#" && !item.href.startsWith("?")) return item.href;
+    if (PAGE_MAP[item.id]) return PAGE_MAP[item.id];
+    const first = (item.apps || []).find(a => a.href && a.href !== "#" && !a.href.startsWith("?"));
+    if (first) return first.href;
+    const mapped = (item.apps || []).find(a => PAGE_MAP[a.id]);
+    if (mapped) return PAGE_MAP[mapped.id];
+    return null;
+  }
+
+  function greet(nome) {
+    const h = new Date().getHours();
+    let g = "Olá";
+    if (h < 12) g = "Bom dia";
+    else if (h < 18) g = "Boa tarde";
+    else g = "Boa noite";
+    document.getElementById("greeting").textContent = g + ", " + (nome || "usuário");
+  }
+
+  async function validate() {
+    try {
+      const res = await fetch("/api/auth/me", { headers: { "X-Auth-Token": token } });
+      const data = await res.json();
+      if (data.status !== "ok") throw new Error("invalid");
+      user = data.conta;
+      localStorage.setItem("user_data", JSON.stringify(user));
+    } catch {
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("user_data");
+      location.href = "index.html";
+    }
+  }
+
+  function renderCards(menu) {
+    const el = document.getElementById("cards");
+    const items = (menu || []).filter(m => !m.section && m.id !== "dashboard");
+    if (!items.length) {
+      el.innerHTML = '<div class="error">Nenhum módulo disponível</div>';
+      return;
+    }
+    el.innerHTML = items.map(m => {
+      const href = resolveHref(m);
+      const apps = (m.apps || []).filter(a => !a.section).length;
+      const hint = apps > 1 ? apps + " opções" : (href ? "Abrir" : "Em breve");
+      const tag = href ? "a" : "div";
+      const attrs = href
+        ? `href="${href}" class="card"`
+        : `class="card" style="opacity:.45;cursor:default" title="Em breve"`;
+      return `<${tag} ${attrs}>
+        <span class="card-icon"><svg class="icon"><use href="#${m.icon || "icon-file-text"}"/></svg></span>
+        <span class="card-label">${m.label}</span>
+        <span class="card-hint">${hint}</span>
+      </${tag}>`;
+    }).join("");
+  }
+
+  document.getElementById("btn-logout").addEventListener("click", () => {
+    fetch("/api/auth/logout", { method: "POST", headers: { "X-Auth-Token": token } }).catch(() => {});
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_data");
+    localStorage.removeItem("current_empresa_id");
+    location.href = "index.html";
+  });
+
+  (async function boot() {
+    await validate();
+    document.getElementById("user-name").textContent = user.nome || user.usuario || "Usuário";
+    document.getElementById("user-role").textContent = user.role || "operador";
+    greet(user.nome || user.usuario);
+
+    // carrega sprite de ícones
+    try {
+      const svg = await (await fetch("img/icons.svg")).text();
+      const wrap = document.createElement("div");
+      wrap.style.display = "none";
+      wrap.innerHTML = svg;
+      document.body.prepend(wrap);
+    } catch (_) {}
+
+    try {
+      const menu = await (await fetch("assets/data/menu.json")).json();
+      renderCards(menu);
+    } catch (e) {
+      document.getElementById("cards").innerHTML = '<div class="error">Falha ao carregar o menu</div>';
+    }
+  })();
+})();
+</script>
+</body>
+</html>

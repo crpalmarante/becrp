@@ -1,0 +1,141 @@
+[
+    {
+        "id": "dashboard",
+        "label": "Dashboard",
+        "icon": "icon-home",
+        "href": "index4.html",
+        "apps": [
+            { "id": "dashboard", "label": "Dashboard", "icon": "icon-home", "href": "index4.html" }
+        ]
+    },
+    {
+        "id": "ponto_vendas",
+        "label": "Ponto de Vendas",
+        "icon": "icon-cart",
+        "href": "pages/pos.html",
+        "apps": [
+            { "id": "pdv", "label": "PDV", "icon": "icon-cart", "href": "pages/pos.html" },
+            { "id": "caixa", "label": "Caixa", "icon": "icon-dollar", "href": "pages/pos.html" },
+            { "id": "suporte", "label": "Suporte Vendas", "icon": "icon-headset", "href": "pages/pos.html" }
+        ]
+    },
+    {
+        "id": "vendas",
+        "label": "Vendas Corporativas",
+        "icon": "icon-dollar",
+        "href": "pages/vendas.html#dashboard",
+        "apps": [
+            { "section": "Pedidos" },
+            { "id": "cotacoes", "label": "Cotações", "icon": "icon-file-text", "href": "pages/vendas.html#cotacoes" },
+            { "id": "pedidos-venda", "label": "Pedidos de Venda", "icon": "icon-dollar", "href": "pages/vendas.html#pedidos" },
+            { "id": "clientes", "label": "Clientes", "icon": "icon-users", "href": "pages/parceiros.html?role=CUSTOMER" },
+            { "id": "produtos-vendas", "label": "Produtos", "icon": "icon-box", "href": "pages/produtos.html" },
+            { "section": "Produtos" },
+            { "id": "variantes", "label": "Variantes", "icon": "icon-filter", "href": "pages/vendas.html#variantes" },
+            { "id": "lista-precos", "label": "Lista de Preços", "icon": "icon-dollar", "href": "pages/vendas.html#lista-precos" },
+            { "id": "descontos", "label": "Descontos", "icon": "icon-dollar", "href": "pages/vendas.html#descontos" },
+            { "section": "Clientes" },
+            { "id": "contatos-vendas", "label": "Contatos", "icon": "icon-users", "href": "pages/contatos.html" },
+            { "id": "enderecos", "label": "Endereços de entrega", "icon": "icon-truck", "href": "pages/vendas.html#enderecos" },
+            { "section": "Relatórios" },
+            { "id": "rel-analise", "label": "Análise de Vendas", "icon": "icon-file-text", "href": "pages/vendas.html#rel-analise" },
+            { "id": "kpi-dashboard", "label": "KPI Dashboard", "icon": "icon-home", "href": "pages/vendas.html#dashboard" },
+            { "section": "Configurações" },
+            { "id": "cfg-equipes", "label": "Equipes de Venda", "icon": "icon-users", "href": "pages/vendas.html#cfg-equipes" },
+            { "id": "cfg-multiempresa", "label": "Multiempresa", "icon": "icon-building", "href": "pages/empresas.html" }
+        ]
+    },
+    {
+        "id": "compras",
+        "label": "Compras",
+        "icon": "icon-box",
+        "href": "#",
+        "apps": [
+            { "id": "pedidos-compra", "label": "Pedidos de Compra", "icon": "icon-file-text", "href": "?mod=pedidos-compra" },
+            { "id": "cotacoes", "label": "Cotações", "icon": "icon-file-text", "href": "?mod=cotacoes" }
+        ]
+    },
+    {
+        "id": "cadastros",
+        "label": "Cadastros",
+        "icon": "icon-file-text",
+        "href": "#",
+        "apps": [
+            { "id": "produtos", "label": "Produtos", "icon": "icon-box", "href": "pages/produtos.html" },
+            { "id": "parceiros", "label": "Parceiros", "icon": "icon-users", "href": "pages/parceiros.html" },
+            { "id": "clientes", "label": "Clientes", "icon": "icon-users", "href": "pages/parceiros.html?role=CUSTOMER" },
+            { "id": "fornecedores", "label": "Fornecedores", "icon": "icon-truck", "href": "pages/parceiros.html?role=SUPPLIER" },
+            { "id": "categorias", "label": "Categorias", "icon": "icon-filter", "href": "pages/categorias.html" },
+            { "id": "contatos", "label": "Contatos (legado)", "icon": "icon-users", "href": "pages/contatos.html" }
+        ]
+    },
+    {
+        "id": "inventario",
+        "label": "Inventário",
+        "icon": "icon-box",
+        "href": "#",
+        "apps": [
+            { "id": "estoque", "label": "Estoque", "icon": "icon-box", "href": "?mod=estoque" },
+            { "id": "ncm", "label": "NCM", "icon": "icon-file-text", "href": "?mod=ncm" }
+        ]
+    },
+    {
+        "id": "fiscal",
+        "label": "Fiscal",
+        "icon": "icon-file-text",
+        "href": "#",
+        "apps": [
+            { "id": "nfe", "label": "NF-e", "icon": "icon-file-text", "href": "?mod=nfe" },
+            { "id": "nfce", "label": "NFC-e", "icon": "icon-printer", "href": "?mod=nfce" },
+            { "id": "nfse", "label": "NFS-e", "icon": "icon-file-text", "href": "?mod=nfse" },
+            { "id": "cte", "label": "CT-e", "icon": "icon-truck", "href": "?mod=cte" },
+            { "id": "mdfe", "label": "MDF-e", "icon": "icon-truck", "href": "?mod=mdfe" },
+            { "id": "sped", "label": "SPED", "icon": "icon-file-text", "href": "?mod=sped" }
+        ]
+    },
+    {
+        "id": "faturamento",
+        "label": "Faturamento",
+        "icon": "icon-dollar",
+        "href": "pages/faturamento.html",
+        "apps": [
+            { "id": "notas-fiscais", "label": "Notas Fiscais", "icon": "icon-file-text", "href": "?mod=notas-fiscais" },
+            { "id": "nfce", "label": "NFC-e", "icon": "icon-printer", "href": "?mod=nfce" },
+            { "id": "nfse", "label": "NFS-e", "icon": "icon-file-text", "href": "?mod=nfse" },
+            { "id": "faturas", "label": "Faturas", "icon": "icon-dollar", "href": "?mod=faturas" },
+            { "id": "boletos", "label": "Boletos", "icon": "icon-file-text", "href": "?mod=boletos" },
+            { "id": "clientes", "label": "Clientes", "icon": "icon-users", "href": "?mod=clientes" },
+            { "id": "emitir-documento", "label": "Emitir Documento", "icon": "icon-plus", "href": "?mod=emitir-documento" },
+            { "id": "importar-xml", "label": "Importar XML", "icon": "icon-upload", "href": "?mod=importar-xml" },
+            { "id": "rel-vendas", "label": "Rel. Vendas", "icon": "icon-file-text", "href": "?mod=rel-vendas" },
+            { "id": "config-empresas", "label": "Empresas", "icon": "icon-building", "href": "?mod=config-empresas" },
+            { "id": "config-certificados", "label": "Certificados", "icon": "icon-lock", "href": "pages/certificados.html" }
+        ]
+    },
+    {
+        "id": "funcionarios",
+        "label": "Funcionários",
+        "icon": "icon-users",
+        "href": "pages/funcionarios.html",
+        "apps": [
+            { "id": "cadastro", "label": "Cadastro", "icon": "icon-users", "href": "?mod=cadastro" },
+            { "id": "folha", "label": "Folha Pagto", "icon": "icon-dollar", "href": "?mod=folha" },
+            { "id": "ponto", "label": "Ponto", "icon": "icon-clock", "href": "?mod=ponto" },
+            { "id": "relatorios-rh", "label": "Relatórios RH", "icon": "icon-file-text", "href": "?mod=relatorios-rh" },
+            { "id": "rh-dashboard", "label": "RH Dashboard", "icon": "icon-dashboard", "href": "?mod=rh-dashboard" }
+        ]
+    },
+    {
+        "id": "configuracoes",
+        "label": "Configurações",
+        "icon": "icon-settings",
+        "href": "pages/configuracoes.html",
+        "apps": [
+            { "id": "sistema", "label": "Sistema", "icon": "icon-settings", "href": "?mod=sistema" },
+            { "id": "usuarios", "label": "Usuários", "icon": "icon-users", "href": "?mod=usuarios" },
+            { "id": "permissoes", "label": "Permissões", "icon": "icon-lock", "href": "?mod=permissoes" },
+            { "id": "auditoria", "label": "Auditoria", "icon": "icon-file-text", "href": "?mod=auditoria" },
+            { "id": "empresas", "label": "Empresas", "icon": "icon-building", "href": "pages/empresas.html" }
+        ]
+    }
+]

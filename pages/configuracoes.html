@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — Configurações</title>
+    <meta name="theme-color" content="#714B67">
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item" href="configuracoes.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+                <span class="menu-label">Configurações</span>
+            </a>
+            <a class="menu-item" href="faturamento.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+                <span class="menu-label">Faturamento</span>
+            </a>
+            <a class="menu-item" href="contabilidade.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+                <span class="menu-label">Contabilidade</span>
+            </a>
+            <a class="menu-item" href="folha.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="menu-label">Folha de Pagamento</span>
+            </a>
+            <a class="menu-item" href="estrutura_salarial.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="menu-label">Estrutura Salarial</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="topbar-title">Configurações</span>
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <a href="../index4.html" class="topbar-icon-btn" title="Voltar ao Dashboard">
+                    <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                </a>
+                <span class="topbar-user-info">
+                    <span>Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
+                <div class="workspace-header">
+                    <div class="workspace-breadcrumb">FiscalBrasil / Configurações</div>
+                    <h2 class="workspace-title">Configurações</h2>
+                </div>
+                <div class="workspace-content">
+                    <div class="grid grid-cols-2" style="gap:var(--space-5)">
+                        <a class="glass-panel" href="faturamento.html" style="cursor:pointer;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:var(--space-3);padding:var(--space-8);transition:all var(--transition-fast)">
+                            <span style="font-size:2.5rem">🏢</span>
+                            <span style="font-size:var(--font-lg);font-weight:var(--font-semibold);color:var(--text-primary)">Empresa / Filiais</span>
+                            <span style="font-size:var(--font-sm);color:var(--text-secondary);text-align:center">Dados da empresa, filiais, numeração</span>
+                        </a>
+                        <a class="glass-panel" href="contabilidade.html" style="cursor:pointer;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:var(--space-3);padding:var(--space-8);transition:all var(--transition-fast)">
+                            <span style="font-size:2.5rem">📒</span>
+                            <span style="font-size:var(--font-lg);font-weight:var(--font-semibold);color:var(--text-primary)">Contabilidade</span>
+                            <span style="font-size:var(--font-sm);color:var(--text-secondary);text-align:center">Plano de contas, regras contábeis</span>
+                        </a>
+                        <a class="glass-panel" href="folha.html" style="cursor:pointer;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:var(--space-3);padding:var(--space-8);transition:all var(--transition-fast)">
+                            <span style="font-size:2.5rem">📋</span>
+                            <span style="font-size:var(--font-lg);font-weight:var(--font-semibold);color:var(--text-primary)">Folha de Pagamento</span>
+                            <span style="font-size:var(--font-sm);color:var(--text-secondary);text-align:center">Configuração da folha, tabelas INSS/IRRF</span>
+                        </a>
+                        <a class="glass-panel" href="estrutura_salarial.html" style="cursor:pointer;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:var(--space-3);padding:var(--space-8);transition:all var(--transition-fast)">
+                            <span style="font-size:2.5rem">🏗️</span>
+                            <span style="font-size:var(--font-lg);font-weight:var(--font-semibold);color:var(--text-primary)">Estrutura Salarial</span>
+                            <span style="font-size:var(--font-sm);color:var(--text-secondary);text-align:center">Cargos, salários, componentes</span>
+                        </a>
+                        <a class="glass-panel" href="usuarios.html" style="cursor:pointer;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:var(--space-3);padding:var(--space-8);transition:all var(--transition-fast)">
+                            <span style="font-size:2.5rem">👤</span>
+                            <span style="font-size:var(--font-lg);font-weight:var(--font-semibold);color:var(--text-primary)">Usuários</span>
+                            <span style="font-size:var(--font-sm);color:var(--text-secondary);text-align:center">Gerenciar usuários, perfis e acesso</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+                    <div class="status-bar-left">
+                        <span>Usuário: Administrador</span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span>Versão 1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

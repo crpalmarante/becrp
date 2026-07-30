@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — %%TITLE%%</title>
+    <meta name="theme-color" content="#714B67">
+
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/accessibility.css">
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            %%SIDEBAR_NAV%%
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="topbar-title">%%TITLE%%</span>
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <span class="topbar-user-info">
+                    <span>Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
+                <div class="workspace-header">
+                    <div class="workspace-breadcrumb">FiscalBrasil / %%TITLE%%</div>
+                    <h2 class="workspace-title">%%TITLE%%</h2>
+                </div>
+                <div class="workspace-content">
+                    %%CONTENT%%
+                </div>
+                <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+                    <div class="status-bar-left">
+                        <span>Usuário: Administrador</span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span>Versão 1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

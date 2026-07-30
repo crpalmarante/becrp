@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — Permissões</title>
+    <meta name="theme-color" content="#714B67">
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .conta-card {
+            background:var(--glass-bg);
+            backdrop-filter:var(--glass-blur);
+            border:1px solid var(--glass-border);
+            border-radius:var(--radius-panel);
+            overflow:hidden;
+            transition:all var(--transition-fast);
+        }
+        .conta-card.expanded {
+            border-color:var(--color-primary);
+        }
+        .conta-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            padding:var(--space-4) var(--space-5);
+            cursor:pointer;
+            transition:background var(--transition-fast);
+        }
+        .conta-header:hover {
+            background:rgba(255,255,255,.06);
+        }
+        .conta-nome {
+            font-weight:var(--font-semibold);
+            font-size:var(--font-md);
+            color:var(--text-primary);
+        }
+        .conta-usuario {
+            font-size:var(--font-sm);
+            color:var(--text-muted);
+        }
+        .conta-tipo {
+            font-size:var(--font-xs);
+            padding:2px 10px;
+            border-radius:var(--radius-pill);
+            font-weight:var(--font-semibold);
+        }
+        .conta-tipo.usuario {
+            background:rgba(20,184,166,.15);
+            color:var(--color-primary);
+        }
+        .conta-tipo.funcionario {
+            background:rgba(34,197,94,.15);
+            color:var(--color-success);
+        }
+        .conta-seta {
+            font-size:var(--font-xs);
+            color:var(--text-light);
+            transition:transform var(--transition-fast);
+        }
+        .conta-card.expanded .conta-seta {
+            transform:rotate(180deg);
+        }
+        .conta-body {
+            display:none;
+            padding:0 var(--space-5) var(--space-5);
+            border-top:1px solid var(--glass-border);
+        }
+        .conta-card.expanded .conta-body {
+            display:block;
+        }
+        .modulos-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+            gap:var(--space-2);
+            margin-top:var(--space-3);
+        }
+        .modulo-group {
+            margin-top:var(--space-4);
+        }
+        .modulo-group h3 {
+            font-size:var(--font-sm);
+            font-weight:var(--font-semibold);
+            color:var(--text-secondary);
+            margin-bottom:var(--space-2);
+            padding-bottom:var(--space-1);
+            border-bottom:2px solid var(--color-primary);
+        }
+        .modulo-item {
+            display:flex;
+            align-items:center;
+            gap:var(--space-2);
+            padding:var(--space-2) var(--space-2);
+            border-radius:var(--radius-sm);
+            cursor:pointer;
+            font-size:var(--font-sm);
+            color:var(--text-primary);
+            user-select:none;
+            transition:background var(--transition-fast);
+        }
+        .modulo-item:hover {
+            background:rgba(255,255,255,.06);
+        }
+        .modulo-item input[type="checkbox"] {
+            accent-color:var(--color-primary);
+            cursor:pointer;
+            width:16px;
+            height:16px;
+        }
+        .salvo-msg {
+            color:var(--color-success);
+            font-size:var(--font-sm);
+            display:none;
+            margin-top:var(--space-2);
+            text-align:right;
+        }
+        .loading {
+            text-align:center;
+            color:var(--text-muted);
+            padding:var(--space-10);
+            font-size:var(--font-md);
+        }
+        .erro {
+            text-align:center;
+            color:var(--color-danger);
+            padding:var(--space-10);
+        }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item active" href="#">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-lock"/></svg>
+                <span class="menu-label">Permissões</span>
+            </a>
+            <a class="menu-item" href="configuracoes.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+                <span class="menu-label">Configurações</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="topbar-title">Permissões</span>
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <a href="../index4.html" class="topbar-icon-btn" title="Dashboard">
+                    <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                </a>
+                <span class="topbar-user-info">
+                    <span>Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
+                <div class="workspace-header">
+                    <div class="workspace-breadcrumb">FiscalBrasil / Permissões</div>
+                    <h2 class="workspace-title">Gerenciar Permissões</h2>
+                </div>
+                <div class="workspace-content">
+                    <div id="loading" class="loading">Carregando contas...</div>
+                    <div id="erro" class="erro" style="display:none"></div>
+                    <div id="contas-lista" style="display:flex;flex-direction:column;gap:var(--space-4);display:none"></div>
+                </div>
+                <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+                    <div class="status-bar-left">
+                        <span>Usuário: Administrador</span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span>Versão 1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let token = localStorage.getItem('auth_token');
+if (!token) { window.location.href = '../login.html'; }
+
+const MODULOS = {
+    'principal': {
+        label: 'Módulos Principais',
+        itens: [
+            { id: 'ponto_vendas', label: 'Ponto de Vendas' },
+            { id: 'vendas', label: 'Vendas' },
+            { id: 'compras', label: 'Compras' },
+            { id: 'inventario', label: 'Inventário' },
+            { id: 'fiscal', label: 'Fiscal' },
+            { id: 'faturamento', label: 'Faturamento (menu)' },
+        ]
+    },
+    'faturamento': {
+        label: 'Faturamento',
+        itens: [
+            { id: 'orcamentos', label: 'Orçamentos' },
+            { id: 'pedidos-venda', label: 'Pedidos de Venda' },
+            { id: 'contratos', label: 'Contratos' },
+            { id: 'notas-fiscais', label: 'Notas Fiscais' },
+            { id: 'nfce', label: 'NFC-e' },
+            { id: 'nfse', label: 'NFS-e' },
+            { id: 'cte', label: 'CT-e' },
+            { id: 'mdfe', label: 'MDF-e' },
+            { id: 'eventos-fiscais', label: 'Eventos Fiscais' },
+            { id: 'faturas', label: 'Faturas' },
+            { id: 'boletos', label: 'Boletos' },
+            { id: 'cobrancas', label: 'Cobranças' },
+            { id: 'pagamentos', label: 'Pagamentos' },
+            { id: 'clientes', label: 'Clientes' },
+            { id: 'produtos', label: 'Produtos' },
+            { id: 'series', label: 'Séries' },
+            { id: 'naturezas-operacao', label: 'Naturezas de Op.' },
+            { id: 'regras-fiscais', label: 'Regras Fiscais' },
+            { id: 'emitir-documento', label: 'Emitir Documento' },
+            { id: 'importar-xml', label: 'Importar XML' },
+            { id: 'manifestacao-destinatario', label: 'Manifest. Destinatário' },
+            { id: 'download-sefaz', label: 'Download SEFAZ' },
+            { id: 'rel-vendas', label: 'Rel. Vendas' },
+            { id: 'rel-faturamento', label: 'Rel. Faturamento' },
+            { id: 'rel-documentos-emitidos', label: 'Rel. Docs. Emitidos' },
+            { id: 'rel-documentos-cancelados', label: 'Rel. Docs. Cancelados' },
+            { id: 'rel-estatisticas', label: 'Rel. Estatísticas' },
+            { id: 'config-empresas', label: 'Config. Empresas' },
+            { id: 'config-certificados', label: 'Config. Certificados' },
+            { id: 'config-csc', label: 'Config. CSC NFC-e' },
+            { id: 'config-parametros-fiscais', label: 'Config. Param. Fiscais' },
+            { id: 'config-integracoes', label: 'Config. Integrações' },
+        ]
+    },
+    'rh': {
+        label: 'RH / Departamento Pessoal',
+        itens: [
+            { id: 'funcionarios', label: 'Funcionários (menu)' },
+            { id: 'cadastro', label: 'Cadastro' },
+            { id: 'folha', label: 'Folha Pagto' },
+            { id: 'ponto', label: 'Ponto' },
+            { id: 'relatorios-rh', label: 'Relatórios RH' },
+            { id: 'portal-func', label: 'Portal Func.' },
+            { id: 'contabilidade', label: 'Contabilidade' },
+            { id: 'estrutura-salarial', label: 'Estrut. Salarial' },
+            { id: 'rh-dashboard', label: 'RH Dashboard' },
+            { id: 'directory', label: 'Diretório' },
+            { id: 'emprestimos', label: 'Empréstimos' },
+            { id: 'disciplinar', label: 'Disciplinar' },
+        ]
+    },
+    'sistema': {
+        label: 'Sistema',
+        itens: [
+            { id: 'configuracoes', label: 'Configurações' },
+        ]
+    }
+};
+
+function api(path, params) {
+    const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+    if (token) headers['X-Auth-Token'] = token;
+    return fetch(path, { method: 'POST', headers, body: params });
+}
+
+function apiGet(path) {
+    const headers = {};
+    if (token) headers['X-Auth-Token'] = token;
+    return fetch(path, { headers });
+}
+
+function toggleConta(id) {
+    document.getElementById('conta-' + id).classList.toggle('expanded');
+}
+
+function selecionarTodos(id, grupo) {
+    const checks = document.querySelectorAll('#conta-' + id + ' .modulo-' + grupo + ' input');
+    const allChecked = Array.from(checks).every(c => c.checked);
+    checks.forEach(c => c.checked = !allChecked);
+}
+
+function getPermissoes(id) {
+    const checks = document.querySelectorAll('#conta-' + id + ' .modulo-item input:checked');
+    return Array.from(checks).map(c => c.value).join(',');
+}
+
+function salvar(id) {
+    const permissoes = getPermissoes(id);
+    const btn = document.querySelector('#conta-' + id + ' .btn-salvar');
+    const msg = document.querySelector('#conta-' + id + ' .salvo-msg');
+    btn.disabled = true;
+    btn.textContent = 'Salvando...';
+    msg.style.display = 'none';
+    const params = new URLSearchParams();
+    params.set('id', id);
+    params.set('permissoes', permissoes);
+    api('/api/conta/permissoes', params)
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            btn.textContent = 'Salvar';
+            if (data.status === 'ok') {
+                msg.textContent = 'Permissões salvas!';
+                msg.style.display = 'block';
+                setTimeout(() => { msg.style.display = 'none'; }, 2500);
+            } else {
+                alert('Erro: ' + (data.mensagem || 'desconhecido'));
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.textContent = 'Salvar';
+            alert('Erro de conexão');
+        });
+}
+
+function renderConta(c) {
+    const div = document.createElement('div');
+    div.className = 'conta-card';
+    div.id = 'conta-' + c.id;
+    const tipoLabel = c.tipo === 'usuario' ? 'Administrador' : 'Funcionário';
+    const tipoClass = c.tipo === 'usuario' ? 'usuario' : 'funcionario';
+    let modulosHTML = '';
+    for (const [key, grupo] of Object.entries(MODULOS)) {
+        modulosHTML += '<div class="modulo-group">';
+        modulosHTML += '<h3>' + grupo.label + '</h3>';
+        modulosHTML += '<div class="modulos-grid">';
+        for (const item of grupo.itens) {
+            const checked = c.permissoes.split(',').map(s => s.trim()).includes(item.id) ? 'checked' : '';
+            modulosHTML += '<label class="modulo-item">';
+            modulosHTML += '<input type="checkbox" class="modulo-' + key + '" value="' + item.id + '" ' + checked + '>';
+            modulosHTML += item.label;
+            modulosHTML += '</label>';
+        }
+        modulosHTML += '</div>';
+        if (c.tipo !== 'usuario') {
+            modulosHTML += '<div style="margin-top:4px"><span class="link" style="font-size:.75rem;color:var(--text-muted);cursor:pointer" onclick="selecionarTodos(\'' + c.id + '\',\'' + key + '\')">Selecionar/limpar grupo</span></div>';
+        }
+        modulosHTML += '</div>';
+    }
+    div.innerHTML =
+        '<div class="conta-header" onclick="toggleConta(' + c.id + ')">' +
+            '<div class="conta-info">' +
+                '<div class="conta-nome">' + c.nome + '</div>' +
+                '<div class="conta-usuario">@' + c.usuario + (c.email ? ' · ' + c.email : '') + '</div>' +
+            '</div>' +
+            '<div style="display:flex;align-items:center;gap:var(--space-2)">' +
+                '<span class="conta-tipo ' + tipoClass + '">' + tipoLabel + '</span>' +
+                '<span class="conta-seta">▼</span>' +
+            '</div>' +
+        '</div>' +
+        '<div class="conta-body">' +
+            (c.tipo === 'usuario'
+                ? '<p style="color:var(--text-muted);font-size:var(--font-sm);margin-top:var(--space-3)">Administradores têm acesso a todos os módulos automaticamente.</p>'
+                : modulosHTML +
+                    '<div class="actions" style="margin-top:var(--space-4)">' +
+                        '<button class="toolbar-btn primary btn-salvar" onclick="salvar(' + c.id + ')">Salvar</button>' +
+                    '</div>' +
+                    '<div class="salvo-msg"></div>'
+            ) +
+        '</div>';
+    return div;
+}
+
+apiGet('/api/contas')
+    .then(r => r.json())
+    .then(data => {
+        document.getElementById('loading').style.display = 'none';
+        if (data.status === 'ok') {
+            const lista = document.getElementById('contas-lista');
+            lista.style.display = 'flex';
+            for (const c of data.contas) {
+                lista.appendChild(renderConta(c));
+            }
+        } else {
+            const erro = document.getElementById('erro');
+            erro.textContent = data.mensagem || 'Erro ao carregar contas';
+            erro.style.display = 'block';
+        }
+    })
+    .catch(() => {
+        document.getElementById('loading').style.display = 'none';
+        const erro = document.getElementById('erro');
+        erro.textContent = 'Erro de conexão';
+        erro.style.display = 'block';
+    });
+</script>
+
+</body>
+</html>

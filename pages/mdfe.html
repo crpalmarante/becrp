@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — MDF-e</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item" href="cte.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">CT-e</span></a>
+            <a class="menu-item active" href="mdfe.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-map"/></svg><span class="menu-label">MDF-e</span></a>
+            <a class="menu-item" href="sped.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">SPED</span></a>
+            <a class="menu-item" href="nfe.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">NF-e</span></a>
+            <a class="menu-item" href="nfce.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg><span class="menu-label">NFC-e</span></a>
+            <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+        </nav>
+    </aside>
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-map"/></svg>
+                <span>MDF-e — Manifesto Eletrônico de Documentos Fiscais</span>
+            </div>
+            <div id="user-info" class="topbar-user"></div>
+        </header>
+        <div class="content">
+            <div class="card">
+                <div class="card-header"><h3>Cadastro MDF-e</h3></div>
+                <div class="card-body">
+                    <div class="grid-3">
+                        <div><label>Número</label><input type="number" id="num" value="1"></div>
+                        <div><label>Série</label><input type="number" id="serie" value="1"></div>
+                        <div><label>Chave</label><input type="text" id="chave"></div>
+                        <div><label>CNPJ Emitente</label><input type="text" id="cnpj_emit"></div>
+                        <div><label>Nome Emitente</label><input type="text" id="nome_emit"></div>
+                        <div><label>Modal (1-Rodoviário)</label><input type="text" id="modal" value="1"></div>
+                        <div><label>UF Origem</label><input type="text" id="uf_ini" maxlength="2"></div>
+                        <div><label>UF Destino</label><input type="text" id="uf_fim" maxlength="2"></div>
+                        <div><label>Mun. Origem</label><input type="text" id="mun_ini"></div>
+                        <div><label>Mun. Destino</label><input type="text" id="mun_fim"></div>
+                        <div><label>Valor Carga</label><input type="number" id="valor_carga" step="0.01"></div>
+                        <div><label>Placa Veículo</label><input type="text" id="placa_veic"></div>
+                        <div><label>Motorista</label><input type="text" id="motorista"></div>
+                        <div><label>CPF Motorista</label><input type="text" id="cpf_motorista"></div>
+                    </div>
+                    <div style="margin-top:12px">
+                        <button class="btn btn-primary" onclick="salvar()">Salvar</button>
+                        <button class="btn btn-secondary" onclick="limpar()">Novo</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="margin-top:16px">
+                <div class="card-header"><h3>Lista MDF-e</h3><button class="btn btn-sm btn-secondary" onclick="listar()">Atualizar</button></div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead><tr><th>ID</th><th>Número</th><th>Emitente</th><th>Origem</th><th>Destino</th><th>Valor</th><th>Placa</th><th>Motorista</th><th>Status</th><th>Ações</th></tr></thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+const API = "/api/admin/fiscal/mdfe";
+async function api(path, body) {
+    const opts = {};
+    if (body) { opts.method = "POST"; opts.body = JSON.stringify(body); }
+    return Auth.fetch(path, opts);
+}
+function get(f) { return document.getElementById(f).value; }
+function set(f, v) { document.getElementById(f).value = v; }
+
+async function salvar() {
+    const id = document.getElementById("edit-id")?.value;
+    const body = {
+        action: id ? "alterar" : "incluir",
+        numero: get("num"), serie: get("serie"), chave: get("chave"),
+        cnpj_emit: get("cnpj_emit"), nome_emit: get("nome_emit"),
+        modal: get("modal"), uf_ini: get("uf_ini"), uf_fim: get("uf_fim"),
+        mun_ini: get("mun_ini"), mun_fim: get("mun_fim"),
+        valor_carga: get("valor_carga"), placa_veic: get("placa_veic"),
+        motorista: get("motorista"), cpf_motorista: get("cpf_motorista"),
+        status: "CADASTRADO",
+    };
+    if (id) body.id = id;
+    const d = await api(API, body);
+    alert(d.message || "OK");
+    limpar(); document.addEventListener("auth:ready", function () {
+    listar();
+});
+}
+async function editar(id) {
+    const r = await api(API);
+    const item = (r.mdfe||[]).find(x => x.id == id);
+    if (!item) return;
+    document.getElementById("edit-id")?.remove();
+    const inp = document.createElement("input");
+    inp.type = "hidden"; inp.id = "edit-id"; inp.value = id;
+    document.querySelector(".card .card-body").prepend(inp);
+    for (const k of ["num","serie","chave","cnpj_emit","nome_emit","modal","uf_ini","uf_fim","mun_ini","mun_fim","valor_carga","placa_veic","motorista","cpf_motorista"]) {
+        const v = item[k.replace("num","numero")];
+        if (v !== undefined) set(k, v);
+    }
+}
+async function excluir(id) {
+    if (!confirm("Excluir MDF-e?")) return;
+    const d = await api(API, {action:"excluir", id});
+    alert(d.message); document.addEventListener("auth:ready", function () {
+    listar();
+});
+}
+async function listar() {
+    const d = await api(API);
+    const tbody = document.getElementById("tbody");
+    tbody.innerHTML = "";
+    for (const item of (d.mdfe||[])) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${item.id}</td><td>${item.numero}</td>
+            <td>${(item.nome_emit||"").slice(0,20)}</td>
+            <td>${item.mun_ini||""}/${item.uf_ini||""}</td><td>${item.mun_fim||""}/${item.uf_fim||""}</td>
+            <td>R$ ${parseFloat(item.valor_carga||0).toFixed(2)}</td>
+            <td>${item.placa_veic||""}</td><td>${(item.motorista||"").slice(0,15)}</td>
+            <td>${item.status||""}</td>
+            <td><button class="btn btn-sm btn-secondary" onclick="editar(${item.id})">Editar</button>
+                <button class="btn btn-sm btn-danger" onclick="excluir(${item.id})">Excluir</button></td>`;
+        tbody.appendChild(tr);
+    }
+}
+function limpar() {
+    document.getElementById("edit-id")?.remove();
+    for (const f of ["num","serie","chave","cnpj_emit","nome_emit","modal","uf_ini","uf_fim","mun_ini","mun_fim","valor_carga","placa_veic","motorista","cpf_motorista"])
+        set(f, "");
+    set("num", "1"); set("serie", "1"); set("modal", "1");
+}
+document.addEventListener("auth:ready", function () {
+    listar();
+});
+</script>
+</body>
+</html>

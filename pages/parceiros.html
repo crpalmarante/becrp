@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Parceiros de Negócio</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:none}.view.active{display:flex;flex-direction:column;flex:1;min-height:0}
+.workspace-content{flex:1;overflow:auto}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
+.toolbar .so-btn.primary{margin-left:auto}
+.so-btn{
+  border:1px solid var(--border-color);background:var(--surface-panel);
+  color:var(--text-primary);padding:8px 14px;border-radius:8px;
+  cursor:pointer;font-size:13px;font-weight:600;
+}
+.so-btn:hover{background:rgba(255,255,255,.08)}
+.so-btn.primary{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
+.so-btn.ghost{opacity:.85}
+.so-btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fca5a5}
+.so-btn.sm{padding:6px 10px;font-size:12px}
+.filter-chip{
+  border:1px solid var(--border-color);background:transparent;color:var(--text-muted);
+  padding:6px 12px;border-radius:999px;cursor:pointer;font-size:12px;font-weight:600;
+}
+.filter-chip.active{background:rgba(20,184,166,.18);border-color:rgba(20,184,166,.45);color:#5eead4}
+.muted{color:var(--text-muted)}
+.form-error{display:none;color:#fca5a5;font-size:13px;margin-top:8px}
+.form-error.visible{display:block}
+.pf-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.pf-bar .crumb{font-size:13px;color:var(--text-muted)}
+.pf-bar .crumb strong{color:var(--text-primary)}
+.pf-actions{display:flex;gap:8px;flex-wrap:wrap}
+.pf-header{
+  display:grid;grid-template-columns:72px 1fr auto;gap:20px;align-items:start;
+  background:var(--surface-panel);border:1px solid var(--border-color);
+  border-radius:var(--radius-panel);padding:16px;margin-bottom:14px;
+}
+@media(max-width:900px){.pf-header{grid-template-columns:1fr}}
+.pf-avatar{
+  width:72px;height:72px;border-radius:50%;border:1px solid var(--border-color);
+  background:rgba(20,184,166,.15);display:grid;place-items:center;
+  color:#5eead4;font-size:22px;font-weight:700;
+}
+.pf-main .field{margin-bottom:10px}
+.pf-main label,.field label{
+  display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px;
+  font-weight:600;text-transform:uppercase;letter-spacing:.03em;
+}
+.pf-main .row{display:grid;grid-template-columns:1fr 160px;gap:12px}
+@media(max-width:700px){.pf-main .row{grid-template-columns:1fr}}
+.pf-flags{display:flex;flex-direction:column;gap:8px;padding-top:8px;min-width:160px}
+.pf-flags label{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;text-transform:none;font-weight:500;color:var(--text-primary)}
+.role-box{
+  display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;
+  padding:10px;border:1px solid var(--border-color);border-radius:10px;background:rgba(0,0,0,.12);
+}
+.role-box label{display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;margin:0;text-transform:none;font-weight:600;color:var(--text-primary)}
+.pf-tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--border-color);margin-bottom:14px}
+.pf-tab{border:0;background:transparent;color:var(--text-muted);padding:10px 12px;cursor:pointer;font-weight:600;font-size:13px;border-radius:8px 8px 0 0}
+.pf-tab.active{color:#5eead4;background:rgba(20,184,166,.12)}
+.pf-pane{display:none}.pf-pane.active{display:block}
+.pf-card{background:var(--surface-panel);border:1px solid var(--border-color);border-radius:var(--radius-panel);padding:16px}
+.pf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 16px}
+.pf-grid .full{grid-column:1/-1}
+.field .form-input,.field select.form-input,.field textarea.form-input{
+  width:100%;background:rgba(0,0,0,.2);border:1px solid var(--border-color);
+  border-radius:8px;color:var(--text-primary);padding:8px 10px;font-size:13px;
+}
+.field textarea.form-input{min-height:90px;resize:vertical}
+.dg-row{cursor:pointer}
+.sub-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+.sub-toolbar .muted{margin-left:auto;font-size:12px}
+.card-list{display:flex;flex-direction:column;gap:12px}
+.item-card{
+  border:1px solid var(--border-color);border-radius:10px;padding:12px;
+  background:rgba(0,0,0,.15);
+}
+.item-card .item-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.item-card .item-head strong{font-size:13px}
+.item-card .item-head .so-btn{margin-left:auto}
+.pill{
+  display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;
+  background:rgba(20,184,166,.15);color:#5eead4;margin-right:4px;
+}
+.pill.dim{background:rgba(148,163,184,.15);color:#94a3b8}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="parceiros.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+        <span class="menu-label">Parceiros</span>
+      </a>
+      <a class="menu-item" href="parceiros.html?role=CUSTOMER">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+        <span class="menu-label">Clientes</span>
+      </a>
+      <a class="menu-item" href="parceiros.html?role=SUPPLIER">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="menu-label">Fornecedores</span>
+      </a>
+      <a class="menu-item" href="produtos.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Produtos</span>
+      </a>
+      <a class="menu-item" href="../index4.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-chevron-left"/></svg>
+        <span class="menu-label">Menu</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+        <span class="topbar-title" id="topbar-title">Parceiros</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex;flex-direction:column;flex:1;min-height:0">
+
+        <div class="view active" id="view-list">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Cadastros / <span id="crumb-role">Parceiros</span></div>
+            <h2 class="workspace-title" id="page-title">Parceiros de Negócio</h2>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar">
+              <button type="button" class="filter-chip active" data-role="">Todos</button>
+              <button type="button" class="filter-chip" data-role="CUSTOMER">Clientes</button>
+              <button type="button" class="filter-chip" data-role="SUPPLIER">Fornecedores</button>
+              <button type="button" class="filter-chip" data-role="CARRIER">Transportadoras</button>
+              <button type="button" class="so-btn" id="btn-refresh">Atualizar</button>
+              <button type="button" class="so-btn primary" id="btn-novo">+ Novo Parceiro</button>
+            </div>
+            <div id="grid-container"></div>
+          </div>
+        </div>
+
+        <div class="view" id="view-form">
+          <div class="workspace-content">
+            <div class="pf-bar">
+              <div class="crumb">Parceiros &gt; Cadastro &gt; <strong id="pf-code-label">Novo</strong></div>
+              <div class="pf-actions">
+                <button type="button" class="so-btn ghost" id="btn-cancel">Cancelar</button>
+                <button type="button" class="so-btn primary" id="btn-save" title="Ctrl+S">Salvar</button>
+              </div>
+            </div>
+
+            <div class="pf-header">
+              <div class="pf-avatar" id="pf-avatar">?</div>
+              <div class="pf-main">
+                <div class="row">
+                  <div class="field">
+                    <label for="f-legal_name">Razão social / Nome legal</label>
+                    <input class="form-input" id="f-legal_name" required placeholder="Ex.: Mercado Bom Preço LTDA">
+                  </div>
+                  <div class="field">
+                    <label for="f-partner_code">Código BP</label>
+                    <input class="form-input" id="f-partner_code" readonly placeholder="Automático">
+                  </div>
+                </div>
+                <div class="pf-grid" style="margin-top:4px">
+                  <div class="field">
+                    <label for="f-trade_name">Nome fantasia</label>
+                    <input class="form-input" id="f-trade_name" placeholder="Nome comercial">
+                  </div>
+                  <div class="field">
+                    <label for="f-display_name">Nome de exibição</label>
+                    <input class="form-input" id="f-display_name" placeholder="Como aparece nas listas">
+                  </div>
+                  <div class="field">
+                    <label for="f-person_type">Tipo</label>
+                    <select class="form-input" id="f-person_type">
+                      <option value="COMPANY">Pessoa jurídica</option>
+                      <option value="PERSON">Pessoa física</option>
+                      <option value="GOVERNMENT">Órgão público</option>
+                      <option value="NON_PROFIT">Sem fins lucrativos</option>
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label style="display:block;font-size:11px;color:var(--text-muted);margin:8px 0 4px;font-weight:600;text-transform:uppercase">Papéis</label>
+                  <div class="role-box" id="role-box">
+                    <label><input type="checkbox" value="CUSTOMER"> Cliente</label>
+                    <label><input type="checkbox" value="SUPPLIER"> Fornecedor</label>
+                    <label><input type="checkbox" value="CARRIER"> Transportadora</label>
+                    <label><input type="checkbox" value="MANUFACTURER"> Fabricante</label>
+                    <label><input type="checkbox" value="REPRESENTATIVE"> Representante</label>
+                  </div>
+                </div>
+              </div>
+              <div class="pf-flags">
+                <label><input type="checkbox" id="f-ativo" checked> Ativo</label>
+              </div>
+            </div>
+
+            <div class="pf-tabs" role="tablist">
+              <button type="button" class="pf-tab active" data-tab="docs">Documentos</button>
+              <button type="button" class="pf-tab" data-tab="enderecos">Endereços</button>
+              <button type="button" class="pf-tab" data-tab="contatos">Contatos</button>
+              <button type="button" class="pf-tab" data-tab="bancarios">Bancários</button>
+              <button type="button" class="pf-tab" data-tab="fiscal">Fiscal</button>
+              <button type="button" class="pf-tab" data-tab="obs">Observações</button>
+            </div>
+
+            <div class="pf-pane active" id="tab-docs">
+              <div class="pf-card">
+                <div class="pf-grid">
+                  <div class="field">
+                    <label for="f-doc_main" id="lbl-doc-main">CNPJ / CPF</label>
+                    <input class="form-input" id="f-doc_main" placeholder="Documento principal">
+                  </div>
+                  <div class="field">
+                    <label for="f-doc_ie">Inscrição Estadual</label>
+                    <input class="form-input" id="f-doc_ie" placeholder="ISENTO ou número">
+                  </div>
+                  <div class="field">
+                    <label for="f-doc_im">Inscrição Municipal</label>
+                    <input class="form-input" id="f-doc_im">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pf-pane" id="tab-enderecos">
+              <div class="pf-card">
+                <div class="sub-toolbar">
+                  <button type="button" class="so-btn sm" id="btn-add-address">+ Endereço</button>
+                  <span class="muted">Sede, cobrança, entrega…</span>
+                </div>
+                <div class="card-list" id="addresses-list"></div>
+              </div>
+            </div>
+
+            <div class="pf-pane" id="tab-contatos">
+              <div class="pf-card">
+                <div class="sub-toolbar">
+                  <button type="button" class="so-btn sm" id="btn-add-contact">+ Contato</button>
+                  <span class="muted">Pessoas da empresa (compras, financeiro…)</span>
+                </div>
+                <div class="card-list" id="contacts-list"></div>
+              </div>
+            </div>
+
+            <div class="pf-pane" id="tab-bancarios">
+              <div class="pf-card">
+                <div class="sub-toolbar">
+                  <button type="button" class="so-btn sm" id="btn-add-bank">+ Conta bancária</button>
+                  <span class="muted">PIX e conta para o contas a pagar</span>
+                </div>
+                <div class="card-list" id="banks-list"></div>
+              </div>
+            </div>
+
+            <div class="pf-pane" id="tab-fiscal">
+              <div class="pf-card">
+                <div class="pf-grid">
+                  <div class="field">
+                    <label for="f-regime">Regime tributário</label>
+                    <select class="form-input" id="f-regime">
+                      <option value="SN">Simples Nacional</option>
+                      <option value="LP">Lucro Presumido</option>
+                      <option value="LR">Lucro Real</option>
+                      <option value="MEI">MEI</option>
+                      <option value="PF">Pessoa Física</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="f-contribuinte_icms">Contribuinte ICMS</label>
+                    <select class="form-input" id="f-contribuinte_icms">
+                      <option value="1">1 — Contribuinte</option>
+                      <option value="2">2 — Contribuinte isento</option>
+                      <option value="9">9 — Não contribuinte</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="pf-pane" id="tab-obs">
+              <div class="pf-card">
+                <div class="field full">
+                  <label for="f-observacao">Observações</label>
+                  <textarea class="form-input" id="f-observacao"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-error" id="form-error"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script src="../js/components/DataGrid.js"></script>
+<script>
+(function () {
+  const ROLE_LBL = {
+    CUSTOMER: "Cliente",
+    SUPPLIER: "Fornecedor",
+    CARRIER: "Transportadora",
+    MANUFACTURER: "Fabricante",
+    REPRESENTATIVE: "Representante",
+  };
+  const ADDR_TYPES = [
+    { v: "HEADQUARTERS", l: "Sede" },
+    { v: "BILLING", l: "Cobrança" },
+    { v: "SHIPPING", l: "Entrega" },
+    { v: "BRANCH", l: "Filial" },
+    { v: "WAREHOUSE", l: "Depósito" },
+    { v: "OFFICE", l: "Escritório" },
+    { v: "OTHER", l: "Outro" },
+  ];
+  const UFS = ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"];
+
+  const params = new URLSearchParams(location.search);
+  let roleFilter = (params.get("role") || "").toUpperCase();
+  let allData = [];
+  let grid = null;
+  let editingId = null;
+  let addresses = [];
+  let contacts = [];
+  let bankAccounts = [];
+
+  const PIX_TYPES = [
+    { v: "", l: "—" },
+    { v: "CNPJ", l: "CNPJ" },
+    { v: "CPF", l: "CPF" },
+    { v: "EMAIL", l: "E-mail" },
+    { v: "PHONE", l: "Telefone" },
+    { v: "RANDOM", l: "Chave aleatória" },
+  ];
+  const ACCOUNT_TYPES = [
+    { v: "CHECKING", l: "Corrente" },
+    { v: "SAVINGS", l: "Poupança" },
+    { v: "PAYMENT", l: "Pagamento" },
+  ];
+
+  function uid() {
+    return "x" + Math.random().toString(36).slice(2, 9);
+  }
+
+  function initials(nome) {
+    const parts = String(nome || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function showView(id) {
+    document.querySelectorAll(".view").forEach((v) => v.classList.toggle("active", v.id === id));
+  }
+
+  function applyRoleChrome() {
+    const titles = {
+      CUSTOMER: "Clientes",
+      SUPPLIER: "Fornecedores",
+      CARRIER: "Transportadoras",
+      "": "Parceiros",
+    };
+    const t = titles[roleFilter] || "Parceiros";
+    document.getElementById("topbar-title").textContent = t;
+    document.getElementById("page-title").textContent =
+      roleFilter ? "Cadastro de " + t : "Parceiros de Negócio";
+    document.getElementById("crumb-role").textContent = t;
+    document.querySelectorAll(".filter-chip").forEach((c) => {
+      c.classList.toggle("active", (c.dataset.role || "") === roleFilter);
+    });
+  }
+
+  function docOf(p, type) {
+    const docs = p.documents || [];
+    const hit = docs.find((d) => d.document_type === type);
+    return hit ? hit.document_number : "";
+  }
+
+  function mainDoc(p) {
+    return docOf(p, "CNPJ") || docOf(p, "CPF") || "";
+  }
+
+  function hqCity(p) {
+    const addrs = p.addresses || [];
+    const pref =
+      addrs.find((a) => a.address_type === "HEADQUARTERS") ||
+      addrs.find((a) => a.preferred) ||
+      addrs[0];
+    if (!pref) return "—";
+    return [pref.city, pref.state].filter(Boolean).join("/") || "—";
+  }
+
+  async function load() {
+    if (grid) grid.setLoading(true);
+    const q = roleFilter ? "?role=" + encodeURIComponent(roleFilter) : "";
+    const data = await window.api("/api/admin/partners" + q);
+    if (data.status !== "ok") {
+      document.getElementById("grid-container").innerHTML =
+        '<div class="glass-panel" style="text-align:center;padding:3rem;color:var(--color-danger)">Acesso negado</div>';
+      return;
+    }
+    allData = data.partners || [];
+    renderGrid();
+  }
+
+  function renderGrid() {
+    const el = document.getElementById("grid-container");
+    const columns = [
+      { field: "partner_code", label: "Código", width: 120 },
+      { field: "display", label: "Parceiro" },
+      { field: "roles_lbl", label: "Papéis", width: 180 },
+      { field: "documento", label: "Documento", width: 150 },
+      { field: "cidade_uf", label: "Cidade/UF", width: 140 },
+      { field: "status_lbl", label: "Status", width: 90, align: "center" },
+    ];
+    const rows = allData.map((p) => ({
+      ...p,
+      display: p.display_name || p.trade_name || p.legal_name,
+      roles_lbl: (p.roles || []).map((r) => ROLE_LBL[r] || r).join(", ") || "—",
+      documento: mainDoc(p) || "—",
+      cidade_uf: hqCity(p),
+      status_lbl: p.ativo === false || p.status === "INACTIVE" ? "Inativo" : "Ativo",
+    }));
+    if (!grid) {
+      grid = new DataGrid(el, {
+        columns,
+        data: rows,
+        pageSize: 10,
+        sortable: true,
+        filterable: true,
+        striped: true,
+      });
+      grid.on("cellClick", ({ row }) => openForm(row));
+    } else {
+      grid.setData(rows);
+      grid.setLoading(false);
+    }
+  }
+
+  function selectedRoles() {
+    return Array.from(document.querySelectorAll("#role-box input:checked")).map((i) => i.value);
+  }
+
+  function setRoles(roles) {
+    const set = new Set(roles || []);
+    document.querySelectorAll("#role-box input").forEach((i) => {
+      i.checked = set.has(i.value);
+    });
+  }
+
+  function updateAvatar() {
+    const name =
+      document.getElementById("f-display_name").value ||
+      document.getElementById("f-trade_name").value ||
+      document.getElementById("f-legal_name").value;
+    document.getElementById("pf-avatar").textContent = initials(name);
+  }
+
+  function syncPersonDocs() {
+    const person = document.getElementById("f-person_type").value === "PERSON";
+    document.getElementById("lbl-doc-main").textContent = person ? "CPF" : "CNPJ";
+    if (person) {
+      document.getElementById("f-regime").value = "PF";
+      document.getElementById("f-contribuinte_icms").value = "9";
+    }
+  }
+
+  function ufOptions(selected) {
+    return '<option value="">--</option>' + UFS.map((u) =>
+      `<option value="${u}" ${u === selected ? "selected" : ""}>${u}</option>`
+    ).join("");
+  }
+
+  function addrTypeOptions(selected) {
+    return ADDR_TYPES.map((t) =>
+      `<option value="${t.v}" ${t.v === selected ? "selected" : ""}>${t.l}</option>`
+    ).join("");
+  }
+
+  function renderAddresses() {
+    const box = document.getElementById("addresses-list");
+    if (!addresses.length) {
+      box.innerHTML = '<div class="muted" style="padding:1rem;text-align:center">Nenhum endereço. Adicione sede, cobrança ou entrega.</div>';
+      return;
+    }
+    box.innerHTML = addresses.map((a, idx) => `
+      <div class="item-card" data-idx="${idx}">
+        <div class="item-head">
+          <strong>Endereço ${idx + 1}</strong>
+          <span class="pill">${(ADDR_TYPES.find((t) => t.v === a.address_type) || {}).l || a.address_type}</span>
+          ${a.preferred ? '<span class="pill">Preferido</span>' : '<span class="pill dim">—</span>'}
+          <button type="button" class="so-btn sm danger btn-del-addr">Remover</button>
+        </div>
+        <div class="pf-grid">
+          <div class="field">
+            <label>Tipo</label>
+            <select class="form-input addr-type">${addrTypeOptions(a.address_type)}</select>
+          </div>
+          <div class="field">
+            <label>CEP</label>
+            <input class="form-input addr-zip" value="${a.zip_code || ""}" placeholder="00000-000">
+          </div>
+          <div class="field" style="grid-column:span 2">
+            <label>Logradouro</label>
+            <input class="form-input addr-street" value="${a.street || ""}">
+          </div>
+          <div class="field">
+            <label>Número</label>
+            <input class="form-input addr-number" value="${a.number || ""}">
+          </div>
+          <div class="field">
+            <label>Bairro</label>
+            <input class="form-input addr-district" value="${a.district || ""}">
+          </div>
+          <div class="field">
+            <label>Cidade</label>
+            <input class="form-input addr-city" value="${a.city || ""}">
+          </div>
+          <div class="field">
+            <label>UF</label>
+            <select class="form-input addr-state">${ufOptions(a.state || "")}</select>
+          </div>
+          <div class="field">
+            <label>Nome do contato</label>
+            <input class="form-input addr-contact" value="${a.contact_name || ""}" placeholder="Quem recebe / responsável">
+          </div>
+          <div class="field">
+            <label>Telefone(s)</label>
+            <input class="form-input addr-phone" value="${a.phone || ""}" placeholder="(11) 3456-7890 / 99999-0000">
+          </div>
+          <div class="field">
+            <label>E-mail</label>
+            <input class="form-input addr-email" type="email" value="${a.email || ""}" placeholder="contato@empresa.com.br">
+          </div>
+          <div class="field">
+            <label>Preferido</label>
+            <select class="form-input addr-pref">
+              <option value="1" ${a.preferred ? "selected" : ""}>Sim</option>
+              <option value="0" ${!a.preferred ? "selected" : ""}>Não</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+    box.querySelectorAll(".item-card").forEach((card) => {
+      const idx = Number(card.dataset.idx);
+      const sync = () => {
+        addresses[idx] = {
+          ...addresses[idx],
+          address_type: card.querySelector(".addr-type").value,
+          zip_code: card.querySelector(".addr-zip").value.trim(),
+          street: card.querySelector(".addr-street").value.trim(),
+          number: card.querySelector(".addr-number").value.trim(),
+          district: card.querySelector(".addr-district").value.trim(),
+          city: card.querySelector(".addr-city").value.trim(),
+          state: card.querySelector(".addr-state").value,
+          country: "BR",
+          contact_name: card.querySelector(".addr-contact").value.trim(),
+          phone: card.querySelector(".addr-phone").value.trim(),
+          email: card.querySelector(".addr-email").value.trim(),
+          preferred: card.querySelector(".addr-pref").value === "1",
+        };
+      };
+      card.querySelectorAll("input,select").forEach((el) => el.addEventListener("change", sync));
+      card.querySelectorAll("input").forEach((el) => el.addEventListener("input", sync));
+      card.querySelector(".btn-del-addr").addEventListener("click", () => {
+        addresses.splice(idx, 1);
+        renderAddresses();
+      });
+      card.querySelector(".addr-type").addEventListener("change", () => {
+        sync();
+        renderAddresses();
+      });
+    });
+  }
+
+  function renderContacts() {
+    const box = document.getElementById("contacts-list");
+    if (!contacts.length) {
+      box.innerHTML = '<div class="muted" style="padding:1rem;text-align:center">Nenhum contato. Adicione pessoas de relacionamento.</div>';
+      return;
+    }
+    box.innerHTML = contacts.map((c, idx) => `
+      <div class="item-card" data-idx="${idx}">
+        <div class="item-head">
+          <strong>${c.name || "Contato " + (idx + 1)}</strong>
+          ${c.preferred ? '<span class="pill">Preferido</span>' : ""}
+          <button type="button" class="so-btn sm danger btn-del-contact">Remover</button>
+        </div>
+        <div class="pf-grid">
+          <div class="field">
+            <label>Nome</label>
+            <input class="form-input c-name" value="${c.name || ""}">
+          </div>
+          <div class="field">
+            <label>Departamento</label>
+            <input class="form-input c-dept" value="${c.department || ""}" placeholder="Compras, Financeiro…">
+          </div>
+          <div class="field">
+            <label>Cargo</label>
+            <input class="form-input c-job" value="${c.job_title || ""}">
+          </div>
+          <div class="field">
+            <label>E-mail</label>
+            <input class="form-input c-email" type="email" value="${c.email || ""}">
+          </div>
+          <div class="field">
+            <label>Telefone</label>
+            <input class="form-input c-phone" value="${c.phone || ""}">
+          </div>
+          <div class="field">
+            <label>Celular</label>
+            <input class="form-input c-mobile" value="${c.mobile || ""}">
+          </div>
+          <div class="field">
+            <label>Preferido</label>
+            <select class="form-input c-pref">
+              <option value="1" ${c.preferred ? "selected" : ""}>Sim</option>
+              <option value="0" ${!c.preferred ? "selected" : ""}>Não</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+    box.querySelectorAll(".item-card").forEach((card) => {
+      const idx = Number(card.dataset.idx);
+      const sync = () => {
+        contacts[idx] = {
+          ...contacts[idx],
+          name: card.querySelector(".c-name").value.trim(),
+          department: card.querySelector(".c-dept").value.trim(),
+          job_title: card.querySelector(".c-job").value.trim(),
+          email: card.querySelector(".c-email").value.trim(),
+          phone: card.querySelector(".c-phone").value.trim(),
+          mobile: card.querySelector(".c-mobile").value.trim(),
+          preferred: card.querySelector(".c-pref").value === "1",
+        };
+      };
+      card.querySelectorAll("input,select").forEach((el) => {
+        el.addEventListener("change", sync);
+        el.addEventListener("input", sync);
+      });
+      card.querySelector(".btn-del-contact").addEventListener("click", () => {
+        contacts.splice(idx, 1);
+        renderContacts();
+      });
+    });
+  }
+
+  function pixTypeOptions(selected) {
+    return PIX_TYPES.map((t) =>
+      `<option value="${t.v}" ${t.v === selected ? "selected" : ""}>${t.l}</option>`
+    ).join("");
+  }
+
+  function accountTypeOptions(selected) {
+    return ACCOUNT_TYPES.map((t) =>
+      `<option value="${t.v}" ${t.v === selected ? "selected" : ""}>${t.l}</option>`
+    ).join("");
+  }
+
+  function emptyBank() {
+    return {
+      id: uid(),
+      bank_code: "",
+      bank: "",
+      branch: "",
+      account: "",
+      account_type: "CHECKING",
+      holder_name: "",
+      pix_type: "",
+      pix_key: "",
+      preferred: bankAccounts.length === 0,
+    };
+  }
+
+  function renderBanks() {
+    const box = document.getElementById("banks-list");
+    if (!bankAccounts.length) {
+      box.innerHTML = '<div class="muted" style="padding:1rem;text-align:center">Nenhuma conta. Cadastre para pagamentos (contas a pagar).</div>';
+      return;
+    }
+    box.innerHTML = bankAccounts.map((b, idx) => `
+      <div class="item-card" data-idx="${idx}">
+        <div class="item-head">
+          <strong>${b.bank || "Conta " + (idx + 1)}</strong>
+          ${b.preferred ? '<span class="pill">Preferida</span>' : ""}
+          ${b.pix_key ? '<span class="pill">PIX</span>' : '<span class="pill dim">TED</span>'}
+          <button type="button" class="so-btn sm danger btn-del-bank">Remover</button>
+        </div>
+        <div class="pf-grid">
+          <div class="field" style="grid-column:1/-1">
+            <label style="color:#5eead4">Chave PIX</label>
+            <div style="display:grid;grid-template-columns:160px 1fr;gap:10px">
+              <select class="form-input b-pix-type">${pixTypeOptions(b.pix_type || "")}</select>
+              <input class="form-input b-pix" value="${b.pix_key || ""}" placeholder="CNPJ, CPF, e-mail, telefone ou chave aleatória">
+            </div>
+          </div>
+          <div class="field">
+            <label>Banco (código)</label>
+            <input class="form-input b-code" value="${b.bank_code || ""}" placeholder="341" maxlength="3">
+          </div>
+          <div class="field">
+            <label>Nome do banco</label>
+            <input class="form-input b-bank" value="${b.bank || ""}" placeholder="Itaú, Bradesco…">
+          </div>
+          <div class="field">
+            <label>Agência</label>
+            <input class="form-input b-branch" value="${b.branch || ""}" placeholder="0001">
+          </div>
+          <div class="field">
+            <label>Conta</label>
+            <input class="form-input b-account" value="${b.account || ""}" placeholder="12345-6">
+          </div>
+          <div class="field">
+            <label>Tipo de conta</label>
+            <select class="form-input b-type">${accountTypeOptions(b.account_type || "CHECKING")}</select>
+          </div>
+          <div class="field">
+            <label>Titular</label>
+            <input class="form-input b-holder" value="${b.holder_name || ""}" placeholder="Razão social / nome">
+          </div>
+          <div class="field">
+            <label>Preferida p/ pagamento</label>
+            <select class="form-input b-pref">
+              <option value="1" ${b.preferred ? "selected" : ""}>Sim</option>
+              <option value="0" ${!b.preferred ? "selected" : ""}>Não</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    `).join("");
+
+    box.querySelectorAll(".item-card").forEach((card) => {
+      const idx = Number(card.dataset.idx);
+      const sync = () => {
+        bankAccounts[idx] = {
+          ...bankAccounts[idx],
+          bank_code: card.querySelector(".b-code").value.trim(),
+          bank: card.querySelector(".b-bank").value.trim(),
+          branch: card.querySelector(".b-branch").value.trim(),
+          account: card.querySelector(".b-account").value.trim(),
+          account_type: card.querySelector(".b-type").value,
+          holder_name: card.querySelector(".b-holder").value.trim(),
+          pix_type: card.querySelector(".b-pix-type").value,
+          pix_key: card.querySelector(".b-pix").value.trim(),
+          preferred: card.querySelector(".b-pref").value === "1",
+        };
+      };
+      card.querySelectorAll("input,select").forEach((el) => {
+        el.addEventListener("change", () => {
+          sync();
+          if (el.classList.contains("b-bank") || el.classList.contains("b-pref")) renderBanks();
+        });
+        el.addEventListener("input", sync);
+      });
+      card.querySelector(".btn-del-bank").addEventListener("click", () => {
+        bankAccounts.splice(idx, 1);
+        renderBanks();
+      });
+    });
+  }
+
+  function clearForm() {
+    editingId = null;
+    ["legal_name", "trade_name", "display_name", "partner_code", "doc_main", "doc_ie", "doc_im", "observacao"]
+      .forEach((id) => { document.getElementById("f-" + id).value = ""; });
+    document.getElementById("f-person_type").value = "COMPANY";
+    document.getElementById("f-regime").value = "SN";
+    document.getElementById("f-contribuinte_icms").value = "1";
+    document.getElementById("f-ativo").checked = true;
+    document.getElementById("pf-code-label").textContent = "Novo";
+    document.getElementById("form-error").classList.remove("visible");
+    const defaultRole = roleFilter || "CUSTOMER";
+    setRoles([defaultRole]);
+    addresses = [{
+      id: uid(), address_type: "HEADQUARTERS", zip_code: "", street: "", number: "",
+      district: "", city: "", state: "", country: "BR",
+      contact_name: "", phone: "", email: "", preferred: true,
+    }];
+    contacts = [];
+    bankAccounts = [];
+    renderAddresses();
+    renderContacts();
+    renderBanks();
+    document.querySelectorAll(".pf-tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === "docs"));
+    document.querySelectorAll(".pf-pane").forEach((p) => p.classList.toggle("active", p.id === "tab-docs"));
+    syncPersonDocs();
+    updateAvatar();
+  }
+
+  function openForm(row) {
+    clearForm();
+    if (row && row.id) {
+      editingId = row.id;
+      document.getElementById("pf-code-label").textContent = row.partner_code || row.id;
+      document.getElementById("f-partner_code").value = row.partner_code || "";
+      document.getElementById("f-legal_name").value = row.legal_name || "";
+      document.getElementById("f-trade_name").value = row.trade_name || "";
+      document.getElementById("f-display_name").value = row.display_name || "";
+      document.getElementById("f-person_type").value = row.person_type || "COMPANY";
+      setRoles(row.roles || []);
+      document.getElementById("f-doc_main").value = mainDoc(row);
+      document.getElementById("f-doc_ie").value = docOf(row, "IE");
+      document.getElementById("f-doc_im").value = docOf(row, "IM");
+      document.getElementById("f-regime").value = row.regime || "SN";
+      document.getElementById("f-contribuinte_icms").value = row.contribuinte_icms || "1";
+      document.getElementById("f-observacao").value = row.observacao || "";
+      document.getElementById("f-ativo").checked = row.ativo !== false && row.status !== "INACTIVE";
+      addresses = (row.addresses || []).map((a) => ({ ...a, id: a.id || uid() }));
+      contacts = (row.contacts || []).map((c) => ({ ...c, id: c.id || uid() }));
+      bankAccounts = (row.bank_accounts || []).map((b) => ({ ...b, id: b.id || uid() }));
+      if (!addresses.length) {
+        addresses = [{
+          id: uid(), address_type: "HEADQUARTERS", zip_code: "", street: "", number: "",
+          district: "", city: "", state: "", country: "BR",
+          contact_name: "", phone: "", email: "", preferred: true,
+        }];
+      }
+      renderAddresses();
+      renderContacts();
+      renderBanks();
+      syncPersonDocs();
+      updateAvatar();
+    }
+    showView("view-form");
+    document.getElementById("f-legal_name").focus();
+  }
+
+  function buildDocuments() {
+    const person = document.getElementById("f-person_type").value === "PERSON";
+    const docs = [];
+    const main = document.getElementById("f-doc_main").value.trim();
+    if (main) docs.push({ id: uid(), document_type: person ? "CPF" : "CNPJ", document_number: main });
+    const ie = document.getElementById("f-doc_ie").value.trim();
+    if (ie) docs.push({ id: uid(), document_type: "IE", document_number: ie });
+    const im = document.getElementById("f-doc_im").value.trim();
+    if (im) docs.push({ id: uid(), document_type: "IM", document_number: im });
+    return docs;
+  }
+
+  function collectBody() {
+    const legal = document.getElementById("f-legal_name").value.trim();
+    const trade = document.getElementById("f-trade_name").value.trim();
+    let display = document.getElementById("f-display_name").value.trim();
+    if (!display) display = trade || legal;
+    const ativo = document.getElementById("f-ativo").checked;
+    return {
+      partner_code: document.getElementById("f-partner_code").value.trim(),
+      person_type: document.getElementById("f-person_type").value,
+      legal_name: legal,
+      trade_name: trade,
+      display_name: display,
+      status: ativo ? "ACTIVE" : "INACTIVE",
+      roles: selectedRoles(),
+      documents: buildDocuments(),
+      addresses: addresses.map((a) => ({ ...a, country: a.country || "BR" })),
+      contacts: contacts.slice(),
+      bank_accounts: bankAccounts.slice(),
+      regime: document.getElementById("f-regime").value,
+      contribuinte_icms: document.getElementById("f-contribuinte_icms").value,
+      observacao: document.getElementById("f-observacao").value.trim(),
+      ativo,
+    };
+  }
+
+  async function save() {
+    const errEl = document.getElementById("form-error");
+    errEl.classList.remove("visible");
+    const body = collectBody();
+    if (!body.legal_name) {
+      errEl.textContent = "Razão social / nome legal é obrigatório";
+      errEl.classList.add("visible");
+      return;
+    }
+    if (!body.roles.length) {
+      errEl.textContent = "Selecione ao menos um papel (Cliente, Fornecedor…)";
+      errEl.classList.add("visible");
+      return;
+    }
+
+    let data;
+    if (editingId) {
+      data = await window.api("/api/admin/partners/" + editingId, {
+        method: "POST",
+        body: JSON.stringify({ action: "update", ...body }),
+      });
+    } else {
+      data = await window.api("/api/admin/partners", {
+        method: "POST",
+        body: JSON.stringify(body),
+      });
+    }
+    if (data.status !== "ok") {
+      errEl.textContent = data.message || "Erro ao salvar";
+      errEl.classList.add("visible");
+      return;
+    }
+    if (window.LookupService) window.LookupService.clearCache();
+    showView("view-list");
+    await load();
+  }
+
+  function bindTabs() {
+    document.querySelectorAll(".pf-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".pf-tab").forEach((t) => t.classList.toggle("active", t === tab));
+        document.querySelectorAll(".pf-pane").forEach((p) =>
+          p.classList.toggle("active", p.id === "tab-" + tab.dataset.tab)
+        );
+      });
+    });
+  }
+
+  function boot() {
+    applyRoleChrome();
+    bindTabs();
+    document.querySelectorAll(".filter-chip").forEach((chip) => {
+      chip.addEventListener("click", () => {
+        roleFilter = chip.dataset.role || "";
+        const url = new URL(location.href);
+        if (roleFilter) url.searchParams.set("role", roleFilter);
+        else url.searchParams.delete("role");
+        history.replaceState(null, "", url);
+        applyRoleChrome();
+        load();
+      });
+    });
+    document.getElementById("btn-novo").addEventListener("click", () => openForm(null));
+    document.getElementById("btn-refresh").addEventListener("click", load);
+    document.getElementById("btn-cancel").addEventListener("click", () => showView("view-list"));
+    document.getElementById("btn-save").addEventListener("click", save);
+    document.getElementById("btn-add-address").addEventListener("click", () => {
+      addresses.push({
+        id: uid(), address_type: "SHIPPING", zip_code: "", street: "", number: "",
+        district: "", city: "", state: "", country: "BR",
+        contact_name: "", phone: "", email: "", preferred: false,
+      });
+      renderAddresses();
+    });
+    document.getElementById("btn-add-contact").addEventListener("click", () => {
+      contacts.push({
+        id: uid(), name: "", department: "", job_title: "",
+        email: "", phone: "", mobile: "", preferred: contacts.length === 0,
+      });
+      renderContacts();
+    });
+    document.getElementById("btn-add-bank").addEventListener("click", () => {
+      bankAccounts.push(emptyBank());
+      renderBanks();
+    });
+    document.getElementById("f-person_type").addEventListener("change", syncPersonDocs);
+    ["f-legal_name", "f-trade_name", "f-display_name"].forEach((id) => {
+      document.getElementById(id).addEventListener("input", updateAvatar);
+    });
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        if (document.getElementById("view-form").classList.contains("active")) {
+          e.preventDefault();
+          save();
+        }
+      }
+      if (e.key === "Escape" && document.getElementById("view-form").classList.contains("active")) {
+        showView("view-list");
+      }
+    });
+    load();
+  }
+
+  let booted = false;
+  function bootOnce() {
+    if (booted) return;
+    booted = true;
+    boot();
+  }
+
+  document.addEventListener("auth:ready", bootOnce);
+  if (window.__authReady || (window.AuthService && window.AuthService.getToken())) {
+    bootOnce();
+  }
+})();
+</script>
+</body>
+</html>

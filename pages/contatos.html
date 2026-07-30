@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — Contatos</title>
+    <meta name="theme-color" content="#714B67">
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item" href="categorias.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-filter"/></svg>
+                <span class="menu-label">Categorias</span>
+            </a>
+            <a class="menu-item" href="produtos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+                <span class="menu-label">Produtos</span>
+            </a>
+            <a class="menu-item" href="fornecedores.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+                <span class="menu-label">Fornecedores</span>
+            </a>
+            <a class="menu-item" href="clientes.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="menu-label">Clientes</span>
+            </a>
+            <a class="menu-item active" href="contatos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="menu-label">Contatos</span>
+            </a>
+            <a class="menu-item" href="../index4.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                <span class="menu-label">Dashboard</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="topbar-title">Contatos</span>
+            </div>
+            <div class="topbar-search">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+                <input class="topbar-search-input" id="search-input" placeholder="Buscar contatos...">
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <button class="topbar-icon-btn" onclick="openModal()" title="Novo contato">
+                    <svg class="icon"><use href="../assets/images/icons.svg#icon-plus"/></svg>
+                </button>
+                <span class="topbar-user-info">
+                    <span id="user-name-display">Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
+                <div class="workspace-header">
+                    <div class="workspace-breadcrumb">FiscalBrasil / Cadastros / Contatos</div>
+                    <h2 class="workspace-title">Gerenciar Contatos</h2>
+                </div>
+                <div class="workspace-content">
+                    <div id="data-container"></div>
+                </div>
+                <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+                    <div class="status-bar-left">
+                        <span id="status-user-info">Usuário: Administrador</span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span>Versão 1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dialog-overlay" id="item-modal">
+    <div class="dialog-box">
+        <div class="dialog-header">
+            <h3 class="dialog-title" id="modal-title">Novo Contato</h3>
+            <button class="dialog-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <form id="item-form">
+                <div class="field">
+                    <label>Nome</label>
+                    <input class="form-input" id="edit-nome" required>
+                </div>
+                <div class="grid grid-cols-2" style="gap:var(--space-3)">
+                    <div class="field">
+                        <label>Tipo</label>
+                        <select class="form-input" id="edit-tipo">
+                            <option value="cliente">Cliente</option>
+                            <option value="fornecedor">Fornecedor</option>
+                            <option value="transportador">Transportador</option>
+                            <option value="funcionario">Funcionário</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>CPF/CNPJ</label>
+                        <input class="form-input" id="edit-documento" placeholder="000.000.000-00">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2" style="gap:var(--space-3)">
+                    <div class="field">
+                        <label>Telefone</label>
+                        <input class="form-input" id="edit-telefone" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="field">
+                        <label>E-mail</label>
+                        <input class="form-input" id="edit-email" type="email" placeholder="contato@exemplo.com">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2" style="gap:var(--space-3)">
+                    <div class="field">
+                        <label>Cidade</label>
+                        <input class="form-input" id="edit-cidade">
+                    </div>
+                    <div class="field">
+                        <label>UF</label>
+                        <select class="form-input" id="edit-uf">
+                            <option value="">--</option>
+                            <option value="AC">AC</option><option value="AL">AL</option><option value="AP">AP</option>
+                            <option value="AM">AM</option><option value="BA">BA</option><option value="CE">CE</option>
+                            <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+                            <option value="MA">MA</option><option value="MT">MT</option><option value="MS">MS</option>
+                            <option value="MG">MG</option><option value="PA">PA</option><option value="PB">PB</option>
+                            <option value="PR">PR</option><option value="PE">PE</option><option value="PI">PI</option>
+                            <option value="RJ">RJ</option><option value="RN">RN</option><option value="RS">RS</option>
+                            <option value="RO">RO</option><option value="RR">RR</option><option value="SC">SC</option>
+                            <option value="SP">SP</option><option value="SE">SE</option><option value="TO">TO</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Observação</label>
+                    <textarea class="form-input" id="edit-observacao" rows="2"></textarea>
+                </div>
+                <div class="form-error" id="form-error"></div>
+            </form>
+        </div>
+        <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="dialog-btn dialog-btn-primary" onclick="save()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    textarea.form-input{resize:vertical;min-height:50px;font-family:inherit}
+</style>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+    let editingId = null;
+    let allData = [];
+    async function api(path, opts = {}) {
+        return window.api(path, opts);
+    }
+async function load() {
+        const container = document.getElementById("data-container");
+        container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem">Carregando...</div>';
+        const data = await api("/api/admin/contatos");
+        if (data.status !== "ok") {
+            container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem;color:var(--color-danger)">Acesso negado</div>';
+            return;
+        }
+        allData = data.contatos || [];
+        render();
+    }
+
+    function render() {
+        const q = (document.getElementById("search-input").value || "").toLowerCase();
+        const filtered = q ? allData.filter(e => e.nome.toLowerCase().includes(q) || (e.documento||"").includes(q)) : allData;
+
+        document.getElementById("data-container").innerHTML = `
+            <div class="dg-wrapper">
+                <div class="dg-scroll">
+                    <table class="dg-table">
+                        <thead><tr class="dg-header">
+                            <th class="dg-th" style="width:40px"><div class="dg-th-content">#</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Nome</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Tipo</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Documento</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Telefone</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Cidade/UF</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Status</div></th>
+                            <th class="dg-th" style="width:100px"><div class="dg-th-content">Ações</div></th>
+                        </tr></thead>
+                        <tbody>
+                            ${filtered.map(e => `
+                            <tr class="dg-row" style="${e.ativo===false?'opacity:.5':''}">
+                                <td class="dg-cell dg-cell-center">${e.id.substring(0,6)}</td>
+                                <td class="dg-cell"><strong>${e.nome}</strong></td>
+                                <td class="dg-cell"><span class="badge badge-${e.tipo==='cliente'?'primary':e.tipo==='fornecedor'?'info':'default'}">${e.tipo||'cliente'}</span></td>
+                                <td class="dg-cell">${e.documento||'-'}</td>
+                                <td class="dg-cell">${e.telefone||'-'}</td>
+                                <td class="dg-cell">${e.cidade||'-'}/${e.uf||'-'}</td>
+                                <td class="dg-cell"><span class="badge badge-${e.ativo!==false?'success':'danger'}">${e.ativo!==false?'Ativo':'Inativo'}</span></td>
+                                <td class="dg-cell">
+                                    <button class="dg-page" onclick='edit(${JSON.stringify(e).replace(/'/g,"&#39;")})' title="Editar">✎</button>
+                                    <button class="dg-page" onclick="toggle('${e.id}')" title="${e.ativo!==false?'Desativar':'Ativar'}">${e.ativo!==false?'⏸':'▶'}</button>
+                                </td>
+                            </tr>`).join('')}
+                            ${filtered.length===0?'<tr><td class="dg-cell" colspan="8" style="text-align:center;padding:2rem">Nenhum contato cadastrado</td></tr>':''}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding:var(--space-4);text-align:center;color:var(--text-secondary);font-size:var(--font-sm)">
+                    ${filtered.length} contato${filtered.length!==1?'s':''} cadastrado${filtered.length!==1?'s':''}
+                </div>
+            </div>
+        `;
+    }
+
+    function edit(data) {
+        editingId = data.id;
+        document.getElementById("modal-title").textContent = "Editar Contato";
+        document.getElementById("edit-nome").value = data.nome||"";
+        document.getElementById("edit-tipo").value = data.tipo||"cliente";
+        document.getElementById("edit-documento").value = data.documento||"";
+        document.getElementById("edit-telefone").value = data.telefone||"";
+        document.getElementById("edit-email").value = data.email||"";
+        document.getElementById("edit-cidade").value = data.cidade||"";
+        document.getElementById("edit-uf").value = data.uf||"";
+        document.getElementById("edit-observacao").value = data.observacao||"";
+        document.getElementById("form-error").classList.remove("visible");
+        document.getElementById("item-modal").classList.add("dialog-open");
+    }
+
+    function openModal() {
+        editingId = null;
+        document.getElementById("modal-title").textContent = "Novo Contato";
+        ["nome","documento","telefone","email","cidade","observacao"].forEach(id =>
+            document.getElementById("edit-"+id).value = "");
+        document.getElementById("edit-tipo").value = "cliente";
+        document.getElementById("edit-uf").value = "";
+        document.getElementById("form-error").classList.remove("visible");
+        document.getElementById("item-modal").classList.add("dialog-open");
+    }
+
+    function closeModal() {
+        document.getElementById("item-modal").classList.remove("dialog-open");
+        editingId = null;
+    }
+
+    async function save() {
+        const nome = document.getElementById("edit-nome").value.trim();
+        const errEl = document.getElementById("form-error");
+        errEl.classList.remove("visible");
+        if (!nome) { errEl.textContent = "Nome é obrigatório"; errEl.classList.add("visible"); return; }
+
+        const body = { action: "update", nome,
+            tipo: document.getElementById("edit-tipo").value,
+            documento: document.getElementById("edit-documento").value.trim(),
+            telefone: document.getElementById("edit-telefone").value.trim(),
+            email: document.getElementById("edit-email").value.trim(),
+            cidade: document.getElementById("edit-cidade").value.trim(),
+            uf: document.getElementById("edit-uf").value,
+            observacao: document.getElementById("edit-observacao").value.trim()
+        };
+
+        let data;
+        if (editingId) {
+            data = await api("/api/admin/contatos/"+editingId, { method: "POST", body: JSON.stringify(body) });
+        } else {
+            delete body.action;
+            data = await api("/api/admin/contatos", { method: "POST", body: JSON.stringify(body) });
+        }
+
+        if (data.status !== "ok") {
+            errEl.textContent = data.message || "Erro ao salvar";
+            errEl.classList.add("visible");
+            return;
+        }
+        closeModal();
+        load();
+    }
+
+    async function toggle(id) {
+        await api("/api/admin/contatos/"+id, { method: "POST", body: JSON.stringify({ action: "toggle" }) });
+        load();
+    }
+
+    document.addEventListener("auth:ready", function () {
+        load();
+        document.getElementById("search-input").addEventListener("input", render);
+        });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "matriz": {
+    "nome": "Matriz",
+    "cnpj": "00.000.000/0001-00",
+    "ie": "123.456.789.000",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "ativo": true
+  },
+  "filial_sp": {
+    "nome": "Filial São Paulo",
+    "cnpj": "00.000.000/0002-00",
+    "ie": "123.456.789.001",
+    "cidade": "São Paulo",
+    "uf": "SP",
+    "ativo": true
+  },
+  "filial_rj": {
+    "nome": "Filial Rio de Janeiro",
+    "cnpj": "00.000.000/0003-00",
+    "ie": "123.456.789.002",
+    "cidade": "Rio de Janeiro",
+    "uf": "RJ",
+    "ativo": true
+  }
+}

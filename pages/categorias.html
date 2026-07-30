@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — Categorias</title>
+    <meta name="theme-color" content="#714B67">
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item" href="configuracoes.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+                <span class="menu-label">Configurações</span>
+            </a>
+            <a class="menu-item" href="categorias.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-filter"/></svg>
+                <span class="menu-label">Categorias</span>
+            </a>
+            <a class="menu-item" href="produtos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+                <span class="menu-label">Produtos</span>
+            </a>
+            <a class="menu-item" href="fornecedores.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+                <span class="menu-label">Fornecedores</span>
+            </a>
+            <a class="menu-item" href="contatos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="menu-label">Contatos</span>
+            </a>
+            <a class="menu-item" href="../index4.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                <span class="menu-label">Dashboard</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="topbar-title">Categorias</span>
+            </div>
+            <div class="topbar-search">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+                <input class="topbar-search-input" id="search-input" placeholder="Buscar categorias...">
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <button class="topbar-icon-btn" onclick="openModal()" title="Nova categoria">
+                    <svg class="icon"><use href="../assets/images/icons.svg#icon-plus"/></svg>
+                </button>
+                <span class="topbar-user-info">
+                    <span id="user-name-display">Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
+                <div class="workspace-header">
+                    <div class="workspace-breadcrumb">FiscalBrasil / Cadastros / Categorias</div>
+                    <h2 class="workspace-title">Gerenciar Categorias</h2>
+                </div>
+                <div class="workspace-content">
+                    <div id="data-container"></div>
+                </div>
+                <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+                    <div class="status-bar-left">
+                        <span id="status-user-info">Usuário: Administrador</span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span>Versão 1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dialog-overlay" id="item-modal">
+    <div class="dialog-box">
+        <div class="dialog-header">
+            <h3 class="dialog-title" id="modal-title">Nova Categoria</h3>
+            <button class="dialog-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <form id="item-form">
+                <div class="field">
+                    <label>Nome</label>
+                    <input class="form-input" id="edit-nome" required>
+                </div>
+                <div class="field">
+                    <label>Descrição</label>
+                    <textarea class="form-input" id="edit-descricao" rows="3"></textarea>
+                </div>
+                <div class="form-error" id="form-error"></div>
+            </form>
+        </div>
+        <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="dialog-btn dialog-btn-primary" onclick="save()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    textarea.form-input{resize:vertical;min-height:60px;font-family:inherit}
+</style>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+    let editingId = null;
+    let allData = [];
+    async function api(path, opts = {}) {
+        return window.api(path, opts);
+    }
+async function load() {
+        const container = document.getElementById("data-container");
+        container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem">Carregando...</div>';
+        const data = await api("/api/admin/categorias");
+        if (data.status !== "ok") {
+            container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem;color:var(--color-danger)">Acesso negado</div>';
+            return;
+        }
+        allData = data.categorias || [];
+        render();
+    }
+
+    function render() {
+        const q = (document.getElementById("search-input").value || "").toLowerCase();
+        const filtered = q ? allData.filter(e => e.nome.toLowerCase().includes(q)) : allData;
+
+        document.getElementById("data-container").innerHTML = `
+            <div class="dg-wrapper">
+                <div class="dg-scroll">
+                    <table class="dg-table">
+                        <thead><tr class="dg-header">
+                            <th class="dg-th" style="width:40px"><div class="dg-th-content">#</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Nome</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Descrição</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Status</div></th>
+                            <th class="dg-th" style="width:100px"><div class="dg-th-content">Ações</div></th>
+                        </tr></thead>
+                        <tbody>
+                            ${filtered.map(e => `
+                            <tr class="dg-row" style="${e.ativo===false?'opacity:.5':''}">
+                                <td class="dg-cell dg-cell-center">${e.id.substring(0,6)}</td>
+                                <td class="dg-cell"><strong>${e.nome}</strong></td>
+                                <td class="dg-cell">${e.descricao||'-'}</td>
+                                <td class="dg-cell"><span class="badge badge-${e.ativo!==false?'success':'danger'}">${e.ativo!==false?'Ativo':'Inativo'}</span></td>
+                                <td class="dg-cell">
+                                    <button class="dg-page" onclick='edit(${JSON.stringify(e).replace(/'/g,"&#39;")})' title="Editar">✎</button>
+                                    <button class="dg-page" onclick="toggle('${e.id}')" title="${e.ativo!==false?'Desativar':'Ativar'}">${e.ativo!==false?'⏸':'▶'}</button>
+                                </td>
+                            </tr>`).join('')}
+                            ${filtered.length===0?'<tr><td class="dg-cell" colspan="5" style="text-align:center;padding:2rem">Nenhuma categoria cadastrada</td></tr>':''}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding:var(--space-4);text-align:center;color:var(--text-secondary);font-size:var(--font-sm)">
+                    ${filtered.length} categoria${filtered.length!==1?'s':''} cadastrada${filtered.length!==1?'s':''}
+                </div>
+            </div>
+        `;
+    }
+
+    function edit(data) {
+        editingId = data.id;
+        document.getElementById("modal-title").textContent = "Editar Categoria";
+        document.getElementById("edit-nome").value = data.nome||"";
+        document.getElementById("edit-descricao").value = data.descricao||"";
+        document.getElementById("form-error").classList.remove("visible");
+        document.getElementById("item-modal").classList.add("dialog-open");
+    }
+
+    function openModal() {
+        editingId = null;
+        document.getElementById("modal-title").textContent = "Nova Categoria";
+        document.getElementById("edit-nome").value = "";
+        document.getElementById("edit-descricao").value = "";
+        document.getElementById("form-error").classList.remove("visible");
+        document.getElementById("item-modal").classList.add("dialog-open");
+    }
+
+    function closeModal() {
+        document.getElementById("item-modal").classList.remove("dialog-open");
+        editingId = null;
+    }
+
+    async function save() {
+        const nome = document.getElementById("edit-nome").value.trim();
+        const descricao = document.getElementById("edit-descricao").value.trim();
+        const errEl = document.getElementById("form-error");
+        errEl.classList.remove("visible");
+
+        if (!nome) { errEl.textContent = "Nome é obrigatório"; errEl.classList.add("visible"); return; }
+
+        let data;
+        if (editingId) {
+            data = await api("/api/admin/categorias/"+editingId, {
+                method: "POST",
+                body: JSON.stringify({ action: "update", nome, descricao })
+            });
+        } else {
+            data = await api("/api/admin/categorias", {
+                method: "POST",
+                body: JSON.stringify({ nome, descricao })
+            });
+        }
+
+        if (data.status !== "ok") {
+            errEl.textContent = data.message || "Erro ao salvar";
+            errEl.classList.add("visible");
+            return;
+        }
+        closeModal();
+        load();
+    }
+
+    async function toggle(id) {
+        await api("/api/admin/categorias/"+id, {
+            method: "POST",
+            body: JSON.stringify({ action: "toggle" })
+        });
+        load();
+    }
+
+    document.addEventListener("auth:ready", function () {
+        load();
+        document.getElementById("search-input").addEventListener("input", render);
+        });
+</script>
+
+</body>
+</html>

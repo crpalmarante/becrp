@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — NF-e</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item active" href="nfe.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+                <span class="menu-label">NF-e</span>
+            </a>
+            <a class="menu-item" href="nfce.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg>
+                <span class="menu-label">NFC-e</span>
+            </a>
+            <a class="menu-item" href="certificados.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-lock"/></svg>
+                <span class="menu-label">Certificados</span>
+            </a>
+            <a class="menu-item" href="produtos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+                <span class="menu-label">Produtos</span>
+            </a>
+            <a class="menu-item" href="../index4.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                <span class="menu-label">Dashboard</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+                <span id="page-title">NF-e — Nota Fiscal Eletrônica</span>
+            </div>
+            <div id="user-info" class="topbar-user"></div>
+        </header>
+
+        <div class="content">
+            <div class="card">
+
+                <div class="card-header">
+                    <h3>Emitir NF-e</h3>
+                </div>
+                <div class="card-body">
+                    <div class="grid-2">
+                        <div>
+                            <label>Venda ID</label>
+                            <input type="text" id="venda-id" placeholder="ID da venda">
+                        </div>
+                        <div>
+                            <label>Certificado</label>
+                            <select id="cert-select"><option value="">Carregando...</option></select>
+                        </div>
+                        <div>
+                            <label>Senha do Certificado</label>
+                            <input type="password" id="cert-senha" placeholder="Senha">
+                        </div>
+                        <div>
+                            <label>Ambiente</label>
+                            <select id="ambiente">
+                                <option value="2">Homologação</option>
+                                <option value="1">Produção</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Série</label>
+                            <input type="number" id="serie" value="1">
+                        </div>
+                        <div>
+                            <label>Número (0 = automático)</label>
+                            <input type="number" id="numero" value="0">
+                        </div>
+                        <div>
+                            <label>Natureza da Operação</label>
+                            <input type="text" id="natOp" value="VENDA">
+                        </div>
+                        <div>
+                            <label>Finalidade</label>
+                            <select id="finNFe">
+                                <option value="1">NF-e Normal</option>
+                                <option value="2">NF-e Complementar</option>
+                                <option value="3">NF-e de Ajuste</option>
+                                <option value="4">Devolução</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Destinatário</label>
+                            <input type="text" id="cliente" placeholder="Nome">
+                        </div>
+                        <div>
+                            <label>CPF/CNPJ</label>
+                            <input type="text" id="documento" placeholder="000.000.000-00 ou 00.000.000/0001-00">
+                        </div>
+                    </div>
+                    <div style="margin-top:12px">
+                        <button class="btn btn-primary" onclick="emitirNFE()">Autorizar NF-e</button>
+                        <button class="btn btn-secondary" onclick="previewXML()">Preview XML</button>
+                    </div>
+                    <div id="resultado" style="margin-top:12px"></div>
+                    <pre id="xml-preview" style="display:none;margin-top:12px;background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:8px;max-height:400px;overflow:auto;font-size:11px"></pre>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:16px">
+                <div class="card-header">
+                    <h3>Histórico NF-e</h3>
+                    <button class="btn btn-sm btn-secondary" onclick="carregarHistorico()">Atualizar</button>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr><th>#</th><th>Série</th><th>Número</th><th>Chave</th><th>Status</th><th>Protocolo</th><th>Data</th><th>Ações</th></tr>
+                        </thead>
+                        <tbody id="historico-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:16px">
+                <div class="card-header"><h3>Inutilizar Numeração</h3></div>
+                <div class="card-body">
+                    <div class="grid-3">
+                        <div><label>Série</label><input type="number" id="inut-serie" value="1"></div>
+                        <div><label>Nº Inicial</label><input type="number" id="inut-ini" value="1"></div>
+                        <div><label>Nº Final</label><input type="number" id="inut-fim" value="1"></div>
+                    </div>
+                    <div style="margin-top:8px">
+                        <button class="btn btn-danger" onclick="inutilizar()">Inutilizar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+const API = "/api/admin/fiscal/nfe";
+
+async function api(path, body = null) {
+    const opts = {};
+    if (body) { opts.method = "POST"; opts.body = JSON.stringify(body); }
+    const res = await Auth.fetch(path, opts);
+    if (path.endsWith("danfe")) return res;
+    return res;
+}
+
+async function carregarEmpresa() {
+    const d = await api(`${API}/empresa`);
+    const sel = document.getElementById("cert-select");
+    sel.innerHTML = '<option value="">Selecione</option>';
+    if (d.certificados) {
+        for (const c of d.certificados) {
+            if (c.ativo) {
+                const opt = document.createElement("option");
+                opt.value = c.id;
+                opt.textContent = `${c.nome} (${c.cnpj_cpf || ""})`;
+                sel.appendChild(opt);
+            }
+        }
+    }
+}
+
+async function carregarHistorico() {
+    const d = await api(`${API}/listar`);
+    const tbody = document.getElementById("historico-body");
+    tbody.innerHTML = "";
+    const lista = d.nfe || [];
+    for (let i = lista.length - 1; i >= 0; i--) {
+        const n = lista[i];
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${i+1}</td>
+            <td>${n.serie || ""}</td>
+            <td>${n.numero || ""}</td>
+            <td style="font-size:10px">${(n.chave || "").slice(0, 20)}...</td>
+            <td><span class="badge ${n.status === 'AUTORIZADO' ? 'badge-success' : 'badge-danger'}">${n.status || ""}</span></td>
+            <td style="font-size:10px">${n.protocolo || ""}</td>
+            <td style="font-size:10px">${n.data || ""}</td>
+            <td>
+                <button class="btn btn-sm btn-secondary" onclick="consultar('${n.chave}')">Consultar</button>
+                <button class="btn btn-sm btn-danger" onclick="cancelar('${n.chave}','${n.protocolo}')">Cancelar</button>
+                <button class="btn btn-sm btn-primary" onclick="downloadDanfe('${n.chave}')">DANFE</button>
+            </td>`;
+        tbody.appendChild(tr);
+    }
+}
+
+async function emitirNFE() {
+    const btn = document.querySelector(".btn-primary");
+    btn.disabled = true;
+    btn.textContent = "Autorizando...";
+    try {
+        const body = {
+            venda_id: document.getElementById("venda-id").value,
+            cert_id: document.getElementById("cert-select").value,
+            cert_senha: document.getElementById("cert-senha").value,
+            ambiente: parseInt(document.getElementById("ambiente").value),
+            serie: parseInt(document.getElementById("serie").value),
+            numero: parseInt(document.getElementById("numero").value),
+        };
+        const d = await api(`${API}/autorizar`, body);
+        const div = document.getElementById("resultado");
+        if (d.status === "ok") {
+            div.innerHTML = `<div class="alert alert-success">
+                <b>Autorizada!</b> Chave: ${d.chave || ""} | Nº: ${d.numero} | Status: ${d.resultado?.status || ""} | ${d.resultado?.xMotivo || ""}
+                ${d.chave ? `<br><button class="btn btn-sm btn-primary" onclick="downloadDanfe('${d.chave}')">DANFE</button>` : ""}
+            </div>`;
+            carregarHistorico();
+        } else {
+            div.innerHTML = `<div class="alert alert-danger">Erro: ${d.message || "Falha na autorização"}</div>`;
+        }
+    } catch (e) {
+        document.getElementById("resultado").innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Autorizar NF-e";
+    }
+}
+
+async function previewXML() {
+    const body = {
+        venda_id: document.getElementById("venda-id").value,
+        cert_id: document.getElementById("cert-select").value,
+        cert_senha: document.getElementById("cert-senha").value,
+        ambiente: parseInt(document.getElementById("ambiente").value),
+        serie: parseInt(document.getElementById("serie").value),
+        numero: parseInt(document.getElementById("numero").value) || 1,
+    };
+    const d = await api(`${API}/preview-xml`, body);
+    const pre = document.getElementById("xml-preview");
+    if (d.xml) {
+        pre.textContent = d.xml;
+        pre.style.display = "block";
+    } else {
+        pre.textContent = d.message || "Erro ao gerar XML";
+        pre.style.display = "block";
+    }
+}
+
+async function consultar(chave) {
+    const cert = document.getElementById("cert-select").value;
+    const senha = document.getElementById("cert-senha").value;
+    if (!cert) return alert("Selecione um certificado");
+    const d = await api(`${API}/consultar`, { chave, cert_id: cert, cert_senha: senha, ambiente: parseInt(document.getElementById("ambiente").value) });
+    alert(JSON.stringify(d.resultado || d, null, 2));
+}
+
+async function cancelar(chave, protocolo) {
+    if (!confirm("Confirmar cancelamento?")) return;
+    const cert = document.getElementById("cert-select").value;
+    const senha = document.getElementById("cert-senha").value;
+    if (!cert) return alert("Selecione um certificado");
+    const d = await api(`${API}/cancelar`, { chave, protocolo, cert_id: cert, cert_senha: senha, ambiente: parseInt(document.getElementById("ambiente").value), justificativa: "Cancelamento manual" });
+    alert(d.resultado?.xMotivo || d.message || "Cancelado");
+    carregarHistorico();
+}
+
+async function inutilizar() {
+    if (!confirm("Confirmar inutilização?")) return;
+    const cert = document.getElementById("cert-select").value;
+    const senha = document.getElementById("cert-senha").value;
+    if (!cert) return alert("Selecione um certificado");
+    const d = await api(`${API}/inutilizar`, {
+        cnpj: "", serie: parseInt(document.getElementById("inut-serie").value),
+        nnf_ini: parseInt(document.getElementById("inut-ini").value),
+        nnf_fim: parseInt(document.getElementById("inut-fim").value),
+        justificativa: "Inutilização manual",
+        cert_id: cert, cert_senha: senha,
+        ambiente: parseInt(document.getElementById("ambiente").value),
+    });
+    alert(d.resultado?.xMotivo || d.message || "Inutilizado");
+    carregarHistorico();
+}
+
+async function downloadDanfe(chave) {
+    const res = await Auth.fetch("/api/admin/fiscal/danfe", {
+        method: "POST",
+        body: JSON.stringify({ chave, modelo: "55" }),
+    });
+    if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+    } else {
+        const err = await res.json();
+        alert(err.message || "Erro ao gerar DANFE");
+    }
+}
+
+document.addEventListener("auth:ready", function () {
+    carregarEmpresa();
+    carregarHistorico();
+    setInterval(carregarHistorico, 30000);
+});
+</script>
+</body>
+</html>

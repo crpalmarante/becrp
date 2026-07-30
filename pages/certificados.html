@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — Certificados</title>
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item active" href="certificados.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-lock"/></svg>
+                <span class="menu-label">Certificados</span>
+            </a>
+            <a class="menu-item" href="produtos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+                <span class="menu-label">Produtos</span>
+            </a>
+            <a class="menu-item" href="fornecedores.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+                <span class="menu-label">Fornecedores</span>
+            </a>
+            <a class="menu-item" href="contatos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="menu-label">Contatos</span>
+            </a>
+            <a class="menu-item" href="../index4.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                <span class="menu-label">Dashboard</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-lock"/></svg>
+                <span class="topbar-title">Certificados A1</span>
+            </div>
+            <div class="topbar-search">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+                <input class="topbar-search-input" id="search-input" placeholder="Buscar certificados...">
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <button class="topbar-icon-btn" onclick="openImport()" title="Importar certificado">
+                    <svg class="icon"><use href="../assets/images/icons.svg#icon-plus"/></svg>
+                </button>
+                <span class="topbar-user-info">
+                    <span id="user-name-display">Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
+                <div class="workspace-header">
+                    <div class="workspace-breadcrumb">FiscalBrasil / Faturamento / Certificados</div>
+                    <h2 class="workspace-title">Gerenciar Certificados Digitais A1</h2>
+                    <p style="margin-top:var(--space-2);color:var(--text-secondary);font-size:var(--font-sm)">
+                        Certificados ICP-Brasil no formato PFX/P12 para assinatura de NF-e, NFC-e e NFS-e.
+                    </p>
+                </div>
+                <div class="workspace-content">
+                    <div id="data-container"></div>
+                </div>
+                <div class="status-bar">
+                    <div class="status-bar-left">
+                        <span id="status-user-info">Usuário: Administrador</span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span>Versão 1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Importar -->
+<div class="dialog-overlay" id="import-modal">
+    <div class="dialog-box" style="width:520px;max-width:95vw">
+        <div class="dialog-header">
+            <h3 class="dialog-title">Importar Certificado A1</h3>
+            <button class="dialog-close" onclick="closeModal('import-modal')">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <form id="import-form">
+                <div class="field">
+                    <label>Arquivo PFX/P12</label>
+                    <input class="form-input" id="edit-arquivo" type="file" accept=".pfx,.p12" style="padding:var(--space-2)">
+                </div>
+                <div class="field">
+                    <label>Senha do certificado</label>
+                    <input class="form-input" id="edit-senha" type="password" placeholder="Senha do arquivo PFX">
+                </div>
+                <div class="form-error" id="import-error"></div>
+                <div id="import-preview" style="display:none;margin-top:var(--space-3);padding:var(--space-3);background:var(--bg-elevated);border-radius:var(--radius-sm)">
+                    <h4 style="margin-bottom:var(--space-2)">Pré-visualização</h4>
+                    <div id="preview-content"></div>
+                </div>
+            </form>
+        </div>
+        <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" onclick="closeModal('import-modal')">Cancelar</button>
+            <button class="dialog-btn dialog-btn-primary" id="btn-import" onclick="importCert()">Importar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Detalhes -->
+<div class="dialog-overlay" id="detail-modal">
+    <div class="dialog-box" style="width:640px;max-width:95vw">
+        <div class="dialog-header">
+            <h3 class="dialog-title">Detalhes do Certificado</h3>
+            <button class="dialog-close" onclick="closeModal('detail-modal')">&times;</button>
+        </div>
+        <div class="dialog-body" id="detail-body"></div>
+        <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" onclick="closeModal('detail-modal')">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .cert-status-dot {display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+    .cert-status-dot.valid {background:var(--color-success)}
+    .cert-status-dot.expired {background:var(--color-danger)}
+    .cert-status-dot.warning {background:var(--color-warning)}
+    .cert-info-grid {display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3)}
+    .cert-info-item {padding:var(--space-2);background:var(--bg-elevated);border-radius:var(--radius-sm)}
+    .cert-info-item label {display:block;font-size:var(--font-xs);color:var(--text-secondary);margin-bottom:2px}
+    .cert-info-item span {font-weight:var(--font-semibold)}
+    textarea.form-input{resize:vertical;min-height:50px;font-family:inherit}
+    .upload-zone {border:2px dashed var(--border-color);border-radius:var(--radius-sm);padding:var(--space-6);text-align:center;cursor:pointer;transition:all .2s}
+    .upload-zone:hover {border-color:var(--color-primary);background:var(--bg-hover)}
+    .upload-zone.dragover {border-color:var(--color-primary);background:var(--color-primary-bg)}
+</style>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+    let allData = [];
+    let previewData = null;
+    async function api(path, opts = {}) {
+        return window.api(path, opts);
+    }
+function formatDate(iso) {
+        if (!iso) return "-";
+        const d = new Date(iso);
+        return d.toLocaleDateString("pt-BR") + " " + d.toLocaleTimeString("pt-BR", {hour:"2-digit",minute:"2-digit"});
+    }
+
+    function formatDateShort(iso) {
+        if (!iso) return "-";
+        return new Date(iso).toLocaleDateString("pt-BR");
+    }
+
+    async function load() {
+        const container = document.getElementById("data-container");
+        container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem">Carregando...</div>';
+        const data = await api("/api/admin/certificados");
+        if (data.status !== "ok") {
+            container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem;color:var(--color-danger)">Acesso negado</div>';
+            return;
+        }
+        allData = data.certificados || [];
+        render();
+    }
+
+    function render() {
+        const q = (document.getElementById("search-input").value || "").toLowerCase();
+        const filtered = q ? allData.filter(e =>
+            (e.nome||"").toLowerCase().includes(q) ||
+            (e.razao_social||"").toLowerCase().includes(q) ||
+            (e.documento||"").includes(q) ||
+            (e.emissor||"").toLowerCase().includes(q)
+        ) : allData;
+
+        document.getElementById("data-container").innerHTML = `
+            <div class="dg-wrapper">
+                <div class="dg-scroll">
+                    <table class="dg-table">
+                        <thead><tr class="dg-header">
+                            <th class="dg-th" style="width:40px"><div class="dg-th-content">#</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Certificado</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Documento</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Emissor</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Validade</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Status</div></th>
+                            <th class="dg-th" style="width:120px"><div class="dg-th-content">Ações</div></th>
+                        </tr></thead>
+                        <tbody>
+                            ${filtered.map(e => {
+                                const dias = parseInt(e.dias_restantes) || 0;
+                                let statusClass = dias <= 0 ? "expired" : dias <= 30 ? "warning" : "valid";
+                                let statusLabel = dias <= 0 ? "Expirado" : dias <= 30 ? `${dias} dias` : `${dias} dias`;
+                                return `
+                            <tr class="dg-row">
+                                <td class="dg-cell dg-cell-center">${e.id}</td>
+                                <td class="dg-cell"><strong>${e.nome||e.razao_social||'-'}</strong></td>
+                                <td class="dg-cell">${e.documento||'-'}</td>
+                                <td class="dg-cell" style="font-size:var(--font-sm)">${e.emissor||'-'}</td>
+                                <td class="dg-cell" style="font-size:var(--font-sm)">${formatDateShort(e.valido_ate)}</td>
+                                <td class="dg-cell">
+                                    <span class="cert-status-dot ${statusClass}"></span>
+                                    ${statusLabel}
+                                </td>
+                                <td class="dg-cell">
+                                    <button class="dg-page" onclick='view(${JSON.stringify(e).replace(/'/g,"&#39;")})' title="Detalhes">👁</button>
+                                    <button class="dg-page" onclick="removeCert('${e.id}')" title="Remover" style="color:var(--color-danger)">✕</button>
+                                </td>
+                            </tr>`}).join('')}
+                            ${filtered.length===0?'<tr><td class="dg-cell" colspan="7" style="text-align:center;padding:2rem">Nenhum certificado importado</td></tr>':''}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding:var(--space-4);text-align:center;color:var(--text-secondary);font-size:var(--font-sm)">
+                    ${filtered.length} certificado${filtered.length!==1?'s':''} ${filtered.length!==1?'importados':'importado'}
+                    ${allData.length !== filtered.length ? `(filtrado de ${allData.length})` : ''}
+                </div>
+            </div>
+
+            <div style="margin-top:var(--space-6)">
+                <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+                    <svg class="icon" style="width:48px;height:48px;margin-bottom:var(--space-3);opacity:.5"><use href="../assets/images/icons.svg#icon-upload"/></svg>
+                    <h3>Importar novo certificado</h3>
+                    <p style="color:var(--text-secondary);font-size:var(--font-sm);margin-top:var(--space-2)">
+                        Arraste um arquivo PFX/P12 aqui ou clique para selecionar
+                    </p>
+                    <input type="file" id="file-input" accept=".pfx,.p12" style="display:none" onchange="handleFileSelect(event)">
+                </div>
+            </div>
+        `;
+
+        setupDragDrop();
+    }
+
+    function setupDragDrop() {
+        const zone = document.getElementById("drop-zone");
+        if (!zone) return;
+        zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("dragover"); });
+        zone.addEventListener("dragleave", () => zone.classList.remove("dragover"));
+        zone.addEventListener("drop", e => {
+            e.preventDefault();
+            zone.classList.remove("dragover");
+            const files = e.dataTransfer.files;
+            if (files.length > 0) handleFile(files[0]);
+        });
+    }
+
+    function handleFileSelect(e) {
+        if (e.target.files.length > 0) handleFile(e.target.files[0]);
+    }
+
+    function handleFile(file) {
+        if (!file.name.match(/\.(pfx|p12)$/i)) {
+            alert("Formato inválido. Selecione um arquivo .pfx ou .p12");
+            return;
+        }
+        document.getElementById("edit-arquivo").files = document.createElement("input").files;
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        document.getElementById("edit-arquivo").files = dt.files;
+
+        openImport();
+    }
+
+    function openImport() {
+        document.getElementById("import-form").reset();
+        document.getElementById("import-error").classList.remove("visible");
+        document.getElementById("import-error").textContent = "";
+        document.getElementById("import-preview").style.display = "none";
+        previewData = null;
+        document.getElementById("btn-import").disabled = false;
+        document.getElementById("import-modal").classList.add("dialog-open");
+    }
+
+    async function previewCert() {
+        const fileInput = document.getElementById("edit-arquivo");
+        const senha = document.getElementById("edit-senha").value;
+        const errEl = document.getElementById("import-error");
+        errEl.classList.remove("visible");
+        errEl.textContent = "";
+
+        if (!fileInput.files.length) {
+            errEl.textContent = "Selecione um arquivo PFX/P12";
+            errEl.classList.add("visible");
+            return;
+        }
+        if (!senha) {
+            errEl.textContent = "Informe a senha do certificado";
+            errEl.classList.add("visible");
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const b64 = await fileToBase64(file);
+
+        try {
+            const data = await api("/api/admin/certificados/upload", {
+                method: "POST",
+                body: JSON.stringify({ arquivo: b64, senha, nome_arquivo: file.name })
+            });
+            if (data.status === "ok") {
+                previewData = data.certificado;
+                document.getElementById("import-preview").style.display = "block";
+                document.getElementById("preview-content").innerHTML = `
+                    <div class="cert-info-grid">
+                        <div class="cert-info-item"><label>Nome</label><span>${data.certificado.nome||'-'}</span></div>
+                        <div class="cert-info-item"><label>Razão Social</label><span>${data.certificado.razao_social||'-'}</span></div>
+                        <div class="cert-info-item"><label>Documento</label><span>${data.certificado.documento||'-'}</span></div>
+                        <div class="cert-info-item"><label>Emissor</label><span style="font-size:var(--font-xs)">${data.certificado.emissor||'-'}</span></div>
+                        <div class="cert-info-item"><label>Validade</label><span>${formatDate(data.certificado.valido_ate)}</span></div>
+                        <div class="cert-info-item"><label>Status</label><span style="color:var(--color-success)">Válido (${data.certificado.dias_restantes} dias)</span></div>
+                    </div>
+                `;
+                document.getElementById("btn-import").textContent = "Confirmar Importação";
+            } else {
+                errEl.textContent = data.message || "Erro ao importar";
+                errEl.classList.add("visible");
+            }
+        } catch (e) {
+            errEl.textContent = "Erro de conexão";
+            errEl.classList.add("visible");
+        }
+    }
+
+    async function importCert() {
+        if (previewData) {
+            closeModal("import-modal");
+            load();
+            return;
+        }
+        await previewCert();
+    }
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const b64 = reader.result.split(",")[1];
+                resolve(b64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function view(data) {
+        const body = document.getElementById("detail-body");
+        const dias = parseInt(data.dias_restantes) || 0;
+        const valido = dias > 0;
+        body.innerHTML = `
+            <div class="cert-info-grid">
+                <div class="cert-info-item"><label>ID</label><span>${data.id}</span></div>
+                <div class="cert-info-item"><label>Ativo</label><span style="color:${data.ativo!==false?'var(--color-success)':'var(--color-danger)'}">${data.ativo!==false?'Sim':'Não'}</span></div>
+                <div class="cert-info-item"><label>Nome</label><span>${data.nome||'-'}</span></div>
+                <div class="cert-info-item"><label>Razão Social</label><span>${data.razao_social||'-'}</span></div>
+                <div class="cert-info-item"><label>Documento</label><span>${data.documento||'-'}</span></div>
+                <div class="cert-info-item"><label>Série</label><span style="font-size:var(--font-xs)">${data.serial||'-'}</span></div>
+                <div class="cert-info-item"><label>Emissor</label><span style="font-size:var(--font-xs)">${data.emissor||'-'}</span></div>
+                <div class="cert-info-item"><label>Validade</label><span style="color:${valido?'var(--text-primary)':'var(--color-danger)'}">
+                    ${formatDate(data.valido_de)} → ${formatDate(data.valido_ate)}
+                </span></div>
+                <div class="cert-info-item"><label>Dias restantes</label><span style="color:${dias<=0?'var(--color-danger)':dias<=30?'var(--color-warning)':'var(--color-success)'}">
+                    ${dias <= 0 ? 'Expirado' : dias + ' dias'}
+                </span></div>
+                <div class="cert-info-item"><label>Empresa vinculada</label><span>${data.empresa_id||'Nenhuma'}</span></div>
+            </div>
+            <div style="margin-top:var(--space-4);display:flex;gap:var(--space-2);flex-wrap:wrap">
+                <button class="dialog-btn" onclick="validateCert('${data.id}')">Validar</button>
+                <button class="dialog-btn" onclick="toggleCert('${data.id}')">${data.ativo!==false?'Desativar':'Ativar'}</button>
+            </div>
+            <div id="validate-result" style="margin-top:var(--space-3)"></div>
+        `;
+        document.getElementById("detail-modal").classList.add("dialog-open");
+    }
+
+    async function validateCert(id) {
+        const resultEl = document.getElementById("validate-result");
+        resultEl.innerHTML = "Validando...";
+        try {
+            const data = await api(`/api/admin/certificados/${id}/validate`, { method: "POST", body: "{}" });
+            if (data.status === "ok") {
+                resultEl.innerHTML = `
+                    <div class="glass-panel" style="padding:var(--space-3);border-left:3px solid ${data.valido?'var(--color-success)':'var(--color-danger)'}">
+                        <strong>${data.valido?'✓ Certificado válido':'✗ Certificado expirado'}</strong><br>
+                        <span style="font-size:var(--font-sm);color:var(--text-secondary)">
+                            Validade: ${data.valido_ate ? new Date(data.valido_ate).toLocaleDateString("pt-BR") : '-'} |
+                            Dias restantes: ${data.dias_restantes||0}
+                        </span>
+                    </div>
+                `;
+            } else {
+                resultEl.innerHTML = `<div style="color:var(--color-danger)">${data.message}</div>`;
+            }
+        } catch (e) {
+            resultEl.innerHTML = '<div style="color:var(--color-danger)">Erro de conexão</div>';
+        }
+    }
+
+    async function toggleCert(id) {
+        try {
+            const data = await api(`/api/admin/certificados/${id}/toggle`, { method: "POST", body: "{}" });
+            if (data.status === "ok") {
+                closeModal("detail-modal");
+                load();
+            }
+        } catch (e) {}
+    }
+
+    async function removeCert(id) {
+        if (!confirm("Remover este certificado?")) return;
+        try {
+            const data = await api(`/api/admin/certificados/${id}`, {
+                method: "POST",
+                body: JSON.stringify({ action: "delete" })
+            });
+            if (data.status === "ok") {
+                load();
+            } else {
+                alert(data.message);
+            }
+        } catch (e) {
+            alert("Erro ao remover");
+        }
+    }
+
+    function closeModal(id) {
+        document.getElementById(id).classList.remove("dialog-open");
+    }
+
+    document.addEventListener("auth:ready", function () {
+        load();
+        document.getElementById("search-input").addEventListener("input", render);
+        document.getElementById("edit-senha").addEventListener("keydown", function(e) {
+            if (e.key === "Enter") importCert();
+        });
+    });
+</script>
+
+</body>
+</html>

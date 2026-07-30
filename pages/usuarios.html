@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — Usuários</title>
+    <meta name="theme-color" content="#714B67">
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item" href="configuracoes.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+                <span class="menu-label">Configurações</span>
+            </a>
+            <a class="menu-item" href="usuarios.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="menu-label">Usuários</span>
+            </a>
+            <a class="menu-item" href="empresas.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="menu-label">Empresas</span>
+            </a>
+            <a class="menu-item" href="../index4.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                <span class="menu-label">Dashboard</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="topbar-title">Usuários do Sistema</span>
+            </div>
+            <div class="topbar-search">
+                <svg class="icon"><use href="#icon-search"/></svg>
+                <input class="topbar-search-input" id="user-search" placeholder="Buscar usuários...">
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <button class="topbar-icon-btn" onclick="openUserModal()" title="Novo usuário">
+                    <svg class="icon"><use href="#icon-plus"/></svg>
+                </button>
+                <span class="topbar-user-info">
+                    <span id="user-name-display">Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
+                <div class="workspace-header">
+                    <div class="workspace-breadcrumb">FiscalBrasil / Administração / Usuários</div>
+                    <h2 class="workspace-title">Gerenciar Usuários</h2>
+                </div>
+                <div class="workspace-content">
+                    <div id="users-container"></div>
+                </div>
+                <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+                    <div class="status-bar-left">
+                        <span id="status-user-info">Usuário: Administrador</span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span>Versão 1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dialog-overlay" id="user-modal">
+    <div class="dialog-box">
+        <div class="dialog-header">
+            <h3 class="dialog-title" id="modal-title">Novo Usuário</h3>
+            <button class="dialog-close" onclick="closeUserModal()">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <form id="user-form">
+                <div class="field">
+                    <label>Nome completo</label>
+                    <input class="form-input" id="edit-name" required>
+                </div>
+                <div class="field">
+                    <label>Usuário</label>
+                    <input class="form-input" id="edit-user" required>
+                </div>
+                <div class="field">
+                    <label>E-mail</label>
+                    <input class="form-input" id="edit-email" type="email">
+                </div>
+                <div class="field">
+                    <label>Perfil</label>
+                    <select class="form-input" id="edit-role">
+                        <option value="operador">Operador</option>
+                        <option value="supervisor">Supervisor</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Senha</label>
+                    <input class="form-input" id="edit-pass" type="password" placeholder="Deixe em branco para manter">
+                </div>
+                <div class="field">
+                    <label>Acesso a Empresas</label>
+                    <div id="empresas-checkbox-list" class="empresas-list"></div>
+                </div>
+                <div class="form-error" id="user-form-error"></div>
+            </form>
+        </div>
+        <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" onclick="closeUserModal()">Cancelar</button>
+            <button class="dialog-btn dialog-btn-primary" onclick="saveUser()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .empresas-list{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:var(--space-1)}
+    .empresa-check{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-1) var(--space-2);border-radius:var(--radius-sm);cursor:pointer;transition:background var(--transition-fast)}
+    .empresa-check:hover{background:var(--bg-hover)}
+    .empresa-check input[type="checkbox"]{accent-color:var(--accent)}
+    .empresa-check select{flex:1;max-width:140px;margin-left:auto}
+</style>
+<script>
+    const TOKEN = localStorage.getItem("auth_token");
+    let editingUserId = null;
+    let empresasDisponiveis = [];
+
+    async function api(path, opts = {}) {
+        const res = await fetch(path, {
+            ...opts,
+            headers: { "Content-Type": "application/json", "X-Auth-Token": TOKEN, ...opts.headers }
+        });
+        return res.json();
+    }
+
+    async function loadUsers() {
+        const container = document.getElementById("users-container");
+        container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem">Carregando...</div>';
+        const data = await api("/api/admin/users");
+        if (data.status !== "ok") {
+            container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem;color:var(--color-danger)">Acesso negado</div>';
+            return;
+        }
+        window._lastUsers = data.users;
+        renderUsers(data.users);
+    }
+
+    function renderUsers(users) {
+        const q = (document.getElementById("user-search").value || "").toLowerCase();
+        const filtered = q ? users.filter(u => u.nome.toLowerCase().includes(q) || u.usuario.toLowerCase().includes(q)) : users;
+
+        document.getElementById("users-container").innerHTML = `
+            <div class="dg-wrapper">
+                <div class="dg-scroll">
+                    <table class="dg-table">
+                        <thead><tr class="dg-header">
+                            <th class="dg-th" style="width:40px"><div class="dg-th-content">#</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Nome</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Usuário</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Perfil</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Empresas</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Status</div></th>
+                            <th class="dg-th" style="width:120px"><div class="dg-th-content">Ações</div></th>
+                        </tr></thead>
+                        <tbody>
+                            ${filtered.map(u => `
+                            <tr class="dg-row ${u.ativo ? '' : 'dg-row-alt'}" style="${u.ativo ? '' : 'opacity:.5'}">
+                                <td class="dg-cell dg-cell-center">${u.id}</td>
+                                <td class="dg-cell">${u.nome}</td>
+                                <td class="dg-cell">${u.usuario}</td>
+                                <td class="dg-cell"><span class="badge badge-${u.role === 'admin' ? 'primary' : u.role === 'supervisor' ? 'info' : 'default'}">${u.role}</span></td>
+                                <td class="dg-cell" style="font-size:var(--font-xs)">${(()=>{const es=u.empresas||{};const ks=Object.keys(es);return ks.length?ks.map(k=>`<span class="badge badge-default">${k.substring(0,6)}</span>`).join(' '):'<span style="color:var(--text-disabled)">—</span>'})()}</td>
+                                <td class="dg-cell"><span class="badge badge-${u.ativo ? 'success' : 'danger'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                                <td class="dg-cell">
+                                    <button class="dg-page" onclick="openUserModal(this.dataset.user)" data-user='${JSON.stringify({id:u.id,nome:u.nome,usuario:u.usuario,role:u.role,email:u.email||"",ativo:u.ativo,empresas:u.empresas})}' title="Editar">✎</button>
+                                    <button class="dg-page" onclick="toggleUser('${u.id}')" title="${u.ativo ? 'Desativar' : 'Ativar'}">${u.ativo ? '⏸' : '▶'}</button>
+                                </td>
+                            </tr>`).join('')}
+                            ${filtered.length === 0 ? '<tr><td class="dg-cell" colspan="7" style="text-align:center;padding:2rem">Nenhum usuário encontrado</td></tr>' : ''}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }
+
+    async function openUserModal(data) {
+        if(typeof data==="string"){try{data=JSON.parse(data)}catch(e){data=null}}
+        editingUserId = data ? data.id : null;
+        document.getElementById("modal-title").textContent = editingUserId ? "Editar Usuário" : "Novo Usuário";
+        document.getElementById("edit-name").value = data ? data.nome : "";
+        document.getElementById("edit-user").value = data ? data.usuario : "";
+        document.getElementById("edit-email").value = data ? (data.email || "") : "";
+        document.getElementById("edit-role").value = data ? data.role : "operador";
+        document.getElementById("edit-pass").value = "";
+        document.getElementById("edit-user").disabled = !!editingUserId;
+        document.getElementById("user-form-error").classList.remove("visible");
+
+        if(empresasDisponiveis.length===0){
+            const res=await api("/api/admin/empresas");
+            if(res.status==="ok") empresasDisponiveis=res.empresas||[];
+        }
+
+        const userEmpresas=data&&data.empresas?data.empresas:{};
+        const list=document.getElementById("empresas-checkbox-list");
+        if(empresasDisponiveis.length===0){
+            list.innerHTML='<span style="color:var(--text-disabled);font-size:var(--font-sm)">Nenhuma empresa cadastrada. Crie empresas primeiro.</span>';
+        }else{
+            list.innerHTML=empresasDisponiveis.map(e=>`
+                <label class="empresa-check">
+                    <input type="checkbox" class="emp-chk" value="${e.id}" ${e.id in userEmpresas?'checked':''} ${data&&data.role==='admin'?'disabled':''}>
+                    <span>${e.nome}</span>
+                    <select class="emp-role form-input" ${e.id in userEmpresas?'':'style="display:none"'}>
+                        <option value="operador" ${userEmpresas[e.id]==='operador'?'selected':''}>Operador</option>
+                        <option value="supervisor" ${userEmpresas[e.id]==='supervisor'?'selected':''}>Supervisor</option>
+                        <option value="admin" ${userEmpresas[e.id]==='admin'?'selected':''}>Admin</option>
+                    </select>
+                </label>
+            `).join('');
+            list.querySelectorAll('.emp-chk').forEach(cb=>{
+                cb.addEventListener('change',function(){
+                    const sel=this.closest('.empresa-check').querySelector('.emp-role');
+                    sel.style.display=this.checked?'block':'none';
+                    if(this.checked&&!sel.value) sel.value='operador';
+                });
+            });
+        }
+        document.getElementById("user-modal").classList.add("dialog-open");
+    }
+
+    function closeUserModal() {
+        document.getElementById("user-modal").classList.remove("dialog-open");
+        editingUserId = null;
+    }
+
+    async function saveUser() {
+        const nome = document.getElementById("edit-name").value.trim();
+        const usuario = document.getElementById("edit-user").value.trim();
+        const role = document.getElementById("edit-role").value;
+        const senha = document.getElementById("edit-pass").value;
+        const email = document.getElementById("edit-email").value.trim();
+        const errEl = document.getElementById("user-form-error");
+        errEl.classList.remove("visible");
+
+        if (!nome || !usuario) { errEl.textContent = "Preencha nome e usuário"; errEl.classList.add("visible"); return; }
+        if (!editingUserId && !senha) { errEl.textContent = "Informe a senha"; errEl.classList.add("visible"); return; }
+
+        const empresas={};
+        if(role!=='admin'){
+            document.querySelectorAll('.emp-chk').forEach(cb=>{
+                if(cb.checked){
+                    const sel=cb.closest('.empresa-check').querySelector('.emp-role');
+                    empresas[cb.value]=sel.value;
+                }
+            });
+        }
+
+        let data;
+        if (editingUserId) {
+            data = await api("/api/admin/users/" + editingUserId, {
+                method: "POST",
+                body: JSON.stringify({ action: "update", nome, role, senha, email, empresas })
+            });
+        } else {
+            data = await api("/api/admin/users", {
+                method: "POST",
+                body: JSON.stringify({ nome, usuario, senha, role, email, empresas })
+            });
+        }
+
+        if (data.status !== "ok") {
+            errEl.textContent = data.message || "Erro ao salvar";
+            errEl.classList.add("visible");
+            return;
+        }
+
+        closeUserModal();
+        loadUsers();
+    }
+
+    async function toggleUser(id) {
+        await api("/api/admin/users/" + id, {
+            method: "POST",
+            body: JSON.stringify({ action: "toggle" })
+        });
+        loadUsers();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        loadUsers();
+        document.getElementById("user-search").addEventListener("input", function () {
+            renderUsers(window._lastUsers || []);
+        });
+        const stored = localStorage.getItem("user_data");
+        if (stored) {
+            try {
+                const u = JSON.parse(stored);
+                document.getElementById("user-name-display").textContent = u.nome;
+                document.getElementById("status-user-info").textContent = "Usuário: " + u.nome;
+            } catch (e) { }
+        }
+    });
+</script>
+
+</body>
+</html>
