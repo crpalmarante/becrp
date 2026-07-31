@@ -44,7 +44,8 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
   UI: Recebimento / Compras, não Estoque nem Faturamento.  
   ✅ **RFC-4002 MVP:** `nfe_inbound.py` · `POST /api/receiving/from-xml` · upload em `pages/recebimento.html`  
   ✅ **RFC-4004 MVP:** `product_localization.py` · vínculo fornecedor×produto · busca UI · match `supplier_ref`/`ean`/`codigo`  
-  (fila de pendências / similaridade / criar produto = depois)
+  ✅ **RFC-4008 MVP:** conferência física com Δ/avaria/notas · bip EAN · reabrir · `verification` no receiving  
+  (fila 4007 / RFID = depois)
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
 ---
@@ -123,6 +124,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 8. ~~Receiving~~ ✅ ([`RFC-RECEIVING-MVP.md`](./RFC-RECEIVING-MVP.md) · `receiving_mvp.py` · `/pages/recebimento.html`)  
 9. ~~NF-e XML inbound (RFC-4002)~~ ✅ (`nfe_inbound.py` · `POST /api/receiving/from-xml` · link-product)  
 10. ~~Localização de produtos (RFC-4004)~~ ✅ (`product_localization.py` · refs · product-search)  
+11. ~~Conferência física (RFC-4008)~~ ✅ (verify/scan/reopen · qty boa vs avaria · inventário só no complete)  
 
 ---
 

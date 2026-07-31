@@ -21,6 +21,16 @@ RECEIVINGS_FILE = os.path.join(DATA_DIR, "receivings.json")
 STATUSES = ("draft", "verified", "completed", "cancelled")
 ORIGENS = ("manual", "nfe", "transfer", "return", "adjustment")
 
+# RFC-4008 item results
+VERIFY_RESULTS = (
+    "verified",
+    "quantity_difference",
+    "damaged",
+    "missing",
+    "rejected",
+)
+VERIFY_METHODS = ("manual", "barcode", "mixed")
+
 
 def _load():
     if not os.path.exists(RECEIVINGS_FILE):
@@ -218,8 +228,115 @@ def link_item_product(rid, item_index, produto_id, produto_nome=None, user_id=No
     return rec
 
 
+def _as_int(val, default=0):
+    try:
+        return int(round(float(val)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _digits(val):
+    return "".join(ch for ch in str(val or "") if ch.isdigit())
+
+
+def classify_item_result(it):
+    """RFC-4008: classifica resultado físico do item (não move estoque)."""
+    expected = _as_int(it.get("qty_expected"))
+    good = _as_int(it.get("qty_verified"))
+    damaged = max(0, _as_int(it.get("qty_damaged")))
+    rejected = bool(it.get("rejected"))
+    if rejected:
+        return "rejected"
+    if good <= 0 and damaged <= 0 and expected > 0:
+        return "missing"
+    if damaged > 0 and good == 0 and expected > 0:
+        return "damaged"
+    if good != expected or damaged > 0:
+        if damaged > 0 and good == expected:
+            return "damaged"
+        return "quantity_difference" if good != expected else "damaged"
+    return "verified"
+
+
+def _build_verification_summary(rec, user_id=None, method="manual"):
+    items_out = []
+    diffs = 0
+    for it in rec.get("items") or []:
+        expected = _as_int(it.get("qty_expected"))
+        good = _as_int(it.get("qty_verified"))
+        damaged = max(0, _as_int(it.get("qty_damaged")))
+        result = classify_item_result(it)
+        if result != "verified":
+            diffs += 1
+        items_out.append({
+            "produto_id": str(it.get("produto_id") or ""),
+            "produto_nome": it.get("produto_nome") or "",
+            "expected_quantity": expected,
+            "received_quantity": good,
+            "damaged_quantity": damaged,
+            "difference": good - expected,
+            "result": result,
+            "notes": (it.get("notes") or "").strip(),
+        })
+    started = (rec.get("verification") or {}).get("started_at") or _now()
+    return {
+        "receiving_id": rec.get("id"),
+        "warehouse_id": rec.get("estabelecimento_id"),
+        "operator_id": user_id,
+        "method": method if method in VERIFY_METHODS else "manual",
+        "started_at": started,
+        "completed_at": _now(),
+        "status": "completed",
+        "differences_count": diffs,
+        "items": items_out,
+    }
+
+
+def start_verification(rid, user_id=None, method="manual"):
+    """Marca início da conferência física (status permanece draft até finish)."""
+    data = _load()
+    rec = None
+    for r in data.get("receivings") or []:
+        if str(r.get("id")) == str(rid):
+            rec = r
+            break
+    if not rec:
+        raise ValueError("recebimento não encontrado")
+    if rec.get("status") not in ("draft", "verified"):
+        raise ValueError(f"não inicia conferência em status={rec.get('status')}")
+    if unmatched_count(rec):
+        raise ValueError(
+            f"{unmatched_count(rec)} item(ns) sem produto vinculado — localize antes de conferir"
+        )
+    if rec.get("status") == "verified":
+        # reabre para nova conferência
+        rec["status"] = "draft"
+    ver = rec.get("verification") if isinstance(rec.get("verification"), dict) else {}
+    if ver.get("status") != "in_progress":
+        ver = {
+            "receiving_id": rec.get("id"),
+            "warehouse_id": rec.get("estabelecimento_id"),
+            "operator_id": user_id,
+            "method": method if method in VERIFY_METHODS else "manual",
+            "started_at": _now(),
+            "completed_at": None,
+            "status": "in_progress",
+            "differences_count": 0,
+            "items": [],
+        }
+        rec["verification"] = ver
+        rec.setdefault("events", []).append({
+            "at": _now(), "tipo": "verification_started", "by": user_id, "method": ver["method"],
+        })
+    _save(data)
+    return rec
+
+
 def verify_receiving(rid, payload=None, user_id=None):
-    """Conferência física: grava qty_verified e status=verified."""
+    """
+    Conferência física (RFC-4008): grava qty/notas/avaria, classifica divergências.
+    Não move estoque — só status=verified + registro verification.
+    """
     data = _load()
     rec = None
     for r in data.get("receivings") or []:
@@ -236,43 +353,244 @@ def verify_receiving(rid, payload=None, user_id=None):
         )
 
     body = payload if isinstance(payload, dict) else {}
+    method = str(body.get("method") or "manual").strip().lower()
+    if method not in VERIFY_METHODS:
+        method = "manual"
+
+    # inicia se ainda não
+    if not isinstance(rec.get("verification"), dict) or rec["verification"].get("status") != "in_progress":
+        if not isinstance(rec.get("verification"), dict) or not rec["verification"].get("started_at"):
+            rec["verification"] = {
+                "receiving_id": rec.get("id"),
+                "warehouse_id": rec.get("estabelecimento_id"),
+                "operator_id": user_id,
+                "method": method,
+                "started_at": _now(),
+                "completed_at": None,
+                "status": "in_progress",
+                "differences_count": 0,
+                "items": [],
+            }
+            rec.setdefault("events", []).append({
+                "at": _now(), "tipo": "verification_started", "by": user_id, "method": method,
+            })
+
     overrides = {}
     for it in body.get("items") or []:
         if not isinstance(it, dict):
             continue
-        # index-based or produto_id
+        key = None
         if "item_index" in it:
             try:
-                overrides[("idx", int(it["item_index"]))] = int(round(float(
-                    it.get("qty_verified") if it.get("qty_verified") is not None else it.get("qty") or 0
-                )))
+                key = ("idx", int(it["item_index"]))
             except (TypeError, ValueError):
                 continue
-            continue
-        pid = str(it.get("produto_id") or it.get("id") or "")
-        if not pid:
-            continue
-        try:
-            overrides[("pid", pid)] = int(round(float(it.get("qty_verified") if it.get("qty_verified") is not None else it.get("qty") or 0)))
-        except (TypeError, ValueError):
-            continue
+        else:
+            pid = str(it.get("produto_id") or it.get("id") or "")
+            if not pid:
+                continue
+            key = ("pid", pid)
+        entry = {}
+        if it.get("qty_verified") is not None or it.get("qty") is not None:
+            entry["qty_verified"] = max(0, _as_int(
+                it.get("qty_verified") if it.get("qty_verified") is not None else it.get("qty")
+            ))
+        if it.get("qty_damaged") is not None:
+            entry["qty_damaged"] = max(0, _as_int(it.get("qty_damaged")))
+        if "notes" in it:
+            entry["notes"] = str(it.get("notes") or "").strip()
+        if "rejected" in it:
+            entry["rejected"] = bool(it.get("rejected"))
+        overrides[key] = entry
 
     for i, it in enumerate(rec.get("items") or []):
         pid = str(it.get("produto_id") or "")
-        if ("idx", i) in overrides:
-            it["qty_verified"] = max(0, overrides[("idx", i)])
-        elif ("pid", pid) in overrides:
-            it["qty_verified"] = max(0, overrides[("pid", pid)])
+        ov = overrides.get(("idx", i)) or overrides.get(("pid", pid)) or {}
+        if "qty_verified" in ov:
+            it["qty_verified"] = ov["qty_verified"]
         elif it.get("qty_verified") is None:
-            it["qty_verified"] = int(it.get("qty_expected") or 0)
+            it["qty_verified"] = _as_int(it.get("qty_expected"))
+        if "qty_damaged" in ov:
+            it["qty_damaged"] = ov["qty_damaged"]
+        elif it.get("qty_damaged") is None:
+            it["qty_damaged"] = 0
+        if "notes" in ov:
+            it["notes"] = ov["notes"]
+        if "rejected" in ov:
+            it["rejected"] = ov["rejected"]
+        it["verify_result"] = classify_item_result(it)
+        it["qty_difference"] = _as_int(it.get("qty_verified")) - _as_int(it.get("qty_expected"))
 
-    if not any(int(it.get("qty_verified") or 0) > 0 for it in rec.get("items") or []):
-        raise ValueError("nenhum item com qty conferida > 0")
+    # permite concluir só com divergências (faltando tudo) se allow_empty
+    has_any = any(
+        _as_int(it.get("qty_verified")) > 0 or bool(it.get("rejected"))
+        or _as_int(it.get("qty_damaged")) > 0
+        or classify_item_result(it) == "missing"
+        for it in rec.get("items") or []
+    )
+    if not has_any:
+        raise ValueError("nenhum item conferido")
+    if not any(_as_int(it.get("qty_verified")) > 0 for it in rec.get("items") or []):
+        if not body.get("allow_zero_receive"):
+            raise ValueError(
+                "nenhum item com qty boa > 0 — use allow_zero_receive=true para registrar só faltas/avarias"
+            )
 
+    prev_method = (rec.get("verification") or {}).get("method") or "manual"
+    if prev_method != method and prev_method in VERIFY_METHODS:
+        method = "mixed"
+
+    summary = _build_verification_summary(rec, user_id=user_id, method=method)
+    rec["verification"] = summary
     rec["status"] = "verified"
-    rec["verified_at"] = _now()
+    rec["verified_at"] = summary["completed_at"]
     rec["verified_by"] = user_id
-    rec.setdefault("events", []).append({"at": _now(), "tipo": "verified", "by": user_id})
+    rec.setdefault("events", []).append({
+        "at": _now(),
+        "tipo": "verified",
+        "by": user_id,
+        "method": method,
+        "differences_count": summary["differences_count"],
+    })
+    if summary["differences_count"]:
+        rec.setdefault("events", []).append({
+            "at": _now(),
+            "tipo": "verification_difference_detected",
+            "by": user_id,
+            "count": summary["differences_count"],
+        })
+    _save(data)
+    return rec
+
+
+def scan_receiving_item(rid, barcode, qty=1, user_id=None):
+    """
+    Conferência assistida por código de barras (RFC-4008).
+    Incrementa qty_verified do item cujo EAN/produto casa com o bip.
+    Mantém status draft (in_progress).
+    """
+    code = _digits(barcode) or str(barcode or "").strip()
+    if not code:
+        raise ValueError("código de barras vazio")
+    add = max(1, _as_int(qty, 1))
+
+    data = _load()
+    rec = None
+    for r in data.get("receivings") or []:
+        if str(r.get("id")) == str(rid):
+            rec = r
+            break
+    if not rec:
+        raise ValueError("recebimento não encontrado")
+    if rec.get("status") in ("completed", "cancelled"):
+        raise ValueError(f"não confere bip em status={rec.get('status')}")
+    if unmatched_count(rec):
+        raise ValueError("localize produtos antes de bipar")
+
+    if rec.get("status") == "verified":
+        rec["status"] = "draft"
+
+    ver = rec.get("verification") if isinstance(rec.get("verification"), dict) else {}
+    if ver.get("status") != "in_progress":
+        rec["verification"] = {
+            "receiving_id": rec.get("id"),
+            "warehouse_id": rec.get("estabelecimento_id"),
+            "operator_id": user_id,
+            "method": "barcode",
+            "started_at": _now(),
+            "completed_at": None,
+            "status": "in_progress",
+            "differences_count": 0,
+            "items": [],
+        }
+        rec.setdefault("events", []).append({
+            "at": _now(), "tipo": "verification_started", "by": user_id, "method": "barcode",
+        })
+    else:
+        m = ver.get("method") or "barcode"
+        ver["method"] = "mixed" if m == "manual" else m
+        rec["verification"] = ver
+
+    # resolve produto pelo EAN no catálogo se bip for EAN
+    hit_idx = None
+    for i, it in enumerate(rec.get("items") or []):
+        nfe = it.get("nfe_item") if isinstance(it.get("nfe_item"), dict) else {}
+        ean = _digits(nfe.get("ean"))
+        pid = str(it.get("produto_id") or "")
+        if ean and ean == code:
+            hit_idx = i
+            break
+        if pid and pid == code:
+            hit_idx = i
+            break
+
+    if hit_idx is None:
+        # tenta catálogo → produto_id
+        try:
+            import cobol_bridge
+            for p in cobol_bridge.produtos_listar() or []:
+                bars = _digits(p.get("codigo_barras") or p.get("ean"))
+                if bars and bars == code:
+                    pid = str(p.get("id"))
+                    for i, it in enumerate(rec.get("items") or []):
+                        if str(it.get("produto_id")) == pid:
+                            hit_idx = i
+                            break
+                    break
+        except Exception:
+            pass
+
+    if hit_idx is None:
+        raise ValueError(f"código não encontrado neste recebimento: {code}")
+
+    it = rec["items"][hit_idx]
+    cur = _as_int(it.get("qty_verified")) if it.get("qty_verified") is not None else 0
+    it["qty_verified"] = cur + add
+    if it.get("qty_damaged") is None:
+        it["qty_damaged"] = 0
+    it["verify_result"] = classify_item_result(it)
+    it["qty_difference"] = _as_int(it.get("qty_verified")) - _as_int(it.get("qty_expected"))
+    rec.setdefault("events", []).append({
+        "at": _now(),
+        "tipo": "verification_item_scanned",
+        "by": user_id,
+        "item_index": hit_idx,
+        "barcode": code,
+        "qty_add": add,
+        "qty_verified": it["qty_verified"],
+    })
+    _save(data)
+    return {
+        "receiving": rec,
+        "item_index": hit_idx,
+        "item": it,
+        "barcode": code,
+    }
+
+
+def reopen_verification(rid, user_id=None):
+    """Supervisor: volta verified → draft para reconferir (não toca inventário)."""
+    data = _load()
+    rec = None
+    for r in data.get("receivings") or []:
+        if str(r.get("id")) == str(rid):
+            rec = r
+            break
+    if not rec:
+        raise ValueError("recebimento não encontrado")
+    if rec.get("status") != "verified":
+        raise ValueError("só reabre conferência em status=verified")
+    rec["status"] = "draft"
+    ver = rec.get("verification") if isinstance(rec.get("verification"), dict) else {}
+    ver["status"] = "reopened"
+    ver["reopened_at"] = _now()
+    ver["reopened_by"] = user_id
+    rec["verification"] = ver
+    rec["verified_at"] = None
+    rec["verified_by"] = None
+    rec.setdefault("events", []).append({
+        "at": _now(), "tipo": "verification_reopened", "by": user_id,
+    })
     _save(data)
     return rec
 

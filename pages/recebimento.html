@@ -40,6 +40,15 @@
     .rcv-link-row input { max-width:180px; }
     .rcv-suggest { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
     .rcv-suggest button { font-size:12px; }
+    .diff-ok { color:#4ade80; }
+    .diff-bad { color:#fbbf24; font-weight:600; }
+    .diff-miss { color:#f87171; font-weight:600; }
+    .rcv-scan { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:12px 0; padding:10px; border:1px dashed rgba(255,255,255,.2); border-radius:8px; }
+    .rcv-scan input { min-width:200px; flex:1; }
+    .rcv-notes { width:100%; min-width:120px; font-size:12px; }
+    .res-verified { color:#4ade80; }
+    .res-quantity_difference, .res-damaged { color:#fbbf24; }
+    .res-missing, .res-rejected { color:#f87171; }
   </style>
 </head>
 <body>
@@ -193,6 +202,13 @@
     completed: "Concluído",
     cancelled: "Cancelado",
   };
+  const RESULT_LABEL = {
+    verified: "OK",
+    quantity_difference: "Qtd ≠",
+    damaged: "Avaria",
+    missing: "Falta",
+    rejected: "Rejeitado",
+  };
 
   let empresas = {};
   let selectedId = null;
@@ -285,10 +301,18 @@
     const nfe = r.nfe || null;
     const unmatched = (r.items || []).filter((it) => !String(it.produto_id || "").trim()).length;
 
+    const canEditQty = r.status === "draft" || r.status === "verified";
     const itemsHtml = (r.items || []).map((it, idx) => {
       const matched = String(it.produto_id || "").trim();
       const ean = (it.nfe_item && it.nfe_item.ean) || "";
       const cforn = (it.nfe_item && it.nfe_item.codigo_fornecedor) || "";
+      const exp = Number(it.qty_expected || 0);
+      const good = it.qty_verified != null ? Number(it.qty_verified) : exp;
+      const dmg = Number(it.qty_damaged || 0);
+      const diff = good - exp;
+      const result = it.verify_result || (r.verification && r.verification.items && r.verification.items[idx]
+        ? r.verification.items[idx].result : "");
+      const diffCls = diff === 0 && dmg === 0 ? "diff-ok" : (good <= 0 ? "diff-miss" : "diff-bad");
       const label = matched
         ? `${matched} ${it.produto_nome ? "· " + it.produto_nome : ""}`
         : `<span class="rcv-unmatched">sem match</span> ${it.produto_nome || (it.nfe_item && it.nfe_item.descricao) || ""}`;
@@ -298,7 +322,7 @@
         `match=${it.match || "—"}`,
       ].filter(Boolean).join(" · ");
       let linkUi = "";
-      if (!matched && (r.status === "draft" || r.status === "verified")) {
+      if (!matched && canEditQty) {
         const sug = (it.suggestions || []).slice(0, 4).map((s) =>
           `<button type="button" class="dialog-btn dialog-btn-secondary btn-sug" data-idx="${idx}" data-pid="${s.id}" data-nome="${(s.nome || "").replace(/"/g, "&quot;")}">#${s.id} ${s.nome || ""}</button>`
         ).join("");
@@ -309,14 +333,21 @@
            </div>
            <div class="rcv-suggest" data-idx="${idx}">${sug}</div>`;
       }
+      const qtyCells = canEditQty
+        ? `<td><input class="form-input qty-ver" data-idx="${idx}" data-pid="${matched}" type="number" min="0" value="${good}"></td>
+           <td><input class="form-input qty-dmg" data-idx="${idx}" type="number" min="0" value="${dmg}"></td>
+           <td class="${diffCls} diff-cell" data-idx="${idx}">${diff > 0 ? "+" : ""}${diff}</td>
+           <td><input class="form-input rcv-notes notes-ver" data-idx="${idx}" placeholder="obs." value="${(it.notes || "").replace(/"/g, "&quot;")}"></td>
+           <td class="res-cell res-${result || ""}" data-idx="${idx}">${RESULT_LABEL[result] || (result || "—")}</td>`
+        : `<td>${it.qty_verified != null ? it.qty_verified : "—"}</td>
+           <td>${dmg || "—"}</td>
+           <td class="${diffCls}">${diff > 0 ? "+" : ""}${diff}</td>
+           <td>${it.notes || "—"}</td>
+           <td class="res-${result || ""}">${RESULT_LABEL[result] || result || "—"}</td>`;
       return `<tr>
         <td>${label}${meta ? `<div style="opacity:.6;font-size:12px">${meta}</div>` : ""}${linkUi}</td>
-        <td>${it.qty_expected}</td>
-        <td>
-          ${r.status === "draft" || r.status === "verified"
-            ? `<input class="form-input qty-ver" data-idx="${idx}" data-pid="${matched}" type="number" min="0" value="${it.qty_verified != null ? it.qty_verified : it.qty_expected}">`
-            : (it.qty_verified != null ? it.qty_verified : "—")}
-        </td>
+        <td>${exp}</td>
+        ${qtyCells}
       </tr>`;
     }).join("");
 
@@ -329,9 +360,31 @@
          ${unmatched ? ` · <span class="rcv-unmatched">${unmatched} item(ns) sem produto</span>` : ""}</div>`
       : (unmatched ? `<p class="rcv-unmatched">${unmatched} item(ns) sem produto vinculado</p>` : "");
 
+    const ver = r.verification;
+    const verHtml = ver
+      ? `<p class="rcv-nfe-meta">Conferência: ${ver.status || "—"} · método=${ver.method || "—"} ·
+         divergências=<strong>${ver.differences_count != null ? ver.differences_count : "—"}</strong>
+         ${ver.started_at ? " · início " + ver.started_at : ""}
+         ${ver.completed_at ? " · fim " + ver.completed_at : ""}</p>`
+      : "";
+
+    const scanHtml = canEditQty && !unmatched
+      ? `<div class="rcv-scan">
+           <label>Bip / EAN</label>
+           <input class="form-input" id="scan-code" placeholder="Escaneie ou digite EAN + Enter" autocomplete="off">
+           <button class="dialog-btn dialog-btn-secondary" id="btn-scan">+1</button>
+           <span class="mode-note">entra na qty boa; inventário só no Concluir</span>
+         </div>`
+      : "";
+
     let actions = "";
-    if (r.status === "draft" || r.status === "verified") {
-      actions += `<button class="dialog-btn dialog-btn-secondary" id="act-verify">Conferir</button>`;
+    if (r.status === "draft") {
+      actions += `<button class="dialog-btn dialog-btn-secondary" id="act-verify">Finalizar conferência</button>`;
+      actions += `<button class="dialog-btn dialog-btn-primary" id="act-complete">Conferir + concluir estoque</button>`;
+      actions += `<button class="dialog-btn dialog-btn-secondary" id="act-cancel">Cancelar</button>`;
+    } else if (r.status === "verified") {
+      actions += `<button class="dialog-btn dialog-btn-secondary" id="act-verify">Regravar conferência</button>`;
+      actions += `<button class="dialog-btn dialog-btn-secondary" id="act-reopen">Reabrir conferência</button>`;
       actions += `<button class="dialog-btn dialog-btn-primary" id="act-complete">Concluir (entra estoque)</button>`;
       actions += `<button class="dialog-btn dialog-btn-secondary" id="act-cancel">Cancelar</button>`;
     }
@@ -344,9 +397,13 @@
         origem=${r.origem || "—"} ·
         <span class="rcv-badge st-${r.status}">${STATUS_LABEL[r.status] || r.status}</span></p>
       ${nfeHtml}
+      ${verHtml}
       ${r.nota ? `<p>${r.nota}</p>` : ""}
+      ${scanHtml}
       <table class="rcv-table">
-        <thead><tr><th>Produto</th><th>Esperado</th><th>Conferido</th></tr></thead>
+        <thead><tr>
+          <th>Produto</th><th>Esperado</th><th>Bom</th><th>Avaria</th><th>Δ</th><th>Obs.</th><th>Resultado</th>
+        </tr></thead>
         <tbody>${itemsHtml}</tbody>
       </table>
       ${inv}
@@ -408,22 +465,110 @@
       });
     });
 
-    const collectItems = () =>
-      Array.from(box.querySelectorAll(".qty-ver")).map((inp) => ({
-        item_index: Number(inp.dataset.idx),
-        produto_id: inp.dataset.pid,
-        qty_verified: Number(inp.value || 0),
-      }));
+    const collectItems = () => {
+      const map = {};
+      box.querySelectorAll(".qty-ver").forEach((inp) => {
+        const idx = Number(inp.dataset.idx);
+        map[idx] = map[idx] || { item_index: idx, produto_id: inp.dataset.pid };
+        map[idx].qty_verified = Number(inp.value || 0);
+      });
+      box.querySelectorAll(".qty-dmg").forEach((inp) => {
+        const idx = Number(inp.dataset.idx);
+        map[idx] = map[idx] || { item_index: idx };
+        map[idx].qty_damaged = Number(inp.value || 0);
+      });
+      box.querySelectorAll(".notes-ver").forEach((inp) => {
+        const idx = Number(inp.dataset.idx);
+        map[idx] = map[idx] || { item_index: idx };
+        map[idx].notes = inp.value.trim();
+      });
+      return Object.keys(map).map((k) => map[k]);
+    };
+
+    function liveClassify(exp, good, dmg) {
+      if (good <= 0 && dmg <= 0 && exp > 0) return "missing";
+      if (dmg > 0 && good === 0) return "damaged";
+      if (good !== exp || dmg > 0) return good !== exp ? "quantity_difference" : "damaged";
+      return "verified";
+    }
+
+    function refreshDiffs() {
+      box.querySelectorAll(".qty-ver").forEach((inp) => {
+        const idx = inp.dataset.idx;
+        const row = inp.closest("tr");
+        const exp = Number((r.items[idx] || {}).qty_expected || 0);
+        const good = Number(inp.value || 0);
+        const dmgInp = box.querySelector(`.qty-dmg[data-idx="${idx}"]`);
+        const dmg = dmgInp ? Number(dmgInp.value || 0) : 0;
+        const diff = good - exp;
+        const diffEl = box.querySelector(`.diff-cell[data-idx="${idx}"]`);
+        const resEl = box.querySelector(`.res-cell[data-idx="${idx}"]`);
+        if (diffEl) {
+          diffEl.textContent = (diff > 0 ? "+" : "") + diff;
+          diffEl.className = "diff-cell " + (diff === 0 && dmg === 0 ? "diff-ok" : good <= 0 ? "diff-miss" : "diff-bad");
+        }
+        if (resEl) {
+          const result = liveClassify(exp, good, dmg);
+          resEl.textContent = RESULT_LABEL[result] || result;
+          resEl.className = "res-cell res-" + result;
+        }
+      });
+    }
+    box.querySelectorAll(".qty-ver, .qty-dmg").forEach((inp) => {
+      inp.addEventListener("input", refreshDiffs);
+    });
+
+    async function doScan() {
+      const inp = document.getElementById("scan-code");
+      if (!inp) return;
+      const code = inp.value.trim();
+      if (!code) return msg("informe código");
+      const res = await AuthService.api("/api/receiving/" + id + "/scan", {
+        method: "POST",
+        body: JSON.stringify({ barcode: code, qty: 1 }),
+      });
+      if (res.status !== "ok") return msg(res.message || "Bip falhou");
+      inp.value = "";
+      inp.focus();
+      msg("Bip OK · item #" + (res.item_index + 1) + " → qty " + res.item.qty_verified, true);
+      await loadList();
+      openDetail(id);
+    }
+    const scanInp = document.getElementById("scan-code");
+    const scanBtn = document.getElementById("btn-scan");
+    if (scanBtn) scanBtn.onclick = doScan;
+    if (scanInp) {
+      scanInp.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          doScan();
+        }
+      });
+    }
 
     const verifyBtn = document.getElementById("act-verify");
     if (verifyBtn) {
       verifyBtn.onclick = async () => {
         const res = await AuthService.api("/api/receiving/" + id + "/verify", {
           method: "POST",
-          body: JSON.stringify({ items: collectItems() }),
+          body: JSON.stringify({ items: collectItems(), method: "manual" }),
         });
         if (res.status !== "ok") return msg(res.message || "Falha na conferência");
-        msg("Conferido.", true);
+        const n = (res.receiving.verification && res.receiving.verification.differences_count) || 0;
+        msg(n ? "Conferido com " + n + " divergência(s)." : "Conferido sem divergências.", true);
+        await loadList();
+        openDetail(id);
+      };
+    }
+    const reopenBtn = document.getElementById("act-reopen");
+    if (reopenBtn) {
+      reopenBtn.onclick = async () => {
+        const res = await AuthService.api("/api/receiving/" + id + "/reopen-verify", {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha ao reabrir");
+        msg("Conferência reaberta.", true);
         await loadList();
         openDetail(id);
       };
@@ -434,7 +579,7 @@
         if (r.status === "draft") {
           const v = await AuthService.api("/api/receiving/" + id + "/verify", {
             method: "POST",
-            body: JSON.stringify({ items: collectItems() }),
+            body: JSON.stringify({ items: collectItems(), method: "manual" }),
           });
           if (v.status !== "ok") return msg(v.message || "Falha na conferência");
         }
@@ -443,7 +588,7 @@
           body: JSON.stringify({}),
         });
         if (res.status !== "ok") return msg(res.message || "Falha ao concluir");
-        msg("Concluído — estoque atualizado.", true);
+        msg("Concluído — estoque atualizado (só qty boa).", true);
         await loadList();
         openDetail(id);
       };

@@ -861,7 +861,10 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not self._find_user(token, load_users()):
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
             rid = parsed.path.rstrip("/").split("/")[-1]
-            if rid in ("verify", "complete", "cancel", "product-search", "product-refs", "from-xml", "link-product"):
+            if rid in (
+                "verify", "complete", "cancel", "product-search", "product-refs",
+                "from-xml", "link-product", "scan", "start-verify", "reopen-verify",
+            ):
                 return self._json({"status": "error", "message": "id obrigatório"}, 400)
             rec = receiving_mvp.get_receiving(rid)
             if not rec:
@@ -1292,12 +1295,37 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 if action == "verify":
                     rec = receiving_mvp.verify_receiving(rid, body, user_id=uid)
-                elif action == "complete":
+                    return self._json({"status": "ok", "receiving": rec})
+                if action == "start-verify":
+                    rec = receiving_mvp.start_verification(
+                        rid, user_id=uid, method=body.get("method") or "manual"
+                    )
+                    return self._json({"status": "ok", "receiving": rec})
+                if action == "reopen-verify":
+                    rec = receiving_mvp.reopen_verification(rid, user_id=uid)
+                    return self._json({"status": "ok", "receiving": rec})
+                if action == "scan":
+                    out = receiving_mvp.scan_receiving_item(
+                        rid,
+                        body.get("barcode") or body.get("ean") or body.get("code"),
+                        qty=body.get("qty") or 1,
+                        user_id=uid,
+                    )
+                    return self._json({
+                        "status": "ok",
+                        "receiving": out["receiving"],
+                        "item_index": out["item_index"],
+                        "item": out["item"],
+                        "barcode": out["barcode"],
+                    })
+                if action == "complete":
                     auto = bool(body.get("auto_verify"))
                     rec = receiving_mvp.complete_receiving(rid, user_id=uid, auto_verify=auto)
-                elif action == "cancel":
+                    return self._json({"status": "ok", "receiving": rec})
+                if action == "cancel":
                     rec = receiving_mvp.cancel_receiving(rid, user_id=uid, motivo=body.get("motivo"))
-                elif action == "link-product":
+                    return self._json({"status": "ok", "receiving": rec})
+                if action == "link-product":
                     rem = body.get("remember")
                     remember = True if rem is None else bool(rem)
                     rec = receiving_mvp.link_item_product(
@@ -1308,9 +1336,8 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         user_id=uid,
                         remember=remember,
                     )
-                else:
-                    return self._json({"status": "error", "message": f"ação desconhecida: {action}"}, 400)
-                return self._json({"status": "ok", "receiving": rec})
+                    return self._json({"status": "ok", "receiving": rec})
+                return self._json({"status": "error", "message": f"ação desconhecida: {action}"}, 400)
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 

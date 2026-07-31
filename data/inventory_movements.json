@@ -1,5 +1,5 @@
 {
-  "next_id": 32,
+  "next_id": 35,
   "movements": [
     {
       "id": 1,
@@ -405,6 +405,45 @@
       "group_id": null,
       "nota": null,
       "user_id": "test"
+    },
+    {
+      "id": 32,
+      "tipo": "receive",
+      "estabelecimento_id": "matriz",
+      "produto_id": "1",
+      "qty": 10,
+      "at": "2026-07-31T14:45:26",
+      "ref_tipo": "receiving",
+      "ref_id": "5",
+      "group_id": null,
+      "nota": null,
+      "user_id": "smoke"
+    },
+    {
+      "id": 33,
+      "tipo": "receive",
+      "estabelecimento_id": "matriz",
+      "produto_id": "4",
+      "qty": 5,
+      "at": "2026-07-31T14:45:26",
+      "ref_tipo": "receiving",
+      "ref_id": "5",
+      "group_id": null,
+      "nota": null,
+      "user_id": "smoke"
+    },
+    {
+      "id": 34,
+      "tipo": "receive",
+      "estabelecimento_id": "matriz",
+      "produto_id": "7",
+      "qty": 2,
+      "at": "2026-07-31T14:45:26",
+      "ref_tipo": "receiving",
+      "ref_id": "5",
+      "group_id": null,
+      "nota": null,
+      "user_id": "smoke"
     }
   ]
 }
