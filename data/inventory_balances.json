@@ -1,9 +1,4 @@
 {
-  "_meta": {
-    "nota": "LEGADO — migrado para inventory_movements/balances/transit. Não gravar aqui; ver RFC-INVENTORY-MVP.",
-    "sla_transferencia_horas": 2,
-    "deprecated": true
-  },
   "por_estabelecimento": {
     "matriz": {
       "1": 50,
@@ -41,12 +36,6 @@
       "10": 12
     }
   },
-  "transito": {
-    "4": {
-      "qty": 40,
-      "eta_horas": 24,
-      "origem": "CD Central",
-      "destino": "matriz"
-    }
-  }
+  "sla_transferencia_horas": 2,
+  "atualizado_em": "2026-07-31T11:11:45"
 }

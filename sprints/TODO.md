@@ -18,7 +18,19 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 | **4** | **Usuários operacionais** (vendedor/caixa/gerente) — não RH Funcionários | ✅ |
 | **5** | **Inventário** / Promise Engine | ✅ |
 
-**Fora do caminho crítico do POS agora:** Funcionários (folha/RH), Receiving, balança física, CSC SEFAZ ponta a ponta (recurso externo).
+**Fora do caminho crítico do POS agora:** Funcionários (folha/RH), Receiving (depois do Inventário MVP), balança física, CSC SEFAZ ponta a ponta (recurso externo).
+
+---
+
+## Ordem seguinte (Inventário → Receiving)
+
+| # | Foco | Status |
+|---|------|--------|
+| **A** | **RFC Inventário MVP** — [`RFC-INVENTORY-MVP.md`](./RFC-INVENTORY-MVP.md) | ✅ |
+| **B** | Migrar `estoque.json` → movimentos + saldo + Promise na nova fonte | ✅ |
+| **C** | Receiving Engine (pluga em `inventory_apply_receive`) | ⏳ próximo |
+
+Fonte das verdades: warehouse = estabelecimento; toda qty = movimento; Promise só lê.
 
 ---
 
@@ -92,6 +104,8 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 4. ~~Fiscal por estabelecimento~~ ✅  
 5. ~~Usuários operacionais (perfis)~~ ✅  
 6. ~~Inventário / Promise~~ ✅ (`estoque.json` + badges no POS)  
+7. ~~Inventário MVP~~ ✅ (`inventory_mvp.py` + ledger JSON)  
+8. **Receiving** ← próximo (pluga em `inventory_apply_receive`)  
 
 ---
 

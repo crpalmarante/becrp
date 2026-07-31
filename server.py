@@ -10,6 +10,7 @@ import hashlib
 import uuid
 from datetime import datetime
 import cobol_bridge
+import inventory_mvp
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
 from modules.sefaz import nfce_xml
@@ -35,7 +36,6 @@ CONTATOS_FILE = os.path.join(DATA_DIR, "contatos.json")
 PARTNERS_FILE = os.path.join(DATA_DIR, "partners.json")
 POS_FILA_FILE = os.path.join(DATA_DIR, "pos_fila.json")
 POS_TERMINAIS_FILE = os.path.join(DATA_DIR, "pos_terminais.json")
-ESTOQUE_FILE = os.path.join(DATA_DIR, "estoque.json")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -166,171 +166,22 @@ def _pdv_user_conflict(terminais, usuario_id, exclude_id=None):
             return t
     return None
 
-def load_estoque():
-    data = load_json(ESTOQUE_FILE)
-    if not isinstance(data, dict):
-        return {"por_estabelecimento": {}, "transito": {}, "_meta": {}}
-    if not isinstance(data.get("por_estabelecimento"), dict):
-        data["por_estabelecimento"] = {}
-    if not isinstance(data.get("transito"), dict):
-        data["transito"] = {}
-    return data
-
-def save_estoque(data):
-    save_json(ESTOQUE_FILE, data if isinstance(data, dict) else {"por_estabelecimento": {}, "transito": {}})
-
-def _estoque_qty(estoque, estabelecimento_id, produto_id):
-    lojas = estoque.get("por_estabelecimento") or {}
-    loja = lojas.get(str(estabelecimento_id) or "", {}) or {}
-    try:
-        return int(loja.get(str(produto_id), 0) or 0)
-    except (TypeError, ValueError):
-        return 0
-
-def promise_produto(estabelecimento_id, produto_id, estoque=None, empresas=None):
-    """
-    Promise Engine (POS):
-    - local: qty > 0 na loja atual
-    - branch: qty > 0 em outra filial ativa
-    - transit: item em trânsito com ETA
-    - none: indisponível
-    """
-    estoque = estoque or load_estoque()
-    empresas = empresas if empresas is not None else load_empresas()
-    eid = str(estabelecimento_id or "").strip()
-    pid = str(produto_id)
-    sla = int((estoque.get("_meta") or {}).get("sla_transferencia_horas") or 2)
-
-    local_qty = _estoque_qty(estoque, eid, pid) if eid else 0
-    if local_qty > 0:
-        return {
-            "stock": local_qty,
-            "stockStatus": "local",
-            "promise": {
-                "tipo": "local",
-                "label": "Disponível nesta loja",
-                "horas": 0,
-                "estabelecimento_id": eid,
-                "estabelecimento_nome": (empresas.get(eid) or {}).get("nome") or eid,
-            },
-            "branches": [],
-        }
-
-    branches = []
-    for other_id, loja in (estoque.get("por_estabelecimento") or {}).items():
-        if str(other_id) == eid:
-            continue
-        info = empresas.get(other_id) or {}
-        if info.get("ativo") is False:
-            continue
-        try:
-            qty = int((loja or {}).get(pid, 0) or 0)
-        except (TypeError, ValueError):
-            qty = 0
-        if qty > 0:
-            nome = info.get("nome") or other_id
-            branches.append({
-                "estabelecimento_id": other_id,
-                "estabelecimento_nome": nome,
-                "stock": qty,
-                "horas": sla,
-                "label": f"Disponível em {nome} em ~{sla}h",
-            })
-
-    if branches:
-        # melhor opção: maior estoque, depois menor SLA
-        branches.sort(key=lambda b: (-b["stock"], b["horas"]))
-        best = branches[0]
-        return {
-            "stock": 0,
-            "stockStatus": "branch",
-            "promise": {
-                "tipo": "branch",
-                "label": best["label"],
-                "horas": best["horas"],
-                "estabelecimento_id": best["estabelecimento_id"],
-                "estabelecimento_nome": best["estabelecimento_nome"],
-            },
-            "branches": branches,
-        }
-
-    tr = (estoque.get("transito") or {}).get(pid)
-    if isinstance(tr, dict) and int(tr.get("qty") or 0) > 0:
-        horas = int(tr.get("eta_horas") or 24)
-        destino = tr.get("destino") or ""
-        # só promete trânsito se destino é a loja atual ou não especificado
-        if not destino or not eid or str(destino) == eid:
-            return {
-                "stock": 0,
-                "stockStatus": "transit",
-                "promise": {
-                    "tipo": "transit",
-                    "label": f"Em trânsito — chega em ~{horas}h",
-                    "horas": horas,
-                    "origem": tr.get("origem") or "",
-                    "estabelecimento_id": eid,
-                },
-                "branches": [],
-            }
-
-    return {
-        "stock": 0,
-        "stockStatus": "none",
-        "promise": {
-            "tipo": "none",
-            "label": "Sem previsão — ver similares",
-            "horas": None,
-        },
-        "branches": [],
-    }
+def promise_produto(estabelecimento_id, produto_id, empresas=None):
+    """Promise Engine (POS) — lê ledger/cache do Inventário MVP."""
+    return inventory_mvp.inventory_promise(
+        estabelecimento_id,
+        produto_id,
+        empresas=empresas if empresas is not None else load_empresas(),
+    )
 
 def enriquecer_produtos_com_promise(produtos, estabelecimento_id):
-    estoque = load_estoque()
-    empresas = load_empresas()
-    out = []
-    for p in produtos or []:
-        item = dict(p)
-        pid = item.get("id")
-        prom = promise_produto(estabelecimento_id, pid, estoque=estoque, empresas=empresas)
-        item["stock"] = prom["stock"]
-        item["stockStatus"] = prom["stockStatus"]
-        item["promise"] = prom["promise"]
-        item["promiseBranches"] = prom["branches"]
-        out.append(item)
-    return out
+    return inventory_mvp.enriquecer_produtos_com_promise(
+        produtos, estabelecimento_id, empresas=load_empresas()
+    )
 
-def baixar_estoque_local(estabelecimento_id, linhas):
-    """Baixa estoque da loja ao finalizar venda (best-effort)."""
-    eid = str(estabelecimento_id or "").strip()
-    if not eid or not linhas:
-        return
-    estoque = load_estoque()
-    lojas = estoque.setdefault("por_estabelecimento", {})
-    loja = dict(lojas.get(eid) or {})
-    changed = False
-    for line in linhas:
-        if not isinstance(line, dict):
-            continue
-        pid = str(line.get("id") or line.get("produto_id") or "")
-        if not pid:
-            continue
-        try:
-            qtd = float(line.get("qtd") or line.get("quantidade") or 0)
-        except (TypeError, ValueError):
-            qtd = 0
-        if qtd <= 0:
-            continue
-        # peso: baixa 1 un. se fracionado sem regra — simplifica
-        dec = 1 if line.get("peso") and qtd < 1 else int(round(qtd))
-        if dec <= 0:
-            continue
-        atual = int(loja.get(pid, 0) or 0)
-        loja[pid] = max(0, atual - dec)
-        changed = True
-    if changed:
-        lojas[eid] = loja
-        estoque["por_estabelecimento"] = lojas
-        save_estoque(estoque)
+def baixar_estoque_local(estabelecimento_id, linhas, venda_id=None):
+    """Compat: delega para inventory_apply_sale (movimento sale)."""
+    return inventory_mvp.inventory_apply_sale(estabelecimento_id, linhas, venda_id=venda_id)
 
 def load_pos_fila():
     data = load_json(POS_FILA_FILE)
@@ -846,6 +697,29 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 **prom,
             })
 
+        if parsed.path == "/api/inventory/balance":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip()
+            pid = (qs.get("produto_id") or [""])[0].strip()
+            if not estab:
+                return self._json({"status": "error", "message": "estabelecimento_id obrigatório"}, 400)
+            if pid:
+                return self._json({
+                    "status": "ok",
+                    "estabelecimento_id": estab,
+                    "produto_id": pid,
+                    "balance": inventory_mvp.inventory_balance(estab, pid),
+                })
+            loja = (inventory_mvp.load_balances().get("por_estabelecimento") or {}).get(estab) or {}
+            return self._json({
+                "status": "ok",
+                "estabelecimento_id": estab,
+                "balances": loja,
+            })
+
         if parsed.path == "/api/pos/parceiros":
             token = self.headers.get("X-Auth-Token", "")
             if not self._find_user(token, load_users()):
@@ -1291,11 +1165,12 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 save_json(vendas_path, vendas_data)
                 pedido["venda_id"] = next_vid
 
-                # Promise / inventário: baixa estoque da loja do pedido
+                # Inventário MVP: movimento sale (ledger)
                 try:
                     baixar_estoque_local(
                         pedido.get("estabelecimento_id"),
                         pedido.get("lines") or [],
+                        venda_id=next_vid,
                     )
                 except Exception:
                     pass

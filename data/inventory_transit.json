@@ -1,0 +1,14 @@
+{
+  "itens": [
+    {
+      "id": "dc434fde",
+      "produto_id": "4",
+      "qty": 40,
+      "origem": "CD Central",
+      "destino_estabelecimento_id": "matriz",
+      "eta_horas": 24,
+      "status": "open",
+      "movement_id": 21
+    }
+  ]
+}
