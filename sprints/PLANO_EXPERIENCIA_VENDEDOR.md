@@ -7,6 +7,13 @@
 Cada clique, cada tela, cada atalho deve aproximar o vendedor do fechamento da venda.
 Nada que não ajude a vender deve estar na frente do vendedor durante o atendimento.
 
+> Simple is always better than complex.
+
+**POS genérico = Varejo.** Não há “modos de loja” operacionais (Mercearia / Moda / Serviço) para o vendedor escolher.
+Quem define o comportamento na venda são os **tipos de produto** do mix (unidade, peso/KG, variação, serviço) — não um seletor na topbar.
+
+**CNAE** não é critério operacional do PDV: fica a cargo do **Fiscal / Tributário** (enquadramento, regras, obrigações). O POS consome o resultado já resolvido (catálogo permitido, tributação do item), sem o vendedor “pensar em CNAE”.
+
 ---
 
 ## Diagnóstico do Estado Atual
@@ -260,13 +267,13 @@ Implementado em `pages/pos.html` + `js/pos-pdv.js` + `css/pos.css` (mock/local):
 1. **Suspender/retomar sessões** — trilho esquerdo com sessões ativas e suspensas (cliente, itens, total, tempo relativo); Suspender grava e abre sessão nova; toque retoma; botão **+** cria sessão.
 2. **Cliente recorrente rápido** — busca por nome/CPF/telefone com parceiros mock (João da Silva com crediário e última compra); chip do resumo atualiza com hint contextual.
 3. **Favoritos / últimos produtos** — abas Todos | Favoritos | Últimos; persistência em `localStorage`; estrela ou long-press no card; adicionar ao pedido alimenta recentes.
-4. **Variações no Smart Panel** — Camisa Polo (cores/tamanhos); contexto **Variação** no painel; ativo em modo Moda ou sempre para esse SKU.
+4. **Variações no Smart Panel** — Camisa Polo (cores/tamanhos); contexto **Variação** no painel; dispara quando o SKU tem variantes (não depende de “modo Moda”).
 5. **Linguagem humana de estoque** — consulta e badge nos cards (`stockStatus`: na loja, filial ~2h, trânsito, sem previsão).
 6. **Desfazer último item** — botão **Desfazer** com pilha simples (add/remove/qty/preço/obs).
 7. **Frases rápidas de observação** — chips na contexto Observação que appendam ao textarea.
 8. **Orçamento ↔ Pedido** — toggle no painel central; CTA **Salvar orçamento** / **Virar pedido**; envio ao caixa só em Pedido.
 9. **Feedback pós-envio ao caixa** — banner no resumo + status bar; estados mock Aguardando → Em pagamento → Pago; item entra na fila do Caixa; permanece no PDV.
-10. **Perfil da loja** — seletor Mercearia | Moda | Serviço na topbar; filtra ênfase do catálogo; persistido; label na barra de status.
+10. **Perfil da loja** — seletor Mercearia | Moda | Serviço **removido**; POS é Varejo genérico; status **Varejo**; capacidades só pelo tipo de produto.
 
 ### 2.6 Produtividade avançada (PDV — lote 2)
 
@@ -310,29 +317,59 @@ Implementado em `pages/pos.html` + `js/pos-pdv.js` + `css/pos.css` (mock/local):
 
 ---
 
-## Fase 4 — Capacidades Ativáveis
+## Fase 4 — Varejo genérico + capacidades por produto
 
-**Objetivo:** O mesmo POS se adapta ao segmento sem mudar a experiência.
+**Objetivo:** Um único POS de **Varejo**. O vendedor não escolhe segmento; a empresa e o cadastro de produtos definem o que aparece e como se vende.
 
-### 4.1 Modo Alimentação / Mercearia
-- Campo de peso (balança integrada ou manual)
-- Unidade KG como default para produtos cadastrados como KG
-- Agrupamento por seção (hortifrúti, padaria, frios, mercearia)
+### Decisão de produto (travada)
 
-### 4.2 Modo Moda / Vestuário
-- Grade de tamanhos (P/M/G/GG ou numérico) visível no card
-- Variações de cor com swatch visual
-- Agrupamento por coleção/temporada
+| Não fazer | Fazer |
+|-----------|--------|
+| Seletor operacional Mercearia / Moda / Serviço | Modo único: **Varejo** |
+| Três “personalidades” de tela | Mesmo layout (Pedido + Smart Panel + Caixa) |
+| Modo definido pelo vendedor na topbar | Comportamento definido pelos **tipos de produto** do mix |
+| POS interpretando CNAE na operação | **CNAE / tributário** no Fiscal Engine; POS só consome o resultado |
 
-### 4.3 Modo Serviço
-- Campo de descrição do serviço na venda
-- Duração e agendamento (version 2)
-- Comissão por serviço (já existe estrutura de RH)
+### 4.1 Fronteira POS × Fiscal
 
-### 4.4 Ativação por Perfil do Vendedor
-- O vendedor tem um perfil que define quais modos estão ativos
-- A tela inicial já carrega no modo correto
-- O vendedor não precisa configurar nada — o sistema sabe
+| Camada | Responsabilidade |
+|--------|------------------|
+| **POS (Varejo)** | Vender: Pedido, capacidades do SKU (unidade, KG, variante, serviço), Smart Panel, envio ao Caixa |
+| **Fiscal / Tributário** | CNAE, regime, CST/CFOP, regras por UF, enquadramento da empresa — critérios fiscais |
+| **Cadastro / BRE** | Mix de produtos da empresa; o que entra no catálogo do PDV |
+
+O vendedor não escolhe CNAE nem “modo”. O item no pedido já chega com o que o PDV precisa para operar; a carga tributária é resolvida fora do fluxo de atendimento (ou em serviço chamado pelo fechamento/caixa).
+
+### 4.2 Fonte da verdade no PDV: tipos de produto
+
+Flags / tipo do SKU ativam capacidades na venda:
+
+- unidade / EAN → bip e quantidade  
+- `peso` / KG → numpad de peso (balança depois)  
+- variantes (cor, tamanho…) → mostruário / painel de variação  
+- `servico` → linha com descrição (duração/agenda em v2)  
+
+Categorias e seções da vitrine vêm do cadastro do mix — não de um “modo de loja”.
+
+### 4.3 Capacidades (não modos)
+
+1. **Peso / KG** — default KG quando o produto for pesável; balança integrada ou digitação.
+2. **Variante** — grade/swatch quando o SKU tiver variação; preço por combinação quando existir.
+3. **Serviço** — descrição na linha do pedido; comissão/agenda depois, se o cadastro exigir.
+4. **Vitrine** — categorias/subcategorias do mix real da empresa (já iniciado na Fase 3).
+
+### 4.4 Limpeza no protótipo (feita)
+
+- Seletor **Mercearia | Moda | Serviço** removido da topbar.
+- Status **Varejo** (neutro).
+- Variação / peso / serviço disparam **só** pelos atributos do produto (`variants`, `peso`, `servico`).
+- Catálogo = mix completo mock (`catalogPool` / SAMPLE), sem filtro por “modo”.
+
+### 4.5 Ainda a aprofundar (capacidades)
+
+- Peso/KG + balança; grade de variante no card; descrição de serviço na linha.
+- Promise Engine multi-filial (Fase 5).
+- Lógica de CNAE / tributário (Fiscal Engine — fora do PDV).
 
 ---
 
@@ -365,14 +402,16 @@ Implementado em `pages/pos.html` + `js/pos-pdv.js` + `css/pos.css` (mock/local):
 | **Fase 1** — POS Renovado | 🔴 Alta | Média | BusinessUI já existe |
 | **Fase 2** — Fluxo Centrado | ✅ Feita | Média | Smart Panel + produtividade |
 | **Fase 3** — Mostruário | ✅ Feita | Alta | Galeria + vitrine + busca com fotos |
-| **Fase 4** — Capacidades | 🟡 Média | Alta | Fase 1 + 2 concluídas |
+| **Fase 4** — Varejo genérico | ✅ Limpeza | Média | Seletor removido; capacidades por produto; CNAE no Fiscal |
 | **Fase 5** — Promise Engine | 🟢 Baixa | Muito alta | Multi-filial operacional |
 
 ---
 
 ## Como Começar (Próximo Passo Imediato)
 
-**Fase 3 concluída (mostruário).** Próximo natural:
+**Fase 3 concluída.** Fase 4 (decisão + limpeza): **Varejo genérico** no protótipo; CNAE no Fiscal.
 
-- **Fase 4** — aprofundar modos Mercearia (peso/balança), Moda (grade no card) e Serviço; ou
-- **APIs reais** — produtos/imagens/parceiros no lugar do mock `SAMPLE`.
+Próximo natural:
+
+1. Aprofundar capacidades (peso/balança, grade variante, serviço na linha).
+2. APIs reais (catálogo = mix da empresa).

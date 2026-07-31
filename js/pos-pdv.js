@@ -7,7 +7,6 @@
 
   const LS_FAV = "becrp-pos-favorites";
   const LS_RECENT = "becrp-pos-recent";
-  const LS_STORE = "becrp-pos-store-mode";
   const LS_TRAINING = "becrp-pos-training";
   const LS_GOAL = "becrp-pos-daily-goal";
   const DAILY_TARGET = 5000;
@@ -155,7 +154,6 @@
       cat: "Mercearia",
       subcat: "Grãos",
       sku: "000001",
-      storeModes: ["mercearia"],
       stockStatus: "local",
       criadoEm: "2026-01-10",
       descricao: "Arroz tipo 1, pacote familiar 5 kg. Ideal para o dia a dia.",
@@ -170,7 +168,6 @@
       cat: "Mercearia",
       subcat: "Grãos",
       sku: "000002",
-      storeModes: ["mercearia"],
       stockStatus: "local",
       criadoEm: "2026-02-01",
       descricao: "Feijão carioca selecionado, pacote 1 kg.",
@@ -185,7 +182,6 @@
       cat: "Mercearia",
       subcat: "Óleos",
       sku: "000003",
-      storeModes: ["mercearia"],
       stockStatus: "branch",
       criadoEm: "2026-03-12",
       descricao: "Óleo de soja refinado 900 ml. Disponível para retirada em filial.",
@@ -200,7 +196,6 @@
       cat: "Mercearia",
       subcat: "Bebidas secas",
       sku: "000004",
-      storeModes: ["mercearia"],
       stockStatus: "local",
       novo: true,
       criadoEm: "2026-07-20",
@@ -217,7 +212,6 @@
       subcat: "Laticínios",
       sku: "000005",
       ean: "7891000100055",
-      storeModes: ["mercearia"],
       stockStatus: "local",
       alertas: ["promo"],
       criadoEm: "2026-04-01",
@@ -233,7 +227,6 @@
       cat: "Frios",
       subcat: "Laticínios",
       sku: "000006",
-      storeModes: ["mercearia"],
       stockStatus: "transit",
       criadoEm: "2026-05-18",
       descricao: "Mussarela fatiada — venda por kg aproximado no balcão.",
@@ -249,7 +242,6 @@
       subcat: "Louça",
       sku: "000007",
       ean: "7891000100007",
-      storeModes: ["mercearia"],
       stockStatus: "local",
       alertas: ["promo"],
       criadoEm: "2026-03-01",
@@ -265,7 +257,6 @@
       cat: "Limpeza",
       subcat: "Roupas",
       sku: "000008",
-      storeModes: ["mercearia"],
       stockStatus: "none",
       similares: [7, 2],
       alertas: ["recall"],
@@ -283,7 +274,6 @@
       subcat: "Frutas",
       sku: "000009",
       peso: true,
-      storeModes: ["mercearia"],
       stockStatus: "local",
       novo: true,
       criadoEm: "2026-07-28",
@@ -299,7 +289,6 @@
       cat: "Moda",
       subcat: "Camisetas",
       sku: "000010",
-      storeModes: ["moda", "mercearia"],
       stockStatus: "local",
       novo: true,
       criadoEm: "2026-07-15",
@@ -322,7 +311,6 @@
       subcat: "Consultoria",
       sku: "000011",
       servico: true,
-      storeModes: ["servico"],
       stockStatus: "local",
       criadoEm: "2026-06-01",
       descricao: "Hora técnica de consultoria — agende após o fechamento do pedido.",
@@ -337,7 +325,6 @@
       cat: "Moda",
       subcat: "Calças",
       sku: "000012",
-      storeModes: ["moda"],
       stockStatus: "branch",
       criadoEm: "2026-07-01",
       descricao: "Jeans reta, lavagem média. Retirada em outra filial sob consulta.",
@@ -359,7 +346,6 @@
   let catalogSort = "relevancia";
   let catalogPrice = "";
   let catalogAvail = "";
-  let storeMode = localStorage.getItem(LS_STORE) || "mercearia";
   let favorites = loadJson(LS_FAV, []);
   let recentIds = loadJson(LS_RECENT, []);
   let consultaMode = false;
@@ -1473,7 +1459,7 @@
       }
       const s = getSession();
       if (!s) return;
-      if (composite.product.variants && (storeMode === "moda" || composite.product.id === 10)) {
+      if (composite.product.variants) {
         openVariantPanel(composite.product);
         return;
       }
@@ -1859,21 +1845,9 @@
     return Math.round(price * 100) / 100;
   }
 
-  function baseListForMode() {
-    let list = SAMPLE.slice();
-    if (storeMode === "mercearia") {
-      list = list.filter((p) => !p.storeModes || p.storeModes.includes("mercearia") || p.cat !== "Serviços");
-    } else if (storeMode === "moda") {
-      list = list.sort((a, b) => {
-        const aModa = a.variants ? 0 : 1;
-        const bModa = b.variants ? 0 : 1;
-        return aModa - bModa;
-      });
-    } else if (storeMode === "servico") {
-      list = list.filter((p) => p.servico || p.storeModes?.includes("servico") || p.cat === "Serviços");
-      if (!list.length) list = SAMPLE.filter((p) => p.servico);
-    }
-    return list;
+  /** Catálogo do varejo = mix da empresa (mock: SAMPLE completo). */
+  function catalogPool() {
+    return SAMPLE.slice();
   }
 
   function scoreRelevance(p, q) {
@@ -1908,13 +1882,13 @@
 
   function filteredProducts() {
     const q = (document.getElementById("prod-search").value || "").toLowerCase().trim();
-    let list = baseListForMode();
+    let list = catalogPool();
 
     if (catalogTab === "favoritos") {
       list = list.filter((p) => favorites.includes(p.id));
     } else if (catalogTab === "ultimos") {
       list = recentIds.map((id) => SAMPLE.find((p) => p.id === id)).filter(Boolean);
-      list = list.filter((p) => baseListForMode().some((x) => x.id === p.id));
+      list = list.filter((p) => catalogPool().some((x) => x.id === p.id));
     }
 
     list = list.filter((p) => {
@@ -1940,7 +1914,7 @@
   }
 
   function renderCats() {
-    const pool = baseListForMode();
+    const pool = catalogPool();
     const cats = ["", ...new Set(pool.map((p) => p.cat))];
     const counts = {};
     pool.forEach((p) => {
@@ -1971,7 +1945,7 @@
     }
     const subs = [
       ...new Set(
-        baseListForMode()
+        catalogPool()
           .filter((p) => p.cat === cat && p.subcat)
           .map((p) => p.subcat)
       ),
@@ -2182,7 +2156,7 @@
       }
     }
 
-    if (p.variants && (storeMode === "moda" || p.id === 10)) {
+    if (p.variants) {
       openVariantPanel(p);
       return;
     }
@@ -2311,20 +2285,6 @@
     document.getElementById("status-hint").textContent = "Orçamento convertido em pedido";
   }
 
-  function setStoreMode(next) {
-    storeMode = next;
-    localStorage.setItem(LS_STORE, next);
-    cat = "";
-    subcat = "";
-    document.querySelectorAll("#store-mode button").forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.store === next);
-    });
-    const labels = { mercearia: "Mercearia", moda: "Moda", servico: "Serviço" };
-    document.getElementById("status-store").textContent = "Loja: " + (labels[next] || next);
-    renderCats();
-    renderProducts();
-  }
-
   function renderAll() {
     renderCats();
     renderCatalogTabs();
@@ -2373,7 +2333,7 @@
     document.getElementById("status-user").textContent = name;
 
     createSession();
-    setStoreMode(storeMode);
+    document.getElementById("status-store").textContent = "Varejo";
     renderClientResults();
     renderAll();
     setSmartCtx("summary");
@@ -2381,7 +2341,7 @@
     setMode("pdv");
     syncUndoBtn();
     document.getElementById("status-hint").textContent =
-      "Toque no produto para abrir o mostruário · bip (Enter) adiciona direto";
+      "Varejo · toque no produto para o mostruário · bip (Enter) adiciona direto";
 
     setInterval(() => {
       const d = new Date();
@@ -2394,10 +2354,6 @@
 
     document.querySelectorAll(".pos-mode button").forEach((btn) => {
       btn.addEventListener("click", () => setMode(btn.dataset.mode));
-    });
-
-    document.querySelectorAll("#store-mode button").forEach((btn) => {
-      btn.addEventListener("click", () => setStoreMode(btn.dataset.store));
     });
 
     document.getElementById("prod-cats").addEventListener("click", (e) => {
