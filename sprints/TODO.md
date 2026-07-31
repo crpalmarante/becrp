@@ -36,8 +36,9 @@ Fonte das verdades: warehouse = estabelecimento; toda qty = movimento; Promise s
 
 Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ~~UI fina de inventário (saldo + transfer + adjust)~~ ✅ `pages/estoque.html`
+- ~~Endurecer POS (interno)~~ ✅ estoque bloqueia · troca via `/api/pos/vendas` · sangria/suprimento persistidos
 - Receiving mais útil (XML/NF-e) — se entrada manual doer
-- Endurecer POS / fiscal real — se venda doer
+- NFC-e SEFAZ / balança física — força externa (não agora)
 
 ---
 

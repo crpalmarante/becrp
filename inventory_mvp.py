@@ -237,7 +237,11 @@ def inventory_apply_movement(
 
 
 def inventory_apply_sale(estabelecimento_id, linhas, venda_id=None, user_id=None):
-    """Baixa estoque da loja via movimentos sale (substitui baixar_estoque_local)."""
+    """
+    Aplica linhas do pedido ao ledger:
+    - qtd > 0 → movimento sale (baixa)
+    - troca / qtd < 0 → receive (devolução ao estoque)
+    """
     eid = str(estabelecimento_id or "").strip()
     if not eid or not linhas:
         return []
@@ -248,6 +252,8 @@ def inventory_apply_sale(estabelecimento_id, linhas, venda_id=None, user_id=None
     for line in linhas:
         if not isinstance(line, dict):
             continue
+        if line.get("servico"):
+            continue
         pid = str(line.get("id") or line.get("produto_id") or "")
         if not pid:
             continue
@@ -255,12 +261,31 @@ def inventory_apply_sale(estabelecimento_id, linhas, venda_id=None, user_id=None
             qtd = float(line.get("qtd") or line.get("quantidade") or 0)
         except (TypeError, ValueError):
             qtd = 0
-        if qtd <= 0:
+        is_return = bool(line.get("troca")) or qtd < 0
+        q_abs = abs(qtd)
+        if q_abs <= 0:
             continue
-        dec = 1 if line.get("peso") and qtd < 1 else int(round(qtd))
+        dec = 1 if line.get("peso") and q_abs < 1 else int(round(q_abs))
         if dec <= 0:
             continue
-        # não deixa saldo negativo
+        if is_return:
+            r = inventory_apply_movement(
+                "receive",
+                eid,
+                pid,
+                dec,
+                ref_tipo="troca",
+                ref_id=venda_id,
+                nota=line.get("obs") or "devolução POS",
+                user_id=user_id,
+                movements=movements,
+                balances=balances,
+                transit=transit,
+                persist=False,
+            )
+            ids.append(r["movement_id"])
+            continue
+        # não deixa saldo negativo na venda
         atual = inventory_balance(eid, pid, balances=balances)
         dec = min(dec, atual) if atual >= 0 else 0
         if dec <= 0:

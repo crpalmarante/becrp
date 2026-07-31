@@ -123,42 +123,8 @@
     },
   ];
 
-  const MOCK_PAST_SALES = [
-    {
-      nfce: "000123456",
-      cpf: "123.456.789-00",
-      client: "João da Silva",
-      date: "25/07/2026",
-      total: 89.9,
-      lines: [
-        { id: 1, nome: "Arroz 5kg", preco: 32.9, qtd: 1 },
-        { id: 4, nome: "Café 500g", preco: 18.9, qtd: 2 },
-        { id: 7, nome: "Detergente", preco: 2.99, qtd: 1 },
-      ],
-    },
-    {
-      nfce: "000123789",
-      cpf: "987.654.321-00",
-      client: "Ana Compras",
-      date: "20/07/2026",
-      total: 42.45,
-      lines: [
-        { id: 5, nome: "Leite 1L", preco: 5.49, qtd: 3 },
-        { id: 7, nome: "Detergente", preco: 2.99, qtd: 3 },
-        { id: 2, nome: "Feijão 1kg", preco: 8.5, qtd: 2 },
-      ],
-    },
-    {
-      nfce: "000124001",
-      cpf: "456.789.123-00",
-      client: "Maria Santos",
-      date: "29/07/2026",
-      total: 42,
-      lines: [
-        { id: 10, nome: "Camisa Polo (Preta · M)", preco: 89.9, qtd: 1 },
-      ],
-    },
-  ];
+  const MOCK_PAST_SALES = []; // legado — troca usa /api/pos/vendas
+  let pastSalesCache = [];
 
   const PROMO_RULES = [
     { id: "det3", label: "3+ Detergentes −10%", productIds: [7], minQty: 3, pct: 10 },
@@ -844,7 +810,7 @@
     setCaixaCtx("default");
   }
 
-  function applyCashMove() {
+  async function applyCashMove() {
     if (!cashMovePad) return;
     const val = (cashMovePad.cents || 0) / 100;
     if (val <= 0) {
@@ -866,21 +832,69 @@
       document.getElementById("status-hint").textContent = "Informe a referência do documento";
       return;
     }
-    cashMoves.unshift({
-      id: Date.now(),
+    const payload = {
       kind: cashMovePad.kind,
       value: val,
       reason,
       docType,
       docRef,
-      at: Date.now(),
-    });
+      terminal_id: (posContexto && posContexto.terminal && posContexto.terminal.id) || "",
+      estabelecimento_id:
+        (posContexto && posContexto.estabelecimento && posContexto.estabelecimento.id) || "",
+    };
+    const api = window.AuthService && window.AuthService.api;
+    let saved = null;
+    if (api) {
+      try {
+        const res = await api("/api/pos/caixa/movimentos", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        if (res.status === "ok") saved = res.movimento;
+        else {
+          document.getElementById("status-hint").textContent = res.message || "Falha ao gravar";
+          return;
+        }
+      } catch (_) {
+        document.getElementById("status-hint").textContent = "Falha de rede ao gravar movimento";
+        return;
+      }
+    }
+    cashMoves.unshift(
+      saved || {
+        id: Date.now(),
+        kind: cashMovePad.kind,
+        value: val,
+        reason,
+        docType,
+        docRef,
+        at: Date.now(),
+      }
+    );
     const label = cashMovePad.kind === "in" ? "Suprimento" : "Sangria";
     document.getElementById("status-hint").textContent =
-      label + " " + money(val) + " · " + reason + (docRef ? " · doc " + docRef : "");
+      label + " " + money(val) + " · " + reason + (docRef ? " · doc " + docRef : "") + " · gravado";
     cashMovePad = null;
     setCaixaCtx("default");
     renderCashMoveLog();
+  }
+
+  async function loadCashMovesFromApi() {
+    const api = window.AuthService && window.AuthService.api;
+    if (!api) return;
+    const tid = (posContexto && posContexto.terminal && posContexto.terminal.id) || "";
+    const qs = new URLSearchParams({ limit: "30" });
+    if (tid) qs.set("terminal_id", tid);
+    try {
+      const data = await api("/api/pos/caixa/movimentos?" + qs.toString());
+      if (data.status === "ok") {
+        cashMoves = (data.movimentos || []).map((m) => ({
+          ...m,
+          at: m.at ? Date.parse(m.at) || m.at : Date.now(),
+        }));
+        renderCashMoveLog();
+      }
+    } catch (_) {}
   }
 
   function renderCashMoveLog() {
@@ -1175,6 +1189,18 @@
         return;
       }
       if (s.lines[idx]) {
+        const line = s.lines[idx];
+        if (!line.troca && !line.servico) {
+          const p = SAMPLE.find((x) => x.id === line.id);
+          if (p) {
+            const gate = stockGate(p, Math.floor(val), s, { excludeIdx: idx });
+            // wantAdd = full new qty because excludeIdx removes current line from cart sum
+            if (!gate.ok) {
+              applyStockGateFailure(p, gate);
+              return;
+            }
+          }
+        }
         pushUndo("quantidade");
         s.lines[idx].qtd = Math.floor(val);
         s.selectedLine = idx;
@@ -1186,6 +1212,17 @@
         return;
       }
       if (s.lines[idx]) {
+        const line = s.lines[idx];
+        if (!line.troca) {
+          const p = SAMPLE.find((x) => x.id === line.id);
+          if (p) {
+            const gate = stockGate(p, 1, s, { excludeIdx: idx });
+            if (!gate.ok) {
+              applyStockGateFailure(p, gate);
+              return;
+            }
+          }
+        }
         pushUndo("peso");
         s.lines[idx].qtd = Math.round(val * 1000) / 1000;
         s.selectedLine = idx;
@@ -1431,13 +1468,96 @@
     setSmartCtx("price");
   }
 
-  function renderExchangeResults() {
-    const q = (document.getElementById("exchange-search").value || "").trim().replace(/\D/g, "");
-    const list = MOCK_PAST_SALES.filter((sale) => {
-      if (!q) return true;
-      return sale.nfce.includes(q) || sale.cpf.replace(/\D/g, "").includes(q);
-    });
+  function cartQtyForProduct(session, productId, opts) {
+    opts = opts || {};
+    if (!session) return 0;
+    return (session.lines || []).reduce((sum, l) => {
+      if (Number(l.id) !== Number(productId)) return sum;
+      if (l.troca || l.servico) return sum;
+      if (opts.excludeIdx != null && opts.excludeIdx === session.lines.indexOf(l)) return sum;
+      const q = Number(l.qtd) || 0;
+      return sum + (q > 0 ? q : 0);
+    }, 0);
+  }
+
+  /**
+   * Endurecimento estoque:
+   * - serviço: ok
+   * - só vende saldo local; branch/transit/none bloqueiam
+   * - qty no carrinho não pode passar do stock local
+   */
+  function stockGate(product, wantAdd, session, opts) {
+    opts = opts || {};
+    if (!product) return { ok: false, message: "Produto inválido" };
+    if (product.servico) return { ok: true };
+    if (trainingMode) return { ok: true }; // treino não consome regra dura
+    const st = product.stockStatus || "local";
+    if (st !== "local") {
+      const label =
+        (product.promise && product.promise.label) ||
+        (STOCK_LABELS[st] && STOCK_LABELS[st].long) ||
+        "Indisponível nesta loja";
+      return {
+        ok: false,
+        message: label,
+        openSimilar: st === "none",
+        openStock: st === "branch" || st === "transit",
+      };
+    }
+    const stock = Number(product.stock);
+    const max = Number.isFinite(stock) ? stock : 0;
+    if (max <= 0) {
+      return { ok: false, message: "Sem saldo nesta loja", openSimilar: true };
+    }
+    const inCart = cartQtyForProduct(session, product.id, { excludeIdx: opts.excludeIdx });
+    const need = Number(wantAdd) || 0;
+    if (inCart + need > max) {
+      const restante = Math.max(0, max - inCart);
+      return {
+        ok: false,
+        message:
+          restante > 0
+            ? "Só restam " + restante + " un. nesta loja"
+            : "Saldo esgotado nesta loja (" + max + " un.)",
+      };
+    }
+    return { ok: true, max: max };
+  }
+
+  function applyStockGateFailure(product, gate) {
+    document.getElementById("status-hint").textContent = gate.message || "Estoque insuficiente";
+    if (gate.openSimilar) openSimilarPanel(product);
+    else if (gate.openStock) openStock(product);
+  }
+
+  async function renderExchangeResults() {
+    const q = (document.getElementById("exchange-search").value || "").trim();
     const box = document.getElementById("exchange-results");
+    box.innerHTML = '<p class="mode-note">Buscando vendas…</p>';
+    const api = window.AuthService && window.AuthService.api;
+    let list = [];
+    if (api) {
+      try {
+        const qs = new URLSearchParams({ limit: "30" });
+        if (q) qs.set("q", q);
+        const data = await api("/api/pos/vendas?" + qs.toString());
+        if (data.status === "ok") list = data.vendas || [];
+      } catch (_) {
+        list = [];
+      }
+    }
+    if (!list.length && pastSalesCache.length) {
+      const digits = q.replace(/\D/g, "");
+      list = pastSalesCache.filter((sale) => {
+        if (!q) return true;
+        return (
+          String(sale.nfce).includes(digits || q) ||
+          String(sale.cpf).replace(/\D/g, "").includes(digits) ||
+          String(sale.client || "").toLowerCase().includes(q.toLowerCase())
+        );
+      });
+    }
+    pastSalesCache = list;
     if (!list.length) {
       box.innerHTML = '<p class="mode-note">Nenhuma venda encontrada.</p>';
       return;
@@ -1559,6 +1679,11 @@
         }
         pendingRecallProduct = null;
       }
+      const gate = stockGate(composite.product, composite.qty, s);
+      if (!gate.ok) {
+        applyStockGateFailure(composite.product, gate);
+        return;
+      }
       pushUndo("adicionar item");
       const hit = s.lines.find((l) => l.id === composite.product.id && !l.peso && !l.variantKey && !l.troca);
       if (hit) hit.qtd += composite.qty;
@@ -1574,7 +1699,6 @@
         (l) => l.id === composite.product.id && !l.peso && !l.variantKey && !l.troca
       );
       trackRecent(composite.product.id);
-      if (composite.product.stockStatus === "none") openSimilarPanel(composite.product);
       renderOrder();
       document.getElementById("status-hint").textContent =
         composite.qty + "× " + composite.product.nome + " adicionado";
@@ -2427,6 +2551,17 @@
   function addLineToOrder(line) {
     const s = getSession();
     if (!s) return;
+    if (line && line.id && !line.troca && !line.servico) {
+      const p = SAMPLE.find((x) => x.id === Number(line.id));
+      if (p) {
+        const want = Number(line.qtd) > 0 ? Number(line.qtd) : 1;
+        const gate = stockGate(p, want, s);
+        if (!gate.ok) {
+          applyStockGateFailure(p, gate);
+          return;
+        }
+      }
+    }
     pushUndo("adicionar item");
     s.lines.push(line);
     s.selectedLine = s.lines.length - 1;
@@ -2458,6 +2593,11 @@
     }
 
     if (p.peso) {
+      const gate = stockGate(p, 1, s);
+      if (!gate.ok) {
+        applyStockGateFailure(p, gate);
+        return;
+      }
       const hit = s.lines.find((l) => l.id === p.id && !l.variantKey && l.peso);
       if (!hit) {
         pushUndo("adicionar item");
@@ -2476,7 +2616,6 @@
       openQtyPad(s.selectedLine);
       document.getElementById("status-hint").textContent =
         "Informe o peso em kg (atalhos ou balança mock)";
-      if (p.stockStatus === "none") openSimilarPanel(p);
       return;
     }
 
@@ -2503,6 +2642,11 @@
     const hit = s.lines.find(
       (l) => l.id === p.id && !l.peso && !l.variantKey && !l.troca && !l.servico
     );
+    const gate = stockGate(p, 1, s);
+    if (!gate.ok) {
+      applyStockGateFailure(p, gate);
+      return;
+    }
     pushUndo("adicionar item");
     if (hit) hit.qtd += 1;
     else s.lines.push({ id: p.id, nome: p.nome, preco: p.preco, qtd: 1, descPct: 0 });
@@ -2511,7 +2655,6 @@
     );
     trackRecent(p.id);
     renderOrder();
-    if (p.stockStatus === "none" && !opts.fromSimilar) openSimilarPanel(p);
   }
 
   /** @type {null | object} */
@@ -3048,6 +3191,7 @@
     setDataSource("demo");
     await loadPosContexto();
     await loadPosDataFromApi();
+    await loadCashMovesFromApi();
     renderClientResults();
     renderAll();
     setSmartCtx("summary");

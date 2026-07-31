@@ -12,6 +12,7 @@ from datetime import datetime
 import cobol_bridge
 import inventory_mvp
 import receiving_mvp
+import pos_caixa
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
 from modules.sefaz import nfce_xml
@@ -241,9 +242,12 @@ def _pedido_para_venda(pedido, forma_pg="Dinheiro"):
     except Exception:
         catalog = {}
     for line in pedido.get("lines") or []:
+        qtd = _safe_float(line.get("qtd"), 1)
+        if qtd <= 0 or line.get("troca"):
+            # troca/devolução não entra na NFC-e de venda
+            continue
         pid = line.get("id")
         prod = catalog.get(str(pid), {})
-        qtd = _safe_float(line.get("qtd"), 1)
         preco = _safe_float(line.get("preco"), 0)
         subtotal = round(qtd * preco, 2)
         itens.append({
@@ -698,6 +702,101 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 **prom,
             })
 
+        if parsed.path == "/api/pos/vendas":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            q = (qs.get("q") or [""])[0].strip().lower()
+            q_digits = "".join(ch for ch in q if ch.isdigit())
+            try:
+                limit = int((qs.get("limit") or ["40"])[0])
+            except (TypeError, ValueError):
+                limit = 40
+            limit = max(1, min(limit, 100))
+            vendas = load_json(os.path.join(BASE_DIR, "dados", "vendas.json"))
+            lista = list((vendas.get("vendas") if isinstance(vendas, dict) else []) or [])
+            # NFC-e números por venda_id (se houver)
+            nfce_by_venda = {}
+            try:
+                for n in (load_json(os.path.join(BASE_DIR, "dados", "nfce.json")).get("nfce") or []):
+                    vid = n.get("venda_id")
+                    if vid is not None:
+                        nfce_by_venda[str(vid)] = n.get("numero") or n.get("nNF") or ""
+            except Exception:
+                pass
+            out = []
+            for v in reversed(lista):
+                if not isinstance(v, dict):
+                    continue
+                vid = v.get("id")
+                cliente = str(v.get("cliente") or "")
+                cpf = str(v.get("cliente_doc") or v.get("cpf") or "")
+                nfce_num = str(
+                    v.get("nfce")
+                    or v.get("numero_nfce")
+                    or nfce_by_venda.get(str(vid))
+                    or vid
+                    or ""
+                )
+                nfce_pad = str(nfce_num).zfill(9) if str(nfce_num).isdigit() else str(nfce_num)
+                blob = (cliente + " " + cpf + " " + nfce_pad + " " + str(vid)).lower()
+                blob_digits = "".join(ch for ch in blob if ch.isdigit())
+                if q:
+                    if q not in blob and not (q_digits and q_digits in blob_digits):
+                        continue
+                lines = []
+                for it in v.get("itens") or []:
+                    if not isinstance(it, dict):
+                        continue
+                    qtd = float(it.get("qtd") or 0)
+                    if qtd <= 0:
+                        continue
+                    lines.append({
+                        "id": it.get("prod_id") or it.get("id"),
+                        "nome": it.get("produto") or it.get("nome") or "Item",
+                        "preco": float(it.get("preco") or 0),
+                        "qtd": qtd,
+                    })
+                if not lines:
+                    continue
+                data = str(v.get("data") or "")
+                try:
+                    if len(data) >= 10:
+                        y, m, d = data[:10].split("-")
+                        data_fmt = f"{d}/{m}/{y}"
+                    else:
+                        data_fmt = data
+                except Exception:
+                    data_fmt = data
+                out.append({
+                    "id": vid,
+                    "nfce": nfce_pad,
+                    "cpf": cpf,
+                    "client": cliente or "Consumidor",
+                    "date": data_fmt,
+                    "total": float(v.get("total") or 0),
+                    "lines": lines,
+                    "estabelecimento_id": v.get("estabelecimento_id") or "",
+                })
+                if len(out) >= limit:
+                    break
+            return self._json({"status": "ok", "vendas": out, "total": len(out)})
+
+        if parsed.path == "/api/pos/caixa/movimentos":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            tid = (qs.get("terminal_id") or [""])[0].strip() or None
+            eid = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            try:
+                limit = int((qs.get("limit") or ["50"])[0])
+            except (TypeError, ValueError):
+                limit = 50
+            rows = pos_caixa.list_movimentos(terminal_id=tid, estabelecimento_id=eid, limit=limit)
+            return self._json({"status": "ok", "movimentos": rows, "total": len(rows)})
+
         if parsed.path == "/api/inventory/balance":
             token = self.headers.get("X-Auth-Token", "")
             if not self._find_user(token, load_users()):
@@ -1125,6 +1224,26 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     user_id=uid,
                 )
                 return self._json({"status": "ok", **result})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/pos/caixa/movimentos":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            try:
+                payload = dict(body or {})
+                if not payload.get("terminal_id") or not payload.get("estabelecimento_id"):
+                    term = _terminal_do_usuario(uid)
+                    if term:
+                        payload.setdefault("terminal_id", term.get("id") or "")
+                        payload.setdefault("estabelecimento_id", term.get("estabelecimento_id") or "")
+                payload.setdefault("user_nome", user.get("nome") or user.get("usuario") or "")
+                entry = pos_caixa.add_movimento(payload, user_id=uid)
+                return self._json({"status": "ok", "movimento": entry}, 201)
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
