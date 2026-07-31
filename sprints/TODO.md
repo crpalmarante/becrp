@@ -37,6 +37,7 @@ Fonte das verdades: warehouse = estabelecimento; toda qty = movimento; Promise s
 Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ~~UI fina de inventário (saldo + transfer + adjust)~~ ✅ `pages/estoque.html`
 - ~~Endurecer POS (interno)~~ ✅ estoque bloqueia · troca via `/api/pos/vendas` · sangria/suprimento persistidos
+- ~~Unificar org/estabelecimentos~~ ✅ `org_store.py`
 - Receiving mais útil (XML/NF-e) — se entrada manual doer
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
@@ -81,7 +82,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 
 ### 4. Modelo de dados / APIs
 
-- [ ] Unificar `data/empresas.json` + `dados/empresa.json` → Organização + Estabelecimentos
+- [x] Unificar `data/empresas.json` + `dados/empresa.json` → Organização + Estabelecimentos (`org_store.py`; `empresa.json` = espelho legado)
 - [x] Persistência de terminais (PDV/Caixa) + vínculo usuário
 - [x] `available_at` no cadastro de produto
 - [x] POS filtrar catálogo por estabelecimento + `available_at`

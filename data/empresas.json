@@ -1,11 +1,20 @@
 {
   "matriz": {
     "nome": "Matriz",
-    "cnpj": "00.000.000/0001-00",
-    "ie": "123.456.789.000",
-    "cidade": "São Paulo",
-    "uf": "SP",
-    "ativo": true
+    "cnpj": "62832155000141",
+    "ie": "ISENTO",
+    "cidade": "Passo Fundo",
+    "uf": 43,
+    "ativo": true,
+    "nome_razao": "COMERCIAL FABIELI LTDA",
+    "nome_fantasia": "COMERCIAL FABIELI",
+    "municipio": "Passo Fundo",
+    "endereco": "RUA RIO GRANDE DO SUL, 372, CENTRO, PASSO FUNDO/RS",
+    "cep": "99010001",
+    "telefone": "(54)3311-5000",
+    "email": "fabieli@fabieli.com.br",
+    "cod_municipio": "4314100",
+    "tipo": "matriz"
   },
   "filial_sp": {
     "nome": "Filial São Paulo",
@@ -13,7 +22,8 @@
     "ie": "123.456.789.001",
     "cidade": "São Paulo",
     "uf": "SP",
-    "ativo": true
+    "ativo": true,
+    "tipo": "filial"
   },
   "filial_rj": {
     "nome": "Filial Rio de Janeiro",
@@ -21,6 +31,7 @@
     "ie": "123.456.789.002",
     "cidade": "Rio de Janeiro",
     "uf": "RJ",
-    "ativo": true
+    "ativo": true,
+    "tipo": "filial"
   }
 }

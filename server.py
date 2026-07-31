@@ -13,6 +13,7 @@ import cobol_bridge
 import inventory_mvp
 import receiving_mvp
 import pos_caixa
+import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
 from modules.sefaz import nfce_xml
@@ -45,62 +46,25 @@ EMPRESA_JSON = os.path.join(BASE_DIR, "dados", "empresa.json")
 ESTAB_FISCAL_FILE = os.path.join(DATA_DIR, "estabelecimentos_fiscal.json")
 
 def load_empresa_fiscal():
-    if not os.path.exists(EMPRESA_JSON):
-        return {}
-    with open(EMPRESA_JSON, "r") as f:
-        return json.load(f)
+    """Emitente padrão — fonte = org_store (estabelecimento_padrao)."""
+    return org_store.load_empresa_fiscal()
 
 def load_estab_fiscal_store():
-    data = load_json(ESTAB_FISCAL_FILE)
-    return data if isinstance(data, dict) else {}
+    return org_store.load_fiscal_store()
 
 def save_estab_fiscal_store(data):
-    save_json(ESTAB_FISCAL_FILE, data if isinstance(data, dict) else {})
+    org_store.save_fiscal_store(data)
+    try:
+        org_store.sync_legacy_empresa_json()
+    except Exception:
+        pass
 
 def _digits(val):
-    return "".join(ch for ch in str(val or "") if ch.isdigit())
+    return org_store.digits(val)
 
 def resolve_empresa_fiscal(estabelecimento_id=None):
-    """
-    Emitente NFC-e = estabelecimento do terminal.
-    Camadas: dados/empresa.json (legado) ← dados estruturais da filial ← overlay fiscal.
-    """
-    base = dict(load_empresa_fiscal() or {})
-    eid = str(estabelecimento_id or "").strip()
-    if not eid:
-        base["estabelecimento_id"] = None
-        return base
-
-    empresas = load_empresas()
-    estab = dict(empresas.get(eid, {}) or {})
-    overlay = dict(load_estab_fiscal_store().get(eid, {}) or {})
-
-    if estab.get("nome"):
-        base["nome_fantasia"] = estab["nome"]
-        if not overlay.get("nome"):
-            base["nome"] = estab["nome"]
-    cnpj = overlay.get("cnpj") or estab.get("cnpj")
-    if cnpj:
-        base["cnpj"] = _digits(cnpj) or base.get("cnpj")
-    ie = overlay.get("inscricao_est") or overlay.get("ie") or estab.get("ie")
-    if ie:
-        base["inscricao_est"] = ie
-    if estab.get("cidade") and not overlay.get("municipio"):
-        base["municipio"] = estab["cidade"]
-    uf_estab = overlay.get("uf") if overlay.get("uf") is not None else estab.get("uf")
-    if uf_estab is not None and uf_estab != "":
-        base["uf"] = uf_estab
-
-    for k, v in overlay.items():
-        if v is None or v == "":
-            continue
-        if k in ("cnpj",):
-            base[k] = _digits(v) or base.get(k)
-        else:
-            base[k] = v
-
-    base["estabelecimento_id"] = eid
-    return base
+    """Emitente NFC-e = estabelecimento (+ overlay fiscal)."""
+    return org_store.resolve_empresa_fiscal(estabelecimento_id)
 
 def _terminal_do_usuario(uid):
     if not uid:
@@ -121,14 +85,10 @@ def save_users(users):
         json.dump(users, f, indent=2, ensure_ascii=False)
 
 def load_empresas():
-    if not os.path.exists(EMPRESAS_FILE):
-        return {}
-    with open(EMPRESAS_FILE, "r") as f:
-        return json.load(f)
+    return org_store.load_empresas()
 
 def save_empresas(empresas):
-    with open(EMPRESAS_FILE, "w") as f:
-        json.dump(empresas, f, indent=2, ensure_ascii=False)
+    org_store.save_empresas(empresas)
 
 def load_json(path):
     if not os.path.exists(path):
@@ -483,7 +443,20 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 item = dict(e)
                 item["id"] = eid
                 lista.append(item)
-            return self._json({"status": "ok", "empresas": lista})
+            org = org_store.load_organizacao()
+            return self._json({
+                "status": "ok",
+                "organizacao": org,
+                "empresas": lista,
+            })
+
+        if parsed.path == "/api/admin/organizacao":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") != "admin":
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            return self._json({"status": "ok", "organizacao": org_store.load_organizacao()})
 
         if parsed.path == "/api/admin/permissions":
             token = self.headers.get("X-Auth-Token", "")
@@ -1597,10 +1570,34 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "ie": body.get("ie", ""),
                 "cidade": body.get("cidade", ""),
                 "uf": body.get("uf", ""),
-                "ativo": True
+                "ativo": True,
+                "tipo": body.get("tipo") or "filial",
             }
             save_empresas(empresas)
-            return self._json({"status": "ok", "id": eid, "message": "Empresa criada"})
+            fiscal = load_estab_fiscal_store()
+            fiscal.setdefault(eid, {
+                "csc_id": "1", "csc": "", "serie_nfce": 1, "numero_nfce": 1, "ambiente": 2,
+            })
+            save_estab_fiscal_store(fiscal)
+            return self._json({"status": "ok", "id": eid, "message": "Estabelecimento criado"})
+
+        if parsed.path == "/api/admin/organizacao":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") != "admin":
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            org = org_store.load_organizacao()
+            if body.get("nome"):
+                org["nome"] = str(body["nome"]).strip()
+            if body.get("estabelecimento_padrao"):
+                padrao = str(body["estabelecimento_padrao"]).strip()
+                if padrao not in load_empresas():
+                    return self._json({"status": "error", "message": "estabelecimento_padrao inválido"}, 400)
+                org["estabelecimento_padrao"] = padrao
+            org_store.save_organizacao(org)
+            org_store.sync_legacy_empresa_json()
+            return self._json({"status": "ok", "organizacao": org})
 
         if parsed.path.startswith("/api/admin/empresas/"):
             token = self.headers.get("X-Auth-Token", "")
@@ -1617,13 +1614,13 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 save_empresas(empresas)
                 return self._json({"status": "ok", "ativo": empresas[eid]["ativo"]})
             if body.get("action") == "update":
-                if body.get("nome"): empresas[eid]["nome"] = body["nome"]
-                if body.get("cnpj") is not None: empresas[eid]["cnpj"] = body["cnpj"]
-                if body.get("ie") is not None: empresas[eid]["ie"] = body["ie"]
-                if body.get("cidade") is not None: empresas[eid]["cidade"] = body["cidade"]
-                if body.get("uf") is not None: empresas[eid]["uf"] = body["uf"]
-                save_empresas(empresas)
-                return self._json({"status": "ok", "message": "Empresa atualizada"})
+                updates = {}
+                for k in ("nome", "cnpj", "ie", "cidade", "uf", "nome_fantasia", "nome_razao",
+                          "endereco", "cep", "telefone", "email"):
+                    if k in body and body[k] is not None:
+                        updates[k] = body[k]
+                org_store.update_estabelecimento(eid, updates, also_fiscal=True)
+                return self._json({"status": "ok", "message": "Estabelecimento atualizado"})
 
         if parsed.path.startswith("/api/admin/fiscal/estabelecimentos/"):
             token = self.headers.get("X-Auth-Token", "")
@@ -1634,32 +1631,25 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             eid = parsed.path.rstrip("/").split("/")[-1]
             if eid not in load_empresas():
                 return self._json({"status": "error", "message": "Estabelecimento não encontrado"}, 404)
-            store = load_estab_fiscal_store()
-            entry = dict(store.get(eid) or {})
             fields = (
                 "csc", "csc_id", "serie_nfce", "numero_nfce", "ambiente",
-                "certificado", "cert_senha", "crt", "uf", "inscricao_est",
-                "cod_municipio", "municipio", "nome", "nome_fantasia", "cnpj",
+                "certificado", "cert_senha", "crt", "uf", "inscricao_est", "ie",
+                "cod_municipio", "municipio", "nome", "nome_fantasia", "nome_razao", "cnpj",
                 "endereco", "cep", "telefone", "email", "tipo_fiscal",
             )
-            for f in fields:
-                if f in body:
-                    entry[f] = body[f]
-            if "serie_nfce" in entry:
-                entry["serie_nfce"] = int(entry.get("serie_nfce") or 1)
-            if "numero_nfce" in entry:
-                entry["numero_nfce"] = int(entry.get("numero_nfce") or 0)
-            if "ambiente" in entry:
-                entry["ambiente"] = int(entry.get("ambiente") or 2)
-            if entry.get("cnpj"):
-                entry["cnpj"] = _digits(entry["cnpj"])
-            store[eid] = entry
-            save_estab_fiscal_store(store)
+            updates = {f: body[f] for f in fields if f in body}
+            if "serie_nfce" in updates:
+                updates["serie_nfce"] = int(updates.get("serie_nfce") or 1)
+            if "numero_nfce" in updates:
+                updates["numero_nfce"] = int(updates.get("numero_nfce") or 0)
+            if "ambiente" in updates:
+                updates["ambiente"] = int(updates.get("ambiente") or 2)
+            emp = org_store.update_estabelecimento(eid, updates, also_fiscal=True)
             return self._json({
                 "status": "ok",
                 "id": eid,
-                "overlay": entry,
-                "empresa": resolve_empresa_fiscal(eid),
+                "overlay": load_estab_fiscal_store().get(eid, {}),
+                "empresa": emp,
                 "message": "Fiscal do estabelecimento salvo",
             })
 
@@ -1886,32 +1876,26 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     return self._json({"status": "error", "message": "Não encontrado"}, 404)
                 return self._json({"status": "ok", "message": "Certificado removido"})
 
-        # ── Fiscal: salvar emitente (dados/empresa.json) ──
+        # ── Fiscal: salvar emitente (estabelecimento padrão + espelho legado) ──
         if parsed.path == "/api/admin/fiscal/empresa":
             if not self._is_admin(crud_token):
                 return self._json({"status": "error", "message": "Acesso negado"}, 403)
             try:
-                emp = load_empresa_fiscal()
                 allowed = [
-                    "nome", "nome_fantasia", "cnpj", "ie", "crt", "csc_id", "csc",
+                    "nome", "nome_fantasia", "nome_razao", "cnpj", "ie", "crt", "csc_id", "csc",
                     "cod_municipio", "municipio", "uf", "cep", "endereco", "telefone",
                     "email", "cnae_prim_codigo", "inscricao_mun", "tipo_fiscal",
                     "inscricao_est",
                 ]
-                for key in allowed:
-                    if key in body and body[key] is not None:
-                        emp[key] = body[key]
-                # Mapear ie → inscricao_est (campo usado pelo XML)
-                if "ie" in body and body["ie"] is not None:
-                    emp["inscricao_est"] = body["ie"]
-                    emp["ie"] = body["ie"]
-                if "crt" in body and body["crt"] is not None:
-                    try:
-                        emp["crt"] = int(body["crt"])
-                    except (TypeError, ValueError):
-                        pass
-                save_json(EMPRESA_JSON, emp)
-                return self._json({"status": "ok", "empresa": emp, "message": "Emitente salvo"})
+                updates = {k: body[k] for k in allowed if k in body and body[k] is not None}
+                if "nome" in updates and "nome_razao" not in updates:
+                    updates["nome_razao"] = updates["nome"]
+                emp = org_store.save_emitente_padrao(updates)
+                return self._json({
+                    "status": "ok",
+                    "empresa": emp,
+                    "message": "Emitente salvo no estabelecimento padrão",
+                })
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 500)
 
