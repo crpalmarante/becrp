@@ -14,7 +14,7 @@ Quem define o comportamento na venda são os **tipos de produto** do mix (unidad
 
 **CNAE** não é critério operacional do PDV: fica a cargo do **Fiscal / Tributário** (enquadramento, regras, obrigações). O POS consome o resultado já resolvido (catálogo permitido, tributação do item), sem o vendedor “pensar em CNAE”.
 
-**Organização × estabelecimento × catálogo** — ver [`RFC-ORGANIZATION-ESTABLISHMENT.md`](./RFC-ORGANIZATION-ESTABLISHMENT.md): catálogo único da organização; campo produto `Disponível em` (`available_at`) multi-select (vazio = todas as filiais ativas); NFC-e e caixa no estabelecimento do terminal.
+**Organização × estabelecimento × catálogo** — ver [`RFC-ORGANIZATION-ESTABLISHMENT.md`](./RFC-ORGANIZATION-ESTABLISHMENT.md): catálogo único da organização; campo produto `Disponível em` (`available_at`) multi-select (vazio = todas as filiais ativas); NFC-e e caixa no estabelecimento do terminal. Terminal PDV nasce **vinculado** a vendedor (aquele PDV) ou a gerente/caixa (visão de todos os PDVs/Caixas); sem troca de filial na venda.
 
 ---
 
@@ -443,7 +443,7 @@ Ainda fora:
 
 Próximo natural:
 
-1. Fechar modelo Organização/Estabelecimento no código (`RFC-ORGANIZATION-ESTABLISHMENT.md`) — ainda em aberto: terminal fixo vs troca de filial.
+1. Fechar modelo Organização/Estabelecimento no código (`RFC-ORGANIZATION-ESTABLISHMENT.md`) — terminal × pessoa já decidido; falta preço local e 1:1 vendedor↔PDV.
 2. Ajustar CSC/IE/UF do emitente e validar autorização SEFAZ de ponta a ponta (recurso externo).
 3. Promise Engine / multi-filial quando inventário por filial estiver pronto.
 4. Balança física no lugar do mock.

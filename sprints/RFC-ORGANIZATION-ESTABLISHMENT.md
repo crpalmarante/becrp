@@ -23,13 +23,35 @@ Um catálogo único. Fiscal e caixa sempre no estabelecimento. Visibilidade do S
 |-------|------|--------|
 | **Organização** | Grupo / tenant | Dono da conta no BECRP; usuários; catálogo mestre |
 | **Estabelecimento** | Matriz ou filial (CNPJ/IE) | Emitente fiscal, CSC, certificado, estoque, PDV/Caixa |
-| **Terminal** | PDV / Caixa | Opera **em um** estabelecimento |
+| **Terminal** | PDV / Caixa | Opera **em um** estabelecimento; criado já vinculado a pessoa/papel |
 
 ### Regras
 
 1. Venda e NFC-e nascem no **estabelecimento do terminal** (CNPJ emitente).
 2. CNAE / regime / tributário → camada **Fiscal** do estabelecimento (e org quando aplicável).
 3. POS = Varejo genérico; não escolhe “modo de loja”.
+4. O operador **não troca filial na topbar**: o estabelecimento vem do **terminal** ao qual ele está vinculado.
+
+---
+
+## 2.1 Terminal × pessoa (decisão travada)
+
+Ao **criar** um terminal PDV (ou Caixa), ele já nasce:
+
+1. no **estabelecimento** (matriz/filial), e  
+2. **vinculado** a um operador.
+
+| Papel vinculado | Escopo operacional |
+|-----------------|--------------------|
+| **Vendedor** | Opera **aquele** PDV (atendimento / pedido). Não vê outros PDVs nem caixas. |
+| **Gerente** ou **Caixa** | Pode ver / operar a visão de **todos os PDVs e Caixas** do estabelecimento (fila, supervisão, financeiro). |
+
+### Implicações
+
+- Criação de terminal = cadastro do ponto **+** vínculo pessoa (não são passos separados opcionais).
+- Um vendedor típico = 1 PDV fixo na loja; sem seletor de filial.
+- Gerente/Caixa = painel amplo (PDVs + Caixas) no mesmo estabelecimento do terminal/sessão.
+- Troca de estabelecimento só via **outro terminal** (ou reconfiguração administrativa), nunca no fluxo de venda.
 
 ---
 
@@ -91,9 +113,10 @@ PDV **não** edita CSC/certificado.
 
 ## 6. Em aberto (próximo debate)
 
-1. Terminal **fixo** a uma filial vs operador **troca** filial no login/topbar.  
-2. Preço: lista única da org com override local, ou só local.  
-3. Numeração NFC-e: sempre por estabelecimento (provável sim).
+1. Preço: lista única da org com override local, ou só local.  
+2. Numeração NFC-e: sempre por estabelecimento (provável sim).  
+3. Um vendedor pode ter mais de um PDV no mesmo estabelecimento? (default sugerido: **não**, 1:1).  
+4. Gerente/Caixa: um terminal “hub” vs login com papel elevado em qualquer estação do estabelecimento.
 
 ---
 
@@ -116,3 +139,4 @@ Preço/estoque exibidos = da filial `E`.
 | Data | Nota |
 |------|------|
 | 31/07/2026 | Decisões: catálogo único; `available_at` multi-select; vazio = todas; fiscal no estabelecimento. |
+| 31/07/2026 | Terminal criado já vinculado a vendedor (1 PDV) ou gerente/caixa (visão de todos PDVs/Caixas); sem troca de filial no fluxo. |
