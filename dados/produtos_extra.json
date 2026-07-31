@@ -1,1 +1,10 @@
-{}
+{
+  "5": {
+    "available_at": ["filial_rj"],
+    "descricao": "Demo: só disponível na Filial Rio de Janeiro (available_at)."
+  },
+  "3": {
+    "available_at": ["matriz", "filial_sp"],
+    "descricao": "Demo: Matriz e Filial SP — não aparece no RJ."
+  }
+}

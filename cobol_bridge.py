@@ -124,6 +124,7 @@ _PRODUTO_EXTRA_KEYS = {
     "peso_liq", "peso_bruto", "tipo_embalagem", "embalagem_outro", "qtd_por_embalagem",
     "altura", "largura", "comprimento", "volume",
     "altura_emb", "largura_emb", "comprimento_emb", "volume_emb", "foto",
+    "available_at",
 }
 
 
@@ -222,6 +223,50 @@ def produtos_listar():
     return [
         _merge_produto_extra(p, extras.get(str(p.get("id")), {}))
         for p in produtos
+    ]
+
+
+def produto_visivel_no_estabelecimento(produto, estabelecimento_id):
+    """
+    Escopo de catálogo (RFC):
+    - available_at vazio / ausente → todas as filiais
+    - available_at lista → só esses estabelecimentos
+    - legado: filial_id 0/ausente = todas; senão compara com estabelecimento_id
+    - pdv=false → fora do POS
+    """
+    if not isinstance(produto, dict):
+        return False
+    if produto.get("pdv") is False:
+        return False
+    if produto.get("vendavel") is False:
+        return False
+    if produto.get("ativo") is False:
+        return False
+    eid = str(estabelecimento_id or "").strip()
+    if not eid:
+        return True
+
+    avail = produto.get("available_at")
+    if isinstance(avail, str):
+        avail = [x.strip() for x in avail.split(",") if x.strip()]
+    if isinstance(avail, list):
+        if len(avail) == 0:
+            return True
+        return eid in {str(x).strip() for x in avail}
+
+    fid = produto.get("filial_id")
+    if fid in (None, "", 0, "0"):
+        return True
+    return str(fid) == eid
+
+
+def produtos_para_pos(estabelecimento_id=None):
+    produtos = produtos_listar()
+    if not estabelecimento_id:
+        return [p for p in produtos if p.get("pdv") is not False and p.get("vendavel") is not False]
+    return [
+        p for p in produtos
+        if produto_visivel_no_estabelecimento(p, estabelecimento_id)
     ]
 
 def produtos_incluir(dados):

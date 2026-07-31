@@ -39,6 +39,8 @@
 .field-with-action{display:flex;gap:8px;align-items:end}
 .field-with-action .form-input{flex:1}
 .field-with-action .so-btn{white-space:nowrap;padding:8px 10px}
+.avail-at-grid{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:6px}
+.avail-at-item{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer}
 
 /* Form shell */
 .pf-bar{
@@ -414,7 +416,12 @@
                     </div>
                   </div>
                   <div class="field"><label for="f-localizacao">Localização</label><input class="form-input" id="f-localizacao"></div>
-                  <div class="field"><label for="f-filial_id">Filial / CD</label><input class="form-input" id="f-filial_id" type="number" min="0" value="0"></div>
+                  <div class="field"><label for="f-filial_id">Filial / CD (legado)</label><input class="form-input" id="f-filial_id" type="number" min="0" value="0" title="Prefira Disponível em abaixo"></div>
+                  <div class="field" style="grid-column:1/-1">
+                    <label>Disponível em</label>
+                    <div id="f-available_at" class="avail-at-grid"></div>
+                    <p class="soon-note">Vazio = todas as filiais ativas. Marcado = só nesses estabelecimentos (POS filtra pelo terminal).</p>
+                  </div>
                   <div class="field"><label><input type="checkbox" id="f-estoque_negativo"> Permite estoque negativo</label></div>
                   <div class="field"><label><input type="checkbox" id="f-controla_lote"> Controla Lote</label></div>
                   <div class="field"><label><input type="checkbox" id="f-controla_serie"> Controla Série</label></div>
@@ -612,6 +619,7 @@
   let allData = [];
   let editingId = null;
   let grid = null;
+  let availAtEstabs = [];
   const params = new URLSearchParams(location.search);
   const retornoUrl = params.get("retorno") || "";
 
@@ -844,6 +852,56 @@
     }
   }
 
+  async function ensureAvailAtOptions() {
+    const box = document.getElementById("f-available_at");
+    if (!box) return;
+    if (!availAtEstabs.length) {
+      try {
+        const res = await window.api("/api/admin/empresas");
+        if (res && res.status === "ok") {
+          availAtEstabs = (res.empresas || []).filter((e) => e.ativo !== false);
+        }
+      } catch {
+        /* ignore */
+      }
+      if (!availAtEstabs.length) {
+        try {
+          const r = await fetch("../data/empresas.json");
+          if (r.ok) {
+            const map = await r.json();
+            availAtEstabs = Object.keys(map).map((id) => ({ id, ...map[id] }));
+          }
+        } catch {
+          availAtEstabs = [];
+        }
+      }
+    }
+    if (!box.dataset.ready) {
+      box.innerHTML = availAtEstabs.length
+        ? availAtEstabs
+            .map(
+              (e) =>
+                `<label class="avail-at-item"><input type="checkbox" value="${e.id}"> ${e.nome || e.id}</label>`
+            )
+            .join("")
+        : "<span class='soon-note'>Nenhum estabelecimento cadastrado.</span>";
+      box.dataset.ready = "1";
+    }
+  }
+
+  function setAvailableAt(ids) {
+    const set = new Set((ids || []).map(String));
+    document.querySelectorAll("#f-available_at input[type=checkbox]").forEach((cb) => {
+      cb.checked = set.has(cb.value);
+    });
+  }
+
+  function getAvailableAt() {
+    return Array.from(document.querySelectorAll("#f-available_at input[type=checkbox]:checked")).map(
+      (cb) => cb.value
+    );
+  }
+
   function clearForm() {
     editingId = null;
     [
@@ -874,6 +932,7 @@
     document.getElementById("f-servico").value = "N";
     document.getElementById("f-origem").value = "0";
     document.getElementById("f-filial_id").value = "0";
+    ensureAvailAtOptions().then(() => setAvailableAt([]));
     document.getElementById("f-ativo").checked = true;
     document.getElementById("f-vendavel").checked = true;
     document.getElementById("f-compravel").checked = true;
@@ -1325,6 +1384,7 @@
       estoqueLimitesManual = !!(x.estoque_min || x.estoque_max);
       document.getElementById("f-localizacao").value = row.localizacao || "";
       document.getElementById("f-filial_id").value = row.filial_id ?? 0;
+      ensureAvailAtOptions().then(() => setAvailableAt(x.available_at || []));
       document.getElementById("f-ncm").value = row.ncm || "";
       document.getElementById("f-cest").value = x.cest || "";
       if (ncmLookup) ncmLookup.setValue(row.ncm || "", row.ncm ? "NCM cadastrado" : "");
@@ -1423,6 +1483,7 @@
       vendavel: document.getElementById("f-vendavel").checked,
       compravel: document.getElementById("f-compravel").checked,
       pdv: document.getElementById("f-pdv").checked,
+      available_at: getAvailableAt(),
       usa_balanca: document.getElementById("f-usa_balanca").checked,
       controla_estoque: document.getElementById("f-controla_estoque").checked,
       estoque_negativo: document.getElementById("f-estoque_negativo").checked,

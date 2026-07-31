@@ -448,8 +448,29 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             token = self.headers.get("X-Auth-Token", "")
             if not self._find_user(token, load_users()):
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
-            produtos = cobol_bridge.produtos_listar()
-            return self._json({"status": "ok", "source": "api", "produtos": produtos})
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip()
+            if not estab:
+                # Inferir do terminal do usuário
+                users = load_users()
+                current = self._find_user(token, users)
+                uid = None
+                for k, u in users.items():
+                    if u.get("token") == token:
+                        uid = k
+                        break
+                if uid:
+                    for t in load_pos_terminais().get("terminais", []):
+                        if t.get("ativo", True) and t.get("usuario_id") == uid:
+                            estab = (t.get("estabelecimento_id") or "").strip()
+                            break
+            produtos = cobol_bridge.produtos_para_pos(estab or None)
+            return self._json({
+                "status": "ok",
+                "source": "api",
+                "estabelecimento_id": estab or None,
+                "produtos": produtos,
+            })
 
         if parsed.path == "/api/pos/parceiros":
             token = self.headers.get("X-Auth-Token", "")

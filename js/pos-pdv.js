@@ -2009,12 +2009,18 @@
       return;
     }
     try {
+      const estabQ =
+        (posContexto &&
+          posContexto.estabelecimento &&
+          (posContexto.estabelecimento.id || posContexto.estabelecimento_id)) ||
+        "";
       const [prodRes, partRes] = await Promise.all([
-        api("/api/pos/produtos"),
+        api("/api/pos/produtos" + (estabQ ? "?estabelecimento_id=" + encodeURIComponent(estabQ) : "")),
         api("/api/pos/parceiros?role=CUSTOMER"),
       ]);
       let nProd = 0;
       let nPart = 0;
+      let estabUsed = prodRes && prodRes.estabelecimento_id;
       if (prodRes && prodRes.status === "ok" && Array.isArray(prodRes.produtos) && prodRes.produtos.length) {
         SAMPLE = prodRes.produtos.map(mapApiProduct);
         nProd = SAMPLE.length;
@@ -2027,9 +2033,14 @@
         }
       }
       if (nProd || nPart) {
-        setDataSource("api", nProd + " prod · " + nPart + " clientes");
+        setDataSource(
+          "api",
+          nProd + " prod" + (estabUsed ? " @ " + estabUsed : "") + " · " + nPart + " clientes"
+        );
         document.getElementById("status-hint").textContent =
-          "Varejo · catálogo da API · toque no produto para o mostruário";
+          "Varejo · catálogo da loja" +
+          (estabUsed ? " (" + estabUsed + ")" : "") +
+          " · toque no produto para o mostruário";
       } else {
         setDataSource("demo", "API vazia");
       }

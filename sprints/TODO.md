@@ -13,8 +13,8 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 | # | Foco | Status |
 |---|------|--------|
 | **1** | **Terminal → POS** (login, estabelecimento, papel/modo) | ✅ |
-| **2** | **Produtos + `available_at`** (catálogo por filial) | 🔄 próximo |
-| **3** | **Fiscal por estabelecimento** (cert/CSC/série = emitente da loja) | pendente |
+| **2** | **Produtos + `available_at`** (catálogo por filial) | ✅ |
+| **3** | **Fiscal por estabelecimento** (cert/CSC/série = emitente da loja) | 🔄 próximo |
 | **4** | **Usuários operacionais** (vendedor/caixa/gerente) — não RH Funcionários | pendente |
 | **5** | **Inventário** / Promise Engine | depois |
 
@@ -55,8 +55,7 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 ### 3. Módulo POS (Configurações + operacional)
 
 - [x] Wizard terminais + API `/api/admin/pos/terminais` + 1:1
-- [x] **#1** Ligar terminal ao login do PDV (`GET /api/pos/contexto` + UI topbar / modo)
-- [ ] **#2** Catálogo `available_at` + filtro no POS
+- [x] **#2** Catálogo `available_at` + filtro no POS (`produtos_para_pos`, UI em Produtos)
 - [ ] **#3** Fiscal por estabelecimento (cert/CSC/série)
 - [ ] **#5** Inventário real (depois)
 
@@ -89,11 +88,11 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 
 1. ~~Shell + Gerais + wizard terminais~~ ✅  
 2. ~~Terminal → POS operacional~~ ✅ (`/api/pos/contexto`)  
-3. **Produtos + `available_at`** ← próximo  
-4. Fiscal por estabelecimento  
+3. ~~Produtos + `available_at`~~ ✅  
+4. **Fiscal por estabelecimento** ← próximo  
 5. Usuários operacionais (perfis)  
 6. Inventário / Promise  
 
 ---
 
-*Usuários demo POS: `ana` / `carla` (senha `123`) → PDV-01 / CX-01 na matriz.*
+*Demo escopo: produto 5 só RJ; produto 3 Matriz+SP. Usuários: `ana`/`carla` senha `123`.*
