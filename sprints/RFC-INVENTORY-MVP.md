@@ -224,10 +224,12 @@ Não abrir WMS nem Receiving em paralelo ao passo 2–3.
 
 ## 12. Relação com RFCs grandes
 
-`RFC-INVENTORY-ARCHITECTURE` e `RFC-INVENTORY-MODERN-ERP-ARCHITECTURE` = **visão futura**.
+`RFC-INVENTORY-ARCHITECTURE`, `RFC-INVENTORY-MODERN-ERP-ARCHITECTURE` e **`RFC-5000`** = **visão futura**.
 
 Esta RFC = **o que construímos agora**. Em conflito, vale o MVP até nova decisão explícita.
 
+**Decisão 31/07/2026:** não expandir para Inventário “puro” / WMS sem dor operacional. Filosofia: *Simple is always better than complex.*
+
 ---
 
-*Passo B feito. Próximo: passo C — Receiving Engine pluga em `inventory_apply_receive`.*
+*A–C feitos. Próximo passo = o que doer na operação, não o roadmap WMS.*
