@@ -1,0 +1,108 @@
+{
+  "next_id": 4,
+  "items": [
+    {
+      "id": 1,
+      "receiving_id": 9,
+      "monitor_id": null,
+      "category": "product",
+      "type": "product_not_found",
+      "priority": "high",
+      "status": "resolved",
+      "description": "Produto não localizado: Item Sem Match",
+      "assigned_to": null,
+      "metadata": {
+        "item_index": 0,
+        "ean": "",
+        "codigo_fornecedor": "ZZZ1",
+        "descricao": "Item Sem Match"
+      },
+      "dedupe_key": "product_not_found|9||item:0",
+      "created_at": "2026-07-31T15:42:05",
+      "created_by": "smoke",
+      "resolved_at": "2026-07-31T15:43:13",
+      "resolved_by": "smoke",
+      "resolution": "product_linked",
+      "events": [
+        {
+          "at": "2026-07-31T15:42:05",
+          "tipo": "created",
+          "by": "smoke"
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "resolved",
+          "by": "smoke",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "receiving_id": 9,
+      "monitor_id": null,
+      "category": "supplier",
+      "type": "supplier_not_found",
+      "priority": "medium",
+      "status": "resolved",
+      "description": "Fornecedor não identificado: Fantasma SA CNPJ 00000000000191",
+      "assigned_to": null,
+      "metadata": {
+        "cnpj": "00000000000191",
+        "nome": "Fantasma SA"
+      },
+      "dedupe_key": "supplier_not_found|9|",
+      "created_at": "2026-07-31T15:42:05",
+      "created_by": "smoke",
+      "resolved_at": "2026-07-31T15:43:13",
+      "resolved_by": "smoke",
+      "resolution": "partner_linked",
+      "events": [
+        {
+          "at": "2026-07-31T15:42:05",
+          "tipo": "created",
+          "by": "smoke"
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "resolved",
+          "by": "smoke",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "receiving_id": 9,
+      "monitor_id": null,
+      "category": "verification",
+      "type": "quantity_difference",
+      "priority": "high",
+      "status": "open",
+      "description": "Conferência quantity_difference: Cafe esp=3 bom=1 avaria=0",
+      "assigned_to": null,
+      "metadata": {
+        "item_index": 0,
+        "produto_id": "5",
+        "result": "quantity_difference",
+        "expected": 3,
+        "received": 1,
+        "damaged": 0,
+        "notes": ""
+      },
+      "dedupe_key": "quantity_difference|9||item:0",
+      "created_at": "2026-07-31T15:43:13",
+      "created_by": "smoke",
+      "resolved_at": null,
+      "resolved_by": null,
+      "resolution": null,
+      "events": [
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "created",
+          "by": "smoke"
+        }
+      ]
+    }
+  ]
+}

@@ -47,7 +47,8 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
   ✅ **RFC-4008 MVP:** conferência física com Δ/avaria/notas · bip EAN · reabrir · `verification` no receiving  
   ✅ **RFC-4003 MVP:** `nfe_monitor.py` · inbox `data/nfe_inbox/` · fila UI · process → receiving  
   ✅ **RFC-4005 MVP:** `partner_lookup.py` · CNPJ→fornecedor · link manual · sem criar cadastro  
-  (fila 4007 = depois)
+  ✅ **RFC-4007 MVP:** `receiving_pending.py` · fila produto/fornecedor/conferência/XML · resolve/ignore  
+  (Receiving “útil” fechado no essencial)
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
 ---
@@ -129,6 +130,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 11. ~~Conferência física (RFC-4008)~~ ✅ (verify/scan/reopen · qty boa vs avaria · inventário só no complete)  
 12. ~~Monitor XML (RFC-4003)~~ ✅ (`nfe_monitor.py` · inbox · `/api/nfe-monitor`)  
 13. ~~Business Partner Lookup (RFC-4005)~~ ✅ (`partner_lookup.py` · `/api/partners/lookup`)  
+14. ~~Pendências Receiving (RFC-4007)~~ ✅ (`receiving_pending.py` · `/api/receiving/pending`)  
 
 ---
 

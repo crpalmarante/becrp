@@ -162,6 +162,11 @@ def create_receiving(payload, user_id=None):
     data["receivings"].append(rec)
     data["next_id"] = rid + 1
     _save(data)
+    try:
+        import receiving_pending
+        receiving_pending.sync_from_receiving(rec, user_id=user_id)
+    except Exception:
+        pass
     return rec
 
 
@@ -226,6 +231,11 @@ def link_item_product(rid, item_index, produto_id, produto_nome=None, user_id=No
         event["ref_id"] = ref.get("id")
     rec.setdefault("events", []).append(event)
     _save(data)
+    try:
+        import receiving_pending
+        receiving_pending.sync_from_receiving(rec, user_id=user_id)
+    except Exception:
+        pass
     return rec
 
 
@@ -277,6 +287,11 @@ def link_partner(rid, partner_id, user_id=None):
         "partner_id": partner["id"],
     })
     _save(data)
+    try:
+        import receiving_pending
+        receiving_pending.sync_from_receiving(rec, user_id=user_id)
+    except Exception:
+        pass
     return rec
 
 
@@ -314,6 +329,11 @@ def resolve_partner_on_receiving(rid, user_id=None):
             "partner_id": pl["partner"]["id"],
         })
     _save(data)
+    try:
+        import receiving_pending
+        receiving_pending.sync_from_receiving(rec, user_id=user_id)
+    except Exception:
+        pass
     return rec
 
 
@@ -549,6 +569,11 @@ def verify_receiving(rid, payload=None, user_id=None):
             "count": summary["differences_count"],
         })
     _save(data)
+    try:
+        import receiving_pending
+        receiving_pending.sync_from_receiving(rec, user_id=user_id)
+    except Exception:
+        pass
     return rec
 
 

@@ -32,6 +32,17 @@
       "result": "found",
       "partner_id": "bp004",
       "count": 1
+    },
+    {
+      "at": "2026-07-31T15:43:13",
+      "module": "receiving.link",
+      "criteria": {
+        "partner_id": "bp004",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
     }
   ]
 }

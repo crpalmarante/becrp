@@ -12,6 +12,7 @@ from datetime import datetime
 import cobol_bridge
 import inventory_mvp
 import receiving_mvp
+import receiving_pending
 import nfe_inbound
 import nfe_monitor
 import product_localization
@@ -826,6 +827,45 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             ]
             return self._json({"status": "ok", "itens": itens})
 
+        if parsed.path == "/api/receiving/pending":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            status = (qs.get("status") or [""])[0].strip() or None
+            rid = (qs.get("receiving_id") or [""])[0].strip() or None
+            cat = (qs.get("category") or [""])[0].strip() or None
+            open_only = (qs.get("open") or [""])[0].strip() in ("1", "true", "yes")
+            try:
+                limit = int((qs.get("limit") or ["200"])[0])
+            except ValueError:
+                limit = 200
+            rows = receiving_pending.list_pending(
+                status=status,
+                receiving_id=rid,
+                category=cat,
+                open_only=open_only,
+                limit=limit,
+            )
+            return self._json({
+                "status": "ok",
+                "items": rows,
+                "total": len(rows),
+                "open_count": receiving_pending.open_count(rid),
+            })
+
+        if parsed.path.startswith("/api/receiving/pending/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            pid = parsed.path.rstrip("/").split("/")[-1]
+            if pid in ("resolve", "ignore", "cancel", "assign"):
+                return self._json({"status": "error", "message": "id obrigatório"}, 400)
+            item = receiving_pending.get_pending(pid)
+            if not item:
+                return self._json({"status": "error", "message": "Pendência não encontrada"}, 404)
+            return self._json({"status": "ok", "item": item})
+
         if parsed.path == "/api/partners/lookup":
             token = self.headers.get("X-Auth-Token", "")
             if not self._find_user(token, load_users()):
@@ -922,7 +962,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if rid in (
                 "verify", "complete", "cancel", "product-search", "product-refs",
                 "from-xml", "link-product", "scan", "start-verify", "reopen-verify",
-                "link-partner", "resolve-partner",
+                "link-partner", "resolve-partner", "pending", "sync-pending",
             ):
                 return self._json({"status": "error", "message": "id obrigatório"}, 400)
             rec = receiving_mvp.get_receiving(rid)
@@ -1406,6 +1446,34 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 )
                 return self._json({"status": "ok", **out})
 
+            if parsed.path.startswith("/api/receiving/pending/"):
+                parts = parsed.path.rstrip("/").split("/")
+                # /api/receiving/pending/{id}/resolve|ignore|cancel|assign
+                if len(parts) >= 6 and parts[4].isdigit():
+                    pid = parts[4]
+                    action = parts[5]
+                    try:
+                        if action == "resolve":
+                            item = receiving_pending.resolve(
+                                pid, user_id=uid,
+                                note=body.get("note"),
+                                resolution=body.get("resolution"),
+                            )
+                        elif action == "ignore":
+                            item = receiving_pending.ignore(pid, user_id=uid, note=body.get("note"))
+                        elif action == "cancel":
+                            item = receiving_pending.cancel(pid, user_id=uid, note=body.get("note"))
+                        elif action == "assign":
+                            item = receiving_pending.assign(
+                                pid, body.get("assigned_to") or uid, user_id=uid
+                            )
+                        else:
+                            return self._json({"status": "error", "message": f"ação desconhecida: {action}"}, 400)
+                        return self._json({"status": "ok", "item": item})
+                    except ValueError as e:
+                        return self._json({"status": "error", "message": str(e)}, 400)
+                return self._json({"status": "error", "message": "Rota inválida"}, 400)
+
             if parsed.path.startswith("/api/nfe-monitor/"):
                 parts = parsed.path.rstrip("/").split("/")
                 # /api/nfe-monitor/{id}/process|retry
@@ -1504,6 +1572,17 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if action == "resolve-partner":
                     rec = receiving_mvp.resolve_partner_on_receiving(rid, user_id=uid)
                     return self._json({"status": "ok", "receiving": rec})
+                if action == "sync-pending":
+                    rec = receiving_mvp.get_receiving(rid)
+                    if not rec:
+                        return self._json({"status": "error", "message": "Recebimento não encontrado"}, 404)
+                    created = receiving_pending.sync_from_receiving(rec, user_id=uid)
+                    return self._json({
+                        "status": "ok",
+                        "created": created,
+                        "open_count": receiving_pending.open_count(rid),
+                        "items": receiving_pending.list_pending(receiving_id=rid, open_only=True),
+                    })
                 return self._json({"status": "error", "message": f"ação desconhecida: {action}"}, 400)
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)

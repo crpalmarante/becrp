@@ -56,6 +56,12 @@
     .st-done { background:#2d6a4f; }
     .st-error { background:#6c2b2b; }
     .st-duplicate { background:#555; }
+    .st-open { background:#8a6d3b; }
+    .st-in_progress { background:#3b4a6b; }
+    .st-resolved { background:#2d6a4f; }
+    .st-ignored { background:#555; }
+    .prio-high, .prio-critical { color:#f87171; }
+    .prio-medium { color:#fbbf24; }
   </style>
 </head>
 <body>
@@ -147,6 +153,26 @@
             </div>
             <p class="mode-note">Pasta: <code>data/nfe_inbox/</code> — ingest não move estoque; processar cria rascunho de recebimento.</p>
             <div id="mon-list"></div>
+          </div>
+          <div class="mon-box" id="pending-box">
+            <h3>Pendências <span id="pending-open-count" class="rcv-badge st-open">0</span></h3>
+            <div class="rcv-toolbar" style="margin-bottom:8px">
+              <select class="form-input" id="pend-filter-status">
+                <option value="open">Abertas</option>
+                <option value="">Todas</option>
+                <option value="resolved">Resolvidas</option>
+                <option value="ignored">Ignoradas</option>
+              </select>
+              <select class="form-input" id="pend-filter-cat">
+                <option value="">Todas categorias</option>
+                <option value="product">Produto</option>
+                <option value="supplier">Fornecedor</option>
+                <option value="verification">Conferência</option>
+                <option value="xml">XML</option>
+              </select>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-pend-refresh">Atualizar</button>
+            </div>
+            <div id="pend-list"></div>
           </div>
           <div id="list"></div>
           <div id="detail" class="rcv-detail" style="display:none"></div>
@@ -470,6 +496,7 @@
       if (res.status !== "ok") return msg(res.message || "Falha ao vincular fornecedor");
       msg("Fornecedor vinculado.", true);
       await loadList();
+      loadPending();
       openDetail(id);
     }
     box.querySelectorAll(".btn-partner").forEach((btn) => {
@@ -525,6 +552,7 @@
       if (res.status !== "ok") return msg(res.message || "Falha ao vincular");
       msg("Produto vinculado (referência fornecedor salva).", true);
       await loadList();
+      loadPending();
       openDetail(id);
     }
 
@@ -659,6 +687,7 @@
         const n = (res.receiving.verification && res.receiving.verification.differences_count) || 0;
         msg(n ? "Conferido com " + n + " divergência(s)." : "Conferido sem divergências.", true);
         await loadList();
+        loadPending();
         openDetail(id);
       };
     }
@@ -947,11 +976,98 @@
     await loadMonitor();
   };
 
-  document.getElementById("btn-refresh").onclick = () => { msg(""); loadList(); loadMonitor(); };
+  document.getElementById("btn-refresh").onclick = () => { msg(""); loadList(); loadMonitor(); loadPending(); };
+
+  const PEND_STATUS = {
+    open: "Aberta",
+    in_progress: "Em análise",
+    resolved: "Resolvida",
+    ignored: "Ignorada",
+    cancelled: "Cancelada",
+  };
+
+  async function loadPending() {
+    const st = document.getElementById("pend-filter-status").value;
+    const cat = document.getElementById("pend-filter-cat").value;
+    const qs = new URLSearchParams();
+    if (st === "open") qs.set("open", "1");
+    else if (st) qs.set("status", st);
+    if (cat) qs.set("category", cat);
+    const data = await AuthService.api("/api/receiving/pending?" + qs.toString());
+    if (data.status !== "ok") {
+      document.getElementById("pend-list").innerHTML = "<p class='mode-note'>Falha ao carregar pendências.</p>";
+      return;
+    }
+    document.getElementById("pending-open-count").textContent = String(data.open_count != null ? data.open_count : 0);
+    const rows = data.items || [];
+    if (!rows.length) {
+      document.getElementById("pend-list").innerHTML = "<p class='mode-note'>Nenhuma pendência.</p>";
+      return;
+    }
+    document.getElementById("pend-list").innerHTML = `
+      <table class="rcv-table">
+        <thead><tr>
+          <th>#</th><th>Cat</th><th>Tipo</th><th>Descrição</th><th>Rcv</th><th>Pri</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rows.map((p) => {
+            const open = p.status === "open" || p.status === "in_progress";
+            const acts = [];
+            if (p.receiving_id) {
+              acts.push(`<button class="dialog-btn dialog-btn-secondary" data-open-rcv="${p.receiving_id}">Abrir</button>`);
+            }
+            if (open) {
+              acts.push(`<button class="dialog-btn dialog-btn-secondary pend-resolve" data-id="${p.id}">Resolver</button>`);
+              acts.push(`<button class="dialog-btn dialog-btn-secondary pend-ignore" data-id="${p.id}">Ignorar</button>`);
+            }
+            return `<tr>
+              <td>${p.id}</td>
+              <td>${p.category || "—"}</td>
+              <td>${p.type || "—"}</td>
+              <td>${p.description || "—"}</td>
+              <td>${p.receiving_id || (p.monitor_id ? ("mon:" + p.monitor_id) : "—")}</td>
+              <td class="prio-${p.priority || ""}">${p.priority || "—"}</td>
+              <td><span class="rcv-badge st-${p.status}">${PEND_STATUS[p.status] || p.status}</span></td>
+              <td>${acts.join(" ")}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+    document.querySelectorAll("#pend-list [data-open-rcv]").forEach((btn) => {
+      btn.onclick = () => openDetail(btn.dataset.openRcv);
+    });
+    document.querySelectorAll(".pend-resolve").forEach((btn) => {
+      btn.onclick = async () => {
+        const res = await AuthService.api("/api/receiving/pending/" + btn.dataset.id + "/resolve", {
+          method: "POST",
+          body: JSON.stringify({ resolution: "manual" }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha");
+        msg("Pendência resolvida.", true);
+        loadPending();
+      };
+    });
+    document.querySelectorAll(".pend-ignore").forEach((btn) => {
+      btn.onclick = async () => {
+        const res = await AuthService.api("/api/receiving/pending/" + btn.dataset.id + "/ignore", {
+          method: "POST",
+          body: JSON.stringify({ note: "ignorado na UI" }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha");
+        msg("Pendência ignorada.", true);
+        loadPending();
+      };
+    });
+  }
+
+  document.getElementById("btn-pend-refresh").onclick = () => loadPending();
+  document.getElementById("pend-filter-status").onchange = () => loadPending();
+  document.getElementById("pend-filter-cat").onchange = () => loadPending();
 
   (async function boot() {
     await loadEmpresas();
     await loadMonitor();
+    await loadPending();
     await loadList();
   })();
 })();

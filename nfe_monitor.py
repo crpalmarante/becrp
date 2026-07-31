@@ -209,6 +209,12 @@ def ingest_xml(xml_text_or_bytes, *, filename=None, source="upload", user_id=Non
     data["documents"].append(doc)
     data["next_id"] = doc_id + 1
     _save(data)
+    if status in ("error",):
+        try:
+            import receiving_pending
+            receiving_pending.sync_from_monitor_doc(doc, user_id=user_id)
+        except Exception:
+            pass
     return {"document": doc, "duplicate": False, "message": "ok"}
 
 
@@ -302,6 +308,11 @@ def process_document(doc_id, *, estabelecimento_id=None, user_id=None):
             "at": _now(), "tipo": doc["status"], "by": user_id, "detail": msg,
         })
         _save(data)
+        try:
+            import receiving_pending
+            receiving_pending.sync_from_monitor_doc(doc, user_id=user_id)
+        except Exception:
+            pass
         if doc["status"] == "duplicate":
             return doc
         raise ValueError(msg) from e
@@ -315,6 +326,11 @@ def process_document(doc_id, *, estabelecimento_id=None, user_id=None):
             "at": _now(), "tipo": "error", "by": user_id, "detail": str(e),
         })
         _save(data)
+        try:
+            import receiving_pending
+            receiving_pending.sync_from_monitor_doc(doc, user_id=user_id)
+        except Exception:
+            pass
         raise
 
     data = _load()
@@ -334,6 +350,11 @@ def process_document(doc_id, *, estabelecimento_id=None, user_id=None):
     except OSError:
         pass
     _save(data)
+    try:
+        import receiving_pending
+        receiving_pending.sync_from_monitor_doc(doc, user_id=user_id)
+    except Exception:
+        pass
     doc["_receiving"] = rec
     return doc
 

@@ -1,5 +1,5 @@
 {
-  "next_id": 9,
+  "next_id": 10,
   "receivings": [
     {
       "id": 1,
@@ -806,6 +806,147 @@
           "origem": "nfe"
         }
       ]
+    },
+    {
+      "id": 9,
+      "status": "verified",
+      "origem": "nfe",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "Dist Demo",
+      "fornecedor_id": "bp004",
+      "fornecedor_cnpj": "11222333000181",
+      "documento_ref": "",
+      "nota": "",
+      "items": [
+        {
+          "produto_id": "5",
+          "produto_nome": "Cafe",
+          "qty_expected": 3,
+          "qty_verified": 1,
+          "unidade": "UN",
+          "match": "manual",
+          "nfe_item": {
+            "ean": "",
+            "descricao": "Item Sem Match",
+            "codigo_fornecedor": "ZZZ1"
+          },
+          "qty_damaged": 0,
+          "verify_result": "quantity_difference",
+          "qty_difference": -2
+        },
+        {
+          "produto_id": "1",
+          "produto_nome": "Arroz",
+          "qty_expected": 2,
+          "qty_verified": 2,
+          "unidade": "UN",
+          "match": "ok",
+          "qty_damaged": 0,
+          "verify_result": "verified",
+          "qty_difference": 0
+        }
+      ],
+      "nfe": null,
+      "partner_lookup": {
+        "status": "found",
+        "match": "manual",
+        "partner": {
+          "id": "bp004",
+          "partner_code": "BP000000004",
+          "display_name": "Dist Demo",
+          "legal_name": "DISTRIBUIDORA DEMO LTDA",
+          "trade_name": "Dist Demo",
+          "roles": [
+            "SUPPLIER"
+          ],
+          "cnpj": "11222333000181",
+          "cpf": "",
+          "status": "ACTIVE"
+        },
+        "criteria": {
+          "partner_id": "bp004"
+        }
+      },
+      "created_at": "2026-07-31T15:42:05",
+      "created_by": "smoke",
+      "verified_at": "2026-07-31T15:43:13",
+      "verified_by": "smoke",
+      "completed_at": null,
+      "completed_by": null,
+      "inventory": null,
+      "events": [
+        {
+          "at": "2026-07-31T15:42:05",
+          "tipo": "created",
+          "by": "smoke",
+          "origem": "nfe"
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "product_linked",
+          "by": "smoke",
+          "item_index": 0,
+          "produto_id": "5",
+          "ref_id": 2
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "partner_linked",
+          "by": "smoke",
+          "partner_id": "bp004"
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "verification_started",
+          "by": "smoke",
+          "method": "manual"
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "verified",
+          "by": "smoke",
+          "method": "manual",
+          "differences_count": 1
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "verification_difference_detected",
+          "by": "smoke",
+          "count": 1
+        }
+      ],
+      "verification": {
+        "receiving_id": 9,
+        "warehouse_id": "matriz",
+        "operator_id": "smoke",
+        "method": "manual",
+        "started_at": "2026-07-31T15:43:13",
+        "completed_at": "2026-07-31T15:43:13",
+        "status": "completed",
+        "differences_count": 1,
+        "items": [
+          {
+            "produto_id": "5",
+            "produto_nome": "Cafe",
+            "expected_quantity": 3,
+            "received_quantity": 1,
+            "damaged_quantity": 0,
+            "difference": -2,
+            "result": "quantity_difference",
+            "notes": ""
+          },
+          {
+            "produto_id": "1",
+            "produto_nome": "Arroz",
+            "expected_quantity": 2,
+            "received_quantity": 2,
+            "damaged_quantity": 0,
+            "difference": 0,
+            "result": "verified",
+            "notes": ""
+          }
+        ]
+      }
     }
   ]
 }
