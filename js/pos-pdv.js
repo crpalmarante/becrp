@@ -2326,6 +2326,7 @@
   let filaPedidos = [];
   let filaPollTimer = null;
   let pdvQueuePollTimer = null;
+  let caixaFormaPg = "Dinheiro";
 
   function clearSessionAfterSend(s) {
     s.lines = [];
@@ -2403,8 +2404,10 @@
     activeFilaPedido = pedido;
     caixaDue = Number(pedido.total) || 0;
     cashReceived = 0;
+    showNfceResult(null);
     document.getElementById("caixa-due").textContent = money(caixaDue);
     document.getElementById("btn-confirm-pay").disabled = false;
+    document.getElementById("btn-confirm-pay").textContent = "Confirmar e emitir NFC-e";
     renderFilaList(filaPedidos);
     document.querySelectorAll("#fila-list .fila-item").forEach((el) => {
       el.classList.toggle("active", el.dataset.filaId === pedido.id);
@@ -2629,34 +2632,97 @@
     clearSessionAfterSend(s);
   }
 
+  function showNfceResult(res) {
+    const box = document.getElementById("nfce-result");
+    if (!box) return;
+    if (!res) {
+      box.hidden = true;
+      box.innerHTML = "";
+      return;
+    }
+    const nfce = res.nfce || {};
+    const resultado = nfce.resultado || res.pedido?.nfce || {};
+    const cStat = resultado.cStat || nfce.cStat || "";
+    const xMotivo = resultado.xMotivo || nfce.xMotivo || res.aviso || "";
+    const chave = nfce.chave || resultado.chave || "";
+    const numero = nfce.numero || "";
+    const ok = String(cStat) === "100" || String(resultado.status || "").toUpperCase() === "AUTORIZADA";
+    box.hidden = false;
+    box.className = "nfce-result " + (ok ? "ok" : "err");
+    box.innerHTML =
+      `<strong>${ok ? "NFC-e autorizada" : "Pagamento ok · NFC-e pendente/erro"}</strong>` +
+      (numero ? `<div>Número: ${numero}</div>` : "") +
+      (chave ? `<div class="nfce-chave">${chave}</div>` : "") +
+      (cStat ? `<div>cStat ${cStat}${xMotivo ? " — " + xMotivo : ""}</div>` : xMotivo ? `<div>${xMotivo}</div>` : "") +
+      (res.aviso && !xMotivo.includes(res.aviso) ? `<div class="nfce-aviso">${res.aviso}</div>` : "");
+  }
+
   async function confirmCaixaPayment() {
     if (!activeFilaPedido) {
       document.getElementById("status-hint").textContent = "Selecione um pedido na fila";
       return;
     }
     const pedido = activeFilaPedido;
+    const btn = document.getElementById("btn-confirm-pay");
+    btn.disabled = true;
+    const prevLabel = btn.textContent;
+    btn.textContent = "Processando…";
+
     if (pedido.training || String(pedido.id).startsWith("local-") || String(pedido.id).startsWith("treino-")) {
       pedido.state = "pago";
       syncSessionQueueFromPedido(pedido);
       filaPedidos = filaPedidos.filter((p) => p.id !== pedido.id);
       renderFilaList(filaPedidos);
       activeFilaPedido = null;
-      document.getElementById("btn-confirm-pay").disabled = true;
+      btn.textContent = prevLabel;
+      showNfceResult({
+        aviso: "Fila local/treino — NFC-e não emitida",
+        nfce: { status: "DEMO", xMotivo: "Sem envio à SEFAZ no modo demo/treino" },
+      });
       document.getElementById("status-hint").textContent =
         "Pagamento confirmado (demo) — Pedido #" + pedido.orderNum;
       return;
     }
-    const updated = await updateFilaStatus(pedido.id, "pago");
-    if (!updated) {
-      document.getElementById("status-hint").textContent = "Não foi possível confirmar o pagamento";
+
+    const api = window.AuthService && window.AuthService.api;
+    if (!api) {
+      btn.disabled = false;
+      btn.textContent = prevLabel;
+      document.getElementById("status-hint").textContent = "AuthService indisponível";
       return;
     }
-    syncSessionQueueFromPedido(updated);
-    activeFilaPedido = null;
-    document.getElementById("btn-confirm-pay").disabled = true;
-    await refreshFilaCaixa();
-    document.getElementById("status-hint").textContent =
-      "Pagamento confirmado · Pedido #" + updated.orderNum + " — NFC-e na próxima etapa (certificado)";
+
+    try {
+      const res = await api("/api/pos/fila/" + encodeURIComponent(pedido.id), {
+        method: "POST",
+        body: JSON.stringify({
+          action: "finalizar",
+          forma_pg: caixaFormaPg || "Dinheiro",
+          emitir_nfce: true,
+          ambiente: 2,
+        }),
+      });
+      btn.textContent = prevLabel;
+      if (!res || res.status !== "ok") {
+        btn.disabled = false;
+        document.getElementById("status-hint").textContent =
+          (res && res.message) || "Falha ao finalizar pedido";
+        return;
+      }
+      syncSessionQueueFromPedido(res.pedido || { id: pedido.id, orderNum: pedido.orderNum, state: "pago" });
+      activeFilaPedido = null;
+      showNfceResult(res);
+      await refreshFilaCaixa();
+      const chave = (res.nfce && res.nfce.chave) || (res.pedido && res.pedido.nfce && res.pedido.nfce.chave) || "";
+      document.getElementById("status-hint").textContent = chave
+        ? "Pedido #" + pedido.orderNum + " pago · NFC-e " + chave.slice(0, 20) + "…"
+        : "Pedido #" + pedido.orderNum + " pago" + (res.aviso ? " · " + res.aviso : "");
+    } catch (err) {
+      console.warn("[POS] finalizar", err);
+      btn.disabled = false;
+      btn.textContent = prevLabel;
+      document.getElementById("status-hint").textContent = "Erro ao finalizar / emitir NFC-e";
+    }
   }
 
   function convertToOrder() {
@@ -3058,6 +3124,15 @@
         document.querySelectorAll("#caixa-action-bar button[data-pay]").forEach((b) =>
           b.classList.toggle("active", b === btn)
         );
+        const formaMap = {
+          dinheiro: "Dinheiro",
+          pix: "PIX",
+          debito: "Debito",
+          credito: "Credito",
+          voucher: "Voucher",
+        };
+        caixaFormaPg = formaMap[kind] || "Dinheiro";
+        showNfceResult(null);
         if (kind === "dinheiro") {
           openPaymentPad();
           return;
@@ -3065,13 +3140,13 @@
         if (cashMovePad) cancelCashMove();
         setCaixaCtx("default");
         const labels = {
-          pix: "PIX — QR na próxima etapa",
-          debito: "Débito — TEF na próxima etapa",
-          credito: "Crédito — TEF na próxima etapa",
-          voucher: "Voucher — validação na próxima etapa",
+          pix: "PIX selecionado — confirme para receber e emitir NFC-e",
+          debito: "Débito selecionado — confirme para receber e emitir NFC-e",
+          credito: "Crédito selecionado — confirme para receber e emitir NFC-e",
+          voucher: "Voucher selecionado — confirme para receber e emitir NFC-e",
         };
         document.getElementById("pay-hint").textContent = labels[kind] || kind;
-        document.getElementById("btn-confirm-pay").disabled = false;
+        document.getElementById("btn-confirm-pay").disabled = !activeFilaPedido;
       }
     });
     document.getElementById("btn-suprimento")?.addEventListener("click", () => openCashMove("in"));

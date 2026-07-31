@@ -427,10 +427,14 @@ Categorias e seções da vitrine vêm do cadastro do mix — não de um “modo 
 - Treino **não** grava na API; offline → fila local (demo).
 - Polling: Caixa 5s; PDV 4s no pedido enviado.
 
-**Ainda não**
-- NFC-e no confirmação de pagamento (precisa certificado digital válido nos testes).
+**Finalizar + NFC-e**
+- `POST /api/pos/fila/{id}` com `{ action: "finalizar", forma_pg, emitir_nfce, ambiente }`
+- Grava venda em `dados/vendas.json`, emite NFC-e (certificado A1 + `empresa.json`), marca pedido `pago`.
+- Caixa: botão **Confirmar e emitir NFC-e**; painel de resultado (chave / cStat / aviso).
+- Ambiente padrão de teste: **homologação (2)**.
+- Atenção: configurar **CSC real** em `dados/empresa.json` (hoje pode estar placeholder).
 
 Próximo natural:
 
-1. NFC-e no Caixa (com certificado A1/A3 válido — homologação SC + CSC).
+1. Ajustar CSC/IE/UF do emitente e validar autorização SEFAZ de ponta a ponta.
 2. Aprofundar capacidades (peso/balança, grade variante, serviço na linha).

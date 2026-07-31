@@ -94,6 +94,126 @@ def _safe_float(val, default=0.0):
     except (TypeError, ValueError):
         return float(default)
 
+def _digits(val):
+    return "".join(c for c in str(val or "") if c.isdigit())
+
+def _resolve_cert_id(empresa, preferred_id=""):
+    preferred_id = str(preferred_id or "").strip()
+    if preferred_id and cert_service.obter(preferred_id):
+        return preferred_id
+    certs = cert_service.listar()
+    if not certs:
+        return ""
+    arq = (empresa or {}).get("certificado") or ""
+    cnpj = _digits((empresa or {}).get("cnpj"))
+    for c in certs:
+        if arq and c.get("arquivo") == arq:
+            return c.get("id") or ""
+    for c in certs:
+        nome = (c.get("nome") or "").upper()
+        if cnpj and cnpj in nome:
+            return c.get("id") or ""
+        if "FABIELI" in nome:
+            return c.get("id") or ""
+    for c in certs:
+        if c.get("valido") and c.get("ativo", True):
+            return c.get("id") or ""
+    return certs[0].get("id") or ""
+
+def _pedido_para_venda(pedido, forma_pg="Dinheiro"):
+    """Converte pedido da fila POS no formato esperado por nfce_xml / vendas.json."""
+    agora = datetime.now()
+    client = pedido.get("client") or {}
+    itens = []
+    catalog = {}
+    try:
+        for p in cobol_bridge.produtos_listar() or []:
+            catalog[str(p.get("id"))] = p
+    except Exception:
+        catalog = {}
+    for line in pedido.get("lines") or []:
+        pid = line.get("id")
+        prod = catalog.get(str(pid), {})
+        qtd = _safe_float(line.get("qtd"), 1)
+        preco = _safe_float(line.get("preco"), 0)
+        subtotal = round(qtd * preco, 2)
+        itens.append({
+            "prod_id": pid,
+            "produto": line.get("nome") or prod.get("nome") or f"Produto {pid}",
+            "qtd": qtd,
+            "preco": preco,
+            "subtotal": subtotal,
+            "unidade": "KG" if line.get("peso") else (prod.get("unidade") or "UN"),
+            "ncm": prod.get("ncm") or "00000000",
+            "ean": prod.get("codigo_barras") or line.get("ean") or "",
+            "cfop": prod.get("cfop") or "5102",
+            "cst": prod.get("cst") or "400",
+            "filial_id": 0,
+        })
+    return {
+        "id": pedido.get("orderNum") or pedido.get("id"),
+        "data": agora.strftime("%Y-%m-%d"),
+        "hora": agora.strftime("%H:%M:%S"),
+        "cliente": client.get("nome") or "Consumidor Final",
+        "cliente_id": client.get("id") or "cf",
+        "cliente_cpf": client.get("cpf") or "",
+        "total": _safe_float(pedido.get("total"), 0),
+        "forma_pg": forma_pg or "Dinheiro",
+        "filial_id": 0,
+        "pos_pedido_id": pedido.get("id"),
+        "itens": itens,
+    }
+
+def _avancar_numero_nfce():
+    cobol_bridge._compile_if_needed("gerir_numeracao")
+    out, _ = cobol_bridge._run("gerir_numeracao", {"ACAO": "avancar-nfce"})
+    for line in out.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            return int(line)
+    return 0
+
+def _autorizar_nfce_de_venda(venda, empresa, cert_id, cert_senha, ambiente=2, serie=1, numero=0):
+    uf = empresa.get("uf", "RS")
+    if isinstance(uf, int) or (isinstance(uf, str) and uf.isdigit()):
+        uf_codes = {
+            11: "RO", 12: "AC", 13: "AM", 14: "RR", 15: "PA", 16: "AP", 17: "TO",
+            21: "MA", 22: "PI", 23: "CE", 24: "RN", 25: "PB", 26: "PE", 27: "AL",
+            28: "SE", 29: "BA", 31: "MG", 32: "ES", 33: "RJ", 35: "SP", 41: "PR",
+            42: "SC", 43: "RS", 50: "MS", 51: "MT", 52: "GO", 53: "DF",
+        }
+        uf = uf_codes.get(int(uf), "RS")
+    if not numero:
+        numero = _avancar_numero_nfce()
+    if not numero:
+        raise ValueError("Erro ao obter numeração NFC-e")
+    xml_envi = nfce_xml.montar_envi_nfe(venda, empresa, ambiente, serie, numero)
+    resultado = sefaz_service.autorizar_nfce(
+        xml_envi, uf, ambiente, cert_id, cert_senha, empresa=empresa
+    )
+    nfce_path = os.path.join(BASE_DIR, "dados", "nfce.json")
+    nfce_data = load_json(nfce_path)
+    if not isinstance(nfce_data, dict):
+        nfce_data = {"nfce": []}
+    notas = nfce_data.get("nfce") or []
+    notas.append({
+        "venda_id": venda.get("id"),
+        "pos_pedido_id": venda.get("pos_pedido_id"),
+        "numero": numero,
+        "serie": serie,
+        "chave": resultado.get("chave", ""),
+        "ambiente": ambiente,
+        "status": resultado.get("status", "ERRO"),
+        "protocolo": resultado.get("nProt", resultado.get("protocolo", "")),
+        "cStat": resultado.get("cStat", ""),
+        "xMotivo": resultado.get("xMotivo", ""),
+        "xml": xml_envi,
+        "data": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    })
+    nfce_data["nfce"] = notas
+    save_json(nfce_path, nfce_data)
+    return {"resultado": resultado, "numero": numero, "serie": serie, "chave": resultado.get("chave", "")}
+
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -591,6 +711,94 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not pedido:
                 return self._json({"status": "error", "message": "Pedido não encontrado"}, 404)
             action = (body.get("action") or "").strip().lower()
+
+            if action == "finalizar":
+                cur = str(pedido.get("state") or "aguardando").lower()
+                if cur == "pago":
+                    return self._json({
+                        "status": "ok",
+                        "pedido": pedido,
+                        "nfce": pedido.get("nfce"),
+                        "message": "Pedido já estava pago",
+                    })
+                if cur == "cancelado":
+                    return self._json({"status": "error", "message": "Pedido cancelado"}, 400)
+
+                forma_pg = (body.get("forma_pg") or pedido.get("forma_pg") or "Dinheiro").strip()
+                emitir = body.get("emitir_nfce", True)
+                if isinstance(emitir, str):
+                    emitir = emitir.lower() not in ("0", "false", "nao", "não", "no")
+
+                pedido["state"] = "pagamento"
+                pedido["forma_pg"] = forma_pg
+                pedido["caixaUser"] = user.get("nome") or user.get("usuario") or ""
+                pedido["updatedAt"] = datetime.now().isoformat(timespec="seconds")
+
+                venda = _pedido_para_venda(pedido, forma_pg)
+                vendas_path = os.path.join(BASE_DIR, "dados", "vendas.json")
+                vendas_data = load_json(vendas_path)
+                if not isinstance(vendas_data, dict):
+                    vendas_data = {"vendas": [], "total_vendas": 0}
+                lista_v = vendas_data.get("vendas") or []
+                # id numérico sequencial para compat com tela NFC-e
+                try:
+                    next_vid = max([int(v.get("id") or 0) for v in lista_v] or [0]) + 1
+                except Exception:
+                    next_vid = len(lista_v) + 1
+                venda["id"] = next_vid
+                lista_v.append(venda)
+                vendas_data["vendas"] = lista_v
+                vendas_data["total_vendas"] = len(lista_v)
+                save_json(vendas_path, vendas_data)
+                pedido["venda_id"] = next_vid
+
+                nfce_out = None
+                aviso = ""
+                if emitir:
+                    empresa = load_empresa_fiscal()
+                    csc = str(empresa.get("csc") or "").strip()
+                    if not csc or "ALTERAR" in csc.upper() or csc == "HOMOLOGACAO-CSC-ALTERAR":
+                        aviso = "CSC de homologação/produção não configurado em dados/empresa.json (campo csc)."
+                    cert_id = _resolve_cert_id(empresa, body.get("cert_id", ""))
+                    cert_senha = body.get("cert_senha") or empresa.get("cert_senha") or ""
+                    ambiente = int(body.get("ambiente", empresa.get("ambiente", 2) or 2))
+                    serie = int(body.get("serie", 1) or 1)
+                    if not cert_id:
+                        aviso = (aviso + " " if aviso else "") + "Nenhum certificado válido no índice."
+                    elif not cert_senha:
+                        aviso = (aviso + " " if aviso else "") + "Senha do certificado ausente."
+                    else:
+                        try:
+                            nfce_out = _autorizar_nfce_de_venda(
+                                venda, empresa, cert_id, cert_senha, ambiente=ambiente, serie=serie
+                            )
+                            pedido["nfce"] = {
+                                "numero": nfce_out.get("numero"),
+                                "serie": nfce_out.get("serie"),
+                                "chave": nfce_out.get("chave"),
+                                "cStat": (nfce_out.get("resultado") or {}).get("cStat"),
+                                "xMotivo": (nfce_out.get("resultado") or {}).get("xMotivo"),
+                                "status": (nfce_out.get("resultado") or {}).get("status"),
+                                "protocolo": (nfce_out.get("resultado") or {}).get(
+                                    "nProt", (nfce_out.get("resultado") or {}).get("protocolo", "")
+                                ),
+                                "ambiente": ambiente,
+                            }
+                        except Exception as e:
+                            aviso = (aviso + " " if aviso else "") + f"Falha NFC-e: {e}"
+                            pedido["nfce"] = {"status": "ERRO", "xMotivo": str(e)}
+
+                pedido["state"] = "pago"
+                pedido["updatedAt"] = datetime.now().isoformat(timespec="seconds")
+                save_pos_fila(fila)
+                return self._json({
+                    "status": "ok",
+                    "pedido": pedido,
+                    "venda_id": next_vid,
+                    "nfce": nfce_out,
+                    "aviso": aviso.strip(),
+                })
+
             if action != "status":
                 return self._json({"status": "error", "message": "Ação inválida"}, 400)
             new_state = str(body.get("state") or "").strip().lower()
