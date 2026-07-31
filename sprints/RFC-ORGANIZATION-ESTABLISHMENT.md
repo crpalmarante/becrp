@@ -173,6 +173,33 @@ Lista + cadastro **estrutural** (não fiscal profundo):
 | Tabelas INSS/IRRF, cargos | **Folha / RH** |
 | `available_at` no produto | **Cadastro / Produtos** (não Gerais) |
 
+### Controles de UI em Gerais
+
+É tela de formulário admin — não dashboard. Controles típicos:
+
+| Tipo de controle | Onde usa |
+|------------------|----------|
+| **Texto** | Nome, razão social, e-mail, código da filial, endereço |
+| **Caixa de seleção (select)** | Perfil, idioma, fuso, tema, moeda, matriz/filial, página inicial, UF |
+| **País** (select ou lookup) | País da org / estabelecimento (default BR) |
+| **Senha** (password + confirmar) | Nova senha de usuário; nunca mostrar senha salva |
+| **Toggle / checkbox** | Módulo ligado, estabelecimento ativo, política “exigir troca de senha” |
+| **Número** | Timeout (min), tentativas de login, tamanho mín. senha |
+| **Upload** | Logo |
+| **Lista + botão Novo/Editar** | Estabelecimentos, usuários (abre formulário no contexto ou painel) |
+| **Máscara** | CNPJ, telefone, CEP |
+
+Exemplos concretos na 1ª visão:
+
+- **País** → select (Brasil…)  
+- **UF / Município** → selects encadeados (após país = BR)  
+- **Idioma / Fuso / Tema / Moeda** → selects  
+- **Perfil do usuário** → select (Admin, Vendedor, Caixa, Gerente)  
+- **Senha** → campos password ao criar/resetar usuário  
+- **Módulos instalados** → checkboxes ou toggles  
+
+Senhas de certificado A1 / CSC **não** ficam em Gerais → módulo **Fiscal**.
+
 ---
 
 ### Sequência (exato)
