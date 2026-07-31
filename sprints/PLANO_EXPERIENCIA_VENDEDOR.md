@@ -443,7 +443,7 @@ Ainda fora:
 
 Próximo natural:
 
-1. Fechar modelo Organização/Estabelecimento no código (`RFC-ORGANIZATION-ESTABLISHMENT.md`) — terminal × pessoa e vendedor↔PDV 1:1 já decididos; falta preço local e modelo de login do gerente/caixa.
+1. Fechar modelo Organização/Estabelecimento no código (`RFC-ORGANIZATION-ESTABLISHMENT.md`) — inclui Admin wizard PDV/Caixa (§2.2); falta preço local, login gerente/caixa e amarra de device.
 2. Ajustar CSC/IE/UF do emitente e validar autorização SEFAZ de ponta a ponta (recurso externo).
 3. Promise Engine / multi-filial quando inventário por filial estiver pronto.
 4. Balança física no lugar do mock.

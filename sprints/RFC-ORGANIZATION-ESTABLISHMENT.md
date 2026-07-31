@@ -57,6 +57,117 @@ Ao **criar** um terminal PDV (ou Caixa), ele já nasce:
 
 ---
 
+## 2.2 Admin: criar PDVs, Caixas e configs genéricas (decisão travada)
+
+Só o **Administrador do sistema** (papel na Organização) cria, edita, desativa e reatribui terminais.  
+Vendedor, Caixa operacional e Gerente de loja **não** cadastram PDV/Caixa nem alteram configs genéricas.
+
+> Simple: um lugar só — **Admin → Estabelecimento → Terminais**. Nada disso vive dentro da tela de venda.
+
+### Onde fica
+
+| Área | Quem | O quê |
+|------|------|--------|
+| **Admin (BRE / Config)** | Administrador | Criar PDV/Caixa, vínculo pessoa, configs genéricas, ativar/desativar |
+| **Estabelecimento (Fiscal)** | Administrador | CNPJ, IE, certificado, CSC, série/número NFC-e (não é campo do terminal) |
+| **PDV / Caixa (operação)** | Vendedor / Caixa / Gerente | Vender, fila, pagar, abrir/fechar sessão — **sem** tela de cadastro de terminal |
+
+### Pré-requisitos para criar um terminal
+
+1. Organização ativa  
+2. Estabelecimento ativo (matriz/filial)  
+3. Usuário destino já cadastrado (vendedor **ou** gerente/caixa)  
+4. (Recomendado) fiscal mínimo do estabelecimento preenchido — senão o Caixa avisa na hora de emitir NFC-e, mas o terminal pode existir
+
+### Fluxo de criação (wizard Admin)
+
+```
+1. Tipo          → PDV | Caixa
+2. Estabelecimento → matriz/filial (fixo após salvar)
+3. Identidade    → código (único na org), nome amigável
+4. Vínculo       → usuário
+                 · se PDV + Vendedor → 1:1 obrigatório
+                 · se Caixa/Gerente  → visão ampla no estabelecimento
+5. Configs genéricas (abaixo)
+6. Status        → Ativo | Inativo
+```
+
+Criar = identidade + estabelecimento + vínculo + configs. Não há “terminal órfão” sem vínculo.
+
+### Configurações genéricas (só Admin)
+
+Aplicam a qualquer varejo; não dependem de CNAE nem de “modo de loja”.
+
+#### Comuns (PDV e Caixa)
+
+| Config | Notas |
+|--------|--------|
+| Código / nome | Ex.: `PDV-01`, “Balcão frente” |
+| Estabelecimento | Imutável no dia a dia; mudança = admin |
+| Usuário titular | Reatribuição = admin (cobertura) |
+| Ativo / Inativo | Inativo não autentica naquele ponto |
+| Fuso / idioma UI | Default da org; override opcional |
+| Modo treino permitido | Sim/não (treino não grava fila/NFC-e reais) |
+| Timeout de sessão / bloqueio | Minutos de ociosidade |
+| Impressora padrão | Nome/fila do SO ou “sem impressora” |
+| Estação / device id | Opcional: amarrar browser/dispositivo ao terminal |
+
+#### Só PDV
+
+| Config | Notas |
+|--------|--------|
+| Balança | Nenhuma / mock / driver (quando houver) |
+| Leitor código de barras | Padrão teclado-wedge; flag se usa |
+| Caixa(s) destino da fila | Default: todos os caixas ativos do estabelecimento; opcional restringir |
+| Capacidade local | Ex.: permitir serviço / KG — espelha mix; não recria “modo loja” |
+
+#### Só Caixa
+
+| Config | Notas |
+|--------|--------|
+| Emite NFC-e | Sim/não (loja pode ter caixa só recebimento + outro fiscal) |
+| Ambiente fiscal default | Homologação / Produção (herda estabelecimento; override admin) |
+| Gaveta / PIN pad | Opcional |
+| Limite sangria / alerta | Thresholds operacionais |
+| PDVs que alimentam a fila | Default: todos do estabelecimento |
+
+### O que **não** é config de terminal
+
+Fica no **estabelecimento** (ainda só Admin), não no wizard do PDV:
+
+- CNPJ, IE, endereço, CNAE  
+- Certificado A1/A3, senha, CSC, idToken  
+- Série e numeração NFC-e  
+- Regime tributário  
+
+PDV/Caixa **consomem** esses dados; nunca editam.
+
+### O que Gerente/Caixa **podem** fazer (operação, não cadastro)
+
+- Abrir / fechar sessão de caixa  
+- Suprimento / sangria  
+- Ver todos os PDVs/Caixas do estabelecimento  
+- Reatribuir pedido na fila (se política permitir)  
+
+**Não** podem: criar terminal, mudar vínculo titular, alterar impressora/balança/CSC.
+
+### Modelo mental de tela Admin
+
+```
+Organização
+ └─ Estabelecimentos
+     └─ [Filial Centro]
+         ├─ Fiscal (CNPJ, cert, CSC, série)
+         └─ Terminais
+             ├─ + Novo PDV
+             ├─ + Novo Caixa
+             ├─ PDV-01 → Ana (Vendedor) · Ativo
+             ├─ PDV-02 → Bruno (Vendedor) · Ativo
+             └─ CX-01  → Carla (Caixa) · Ativo · vê todos
+```
+
+---
+
 ## 3. Catálogo (decisão travada)
 
 - Catálogo é **único na organização**.
@@ -94,10 +205,11 @@ Sem quebrar o catálogo único, a filial pode ter overlays:
 | Catálogo mestre + `available_at` | Organização |
 | CNPJ, IE, endereço, CNAE | Estabelecimento |
 | Certificado A1/A3, CSC, série/número NFC-e | Estabelecimento |
-| Estoque, PDVs, Caixas | Estabelecimento |
-| Preferências de terminal | Terminal / estabelecimento |
+| Estoque | Estabelecimento |
+| PDVs, Caixas, configs genéricas, vínculos | Estabelecimento · **só Administrador** (ver §2.2) |
+| Abrir/fechar sessão, fila, pagamento | Terminal · operação (Caixa/Gerente/Vendedor) |
 
-PDV **não** edita CSC/certificado.
+PDV **não** edita CSC/certificado nem cadastro de terminal.
 
 ---
 
@@ -117,7 +229,8 @@ PDV **não** edita CSC/certificado.
 
 1. Preço: lista única da org com override local, ou só local.  
 2. Numeração NFC-e: sempre por estabelecimento (provável sim).  
-3. Gerente/Caixa: um terminal “hub” vs login com papel elevado em qualquer estação do estabelecimento.
+3. Gerente/Caixa no login: terminal **Caixa/hub** próprio vs papel elevado em qualquer estação do estabelecimento.  
+4. Amarrar `device id` ao terminal (1 browser/máquina) ou permitir o titular logar em qualquer máquina com o código do terminal?
 
 ---
 
@@ -142,3 +255,4 @@ Preço/estoque exibidos = da filial `E`.
 | 31/07/2026 | Decisões: catálogo único; `available_at` multi-select; vazio = todas; fiscal no estabelecimento. |
 | 31/07/2026 | Terminal criado já vinculado a vendedor (1 PDV) ou gerente/caixa (visão de todos PDVs/Caixas); sem troca de filial no fluxo. |
 | 31/07/2026 | Relação vendedor ↔ PDV travada em **1:1**. |
+| 31/07/2026 | Admin-only: wizard criar PDV/Caixa + configs genéricas; fiscal no estabelecimento; operação sem cadastro de terminal. |
