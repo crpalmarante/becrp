@@ -396,6 +396,29 @@
          ${ver.completed_at ? " · fim " + ver.completed_at : ""}</p>`
       : "";
 
+    const pl = r.partner_lookup || null;
+    let partnerHtml = "";
+    if (r.fornecedor_id) {
+      partnerHtml = `<p class="rcv-nfe-meta">Fornecedor BP: <strong>${r.fornecedor_id}</strong>
+        ${r.fornecedor_nome || ""} · CNPJ ${r.fornecedor_cnpj || "—"}
+        ${pl && pl.match ? ` · match=${pl.match}` : ""}</p>`;
+    } else if (pl && pl.status === "multiple") {
+      const opts = (pl.partners || []).map((p) =>
+        `<button type="button" class="dialog-btn dialog-btn-secondary btn-partner" data-pid="${p.id}">${p.id} · ${p.display_name || p.legal_name || ""}</button>`
+      ).join(" ");
+      partnerHtml = `<div class="rcv-nfe-meta"><span class="rcv-unmatched">Vários parceiros para o CNPJ</span>
+        <div class="rcv-suggest" style="margin-top:6px">${opts}</div></div>`;
+    } else if (canEditQty) {
+      partnerHtml = `<div class="rcv-scan">
+        <span class="rcv-unmatched">Fornecedor não localizado</span>
+        <input class="form-input" id="partner-q" placeholder="buscar fornecedor (nome/CNPJ)" autocomplete="off">
+        <button class="dialog-btn dialog-btn-secondary" id="btn-resolve-partner">Lookup CNPJ</button>
+        <div class="rcv-suggest" id="partner-suggest"></div>
+      </div>`;
+    } else if (pl && pl.status === "not_found") {
+      partnerHtml = `<p class="rcv-unmatched">Fornecedor não cadastrado (CNPJ ${r.fornecedor_cnpj || "—"})</p>`;
+    }
+
     const scanHtml = canEditQty && !unmatched
       ? `<div class="rcv-scan">
            <label>Bip / EAN</label>
@@ -425,6 +448,7 @@
         origem=${r.origem || "—"} ·
         <span class="rcv-badge st-${r.status}">${STATUS_LABEL[r.status] || r.status}</span></p>
       ${nfeHtml}
+      ${partnerHtml}
       ${verHtml}
       ${r.nota ? `<p>${r.nota}</p>` : ""}
       ${scanHtml}
@@ -436,6 +460,56 @@
       </table>
       ${inv}
       <div class="rcv-actions">${actions}</div>`;
+
+    async function doLinkPartner(pid) {
+      if (!pid) return msg("informe parceiro");
+      const res = await AuthService.api("/api/receiving/" + id + "/link-partner", {
+        method: "POST",
+        body: JSON.stringify({ partner_id: String(pid) }),
+      });
+      if (res.status !== "ok") return msg(res.message || "Falha ao vincular fornecedor");
+      msg("Fornecedor vinculado.", true);
+      await loadList();
+      openDetail(id);
+    }
+    box.querySelectorAll(".btn-partner").forEach((btn) => {
+      btn.onclick = () => doLinkPartner(btn.dataset.pid);
+    });
+    const resolveBtn = document.getElementById("btn-resolve-partner");
+    if (resolveBtn) {
+      resolveBtn.onclick = async () => {
+        const res = await AuthService.api("/api/receiving/" + id + "/resolve-partner", {
+          method: "POST",
+          body: "{}",
+        });
+        if (res.status !== "ok") return msg(res.message || "Lookup falhou");
+        const st = (res.receiving.partner_lookup || {}).status;
+        msg(st === "found" ? "Fornecedor localizado." : "Lookup: " + (st || "—"), st === "found");
+        await loadList();
+        openDetail(id);
+      };
+    }
+    const pq = document.getElementById("partner-q");
+    if (pq) {
+      let t = null;
+      pq.addEventListener("input", () => {
+        clearTimeout(t);
+        t = setTimeout(async () => {
+          const q = pq.value.trim();
+          const wrap = document.getElementById("partner-suggest");
+          if (!wrap) return;
+          if (q.length < 2) { wrap.innerHTML = ""; return; }
+          const res = await AuthService.api("/api/partners/search?role=SUPPLIER&q=" + encodeURIComponent(q));
+          if (res.status !== "ok") return;
+          wrap.innerHTML = (res.partners || []).map((p) =>
+            `<button type="button" class="dialog-btn dialog-btn-secondary btn-partner" data-pid="${p.id}">${p.id} · ${p.display_name || ""} · ${p.cnpj || ""}</button>`
+          ).join("") || "<span class='mode-note'>nenhum</span>";
+          wrap.querySelectorAll(".btn-partner").forEach((btn) => {
+            btn.onclick = () => doLinkPartner(btn.dataset.pid);
+          });
+        }, 220);
+      });
+    }
 
     async function doLink(idx, pid, nome) {
       if (!pid) return msg("informe produto para vincular");

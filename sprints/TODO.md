@@ -46,7 +46,8 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
   ✅ **RFC-4004 MVP:** `product_localization.py` · vínculo fornecedor×produto · busca UI · match `supplier_ref`/`ean`/`codigo`  
   ✅ **RFC-4008 MVP:** conferência física com Δ/avaria/notas · bip EAN · reabrir · `verification` no receiving  
   ✅ **RFC-4003 MVP:** `nfe_monitor.py` · inbox `data/nfe_inbox/` · fila UI · process → receiving  
-  (fila 4007 / RFID = depois; próximo: 4005 parceiro)
+  ✅ **RFC-4005 MVP:** `partner_lookup.py` · CNPJ→fornecedor · link manual · sem criar cadastro  
+  (fila 4007 = depois)
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
 ---
@@ -127,6 +128,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 10. ~~Localização de produtos (RFC-4004)~~ ✅ (`product_localization.py` · refs · product-search)  
 11. ~~Conferência física (RFC-4008)~~ ✅ (verify/scan/reopen · qty boa vs avaria · inventário só no complete)  
 12. ~~Monitor XML (RFC-4003)~~ ✅ (`nfe_monitor.py` · inbox · `/api/nfe-monitor`)  
+13. ~~Business Partner Lookup (RFC-4005)~~ ✅ (`partner_lookup.py` · `/api/partners/lookup`)  
 
 ---
 

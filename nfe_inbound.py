@@ -341,6 +341,7 @@ def create_receiving_from_nfe(xml_text_or_bytes, *, estabelecimento_id=None, use
         "origem": "nfe",
         "fornecedor_nome": parsed.get("fornecedor_nome") or "",
         "fornecedor_cnpj": parsed.get("fornecedor_cnpj") or "",
+        "fornecedor_id": None,
         "documento_ref": parsed["chave"],
         "nota": f"NF-e {parsed.get('numero')}/{parsed.get('serie')} · {parsed.get('emissao')}",
         "items": items,
@@ -360,5 +361,35 @@ def create_receiving_from_nfe(xml_text_or_bytes, *, estabelecimento_id=None, use
             "itens_sem_match": pending,
         },
     }
+
+    # RFC-4005: localiza fornecedor (não cria)
+    try:
+        import partner_lookup
+        pl = partner_lookup.lookup(
+            cnpj=parsed.get("fornecedor_cnpj"),
+            role="SUPPLIER",
+            module="receiving.nfe",
+        )
+        payload["partner_lookup"] = {
+            "status": pl.get("status"),
+            "match": pl.get("match"),
+            "criteria": pl.get("criteria"),
+            "partners": pl.get("partners") or [],
+        }
+        if pl.get("status") == "found" and pl.get("partner"):
+            payload["fornecedor_id"] = pl["partner"]["id"]
+            payload["fornecedor_nome"] = (
+                pl["partner"].get("display_name")
+                or pl["partner"].get("legal_name")
+                or payload["fornecedor_nome"]
+            )
+            payload["partner_lookup"]["partner"] = pl["partner"]
+        elif pl.get("status") == "multiple":
+            payload["partner_lookup"]["partner"] = None
+        else:
+            payload["partner_lookup"]["partner"] = None
+    except Exception as e:
+        payload["partner_lookup"] = {"status": "error", "error": str(e)}
+
     rec = receiving_mvp.create_receiving(payload, user_id=user_id)
     return rec

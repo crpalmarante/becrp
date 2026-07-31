@@ -1,0 +1,37 @@
+{
+  "entries": [
+    {
+      "at": "2026-07-31T15:07:12",
+      "module": "smoke",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-07-31T15:07:12",
+      "module": "generic",
+      "criteria": {
+        "cnpj": "00000000000000",
+        "role": "SUPPLIER"
+      },
+      "result": "not_found",
+      "partner_id": null,
+      "count": 0
+    },
+    {
+      "at": "2026-07-31T15:07:12",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    }
+  ]
+}

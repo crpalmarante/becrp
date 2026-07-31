@@ -1,5 +1,5 @@
 {
-  "next_id": 8,
+  "next_id": 9,
   "receivings": [
     {
       "id": 1,
@@ -686,6 +686,121 @@
       "events": [
         {
           "at": "2026-07-31T15:02:33",
+          "tipo": "created",
+          "by": "smoke",
+          "origem": "nfe"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "status": "draft",
+      "origem": "nfe",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "Dist Demo",
+      "fornecedor_id": "bp004",
+      "fornecedor_cnpj": "11222333000181",
+      "documento_ref": "43260762832155000141550010000003331234567897",
+      "nota": "NF-e 333/1 · 2026-07-30T10:00:00-03:00",
+      "items": [
+        {
+          "produto_id": "1",
+          "produto_nome": "Arroz 5kg",
+          "qty_expected": 10,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "1",
+            "codigo_fornecedor": "ARR001",
+            "ean": "7891234560018",
+            "descricao": "Arroz 5kg",
+            "ncm": "10063021",
+            "qty_xml": 10.0,
+            "preco_unit": 32.9
+          }
+        },
+        {
+          "produto_id": "4",
+          "produto_nome": "Acucar 2kg",
+          "qty_expected": 5,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "2",
+            "codigo_fornecedor": "ACU002",
+            "ean": "7891234560049",
+            "descricao": "Acucar 2kg",
+            "ncm": "17019900",
+            "qty_xml": 5.0,
+            "preco_unit": 8.5
+          }
+        },
+        {
+          "produto_id": "7",
+          "produto_nome": "Paozinho",
+          "qty_expected": 2,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "supplier_ref",
+          "nfe_item": {
+            "n_item": "3",
+            "codigo_fornecedor": "XYZ999",
+            "ean": "",
+            "descricao": "Produto Novo Sem Cadastro",
+            "ncm": "21069090",
+            "qty_xml": 2.0,
+            "preco_unit": 15.0
+          }
+        }
+      ],
+      "nfe": {
+        "chave": "43260762832155000141550010000003331234567897",
+        "modelo": "55",
+        "numero": "333",
+        "serie": "1",
+        "emissao": "2026-07-30T10:00:00-03:00",
+        "valor_total": 401.5,
+        "destinatario_cnpj": "62832155000141",
+        "fornecedor_cnpj": "11222333000181",
+        "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000003331234567897.xml",
+        "xml_sha256": "69ea33f7240504168e4cee2d514cae2d26beddc05a06d6be39137df08d004291",
+        "resolve_estabelecimento": "ok",
+        "itens_sem_match": 0
+      },
+      "partner_lookup": {
+        "status": "found",
+        "match": "cnpj",
+        "criteria": {
+          "cnpj": "11222333000181",
+          "role": "SUPPLIER"
+        },
+        "partners": [],
+        "partner": {
+          "id": "bp004",
+          "partner_code": "BP000000004",
+          "display_name": "Dist Demo",
+          "legal_name": "DISTRIBUIDORA DEMO LTDA",
+          "trade_name": "Dist Demo",
+          "roles": [
+            "SUPPLIER"
+          ],
+          "cnpj": "11222333000181",
+          "cpf": "",
+          "status": "ACTIVE"
+        }
+      },
+      "created_at": "2026-07-31T15:07:12",
+      "created_by": "smoke",
+      "verified_at": null,
+      "verified_by": null,
+      "completed_at": null,
+      "completed_by": null,
+      "inventory": null,
+      "events": [
+        {
+          "at": "2026-07-31T15:07:12",
           "tipo": "created",
           "by": "smoke",
           "origem": "nfe"

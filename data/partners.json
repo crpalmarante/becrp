@@ -241,5 +241,37 @@
         "preferred": true
       }
     ]
+  },
+  "bp004": {
+    "partner_code": "BP000000004",
+    "person_type": "COMPANY",
+    "display_name": "Dist Demo",
+    "legal_name": "DISTRIBUIDORA DEMO LTDA",
+    "trade_name": "Dist Demo",
+    "status": "ACTIVE",
+    "roles": ["SUPPLIER"],
+    "documents": [
+      { "id": "d1", "document_type": "CNPJ", "document_number": "11.222.333/0001-81" },
+      { "id": "d2", "document_type": "IE", "document_number": "1234567890" }
+    ],
+    "addresses": [
+      {
+        "id": "a1",
+        "address_type": "HEADQUARTERS",
+        "zip_code": "99010-000",
+        "street": "Rua Fornecedor",
+        "number": "100",
+        "district": "Centro",
+        "city": "Passo Fundo",
+        "state": "RS",
+        "country": "BR",
+        "preferred": true
+      }
+    ],
+    "contacts": [],
+    "regime": "RN",
+    "contribuinte_icms": "1",
+    "observacao": "Fornecedor demo NF-e inbound (CNPJ do XML sample)",
+    "ativo": true
   }
 }

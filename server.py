@@ -15,6 +15,7 @@ import receiving_mvp
 import nfe_inbound
 import nfe_monitor
 import product_localization
+import partner_lookup
 import pos_caixa
 import org_store
 from modules.certificate import cert_service
@@ -825,6 +826,36 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             ]
             return self._json({"status": "ok", "itens": itens})
 
+        if parsed.path == "/api/partners/lookup":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            result = partner_lookup.lookup(
+                cnpj=(qs.get("cnpj") or [""])[0],
+                cpf=(qs.get("cpf") or [""])[0],
+                partner_code=(qs.get("partner_code") or [""])[0],
+                external_ref=(qs.get("external_ref") or [""])[0],
+                partner_id=(qs.get("id") or qs.get("partner_id") or [""])[0],
+                role=(qs.get("role") or ["SUPPLIER"])[0] or None,
+                module=(qs.get("module") or ["api"])[0],
+            )
+            return self._json({"status": "ok", **result})
+
+        if parsed.path == "/api/partners/search":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            q = (qs.get("q") or [""])[0].strip()
+            role = (qs.get("role") or ["SUPPLIER"])[0] or None
+            try:
+                limit = int((qs.get("limit") or ["20"])[0])
+            except ValueError:
+                limit = 20
+            rows = partner_lookup.search(q, role=role, limit=limit)
+            return self._json({"status": "ok", "partners": rows, "total": len(rows)})
+
         if parsed.path == "/api/nfe-monitor":
             token = self.headers.get("X-Auth-Token", "")
             if not self._find_user(token, load_users()):
@@ -891,6 +922,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if rid in (
                 "verify", "complete", "cancel", "product-search", "product-refs",
                 "from-xml", "link-product", "scan", "start-verify", "reopen-verify",
+                "link-partner", "resolve-partner",
             ):
                 return self._json({"status": "error", "message": "id obrigatório"}, 400)
             rec = receiving_mvp.get_receiving(rid)
@@ -1461,6 +1493,16 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         user_id=uid,
                         remember=remember,
                     )
+                    return self._json({"status": "ok", "receiving": rec})
+                if action == "link-partner":
+                    rec = receiving_mvp.link_partner(
+                        rid,
+                        body.get("partner_id") or body.get("fornecedor_id") or body.get("id"),
+                        user_id=uid,
+                    )
+                    return self._json({"status": "ok", "receiving": rec})
+                if action == "resolve-partner":
+                    rec = receiving_mvp.resolve_partner_on_receiving(rid, user_id=uid)
                     return self._json({"status": "ok", "receiving": rec})
                 return self._json({"status": "error", "message": f"ação desconhecida: {action}"}, 400)
             except ValueError as e:

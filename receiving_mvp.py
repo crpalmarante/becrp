@@ -147,6 +147,7 @@ def create_receiving(payload, user_id=None):
         "nota": (body.get("nota") or body.get("notes") or "").strip(),
         "items": items,
         "nfe": body.get("nfe") if isinstance(body.get("nfe"), dict) else None,
+        "partner_lookup": body.get("partner_lookup") if isinstance(body.get("partner_lookup"), dict) else None,
         "created_at": _now(),
         "created_by": user_id,
         "verified_at": None,
@@ -224,6 +225,94 @@ def link_item_product(rid, item_index, produto_id, produto_nome=None, user_id=No
     if ref:
         event["ref_id"] = ref.get("id")
     rec.setdefault("events", []).append(event)
+    _save(data)
+    return rec
+
+
+def link_partner(rid, partner_id, user_id=None):
+    """
+    Vincula manualmente um Business Partner ao recebimento (RFC-4005).
+    Não cria parceiro — só associa id existente.
+    """
+    import partner_lookup
+
+    data = _load()
+    rec = None
+    for r in data.get("receivings") or []:
+        if str(r.get("id")) == str(rid):
+            rec = r
+            break
+    if not rec:
+        raise ValueError("recebimento não encontrado")
+    if rec.get("status") in ("completed", "cancelled"):
+        raise ValueError("não altera fornecedor neste status")
+
+    pid = str(partner_id or "").strip()
+    if not pid:
+        raise ValueError("partner_id obrigatório")
+
+    pl = partner_lookup.lookup(partner_id=pid, role="SUPPLIER", module="receiving.link", audit=True)
+    if pl.get("status") != "found":
+        pl = partner_lookup.lookup(partner_id=pid, module="receiving.link", audit=True)
+    if pl.get("status") != "found" or not pl.get("partner"):
+        raise ValueError(f"parceiro não encontrado: {pid}")
+
+    partner = pl["partner"]
+    rec["fornecedor_id"] = partner["id"]
+    rec["fornecedor_nome"] = (
+        partner.get("display_name") or partner.get("legal_name") or rec.get("fornecedor_nome") or ""
+    )
+    if partner.get("cnpj"):
+        rec["fornecedor_cnpj"] = partner["cnpj"]
+    rec["partner_lookup"] = {
+        "status": "found",
+        "match": "manual",
+        "partner": partner,
+        "criteria": {"partner_id": pid},
+    }
+    rec.setdefault("events", []).append({
+        "at": _now(),
+        "tipo": "partner_linked",
+        "by": user_id,
+        "partner_id": partner["id"],
+    })
+    _save(data)
+    return rec
+
+
+def resolve_partner_on_receiving(rid, user_id=None):
+    """Reexecuta lookup pelo CNPJ já gravado no receiving."""
+    import partner_lookup
+
+    data = _load()
+    rec = None
+    for r in data.get("receivings") or []:
+        if str(r.get("id")) == str(rid):
+            rec = r
+            break
+    if not rec:
+        raise ValueError("recebimento não encontrado")
+    cnpj = rec.get("fornecedor_cnpj") or ((rec.get("nfe") or {}).get("fornecedor_cnpj"))
+    pl = partner_lookup.lookup(cnpj=cnpj, role="SUPPLIER", module="receiving.resolve", audit=True)
+    rec["partner_lookup"] = {
+        "status": pl.get("status"),
+        "match": pl.get("match"),
+        "partner": pl.get("partner"),
+        "partners": pl.get("partners") or [],
+        "criteria": pl.get("criteria"),
+    }
+    if pl.get("status") == "found" and pl.get("partner"):
+        rec["fornecedor_id"] = pl["partner"]["id"]
+        rec["fornecedor_nome"] = (
+            pl["partner"].get("display_name")
+            or pl["partner"].get("legal_name")
+            or rec.get("fornecedor_nome")
+            or ""
+        )
+        rec.setdefault("events", []).append({
+            "at": _now(), "tipo": "partner_resolved", "by": user_id,
+            "partner_id": pl["partner"]["id"],
+        })
     _save(data)
     return rec
 
