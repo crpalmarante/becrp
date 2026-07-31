@@ -34,6 +34,10 @@
     .rcv-msg { margin:8px 0; font-size:14px; }
     .rcv-msg.err { color:#f87171; }
     .rcv-msg.ok { color:#4ade80; }
+    .rcv-unmatched { color:#fbbf24; font-size:12px; }
+    .rcv-nfe-meta { font-size:13px; opacity:.85; margin:8px 0; word-break:break-all; }
+    .rcv-link-row { display:flex; gap:6px; align-items:center; margin-top:4px; }
+    .rcv-link-row input { max-width:110px; }
   </style>
 </head>
 <body>
@@ -74,6 +78,9 @@
         <span class="topbar-title">Recebimento</span>
       </div>
       <div class="topbar-user" style="margin-left:auto">
+        <button class="topbar-icon-btn" id="btn-xml" title="Importar NF-e XML">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-upload"/></svg>
+        </button>
         <button class="topbar-icon-btn" id="btn-new" title="Novo recebimento">
           <svg class="icon"><use href="../assets/images/icons.svg#icon-plus"/></svg>
         </button>
@@ -98,6 +105,8 @@
               <option value="cancelled">Cancelado</option>
             </select>
             <button class="dialog-btn dialog-btn-secondary" id="btn-refresh">Atualizar</button>
+            <button class="dialog-btn dialog-btn-primary" id="btn-xml-bar">Importar XML</button>
+            <input type="file" id="xml-file" accept=".xml,text/xml,application/xml" style="display:none">
           </div>
           <div id="msg" class="rcv-msg"></div>
           <div id="list"></div>
@@ -137,6 +146,34 @@
     <div class="dialog-footer">
       <button class="dialog-btn dialog-btn-secondary" id="btn-cancel-modal">Cancelar</button>
       <button class="dialog-btn dialog-btn-primary" id="btn-save-new">Criar</button>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="xml-modal" style="display:none">
+  <div class="dialog-box" style="max-width:480px">
+    <div class="dialog-header">
+      <h3 class="dialog-title">Importar NF-e (XML)</h3>
+      <button class="dialog-close" id="btn-close-xml">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <p class="mode-note">Upload manual — parse fiscal cria rascunho de recebimento. Não move estoque.</p>
+      <div class="field">
+        <label>Estabelecimento (opcional — sobrescreve CNPJ dest.)</label>
+        <select class="form-input" id="xml-estab">
+          <option value="">Detectar pelo CNPJ</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Arquivo XML</label>
+        <input class="form-input" type="file" id="xml-file-modal" accept=".xml,text/xml,application/xml">
+      </div>
+      <div class="form-error" id="xml-error"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn dialog-btn-secondary" id="btn-xml-demo">Demo sample</button>
+      <button class="dialog-btn dialog-btn-secondary" id="btn-cancel-xml">Cancelar</button>
+      <button class="dialog-btn dialog-btn-primary" id="btn-import-xml">Importar</button>
     </div>
   </div>
 </div>
@@ -189,6 +226,8 @@
     document.getElementById("filter-estab").innerHTML =
       `<option value="">Todas lojas</option>` + opts;
     document.getElementById("new-estab").innerHTML = opts || `<option value="matriz">Matriz</option>`;
+    document.getElementById("xml-estab").innerHTML =
+      `<option value="">Detectar pelo CNPJ</option>` + opts;
   }
 
   async function loadList() {
@@ -241,20 +280,40 @@
     }
     const r = data.receiving;
     const loja = (empresas[r.estabelecimento_id] || {}).nome || r.estabelecimento_id;
-    const itemsHtml = (r.items || []).map((it, idx) => `
-      <tr>
-        <td>${it.produto_id} ${it.produto_nome ? "· " + it.produto_nome : ""}</td>
+    const nfe = r.nfe || null;
+    const unmatched = (r.items || []).filter((it) => !String(it.produto_id || "").trim()).length;
+
+    const itemsHtml = (r.items || []).map((it, idx) => {
+      const matched = String(it.produto_id || "").trim();
+      const ean = (it.nfe_item && it.nfe_item.ean) || "";
+      const label = matched
+        ? `${matched} ${it.produto_nome ? "· " + it.produto_nome : ""}`
+        : `<span class="rcv-unmatched">sem match</span> ${it.produto_nome || (it.nfe_item && it.nfe_item.descricao) || ""}`;
+      const linkUi = (!matched && (r.status === "draft" || r.status === "verified"))
+        ? `<div class="rcv-link-row">
+             <input class="form-input link-pid" data-idx="${idx}" placeholder="produto_id">
+             <button class="dialog-btn dialog-btn-secondary btn-link" data-idx="${idx}">Vincular</button>
+           </div>`
+        : "";
+      return `<tr>
+        <td>${label}${ean ? `<div style="opacity:.6;font-size:12px">EAN ${ean} · match=${it.match || "—"}</div>` : ""}${linkUi}</td>
         <td>${it.qty_expected}</td>
         <td>
           ${r.status === "draft" || r.status === "verified"
-            ? `<input class="form-input qty-ver" data-idx="${idx}" data-pid="${it.produto_id}" type="number" min="0" value="${it.qty_verified != null ? it.qty_verified : it.qty_expected}">`
+            ? `<input class="form-input qty-ver" data-idx="${idx}" data-pid="${matched}" type="number" min="0" value="${it.qty_verified != null ? it.qty_verified : it.qty_expected}">`
             : (it.qty_verified != null ? it.qty_verified : "—")}
         </td>
-      </tr>`).join("");
+      </tr>`;
+    }).join("");
 
     const inv = r.inventory
       ? `<p>Inventário: ${r.inventory.status} · movimentos ${(r.inventory.movement_ids || []).join(", ") || "—"}</p>`
       : "";
+
+    const nfeHtml = nfe
+      ? `<div class="rcv-nfe-meta">NF-e ${nfe.numero || "—"}/${nfe.serie || "—"} · chave ${nfe.chave || "—"}
+         ${unmatched ? ` · <span class="rcv-unmatched">${unmatched} item(ns) sem produto</span>` : ""}</div>`
+      : (unmatched ? `<p class="rcv-unmatched">${unmatched} item(ns) sem produto vinculado</p>` : "");
 
     let actions = "";
     if (r.status === "draft" || r.status === "verified") {
@@ -268,7 +327,9 @@
     box.innerHTML = `
       <h3>Recebimento #${r.id}</h3>
       <p>${loja} · ${r.fornecedor_nome || "sem fornecedor"} · ${r.documento_ref || "sem doc"} ·
+        origem=${r.origem || "—"} ·
         <span class="rcv-badge st-${r.status}">${STATUS_LABEL[r.status] || r.status}</span></p>
+      ${nfeHtml}
       ${r.nota ? `<p>${r.nota}</p>` : ""}
       <table class="rcv-table">
         <thead><tr><th>Produto</th><th>Esperado</th><th>Conferido</th></tr></thead>
@@ -277,8 +338,26 @@
       ${inv}
       <div class="rcv-actions">${actions}</div>`;
 
+    box.querySelectorAll(".btn-link").forEach((btn) => {
+      btn.onclick = async () => {
+        const idx = btn.dataset.idx;
+        const inp = box.querySelector(`.link-pid[data-idx="${idx}"]`);
+        const pid = (inp && inp.value || "").trim();
+        if (!pid) return msg("informe produto_id para vincular");
+        const res = await AuthService.api("/api/receiving/" + id + "/link-product", {
+          method: "POST",
+          body: JSON.stringify({ item_index: Number(idx), produto_id: pid }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha ao vincular");
+        msg("Produto vinculado.", true);
+        await loadList();
+        openDetail(id);
+      };
+    });
+
     const collectItems = () =>
       Array.from(box.querySelectorAll(".qty-ver")).map((inp) => ({
+        item_index: Number(inp.dataset.idx),
         produto_id: inp.dataset.pid,
         qty_verified: Number(inp.value || 0),
       }));
@@ -363,6 +442,63 @@
   document.getElementById("btn-refresh").onclick = () => { msg(""); loadList(); };
   document.getElementById("filter-estab").onchange = loadList;
   document.getElementById("filter-status").onchange = loadList;
+
+  function openXmlModal() {
+    document.getElementById("xml-error").textContent = "";
+    document.getElementById("xml-file-modal").value = "";
+    document.getElementById("xml-modal").style.display = "flex";
+  }
+  function closeXmlModal() {
+    document.getElementById("xml-modal").style.display = "none";
+  }
+  document.getElementById("btn-xml").onclick = openXmlModal;
+  document.getElementById("btn-xml-bar").onclick = openXmlModal;
+  document.getElementById("btn-close-xml").onclick = closeXmlModal;
+  document.getElementById("btn-cancel-xml").onclick = closeXmlModal;
+
+  async function importXmlPayload(body) {
+    const err = document.getElementById("xml-error");
+    err.textContent = "";
+    const res = await AuthService.api("/api/receiving/from-xml", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") {
+      err.textContent = res.message || "Falha ao importar";
+      msg(res.message || "Falha ao importar XML");
+      return null;
+    }
+    closeXmlModal();
+    const pending = (res.receiving.nfe && res.receiving.nfe.itens_sem_match) || 0;
+    msg(
+      "NF-e importada → recebimento #" + res.receiving.id +
+        (pending ? ` (${pending} item(ns) sem match)` : ""),
+      true
+    );
+    await loadList();
+    openDetail(res.receiving.id);
+    return res.receiving;
+  }
+
+  document.getElementById("btn-import-xml").onclick = async () => {
+    const file = document.getElementById("xml-file-modal").files[0];
+    if (!file) {
+      document.getElementById("xml-error").textContent = "Selecione um XML";
+      return;
+    }
+    const xml = await file.text();
+    const estab = document.getElementById("xml-estab").value;
+    const body = { xml };
+    if (estab) body.estabelecimento_id = estab;
+    await importXmlPayload(body);
+  };
+
+  document.getElementById("btn-xml-demo").onclick = async () => {
+    const estab = document.getElementById("xml-estab").value;
+    const body = { sample: "demo" };
+    if (estab) body.estabelecimento_id = estab;
+    await importXmlPayload(body);
+  };
 
   document.getElementById("btn-save-new").onclick = async () => {
     const err = document.getElementById("new-error");

@@ -1,5 +1,5 @@
 {
-  "next_id": 29,
+  "next_id": 32,
   "movements": [
     {
       "id": 1,
@@ -366,6 +366,45 @@
       "nota": "revert ajuste",
       "user_id": null,
       "sign": -1
+    },
+    {
+      "id": 29,
+      "tipo": "receive",
+      "estabelecimento_id": "matriz",
+      "produto_id": "1",
+      "qty": 10,
+      "at": "2026-07-31T12:44:02",
+      "ref_tipo": "receiving",
+      "ref_id": "3",
+      "group_id": null,
+      "nota": null,
+      "user_id": "test"
+    },
+    {
+      "id": 30,
+      "tipo": "receive",
+      "estabelecimento_id": "matriz",
+      "produto_id": "4",
+      "qty": 5,
+      "at": "2026-07-31T12:44:02",
+      "ref_tipo": "receiving",
+      "ref_id": "3",
+      "group_id": null,
+      "nota": null,
+      "user_id": "test"
+    },
+    {
+      "id": 31,
+      "tipo": "receive",
+      "estabelecimento_id": "matriz",
+      "produto_id": "5",
+      "qty": 2,
+      "at": "2026-07-31T12:44:02",
+      "ref_tipo": "receiving",
+      "ref_id": "3",
+      "group_id": null,
+      "nota": null,
+      "user_id": "test"
     }
   ]
 }

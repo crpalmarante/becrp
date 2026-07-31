@@ -41,7 +41,9 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - Receiving mais útil (XML/NF-e) — se entrada manual doer  
   **Decisão:** XML de entrada ≠ Inventário ≠ Faturamento.  
   Fluxo: `XML → Fiscal/Documentos (parse) → Receiving (conferência) → Inventory (receive)`.  
-  UI: Recebimento / Compras, não Estoque nem Faturamento.
+  UI: Recebimento / Compras, não Estoque nem Faturamento.  
+  ✅ **RFC-4002 MVP:** `nfe_inbound.py` · `POST /api/receiving/from-xml` · upload em `pages/recebimento.html`  
+  (match EAN/código; item sem match bloqueia conferência; Monitor/pasta = depois)
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
 ---
@@ -118,6 +120,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 6. ~~Inventário / Promise~~ ✅ (`estoque.json` + badges no POS)  
 7. ~~Inventário MVP~~ ✅ (`inventory_mvp.py` + ledger JSON)  
 8. ~~Receiving~~ ✅ ([`RFC-RECEIVING-MVP.md`](./RFC-RECEIVING-MVP.md) · `receiving_mvp.py` · `/pages/recebimento.html`)  
+9. ~~NF-e XML inbound (RFC-4002)~~ ✅ (`nfe_inbound.py` · `POST /api/receiving/from-xml` · link-product)  
 
 ---
 

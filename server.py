@@ -12,6 +12,7 @@ from datetime import datetime
 import cobol_bridge
 import inventory_mvp
 import receiving_mvp
+import nfe_inbound
 import pos_caixa
 import org_store
 from modules.certificate import cert_service
@@ -1229,6 +1230,29 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
             uid = next((k for k, u in users.items() if u.get("token") == token), None)
 
+            if parsed.path == "/api/receiving/from-xml":
+                try:
+                    xml_text = body.get("xml") or body.get("xml_text") or ""
+                    if body.get("xml_base64") and not xml_text:
+                        import base64
+                        xml_text = base64.b64decode(body["xml_base64"]).decode("utf-8", errors="replace")
+                    if not xml_text and body.get("sample") == "demo":
+                        sample = os.path.join(BASE_DIR, "data", "samples", "nfe-entrada-demo.xml")
+                        with open(sample, "r", encoding="utf-8") as f:
+                            xml_text = f.read()
+                    if not xml_text:
+                        return self._json({"status": "error", "message": "xml ou xml_base64 obrigatório"}, 400)
+                    rec = nfe_inbound.create_receiving_from_nfe(
+                        xml_text,
+                        estabelecimento_id=body.get("estabelecimento_id"),
+                        user_id=uid,
+                    )
+                    return self._json({"status": "ok", "receiving": rec}, 201)
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+                except Exception as e:
+                    return self._json({"status": "error", "message": f"falha ao importar XML: {e}"}, 500)
+
             if parsed.path == "/api/receiving":
                 try:
                     rec = receiving_mvp.create_receiving(body, user_id=uid)
@@ -1250,6 +1274,14 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     rec = receiving_mvp.complete_receiving(rid, user_id=uid, auto_verify=auto)
                 elif action == "cancel":
                     rec = receiving_mvp.cancel_receiving(rid, user_id=uid, motivo=body.get("motivo"))
+                elif action == "link-product":
+                    rec = receiving_mvp.link_item_product(
+                        rid,
+                        body.get("item_index"),
+                        body.get("produto_id") or body.get("id"),
+                        produto_nome=body.get("produto_nome") or body.get("nome"),
+                        user_id=uid,
+                    )
                 else:
                     return self._json({"status": "error", "message": f"ação desconhecida: {action}"}, 400)
                 return self._json({"status": "ok", "receiving": rec})
