@@ -13,6 +13,7 @@ import cobol_bridge
 import inventory_mvp
 import receiving_mvp
 import nfe_inbound
+import nfe_monitor
 import product_localization
 import pos_caixa
 import org_store
@@ -824,6 +825,32 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             ]
             return self._json({"status": "ok", "itens": itens})
 
+        if parsed.path == "/api/nfe-monitor":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            status = (qs.get("status") or [""])[0].strip() or None
+            try:
+                limit = int((qs.get("limit") or ["100"])[0])
+            except ValueError:
+                limit = 100
+            rows = nfe_monitor.list_documents(status=status, limit=limit)
+            return self._json({"status": "ok", "documents": rows, "total": len(rows)})
+
+        if parsed.path.startswith("/api/nfe-monitor/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            parts = parsed.path.rstrip("/").split("/")
+            # /api/nfe-monitor/{id}
+            if len(parts) == 4 and parts[3].isdigit():
+                doc = nfe_monitor.get_document(parts[3])
+                if not doc:
+                    return self._json({"status": "error", "message": "Documento não encontrado"}, 404)
+                return self._json({"status": "ok", "document": doc})
+            return self._json({"status": "error", "message": "Rota inválida"}, 400)
+
         if parsed.path == "/api/receiving":
             token = self.headers.get("X-Auth-Token", "")
             if not self._find_user(token, load_users()):
@@ -1268,16 +1295,114 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                             xml_text = f.read()
                     if not xml_text:
                         return self._json({"status": "error", "message": "xml ou xml_base64 obrigatório"}, 400)
-                    rec = nfe_inbound.create_receiving_from_nfe(
+                    # RFC-4003: passa pelo monitor (ingest + process)
+                    ing = nfe_monitor.ingest_xml(
                         xml_text,
+                        filename=body.get("filename") or "upload.xml",
+                        source="from-xml",
+                        user_id=uid,
+                    )
+                    doc = ing["document"]
+                    if ing.get("duplicate"):
+                        if doc.get("status") == "done" and doc.get("receiving_id"):
+                            rec = receiving_mvp.get_receiving(doc["receiving_id"])
+                            return self._json({
+                                "status": "error",
+                                "message": ing.get("message") or "XML duplicado no monitor",
+                                "document": doc,
+                                "receiving": rec,
+                            }, 400)
+                        if doc.get("status") == "new":
+                            pass  # process below
+                        else:
+                            return self._json({
+                                "status": "error",
+                                "message": ing.get("message") or "XML duplicado",
+                                "document": doc,
+                            }, 400)
+                    if doc.get("status") == "error":
+                        return self._json({
+                            "status": "error",
+                            "message": doc.get("error") or "XML rejeitado pelo monitor",
+                            "document": doc,
+                        }, 400)
+                    doc = nfe_monitor.process_document(
+                        doc["id"],
                         estabelecimento_id=body.get("estabelecimento_id"),
                         user_id=uid,
                     )
-                    return self._json({"status": "ok", "receiving": rec}, 201)
+                    rec = doc.pop("_receiving", None) or receiving_mvp.get_receiving(doc.get("receiving_id"))
+                    return self._json({"status": "ok", "receiving": rec, "document": doc}, 201)
                 except ValueError as e:
                     return self._json({"status": "error", "message": str(e)}, 400)
                 except Exception as e:
                     return self._json({"status": "error", "message": f"falha ao importar XML: {e}"}, 500)
+
+            # ── Monitor XML (RFC-4003) ──
+            if parsed.path == "/api/nfe-monitor/ingest":
+                try:
+                    xml_text = body.get("xml") or body.get("xml_text") or ""
+                    if body.get("xml_base64") and not xml_text:
+                        import base64
+                        xml_text = base64.b64decode(body["xml_base64"]).decode("utf-8", errors="replace")
+                    if not xml_text:
+                        return self._json({"status": "error", "message": "xml obrigatório"}, 400)
+                    out = nfe_monitor.ingest_xml(
+                        xml_text,
+                        filename=body.get("filename"),
+                        source=body.get("source") or "upload",
+                        user_id=uid,
+                    )
+                    code = 200 if out.get("duplicate") else 201
+                    return self._json({
+                        "status": "ok" if not out.get("duplicate") else "duplicate",
+                        "document": out["document"],
+                        "message": out.get("message"),
+                    }, code)
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+
+            if parsed.path == "/api/nfe-monitor/scan":
+                out = nfe_monitor.scan_inbox(user_id=uid)
+                return self._json({"status": "ok", **out})
+
+            if parsed.path == "/api/nfe-monitor/process-pending":
+                out = nfe_monitor.process_pending(
+                    estabelecimento_id=body.get("estabelecimento_id"),
+                    user_id=uid,
+                    limit=body.get("limit") or 20,
+                )
+                return self._json({"status": "ok", **out})
+
+            if parsed.path.startswith("/api/nfe-monitor/"):
+                parts = parsed.path.rstrip("/").split("/")
+                # /api/nfe-monitor/{id}/process|retry
+                if len(parts) >= 5 and parts[3].isdigit():
+                    doc_id = parts[3]
+                    action = parts[4]
+                    try:
+                        if action == "process":
+                            doc = nfe_monitor.process_document(
+                                doc_id,
+                                estabelecimento_id=body.get("estabelecimento_id"),
+                                user_id=uid,
+                            )
+                        elif action == "retry":
+                            doc = nfe_monitor.retry_document(
+                                doc_id,
+                                estabelecimento_id=body.get("estabelecimento_id"),
+                                user_id=uid,
+                            )
+                        else:
+                            return self._json({"status": "error", "message": f"ação desconhecida: {action}"}, 400)
+                        rec = doc.pop("_receiving", None)
+                        payload = {"status": "ok", "document": doc}
+                        if rec:
+                            payload["receiving"] = rec
+                        return self._json(payload)
+                    except ValueError as e:
+                        return self._json({"status": "error", "message": str(e)}, 400)
+                return self._json({"status": "error", "message": "Rota inválida"}, 400)
 
             if parsed.path == "/api/receiving":
                 try:

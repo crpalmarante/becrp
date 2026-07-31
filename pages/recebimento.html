@@ -49,6 +49,13 @@
     .res-verified { color:#4ade80; }
     .res-quantity_difference, .res-damaged { color:#fbbf24; }
     .res-missing, .res-rejected { color:#f87171; }
+    .mon-box { margin-bottom:20px; padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .mon-box h3 { margin:0 0 8px; font-size:15px; }
+    .st-new { background:#3b4a6b; }
+    .st-processing { background:#8a6d3b; }
+    .st-done { background:#2d6a4f; }
+    .st-error { background:#6c2b2b; }
+    .st-duplicate { background:#555; }
   </style>
 </head>
 <body>
@@ -120,6 +127,27 @@
             <input type="file" id="xml-file" accept=".xml,text/xml,application/xml" style="display:none">
           </div>
           <div id="msg" class="rcv-msg"></div>
+          <div class="mon-box" id="monitor-box">
+            <h3>Monitor XML (NF-e)</h3>
+            <div class="rcv-toolbar" style="margin-bottom:8px">
+              <select class="form-input" id="mon-filter-status">
+                <option value="">Todos</option>
+                <option value="new">Novos</option>
+                <option value="done">Processados</option>
+                <option value="error">Erro</option>
+                <option value="duplicate">Duplicados</option>
+              </select>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-mon-refresh">Atualizar fila</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-mon-scan">Scan pasta inbox</button>
+              <button class="dialog-btn dialog-btn-primary" id="btn-mon-process">Processar novos</button>
+              <label class="dialog-btn dialog-btn-secondary" style="cursor:pointer;margin:0">
+                Enfileirar XML
+                <input type="file" id="mon-file" accept=".xml,text/xml,application/xml" style="display:none" multiple>
+              </label>
+            </div>
+            <p class="mode-note">Pasta: <code>data/nfe_inbox/</code> — ingest não move estoque; processar cria rascunho de recebimento.</p>
+            <div id="mon-list"></div>
+          </div>
           <div id="list"></div>
           <div id="detail" class="rcv-detail" style="display:none"></div>
         </div>
@@ -637,7 +665,6 @@
   document.getElementById("btn-close-modal").onclick = closeModal;
   document.getElementById("btn-cancel-modal").onclick = closeModal;
   document.getElementById("btn-add-item").onclick = () => addItemRow("", 1);
-  document.getElementById("btn-refresh").onclick = () => { msg(""); loadList(); };
   document.getElementById("filter-estab").onchange = loadList;
   document.getElementById("filter-status").onchange = loadList;
 
@@ -727,8 +754,130 @@
     openDetail(res.receiving.id);
   };
 
+  const MON_STATUS = {
+    new: "Novo",
+    processing: "Processando",
+    done: "OK",
+    error: "Erro",
+    duplicate: "Duplicado",
+  };
+
+  async function loadMonitor() {
+    const st = document.getElementById("mon-filter-status").value;
+    const qs = st ? ("?status=" + encodeURIComponent(st)) : "";
+    const data = await AuthService.api("/api/nfe-monitor" + qs);
+    if (data.status !== "ok") {
+      document.getElementById("mon-list").innerHTML = "<p class='mode-note'>Falha ao carregar monitor.</p>";
+      return;
+    }
+    const rows = data.documents || [];
+    if (!rows.length) {
+      document.getElementById("mon-list").innerHTML = "<p class='mode-note'>Fila vazia.</p>";
+      return;
+    }
+    document.getElementById("mon-list").innerHTML = `
+      <table class="rcv-table">
+        <thead><tr>
+          <th>#</th><th>NF</th><th>Fornecedor</th><th>Chave</th><th>Status</th><th>Rcv</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rows.map((d) => {
+            const actions = [];
+            if (d.status === "new") {
+              actions.push(`<button class="dialog-btn dialog-btn-secondary mon-proc" data-id="${d.id}">Processar</button>`);
+            }
+            if (d.status === "error") {
+              actions.push(`<button class="dialog-btn dialog-btn-secondary mon-retry" data-id="${d.id}">Retry</button>`);
+            }
+            if (d.receiving_id) {
+              actions.push(`<button class="dialog-btn dialog-btn-secondary" data-open-rcv="${d.receiving_id}">Abrir</button>`);
+            }
+            return `<tr>
+              <td>${d.id}</td>
+              <td>${d.numero || "—"}/${d.serie || "—"}</td>
+              <td>${d.fornecedor_nome || d.fornecedor_cnpj || "—"}</td>
+              <td style="font-size:11px;max-width:160px;overflow:hidden;text-overflow:ellipsis">${d.chave || "—"}</td>
+              <td><span class="rcv-badge st-${d.status}">${MON_STATUS[d.status] || d.status}</span>
+                ${d.error ? `<div class="rcv-unmatched">${d.error}</div>` : ""}</td>
+              <td>${d.receiving_id || "—"}</td>
+              <td>${actions.join(" ")}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+    document.querySelectorAll(".mon-proc").forEach((btn) => {
+      btn.onclick = async () => {
+        const res = await AuthService.api("/api/nfe-monitor/" + btn.dataset.id + "/process", {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha ao processar");
+        msg("Monitor #" + btn.dataset.id + " → recebimento #" + (res.document && res.document.receiving_id), true);
+        await loadMonitor();
+        await loadList();
+        if (res.document && res.document.receiving_id) openDetail(res.document.receiving_id);
+      };
+    });
+    document.querySelectorAll(".mon-retry").forEach((btn) => {
+      btn.onclick = async () => {
+        const res = await AuthService.api("/api/nfe-monitor/" + btn.dataset.id + "/retry", {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha no retry");
+        msg("Retry OK → rcv #" + (res.document && res.document.receiving_id), true);
+        await loadMonitor();
+        await loadList();
+        if (res.document && res.document.receiving_id) openDetail(res.document.receiving_id);
+      };
+    });
+    document.querySelectorAll("[data-open-rcv]").forEach((btn) => {
+      btn.onclick = () => openDetail(btn.dataset.openRcv);
+    });
+  }
+
+  document.getElementById("btn-mon-refresh").onclick = () => loadMonitor();
+  document.getElementById("mon-filter-status").onchange = () => loadMonitor();
+  document.getElementById("btn-mon-scan").onclick = async () => {
+    const res = await AuthService.api("/api/nfe-monitor/scan", { method: "POST", body: "{}" });
+    if (res.status !== "ok") return msg(res.message || "Scan falhou");
+    msg("Scan: " + (res.total_created || 0) + " novo(s).", true);
+    await loadMonitor();
+  };
+  document.getElementById("btn-mon-process").onclick = async () => {
+    const res = await AuthService.api("/api/nfe-monitor/process-pending", {
+      method: "POST",
+      body: JSON.stringify({ limit: 20 }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Processamento falhou");
+    const n = (res.ok || []).length;
+    const err = (res.errors || []).length;
+    msg("Processados: " + n + (err ? " · erros: " + err : ""), !err);
+    await loadMonitor();
+    await loadList();
+  };
+  document.getElementById("mon-file").onchange = async (ev) => {
+    const files = Array.from(ev.target.files || []);
+    ev.target.value = "";
+    let n = 0;
+    for (const file of files) {
+      const xml = await file.text();
+      const res = await AuthService.api("/api/nfe-monitor/ingest", {
+        method: "POST",
+        body: JSON.stringify({ xml, filename: file.name }),
+      });
+      if (res.status === "ok" || res.status === "duplicate") n += 1;
+      else msg(res.message || "Falha ao enfileirar " + file.name);
+    }
+    if (n) msg(n + " arquivo(s) na fila do monitor.", true);
+    await loadMonitor();
+  };
+
+  document.getElementById("btn-refresh").onclick = () => { msg(""); loadList(); loadMonitor(); };
+
   (async function boot() {
     await loadEmpresas();
+    await loadMonitor();
     await loadList();
   })();
 })();

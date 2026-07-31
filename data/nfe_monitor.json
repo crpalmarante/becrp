@@ -1,0 +1,89 @@
+{
+  "next_id": 3,
+  "documents": [
+    {
+      "id": 1,
+      "status": "done",
+      "tipo": "nfe",
+      "modelo": "55",
+      "chave": "43260762832155000141550010000007771234567893",
+      "numero": "777",
+      "serie": "1",
+      "fornecedor_cnpj": "11222333000181",
+      "fornecedor_nome": "DISTRIBUIDORA DEMO LTDA",
+      "destinatario_cnpj": "62832155000141",
+      "valor_total": 401.5,
+      "xml_sha256": "6fb5a7da1bc2ccdd37942524e5046049ed302c9a2118d163e690758e6f851dcd",
+      "filename": "drop-demo-777.xml",
+      "path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbox/processed/00001_drop-demo-777.xml",
+      "source": "inbox_scan",
+      "error": "",
+      "receiving_id": 6,
+      "attempts": 1,
+      "created_at": "2026-07-31T15:02:10",
+      "created_by": "smoke",
+      "processed_at": "2026-07-31T15:02:11",
+      "events": [
+        {
+          "at": "2026-07-31T15:02:10",
+          "tipo": "received",
+          "by": "smoke",
+          "source": "inbox_scan"
+        },
+        {
+          "at": "2026-07-31T15:02:10",
+          "tipo": "processing",
+          "by": "smoke"
+        },
+        {
+          "at": "2026-07-31T15:02:11",
+          "tipo": "done",
+          "by": "smoke",
+          "receiving_id": 6
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "status": "done",
+      "tipo": "nfe",
+      "modelo": "55",
+      "chave": "43260762832155000141550010000005551234567895",
+      "numero": "555",
+      "serie": "1",
+      "fornecedor_cnpj": "11222333000181",
+      "fornecedor_nome": "DISTRIBUIDORA DEMO LTDA",
+      "destinatario_cnpj": "62832155000141",
+      "valor_total": 401.5,
+      "xml_sha256": "14717c9d034b0322d7887b9fce9f5f7af925285563888f0185684db2bb14b52b",
+      "filename": "n555.xml",
+      "path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbox/processed/00002_n555.xml",
+      "source": "upload",
+      "error": "",
+      "receiving_id": 7,
+      "attempts": 1,
+      "created_at": "2026-07-31T15:02:33",
+      "created_by": "smoke",
+      "processed_at": "2026-07-31T15:02:33",
+      "events": [
+        {
+          "at": "2026-07-31T15:02:33",
+          "tipo": "received",
+          "by": "smoke",
+          "source": "upload"
+        },
+        {
+          "at": "2026-07-31T15:02:33",
+          "tipo": "processing",
+          "by": "smoke"
+        },
+        {
+          "at": "2026-07-31T15:02:33",
+          "tipo": "done",
+          "by": "smoke",
+          "receiving_id": 7
+        }
+      ]
+    }
+  ]
+}
