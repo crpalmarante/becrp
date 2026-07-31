@@ -766,6 +766,8 @@
     document.getElementById("caixa-ctx-numpad").hidden = ctx !== "numpad";
     const move = document.getElementById("caixa-ctx-cashmove");
     if (move) move.hidden = ctx !== "cashmove";
+    const sess = document.getElementById("caixa-ctx-session");
+    if (sess) sess.hidden = ctx !== "session";
   }
 
   function syncCashMoveUI() {
@@ -877,6 +879,7 @@
     cashMovePad = null;
     setCaixaCtx("default");
     renderCashMoveLog();
+    await loadCaixaSessao();
   }
 
   async function loadCashMovesFromApi() {
@@ -885,6 +888,7 @@
     const tid = (posContexto && posContexto.terminal && posContexto.terminal.id) || "";
     const qs = new URLSearchParams({ limit: "30" });
     if (tid) qs.set("terminal_id", tid);
+    if (caixaSessao && caixaSessao.id) qs.set("sessao_id", caixaSessao.id);
     try {
       const data = await api("/api/pos/caixa/movimentos?" + qs.toString());
       if (data.status === "ok") {
@@ -895,6 +899,164 @@
         renderCashMoveLog();
       }
     } catch (_) {}
+  }
+
+  let caixaSessao = null;
+  let caixaResumo = null;
+  let sessaoPad = null; // { mode: 'open'|'close', cents }
+
+  function syncSessaoUI() {
+    const label = document.getElementById("caixa-sessao-label");
+    const btnOpen = document.getElementById("btn-abrir-caixa");
+    const btnClose = document.getElementById("btn-fechar-caixa");
+    if (!label) return;
+    if (caixaSessao && caixaSessao.status === "aberta") {
+      const esp = caixaResumo ? caixaResumo.esperado_dinheiro : caixaSessao.fundo_troco;
+      label.textContent =
+        "Sessão " +
+        caixaSessao.id +
+        " · fundo " +
+        money(caixaSessao.fundo_troco || 0) +
+        " · esperado " +
+        money(esp || 0);
+      if (btnOpen) btnOpen.hidden = true;
+      if (btnClose) btnClose.hidden = false;
+    } else {
+      label.textContent = "Caixa fechado — abra com fundo de troco";
+      if (btnOpen) btnOpen.hidden = false;
+      if (btnClose) btnClose.hidden = true;
+    }
+  }
+
+  async function loadCaixaSessao() {
+    const api = window.AuthService && window.AuthService.api;
+    if (!api) return;
+    try {
+      const data = await api("/api/pos/caixa/sessao");
+      if (data.status === "ok") {
+        caixaSessao = data.sessao || null;
+        caixaResumo = data.resumo || null;
+      }
+    } catch (_) {
+      caixaSessao = null;
+      caixaResumo = null;
+    }
+    syncSessaoUI();
+  }
+
+  function openSessaoPad(mode) {
+    setMode("caixa");
+    if (numpad) closeNumpad();
+    sessaoPad = { mode, cents: 0 };
+    const title = document.getElementById("sessao-title");
+    const sub = document.getElementById("sessao-sub");
+    const label = document.getElementById("sessao-value-label");
+    const resumoEl = document.getElementById("sessao-resumo");
+    if (mode === "open") {
+      title.textContent = "Abrir caixa";
+      sub.textContent = "Informe o fundo de troco (dinheiro inicial)";
+      label.textContent = "Fundo de troco";
+      if (resumoEl) {
+        resumoEl.hidden = true;
+        resumoEl.innerHTML = "";
+      }
+    } else {
+      title.textContent = "Fechar caixa";
+      sub.textContent = "Conte o dinheiro físico na gaveta";
+      label.textContent = "Dinheiro contado";
+      if (resumoEl && caixaResumo) {
+        const pg = Object.keys(caixaResumo.totais_pg || {})
+          .map((k) => k + ": " + money(caixaResumo.totais_pg[k]))
+          .join(" · ");
+        resumoEl.hidden = false;
+        resumoEl.innerHTML =
+          "<p class='mode-note' style='margin:0'>" +
+          "Vendas: " +
+          (caixaResumo.vendas_count || 0) +
+          " · total " +
+          money(caixaResumo.vendas_total || 0) +
+          (pg ? "<br>" + pg : "") +
+          "<br>Fundo " +
+          money(caixaResumo.fundo_troco || 0) +
+          " + Dinheiro " +
+          money(caixaResumo.dinheiro_vendas || 0) +
+          " + Supr. " +
+          money(caixaResumo.suprimentos || 0) +
+          " − Sangria " +
+          money(caixaResumo.sangrias || 0) +
+          " = <strong>esperado " +
+          money(caixaResumo.esperado_dinheiro || 0) +
+          "</strong></p>";
+      }
+    }
+    document.getElementById("sessao-display").textContent = money(0);
+    setCaixaCtx("session");
+  }
+
+  function sessaoKey(k) {
+    if (!sessaoPad) return;
+    if (k === "bk") sessaoPad.cents = Math.floor((sessaoPad.cents || 0) / 10);
+    else if (k === "00") sessaoPad.cents = Math.min((sessaoPad.cents || 0) * 100, 999999999);
+    else if (/^\d$/.test(k))
+      sessaoPad.cents = Math.min((sessaoPad.cents || 0) * 10 + Number(k), 999999999);
+    document.getElementById("sessao-display").textContent = money((sessaoPad.cents || 0) / 100);
+  }
+
+  function cancelSessaoPad() {
+    sessaoPad = null;
+    setCaixaCtx("default");
+  }
+
+  async function applySessaoPad() {
+    if (!sessaoPad) return;
+    const api = window.AuthService && window.AuthService.api;
+    if (!api) return;
+    const val = (sessaoPad.cents || 0) / 100;
+    if (sessaoPad.mode === "open") {
+      const res = await api("/api/pos/caixa/sessao", {
+        method: "POST",
+        body: JSON.stringify({
+          fundo_troco: val,
+          terminal_id: (posContexto && posContexto.terminal && posContexto.terminal.id) || "",
+          estabelecimento_id:
+            (posContexto && posContexto.estabelecimento && posContexto.estabelecimento.id) || "",
+        }),
+      });
+      if (res.status !== "ok") {
+        document.getElementById("status-hint").textContent = res.message || "Falha ao abrir";
+        return;
+      }
+      caixaSessao = res.sessao;
+      caixaResumo = res.resumo;
+      document.getElementById("status-hint").textContent =
+        "Caixa aberto · fundo " + money(val);
+    } else {
+      const res = await api("/api/pos/caixa/sessao/fechar", {
+        method: "POST",
+        body: JSON.stringify({
+          sessao_id: caixaSessao && caixaSessao.id,
+          contado: val,
+        }),
+      });
+      if (res.status !== "ok") {
+        document.getElementById("status-hint").textContent = res.message || "Falha ao fechar";
+        return;
+      }
+      const dif = (res.sessao && res.sessao.diferenca) || 0;
+      document.getElementById("status-hint").textContent =
+        "Caixa fechado · contado " +
+        money(val) +
+        " · esperado " +
+        money((res.sessao && res.sessao.esperado) || 0) +
+        " · Δ " +
+        money(dif);
+      caixaSessao = null;
+      caixaResumo = null;
+    }
+    sessaoPad = null;
+    setCaixaCtx("default");
+    syncSessaoUI();
+    await loadCashMovesFromApi();
   }
 
   function renderCashMoveLog() {
@@ -3192,6 +3354,7 @@
     await loadPosContexto();
     await loadPosDataFromApi();
     await loadCashMovesFromApi();
+    await loadCaixaSessao();
     renderClientResults();
     renderAll();
     setSmartCtx("summary");
@@ -3595,6 +3758,21 @@
     document.getElementById("cashmove-keys")?.addEventListener("click", (e) => {
       const btn = e.target.closest("button[data-k]");
       if (btn && cashMovePad) cashMoveKey(btn.dataset.k);
+    });
+    document.getElementById("btn-abrir-caixa")?.addEventListener("click", () => openSessaoPad("open"));
+    document.getElementById("btn-fechar-caixa")?.addEventListener("click", async () => {
+      await loadCaixaSessao();
+      if (!caixaSessao) {
+        document.getElementById("status-hint").textContent = "Nenhuma sessão aberta";
+        return;
+      }
+      openSessaoPad("close");
+    });
+    document.getElementById("sessao-cancel")?.addEventListener("click", cancelSessaoPad);
+    document.getElementById("sessao-apply")?.addEventListener("click", applySessaoPad);
+    document.getElementById("sessao-keys")?.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-k]");
+      if (btn && sessaoPad) sessaoKey(btn.dataset.k);
     });
     document.getElementById("cashmove-reasons")?.addEventListener("click", (e) => {
       const chip = e.target.closest("[data-reason]");

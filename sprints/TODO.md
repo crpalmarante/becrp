@@ -49,7 +49,10 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
   ✅ **RFC-4005 MVP:** `partner_lookup.py` · CNPJ→fornecedor · link manual · sem criar cadastro  
   ✅ **RFC-4007 MVP:** `receiving_pending.py` · fila produto/fornecedor/conferência/XML · resolve/ignore  
   (Receiving “útil” fechado no essencial)
+- ✅ **Fechamento de caixa (turno):** `pos_caixa.py` sessão · Abrir/Fechar no POS · esperado = fundo + dinheiro + supr. − sangria · Δ no fechamento · pagamento exige sessão aberta
 - NFC-e SEFAZ / balança física — força externa (não agora)
+
+**Próximo ataque interno (ordem):** (1) ~~caixa day close~~ ✅ → (2) **preço** → (3) **troca/devolução com aprovação gerente**
 
 ---
 
@@ -131,6 +134,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 12. ~~Monitor XML (RFC-4003)~~ ✅ (`nfe_monitor.py` · inbox · `/api/nfe-monitor`)  
 13. ~~Business Partner Lookup (RFC-4005)~~ ✅ (`partner_lookup.py` · `/api/partners/lookup`)  
 14. ~~Pendências Receiving (RFC-4007)~~ ✅ (`receiving_pending.py` · `/api/receiving/pending`)  
+15. ~~Fechamento de caixa~~ ✅ (`pos_caixa` sessão · `/api/pos/caixa/sessao` · Abrir/Fechar no `pages/pos.html`)  
 
 ---
 

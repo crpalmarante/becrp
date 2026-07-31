@@ -238,6 +238,10 @@ def _pedido_para_venda(pedido, forma_pg="Dinheiro"):
         "total": _safe_float(pedido.get("total"), 0),
         "forma_pg": forma_pg or "Dinheiro",
         "filial_id": 0,
+        "estabelecimento_id": pedido.get("estabelecimento_id") or "",
+        "terminal_caixa_id": pedido.get("terminal_caixa_id") or "",
+        "sessao_id": pedido.get("sessao_id") or "",
+        "caixaUser": pedido.get("caixaUser") or "",
         "pos_pedido_id": pedido.get("id"),
         "itens": itens,
     }
@@ -768,12 +772,58 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             qs = urllib.parse.parse_qs(parsed.query or "")
             tid = (qs.get("terminal_id") or [""])[0].strip() or None
             eid = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            sid = (qs.get("sessao_id") or [""])[0].strip() or None
             try:
                 limit = int((qs.get("limit") or ["50"])[0])
             except (TypeError, ValueError):
                 limit = 50
-            rows = pos_caixa.list_movimentos(terminal_id=tid, estabelecimento_id=eid, limit=limit)
+            rows = pos_caixa.list_movimentos(
+                terminal_id=tid, estabelecimento_id=eid, sessao_id=sid, limit=limit
+            )
             return self._json({"status": "ok", "movimentos": rows, "total": len(rows)})
+
+        if parsed.path == "/api/pos/caixa/sessao":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            tid = (qs.get("terminal_id") or [""])[0].strip()
+            eid = (qs.get("estabelecimento_id") or [""])[0].strip()
+            if not tid or not eid:
+                term = _terminal_do_usuario(uid)
+                if term:
+                    tid = tid or (term.get("id") or "")
+                    eid = eid or (term.get("estabelecimento_id") or "")
+            sessao = pos_caixa.get_sessao_aberta(terminal_id=tid or None, estabelecimento_id=eid or None)
+            if not sessao:
+                return self._json({
+                    "status": "ok",
+                    "sessao": None,
+                    "resumo": None,
+                    "message": "nenhuma sessão aberta",
+                })
+            resumo = pos_caixa.resumo_sessao(sessao)
+            return self._json({"status": "ok", "sessao": sessao, "resumo": resumo})
+
+        if parsed.path == "/api/pos/caixa/sessoes":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                limit = int((qs.get("limit") or ["30"])[0] or 30)
+            except (TypeError, ValueError):
+                limit = 30
+            rows = pos_caixa.list_sessoes(
+                terminal_id=(qs.get("terminal_id") or [""])[0].strip() or None,
+                estabelecimento_id=(qs.get("estabelecimento_id") or [""])[0].strip() or None,
+                status=(qs.get("status") or [""])[0].strip() or None,
+                limit=limit,
+            )
+            return self._json({"status": "ok", "sessoes": rows, "total": len(rows)})
 
         if parsed.path == "/api/inventory/balance":
             token = self.headers.get("X-Auth-Token", "")
@@ -1341,8 +1391,59 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         payload.setdefault("terminal_id", term.get("id") or "")
                         payload.setdefault("estabelecimento_id", term.get("estabelecimento_id") or "")
                 payload.setdefault("user_nome", user.get("nome") or user.get("usuario") or "")
+                # amarra à sessão aberta
+                open_s = pos_caixa.get_sessao_aberta(terminal_id=payload.get("terminal_id"))
+                if open_s:
+                    payload.setdefault("sessao_id", open_s.get("id"))
                 entry = pos_caixa.add_movimento(payload, user_id=uid)
                 return self._json({"status": "ok", "movimento": entry}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/pos/caixa/sessao":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            role = (user.get("role") or "").lower()
+            if role not in ("caixa", "gerente", "admin"):
+                return self._json({"status": "error", "message": "sem permissão para abrir caixa"}, 403)
+            try:
+                payload = dict(body or {})
+                term = _terminal_do_usuario(uid)
+                if term:
+                    payload.setdefault("terminal_id", term.get("id") or "")
+                    payload.setdefault("estabelecimento_id", term.get("estabelecimento_id") or "")
+                payload.setdefault("user_nome", user.get("nome") or user.get("usuario") or "")
+                sessao = pos_caixa.abrir_sessao(payload, user_id=uid)
+                return self._json({"status": "ok", "sessao": sessao, "resumo": pos_caixa.resumo_sessao(sessao)}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/pos/caixa/sessao/fechar":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            role = (user.get("role") or "").lower()
+            if role not in ("caixa", "gerente", "admin"):
+                return self._json({"status": "error", "message": "sem permissão para fechar caixa"}, 403)
+            try:
+                sid = body.get("sessao_id") or body.get("id")
+                if not sid:
+                    term = _terminal_do_usuario(uid)
+                    open_s = pos_caixa.get_sessao_aberta(
+                        terminal_id=(term or {}).get("id") if term else None
+                    )
+                    if not open_s:
+                        return self._json({"status": "error", "message": "nenhuma sessão aberta"}, 400)
+                    sid = open_s.get("id")
+                out = pos_caixa.fechar_sessao(sid, body, user_id=uid)
+                return self._json({"status": "ok", **out})
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
@@ -1657,7 +1758,8 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
 
         if parsed.path.startswith("/api/pos/fila/"):
             token = self.headers.get("X-Auth-Token", "")
-            user = self._find_user(token, load_users())
+            users = load_users()
+            user = self._find_user(token, users)
             if not user:
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
             pid = parsed.path.rstrip("/").split("/")[-1]
@@ -1684,9 +1786,30 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if isinstance(emitir, str):
                     emitir = emitir.lower() not in ("0", "false", "nao", "não", "no")
 
+                # sessão de caixa (turno)
+                caixa_uid = next(
+                    (uid for uid, u in users.items() if u.get("token") == token),
+                    "",
+                )
+                term_cx = _terminal_do_usuario(caixa_uid)
+                sessao = None
+                if term_cx:
+                    sessao = pos_caixa.get_sessao_aberta(terminal_id=term_cx.get("id"))
+                if not sessao and not body.get("training"):
+                    return self._json({
+                        "status": "error",
+                        "message": "Abra o caixa (fundo de troco) antes de receber pagamentos",
+                    }, 400)
+
                 pedido["state"] = "pagamento"
                 pedido["forma_pg"] = forma_pg
                 pedido["caixaUser"] = user.get("nome") or user.get("usuario") or ""
+                if term_cx:
+                    pedido["terminal_caixa_id"] = term_cx.get("id") or ""
+                    if not pedido.get("estabelecimento_id"):
+                        pedido["estabelecimento_id"] = term_cx.get("estabelecimento_id") or ""
+                if sessao:
+                    pedido["sessao_id"] = sessao.get("id")
                 pedido["updatedAt"] = datetime.now().isoformat(timespec="seconds")
 
                 venda = _pedido_para_venda(pedido, forma_pg)

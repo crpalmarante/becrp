@@ -409,6 +409,11 @@
       <div class="caixa-board">
         <div class="caixa-card">
           <h2>Fila de pagamento</h2>
+          <div id="caixa-sessao-bar" class="caixa-sessao-bar">
+            <span id="caixa-sessao-label" class="mode-note">Caixa fechado</span>
+            <button type="button" class="pos-cta secondary" id="btn-abrir-caixa" style="padding:6px 10px;font-size:12px">Abrir caixa</button>
+            <button type="button" class="pos-cta secondary" id="btn-fechar-caixa" style="padding:6px 10px;font-size:12px" hidden>Fechar caixa</button>
+          </div>
           <div id="fila-list">
             <div class="fila-item active">
               <div>
@@ -525,6 +530,37 @@
             <div class="numpad-actions">
               <button type="button" class="pos-cta secondary" id="cashmove-cancel">Cancelar</button>
               <button type="button" class="pos-cta" id="cashmove-apply">Confirmar</button>
+            </div>
+          </div>
+
+          <!-- Abrir / Fechar caixa -->
+          <div id="caixa-ctx-session" class="caixa-cashmove" hidden>
+            <div class="numpad-head">
+              <h3 id="sessao-title">Abrir caixa</h3>
+              <p class="numpad-sub" id="sessao-sub">Informe o fundo de troco</p>
+            </div>
+            <div id="sessao-resumo" class="side-block" style="padding:8px 12px;border:0" hidden></div>
+            <div class="side-block" style="padding:8px 12px 0;border:0">
+              <h3 style="margin:0 0 6px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted)" id="sessao-value-label">Fundo de troco</h3>
+              <div class="numpad-display" id="sessao-display" style="margin:0">R$ 0,00</div>
+            </div>
+            <div class="numpad-keys money" id="sessao-keys" aria-label="Teclado numérico" style="margin-top:8px">
+              <button type="button" data-k="7">7</button>
+              <button type="button" data-k="8">8</button>
+              <button type="button" data-k="9">9</button>
+              <button type="button" data-k="4">4</button>
+              <button type="button" data-k="5">5</button>
+              <button type="button" data-k="6">6</button>
+              <button type="button" data-k="1">1</button>
+              <button type="button" data-k="2">2</button>
+              <button type="button" data-k="3">3</button>
+              <button type="button" data-k="00">00</button>
+              <button type="button" data-k="0">0</button>
+              <button type="button" data-k="bk" title="Apagar">←</button>
+            </div>
+            <div class="numpad-actions">
+              <button type="button" class="pos-cta secondary" id="sessao-cancel">Cancelar</button>
+              <button type="button" class="pos-cta" id="sessao-apply">Confirmar</button>
             </div>
           </div>
         </div>
