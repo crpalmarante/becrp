@@ -1,0 +1,25 @@
+{
+  "lists": [
+    {
+      "id": "pl_varejo",
+      "name": "Varejo padrão",
+      "code": "VAREJO",
+      "active": true,
+      "items": {
+        "1": 32.9,
+        "5": 18.9,
+        "7": 3.5
+      }
+    },
+    {
+      "id": "pl_filial_sp",
+      "name": "Filial SP",
+      "code": "SP",
+      "active": true,
+      "items": {
+        "1": 34.9,
+        "5": 19.9
+      }
+    }
+  ]
+}

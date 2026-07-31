@@ -14,7 +14,8 @@
     "telefone": "(54)3311-5000",
     "email": "fabieli@fabieli.com.br",
     "cod_municipio": "4314100",
-    "tipo": "matriz"
+    "tipo": "matriz",
+    "default_price_list_id": "pl_varejo"
   },
   "filial_sp": {
     "nome": "Filial São Paulo",
@@ -23,7 +24,8 @@
     "cidade": "São Paulo",
     "uf": "SP",
     "ativo": true,
-    "tipo": "filial"
+    "tipo": "filial",
+    "default_price_list_id": "pl_filial_sp"
   },
   "filial_rj": {
     "nome": "Filial Rio de Janeiro",

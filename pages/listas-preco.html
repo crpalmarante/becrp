@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Listas de Preço</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pl-layout { display:grid; grid-template-columns: 280px 1fr; gap:16px; }
+    @media (max-width: 900px) { .pl-layout { grid-template-columns: 1fr; } }
+    .pl-card { padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .pl-list button { display:block; width:100%; text-align:left; margin:0 0 6px; padding:10px 12px; border-radius:6px; border:1px solid rgba(255,255,255,.08); background:transparent; color:inherit; cursor:pointer; }
+    .pl-list button.active { border-color: var(--color-primary, #714B67); background: rgba(113,75,103,.25); }
+    .pl-list .meta { font-size:12px; opacity:.65; }
+    .pl-table { width:100%; border-collapse:collapse; }
+    .pl-table th, .pl-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; }
+    .pl-table th { font-size:12px; text-transform:uppercase; opacity:.7; }
+    .pl-msg { margin:8px 0; font-size:14px; }
+    .pl-msg.err { color:#f87171; }
+    .pl-msg.ok { color:#4ade80; }
+    .pl-toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; align-items:end; }
+    .pl-toolbar .field { margin:0; min-width:120px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="listas-preco.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="menu-label">Listas de Preço</span>
+      </a>
+      <a class="menu-item" href="produtos.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Produtos</span>
+      </a>
+      <a class="menu-item" href="empresas.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+        <span class="menu-label">Estabelecimentos</span>
+      </a>
+      <a class="menu-item" href="../index4.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Dashboard</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="topbar-title">Listas de Preço</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <button class="dialog-btn dialog-btn-primary" id="btn-new">Nova lista</button>
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Vendas / Listas de Preço</div>
+          <h2 class="workspace-title">Preço fixo por lista (base = produto)</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="msg" class="pl-msg"></div>
+          <div class="pl-layout">
+            <div class="pl-card">
+              <h3 style="margin:0 0 10px;font-size:15px">Listas</h3>
+              <div class="pl-list" id="lists"></div>
+            </div>
+            <div class="pl-card" id="detail">
+              <p class="mode-note" style="opacity:.7">Selecione ou crie uma lista.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let lists = [];
+  let products = [];
+  let currentId = null;
+
+  function money(v) {
+    return Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function msg(text, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = text || "";
+    el.className = "pl-msg " + (ok ? "ok" : text ? "err" : "");
+  }
+
+  async function api(path, opts) {
+    return AuthService.api(path, opts);
+  }
+
+  async function load() {
+    msg("");
+    const [l, p] = await Promise.all([
+      api("/api/admin/price-lists"),
+      api("/api/admin/produtos"),
+    ]);
+    if (l.status !== "ok") {
+      msg(l.message || "Sem acesso às listas", false);
+      return;
+    }
+    lists = l.lists || [];
+    products = (p.status === "ok" ? p.produtos : []) || [];
+    if (!currentId && lists[0]) currentId = lists[0].id;
+    renderLists();
+    renderDetail();
+  }
+
+  function renderLists() {
+    const el = document.getElementById("lists");
+    if (!lists.length) {
+      el.innerHTML = '<p style="opacity:.6;font-size:13px">Nenhuma lista ainda.</p>';
+      return;
+    }
+    el.innerHTML = lists.map((x) => {
+      const n = Object.keys(x.items || {}).length;
+      return `<button type="button" data-id="${x.id}" class="${x.id === currentId ? "active" : ""}">
+        <strong>${x.name || x.id}</strong>
+        <div class="meta">${x.code || ""} · ${n} item(ns) · ${x.active === false ? "inativa" : "ativa"}</div>
+      </button>`;
+    }).join("");
+    el.querySelectorAll("button[data-id]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        currentId = btn.getAttribute("data-id");
+        renderLists();
+        renderDetail();
+      });
+    });
+  }
+
+  function current() {
+    return lists.find((x) => x.id === currentId) || null;
+  }
+
+  function prodName(id) {
+    const p = products.find((x) => String(x.id) === String(id));
+    return p ? (p.nome || ("#" + id)) : ("#" + id);
+  }
+
+  function prodBase(id) {
+    const p = products.find((x) => String(x.id) === String(id));
+    return p ? Number(p.preco) || 0 : 0;
+  }
+
+  function renderDetail() {
+    const box = document.getElementById("detail");
+    const pl = current();
+    if (!pl) {
+      box.innerHTML = '<p style="opacity:.7">Selecione ou crie uma lista.</p>';
+      return;
+    }
+    const items = Object.entries(pl.items || {}).sort((a, b) => Number(a[0]) - Number(b[0]));
+    const prodOpts = products.map((p) =>
+      `<option value="${p.id}">${p.id} — ${p.nome} (base ${money(p.preco)})</option>`
+    ).join("");
+
+    box.innerHTML = `
+      <div class="pl-toolbar">
+        <div class="field"><label>Nome</label><input class="form-input" id="pl-name" value="${(pl.name || "").replace(/"/g, "&quot;")}"></div>
+        <div class="field"><label>Código</label><input class="form-input" id="pl-code" value="${(pl.code || "").replace(/"/g, "&quot;")}"></div>
+        <div class="field"><label>Ativa</label>
+          <select class="form-input" id="pl-active">
+            <option value="1" ${pl.active !== false ? "selected" : ""}>Sim</option>
+            <option value="0" ${pl.active === false ? "selected" : ""}>Não</option>
+          </select>
+        </div>
+        <button class="dialog-btn dialog-btn-primary" id="btn-save-meta">Salvar lista</button>
+        <button class="dialog-btn dialog-btn-secondary" id="btn-del">Excluir</button>
+      </div>
+      <p style="font-size:13px;opacity:.7;margin:0 0 12px">Produto sem item usa o preço base do cadastro. POS resolve pela lista do estabelecimento.</p>
+      <div class="pl-toolbar">
+        <div class="field" style="flex:1;min-width:220px"><label>Produto</label>
+          <select class="form-input" id="item-prod">${prodOpts}</select>
+        </div>
+        <div class="field"><label>Preço fixo</label><input class="form-input" id="item-preco" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <button class="dialog-btn dialog-btn-primary" id="btn-add-item">Incluir / atualizar</button>
+      </div>
+      <table class="pl-table">
+        <thead><tr><th>Produto</th><th>Base</th><th>Lista</th><th></th></tr></thead>
+        <tbody>
+          ${items.length ? items.map(([pid, preco]) => `
+            <tr>
+              <td>${prodName(pid)} <span style="opacity:.5">#${pid}</span></td>
+              <td>${money(prodBase(pid))}</td>
+              <td><strong>${money(preco)}</strong></td>
+              <td><button class="dialog-btn dialog-btn-secondary" data-rm="${pid}" style="padding:4px 8px;font-size:12px">Remover</button></td>
+            </tr>`).join("") : `<tr><td colspan="4" style="opacity:.6">Nenhum override — todos usam preço base.</td></tr>`}
+        </tbody>
+      </table>
+    `;
+
+    document.getElementById("btn-save-meta").onclick = async () => {
+      const res = await api("/api/admin/price-lists/" + pl.id, {
+        method: "POST",
+        body: JSON.stringify({
+          name: document.getElementById("pl-name").value.trim(),
+          code: document.getElementById("pl-code").value.trim(),
+          active: document.getElementById("pl-active").value === "1",
+          items: pl.items || {},
+        }),
+      });
+      if (res.status !== "ok") return msg(res.message || "Falha", false);
+      msg("Lista salva", true);
+      await load();
+    };
+
+    document.getElementById("btn-del").onclick = async () => {
+      if (!confirm("Excluir lista " + (pl.name || pl.id) + "?")) return;
+      const res = await api("/api/admin/price-lists/" + pl.id, {
+        method: "POST",
+        body: JSON.stringify({ action: "delete" }),
+      });
+      if (res.status !== "ok") return msg(res.message || "Falha", false);
+      currentId = null;
+      msg("Lista excluída", true);
+      await load();
+    };
+
+    document.getElementById("btn-add-item").onclick = async () => {
+      const pid = document.getElementById("item-prod").value;
+      const preco = document.getElementById("item-preco").value;
+      const res = await api("/api/admin/price-lists/" + pl.id + "/set-item", {
+        method: "POST",
+        body: JSON.stringify({ produto_id: pid, preco }),
+      });
+      if (res.status !== "ok") return msg(res.message || "Falha", false);
+      msg("Item gravado", true);
+      await load();
+    };
+
+    box.querySelectorAll("button[data-rm]").forEach((btn) => {
+      btn.onclick = async () => {
+        const res = await api("/api/admin/price-lists/" + pl.id + "/remove-item", {
+          method: "POST",
+          body: JSON.stringify({ produto_id: btn.getAttribute("data-rm") }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Item removido", true);
+        await load();
+      };
+    });
+  }
+
+  document.getElementById("btn-new").onclick = async () => {
+    const name = prompt("Nome da lista", "Nova lista");
+    if (!name) return;
+    const res = await api("/api/admin/price-lists", {
+      method: "POST",
+      body: JSON.stringify({ name, code: name.toUpperCase().slice(0, 12), active: true, items: {} }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    currentId = res.list && res.list.id;
+    msg("Lista criada", true);
+    await load();
+  };
+
+  load();
+})();
+</script>
+</body>
+</html>

@@ -50,9 +50,11 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
   ✅ **RFC-4007 MVP:** `receiving_pending.py` · fila produto/fornecedor/conferência/XML · resolve/ignore  
   (Receiving “útil” fechado no essencial)
 - ✅ **Fechamento de caixa (turno):** `pos_caixa.py` sessão · Abrir/Fechar no POS · esperado = fundo + dinheiro + supr. − sangria · Δ no fechamento · pagamento exige sessão aberta
+- ✅ **Listas de preço (MVP Odoo-like):** `price_lists.py` · preço fixo por item · `default_price_list_id` no estabelecimento · POS resolve lista→base · UI `pages/listas-preco.html`
 - NFC-e SEFAZ / balança física — força externa (não agora)
+- Campanha (categoria + período + forma pgto) — depois; não misturar no MVP de lista
 
-**Próximo ataque interno (ordem):** (1) ~~caixa day close~~ ✅ → (2) **preço** → (3) **troca/devolução com aprovação gerente**
+**Próximo ataque interno (ordem):** (1) ~~caixa~~ ✅ → (2) ~~preço/listas~~ ✅ → (3) **troca/devolução com aprovação gerente**
 
 ---
 
@@ -104,7 +106,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 
 ### 5. Em aberto (decidir depois)
 
-- [ ] Preço: lista única da org com override local, ou só local?
+- [x] Preço: listas da org + lista padrão por estabelecimento (fixo; fallback `produto.preco`)
 - [ ] Gerente/Caixa: terminal hub vs papel elevado em qualquer estação?
 - [ ] Amarrar `device id` ao terminal ou login do titular em qualquer máquina?
 - [ ] Numeração NFC-e: confirmar sempre por estabelecimento
@@ -135,6 +137,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 13. ~~Business Partner Lookup (RFC-4005)~~ ✅ (`partner_lookup.py` · `/api/partners/lookup`)  
 14. ~~Pendências Receiving (RFC-4007)~~ ✅ (`receiving_pending.py` · `/api/receiving/pending`)  
 15. ~~Fechamento de caixa~~ ✅ (`pos_caixa` sessão · `/api/pos/caixa/sessao` · Abrir/Fechar no `pages/pos.html`)  
+16. ~~Listas de preço~~ ✅ (`price_lists.py` · `/api/admin/price-lists` · `pages/listas-preco.html` · POS `/api/pos/produtos`)  
 
 ---
 

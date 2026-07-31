@@ -128,6 +128,12 @@
                         </select>
                     </div>
                 </div>
+                <div class="field">
+                    <label>Lista de preços (POS)</label>
+                    <select class="form-input" id="edit-price-list">
+                        <option value="">Preço base do produto</option>
+                    </select>
+                </div>
                 <div class="form-error" id="empresa-form-error"></div>
             </form>
         </div>
@@ -143,9 +149,32 @@
 <script>
     let editingId = null;
     let allEmpresas = [];
+    let priceLists = [];
     async function api(path, opts = {}) {
         return window.api(path, opts);
     }
+
+    async function loadPriceLists() {
+        try {
+            const data = await api("/api/admin/price-lists");
+            priceLists = data.status === "ok" ? (data.lists || []) : [];
+        } catch (_) {
+            priceLists = [];
+        }
+        const sel = document.getElementById("edit-price-list");
+        if (!sel) return;
+        const cur = sel.value;
+        sel.innerHTML =
+            '<option value="">Preço base do produto</option>' +
+            priceLists
+                .map(
+                    (l) =>
+                        `<option value="${l.id}">${l.name || l.id}${l.active === false ? " (inativa)" : ""}</option>`
+                )
+                .join("");
+        if (cur) sel.value = cur;
+    }
+
 async function load() {
         const container = document.getElementById("empresas-container");
         container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem">Carregando...</div>';
@@ -155,6 +184,7 @@ async function load() {
             return;
         }
         allEmpresas = data.empresas || [];
+        await loadPriceLists();
         render();
     }
 
@@ -172,24 +202,30 @@ async function load() {
                             <th class="dg-th"><div class="dg-th-content">CNPJ</div></th>
                             <th class="dg-th"><div class="dg-th-content">IE</div></th>
                             <th class="dg-th"><div class="dg-th-content">Cidade/UF</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Lista preço</div></th>
                             <th class="dg-th"><div class="dg-th-content">Status</div></th>
                             <th class="dg-th" style="width:100px"><div class="dg-th-content">Ações</div></th>
                         </tr></thead>
                         <tbody>
-                            ${filtered.map(e => `
+                            ${filtered.map(e => {
+                                const pl = priceLists.find(l => l.id === e.default_price_list_id);
+                                const plLabel = pl ? (pl.name || pl.id) : (e.default_price_list_id || 'base');
+                                return `
                             <tr class="dg-row" style="${e.ativo===false?'opacity:.5':''}">
                                 <td class="dg-cell dg-cell-center">${e.id.substring(0,6)}</td>
                                 <td class="dg-cell"><strong>${e.nome}</strong></td>
                                 <td class="dg-cell">${e.cnpj||'-'}</td>
                                 <td class="dg-cell">${e.ie||'-'}</td>
                                 <td class="dg-cell">${e.cidade||'-'}/${e.uf||'-'}</td>
+                                <td class="dg-cell">${plLabel}</td>
                                 <td class="dg-cell"><span class="badge badge-${e.ativo!==false?'success':'danger'}">${e.ativo!==false?'Ativo':'Inativo'}</span></td>
                                 <td class="dg-cell">
                                     <button class="dg-page" onclick='edit(${JSON.stringify(e).replace(/'/g,"&#39;")})' title="Editar">✎</button>
                                     <button class="dg-page" onclick="toggle('${e.id}')" title="${e.ativo!==false?'Desativar':'Ativar'}">${e.ativo!==false?'⏸':'▶'}</button>
                                 </td>
-                            </tr>`).join('')}
-                            ${filtered.length===0?'<tr><td class="dg-cell" colspan="7" style="text-align:center;padding:2rem">Nenhuma empresa cadastrada</td></tr>':''}
+                            </tr>`;
+                            }).join('')}
+                            ${filtered.length===0?'<tr><td class="dg-cell" colspan="8" style="text-align:center;padding:2rem">Nenhuma empresa cadastrada</td></tr>':''}
                         </tbody>
                     </table>
                 </div>
@@ -208,6 +244,7 @@ async function load() {
         document.getElementById("edit-ie").value = data.ie||"";
         document.getElementById("edit-cidade").value = data.cidade||"";
         document.getElementById("edit-uf").value = data.uf||"";
+        document.getElementById("edit-price-list").value = data.default_price_list_id || "";
         document.getElementById("empresa-form-error").classList.remove("visible");
         document.getElementById("empresa-modal").classList.add("dialog-open");
     }
@@ -220,6 +257,7 @@ async function load() {
         document.getElementById("edit-ie").value = "";
         document.getElementById("edit-cidade").value = "";
         document.getElementById("edit-uf").value = "";
+        document.getElementById("edit-price-list").value = "";
         document.getElementById("empresa-form-error").classList.remove("visible");
         document.getElementById("empresa-modal").classList.add("dialog-open");
     }
@@ -235,6 +273,7 @@ async function load() {
         const ie = document.getElementById("edit-ie").value.trim();
         const cidade = document.getElementById("edit-cidade").value.trim();
         const uf = document.getElementById("edit-uf").value;
+        const default_price_list_id = document.getElementById("edit-price-list").value || "";
         const errEl = document.getElementById("empresa-form-error");
         errEl.classList.remove("visible");
 
@@ -244,12 +283,12 @@ async function load() {
         if (editingId) {
             data = await api("/api/admin/empresas/"+editingId, {
                 method: "POST",
-                body: JSON.stringify({ action: "update", nome, cnpj, ie, cidade, uf })
+                body: JSON.stringify({ action: "update", nome, cnpj, ie, cidade, uf, default_price_list_id })
             });
         } else {
             data = await api("/api/admin/empresas", {
                 method: "POST",
-                body: JSON.stringify({ nome, cnpj, ie, cidade, uf })
+                body: JSON.stringify({ nome, cnpj, ie, cidade, uf, default_price_list_id })
             });
         }
 

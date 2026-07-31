@@ -18,6 +18,7 @@ import nfe_monitor
 import product_localization
 import partner_lookup
 import pos_caixa
+import price_lists
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -653,10 +654,18 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                             break
             produtos = cobol_bridge.produtos_para_pos(estab or None)
             produtos = enriquecer_produtos_com_promise(produtos, estab or None)
+            pl_id = None
+            if estab:
+                try:
+                    pl_id = (load_empresas().get(estab) or {}).get("default_price_list_id") or None
+                except Exception:
+                    pl_id = None
+            produtos = price_lists.apply_to_produtos(produtos, estabelecimento_id=estab or None, list_id=pl_id)
             return self._json({
                 "status": "ok",
                 "source": "api",
                 "estabelecimento_id": estab or None,
+                "price_list_id": pl_id,
                 "promise": True,
                 "produtos": produtos,
             })
@@ -1055,6 +1064,23 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             pedidos = [p for p in fila["pedidos"] if str(p.get("state", "")).lower() in states]
             pedidos.sort(key=lambda p: p.get("createdAt") or "", reverse=True)
             return self._json({"status": "ok", "pedidos": pedidos, "next_num": fila.get("next_num")})
+
+        # ── Listas de preço ──
+        if parsed.path == "/api/admin/price-lists":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._is_admin(token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            return self._json({"status": "ok", "lists": price_lists.list_all()})
+
+        if parsed.path.startswith("/api/admin/price-lists/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._is_admin(token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            lid = parsed.path.rstrip("/").split("/")[-1]
+            pl = price_lists.get_list(lid)
+            if not pl:
+                return self._json({"status": "error", "message": "Lista não encontrada"}, 404)
+            return self._json({"status": "ok", "list": pl})
 
         # ── COBOL: Produtos ──
         if parsed.path == "/api/admin/produtos":
@@ -2026,6 +2052,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "uf": body.get("uf", ""),
                 "ativo": True,
                 "tipo": body.get("tipo") or "filial",
+                "default_price_list_id": (body.get("default_price_list_id") or "").strip(),
             }
             save_empresas(empresas)
             fiscal = load_estab_fiscal_store()
@@ -2070,7 +2097,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if body.get("action") == "update":
                 updates = {}
                 for k in ("nome", "cnpj", "ie", "cidade", "uf", "nome_fantasia", "nome_razao",
-                          "endereco", "cep", "telefone", "email"):
+                          "endereco", "cep", "telefone", "email", "default_price_list_id"):
                     if k in body and body[k] is not None:
                         updates[k] = body[k]
                 org_store.update_estabelecimento(eid, updates, also_fiscal=True)
@@ -2219,6 +2246,46 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             return self._json({"status": "ok", "terminal": t, "message": "Terminal atualizado"})
 
         crud_token = self.headers.get("X-Auth-Token", "")
+
+        # ── Listas de preço (POST) ──
+        if parsed.path == "/api/admin/price-lists":
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                row = price_lists.upsert_list(body or {})
+                return self._json({"status": "ok", "list": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/price-lists/"):
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            parts = parsed.path.rstrip("/").split("/")
+            lid = parts[4] if len(parts) > 4 else ""
+            action = parts[5] if len(parts) > 5 else None
+            if action == "delete" or (isinstance(body, dict) and body.get("action") == "delete"):
+                try:
+                    price_lists.delete_list(lid)
+                    return self._json({"status": "ok"})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 404)
+            if action == "set-item":
+                try:
+                    row = price_lists.set_item(lid, body.get("produto_id"), body.get("preco"))
+                    return self._json({"status": "ok", "list": row})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+            if action == "remove-item":
+                try:
+                    row = price_lists.remove_item(lid, body.get("produto_id"))
+                    return self._json({"status": "ok", "list": row})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+            try:
+                row = price_lists.upsert_list(body or {}, list_id=lid)
+                return self._json({"status": "ok", "list": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
 
         # ── COBOL: Produtos (POST) ──
         if parsed.path == "/api/admin/produtos":

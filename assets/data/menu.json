@@ -32,7 +32,7 @@
             { "id": "produtos-vendas", "label": "Produtos", "icon": "icon-box", "href": "pages/produtos.html" },
             { "section": "Produtos" },
             { "id": "variantes", "label": "Variantes", "icon": "icon-filter", "href": "pages/vendas.html#variantes" },
-            { "id": "lista-precos", "label": "Lista de Preços", "icon": "icon-dollar", "href": "pages/vendas.html#lista-precos" },
+            { "id": "lista-precos", "label": "Lista de Preços", "icon": "icon-dollar", "href": "pages/listas-preco.html" },
             { "id": "descontos", "label": "Descontos", "icon": "icon-dollar", "href": "pages/vendas.html#descontos" },
             { "section": "Clientes" },
             { "id": "contatos-vendas", "label": "Contatos", "icon": "icon-users", "href": "pages/contatos.html" },

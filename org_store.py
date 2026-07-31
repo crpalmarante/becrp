@@ -26,6 +26,7 @@ ESTAB_IDENTITY_KEYS = (
     "nome", "nome_razao", "nome_fantasia", "cnpj", "ie", "inscricao_est",
     "cidade", "municipio", "uf", "endereco", "cep", "telefone", "email",
     "cod_municipio", "ativo", "tipo",
+    "default_price_list_id",
 )
 
 # overlay fiscal típico
