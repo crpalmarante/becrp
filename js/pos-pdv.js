@@ -355,6 +355,8 @@
   let recentIds = loadJson(LS_RECENT, []);
   let consultaMode = false;
   let trainingMode = localStorage.getItem(LS_TRAINING) === "1";
+  /** Contexto do terminal / estabelecimento (API /api/pos/contexto). */
+  let posContexto = null;
   /** @type {null | object} */
   let pendingPriceProduct = null;
   /** @type {null | object} */
@@ -2906,17 +2908,28 @@
   }
 
   function setMode(next) {
+    if (posContexto && posContexto.pode_trocar_modo === false) {
+      const forced = posContexto.modo_sugerido || "pdv";
+      if (next !== forced) next = forced;
+    }
     mode = next;
     if (numpad && numpad.host === "side" && mode !== "pdv") closeNumpad();
     if (numpad && numpad.host === "caixa" && mode !== "caixa") closeNumpad();
     if (mode !== "pdv") setSmartCtx("summary");
     document.querySelectorAll(".pos-mode button").forEach((b) => {
       b.classList.toggle("active", b.dataset.mode === mode);
+      const locked = posContexto && posContexto.pode_trocar_modo === false;
+      b.disabled = !!locked && b.dataset.mode !== mode;
     });
     document.getElementById("view-pdv").classList.toggle("active", mode === "pdv");
     document.getElementById("view-caixa").classList.toggle("active", mode === "caixa");
-    document.getElementById("top-mode-label").textContent =
-      mode === "pdv" ? "Terminal PDV" : "Terminal Caixa";
+    const term = posContexto && posContexto.terminal;
+    const termLabel = term
+      ? `${term.codigo || ""} · ${term.nome || ""}`.trim()
+      : mode === "pdv"
+        ? "Terminal PDV"
+        : "Terminal Caixa";
+    document.getElementById("top-mode-label").textContent = termLabel || (mode === "pdv" ? "Terminal PDV" : "Terminal Caixa");
     document.getElementById("status-mode").textContent =
       mode === "pdv" ? "Modo PDV" : "Modo Caixa";
     if (mode === "caixa") {
@@ -2926,6 +2939,50 @@
       stopFilaPolling();
       startPdvQueuePolling();
     }
+  }
+
+  async function loadPosContexto() {
+    const estabEl = document.getElementById("pos-estab");
+    const termEl = document.getElementById("pos-terminal");
+    try {
+      const api = window.AuthService && window.AuthService.api;
+      if (!api) throw new Error("no auth");
+      const data = await api("/api/pos/contexto");
+      if (data.status !== "ok") throw new Error(data.message || "contexto");
+      posContexto = data;
+      window.__posContexto = data;
+    } catch {
+      posContexto = {
+        terminal: null,
+        estabelecimento: null,
+        modo_sugerido: "pdv",
+        pode_trocar_modo: true,
+        aviso: "Contexto local (sem API)",
+      };
+      window.__posContexto = posContexto;
+    }
+
+    const estab = posContexto.estabelecimento;
+    const term = posContexto.terminal;
+    if (estabEl) {
+      estabEl.textContent = estab ? estab.nome || estab.id || "—" : "Sem loja";
+      estabEl.title = estab
+        ? `${estab.nome || ""} · ${estab.cidade || ""}/${estab.uf || ""} · ${estab.cnpj || ""}`.trim()
+        : "Nenhum estabelecimento";
+    }
+    if (termEl) {
+      termEl.textContent = term ? term.codigo || "—" : "Sem terminal";
+      termEl.title = term
+        ? `${term.codigo} · ${term.nome} · ${term.tipo}`
+        : posContexto.aviso || "Sem terminal vinculado";
+    }
+    const store = document.getElementById("status-store");
+    if (store) {
+      store.textContent = estab
+        ? `${estab.nome || estab.id}${term ? " · " + (term.codigo || "") : ""}`
+        : "Varejo";
+    }
+    return posContexto;
   }
 
   function bindNumpadKeys(el) {
@@ -2944,16 +3001,24 @@
     createSession();
     document.getElementById("status-store").textContent = "Varejo";
     setDataSource("demo");
+    await loadPosContexto();
     await loadPosDataFromApi();
     renderClientResults();
     renderAll();
     setSmartCtx("summary");
     setCaixaCtx("default");
-    setMode("pdv");
+    setMode((posContexto && posContexto.modo_sugerido) || "pdv");
     syncUndoBtn();
-    if (dataSource === "demo") {
+    if (posContexto && posContexto.aviso) {
+      document.getElementById("status-hint").textContent = posContexto.aviso;
+    } else if (dataSource === "demo") {
       document.getElementById("status-hint").textContent =
         "Varejo · demo · toque no produto para o mostruário · bip (Enter) adiciona direto";
+    } else {
+      const estab = posContexto && posContexto.estabelecimento;
+      const term = posContexto && posContexto.terminal;
+      document.getElementById("status-hint").textContent =
+        `${estab ? estab.nome : "Loja"} · ${term ? term.codigo : "sem terminal"} · API`;
     }
 
     setInterval(() => {

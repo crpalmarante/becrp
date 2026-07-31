@@ -361,6 +361,88 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     return self._json({"status": "ok", "terminal": t})
             return self._json({"status": "error", "message": "Terminal não encontrado"}, 404)
 
+        if parsed.path == "/api/pos/contexto":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = None
+            for k, u in users.items():
+                if u.get("token") == token:
+                    uid = k
+                    break
+            role = (current.get("role") or "operador").lower()
+            empresas = load_empresas()
+            data = load_pos_terminais()
+            terminais = [
+                t for t in data.get("terminais", [])
+                if t.get("ativo", True) and t.get("usuario_id") == uid
+            ]
+            # Gerente/caixa/admin no mesmo estabelecimento: listar todos os terminais da loja
+            loja_ids = {t.get("estabelecimento_id") for t in terminais if t.get("estabelecimento_id")}
+            visao_ampla = []
+            if role in ("caixa", "gerente", "admin") and loja_ids:
+                visao_ampla = [
+                    t for t in data.get("terminais", [])
+                    if t.get("ativo", True) and t.get("estabelecimento_id") in loja_ids
+                ]
+            elif role == "admin" and not terminais:
+                # Admin sem terminal: contexto da matriz (demo / supervisão)
+                visao_ampla = [t for t in data.get("terminais", []) if t.get("ativo", True)]
+
+            primary = terminais[0] if terminais else None
+            if not primary and role == "admin":
+                # fallback estabelecimento matriz
+                mid = "matriz" if "matriz" in empresas else (next(iter(empresas), None))
+                estab = dict(empresas.get(mid or "", {}) or {})
+                if mid:
+                    estab["id"] = mid
+                return self._json({
+                    "status": "ok",
+                    "role": role,
+                    "usuario_id": uid,
+                    "terminal": None,
+                    "estabelecimento": estab or None,
+                    "terminais": visao_ampla,
+                    "modo_sugerido": "pdv",
+                    "pode_trocar_modo": True,
+                    "aviso": "Admin sem terminal vinculado — modo supervisão/demo",
+                })
+
+            if not primary:
+                return self._json({
+                    "status": "ok",
+                    "role": role,
+                    "usuario_id": uid,
+                    "terminal": None,
+                    "estabelecimento": None,
+                    "terminais": [],
+                    "modo_sugerido": "pdv",
+                    "pode_trocar_modo": False,
+                    "aviso": "Nenhum terminal ativo vinculado a este usuário. Peça ao Admin em Configurações → POS.",
+                })
+
+            eid = primary.get("estabelecimento_id")
+            estab = dict(empresas.get(eid, {}) or {})
+            estab["id"] = eid
+            tipo = (primary.get("tipo") or "pdv").lower()
+            pode_trocar = role in ("admin", "gerente") or (
+                any(t.get("tipo") == "pdv" for t in terminais)
+                and any(t.get("tipo") == "caixa" for t in terminais)
+            )
+            return self._json({
+                "status": "ok",
+                "role": role,
+                "usuario_id": uid,
+                "terminal": primary,
+                "estabelecimento": estab,
+                "terminais": visao_ampla if visao_ampla else terminais,
+                "modo_sugerido": "caixa" if tipo == "caixa" else "pdv",
+                "pode_trocar_modo": pode_trocar,
+                "aviso": None,
+            })
+
         # ── POS: leitura (qualquer usuário autenticado) ──
         if parsed.path == "/api/pos/produtos":
             token = self.headers.get("X-Auth-Token", "")

@@ -105,6 +105,27 @@ html, body {
   box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
 }
 
+.pos-estab,
+.pos-terminal {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.pos-terminal {
+  font-weight: 500;
+  color: var(--color-primary, #14b8a6);
+  font-family: ui-monospace, monospace;
+}
+
+.pos-mode button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 .pos-icon-btn {
   border: 1px solid var(--border-color);
   background: rgba(255, 255, 255, 0.04);

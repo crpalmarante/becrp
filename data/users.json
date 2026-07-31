@@ -7,6 +7,26 @@
     "role": "admin",
     "empresas": {},
     "ativo": true,
-    "token": "73a2813c1ff91362a82fc54d92bbd67b"
+    "token": ""
+  },
+  "vended01": {
+    "usuario": "ana",
+    "nome": "Ana Vendedora",
+    "senha": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "email": "ana@test.com",
+    "role": "vendedor",
+    "empresas": { "matriz": "vendedor" },
+    "ativo": true,
+    "token": ""
+  },
+  "caixa001": {
+    "usuario": "carla",
+    "nome": "Carla Caixa",
+    "senha": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+    "email": "carla@test.com",
+    "role": "caixa",
+    "empresas": { "matriz": "caixa" },
+    "ativo": true,
+    "token": ""
   }
 }
