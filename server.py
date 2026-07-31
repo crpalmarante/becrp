@@ -705,21 +705,50 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             qs = urllib.parse.parse_qs(parsed.query or "")
             estab = (qs.get("estabelecimento_id") or [""])[0].strip()
             pid = (qs.get("produto_id") or [""])[0].strip()
+            balances = inventory_mvp.load_balances()
             if not estab:
-                return self._json({"status": "error", "message": "estabelecimento_id obrigatório"}, 400)
+                return self._json({
+                    "status": "ok",
+                    "por_estabelecimento": balances.get("por_estabelecimento") or {},
+                    "atualizado_em": balances.get("atualizado_em"),
+                })
             if pid:
                 return self._json({
                     "status": "ok",
                     "estabelecimento_id": estab,
                     "produto_id": pid,
-                    "balance": inventory_mvp.inventory_balance(estab, pid),
+                    "balance": inventory_mvp.inventory_balance(estab, pid, balances=balances),
                 })
-            loja = (inventory_mvp.load_balances().get("por_estabelecimento") or {}).get(estab) or {}
+            loja = (balances.get("por_estabelecimento") or {}).get(estab) or {}
             return self._json({
                 "status": "ok",
                 "estabelecimento_id": estab,
                 "balances": loja,
             })
+
+        if parsed.path == "/api/inventory/movements":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                limit = int((qs.get("limit") or ["50"])[0])
+            except (TypeError, ValueError):
+                limit = 50
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            pid = (qs.get("produto_id") or [""])[0].strip() or None
+            rows = inventory_mvp.list_recent_movements(limit=limit, estabelecimento_id=estab, produto_id=pid)
+            return self._json({"status": "ok", "movements": rows, "total": len(rows)})
+
+        if parsed.path == "/api/inventory/transit":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            itens = [
+                t for t in (inventory_mvp.load_transit().get("itens") or [])
+                if t.get("status") == "open"
+            ]
+            return self._json({"status": "ok", "itens": itens})
 
         if parsed.path == "/api/receiving":
             token = self.headers.get("X-Auth-Token", "")
@@ -1067,6 +1096,37 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             }
             save_users(users)
             return self._json({"status": "ok", "id": uid, "token": token, "nome": nome, "usuario": usuario, "role": "admin"})
+
+        # ── Inventory MVP: transfer / adjust ──
+        if parsed.path in ("/api/inventory/transfer", "/api/inventory/adjust"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            try:
+                if parsed.path == "/api/inventory/transfer":
+                    result = inventory_mvp.inventory_transfer(
+                        body.get("origem") or body.get("from"),
+                        body.get("destino") or body.get("to"),
+                        body.get("items") or body.get("linhas") or [],
+                        user_id=uid,
+                        nota=body.get("nota"),
+                    )
+                    return self._json({"status": "ok", **result})
+                # adjust
+                result = inventory_mvp.inventory_adjust(
+                    body.get("estabelecimento_id") or body.get("warehouse_id"),
+                    body.get("produto_id") or body.get("id"),
+                    body.get("qty") or body.get("quantidade"),
+                    direcao=body.get("direcao") or body.get("sign") or "in",
+                    nota=body.get("nota"),
+                    user_id=uid,
+                )
+                return self._json({"status": "ok", **result})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
 
         # ── Receiving MVP ──
         if parsed.path == "/api/receiving" or parsed.path.startswith("/api/receiving/"):

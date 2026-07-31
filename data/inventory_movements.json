@@ -1,5 +1,5 @@
 {
-  "next_id": 23,
+  "next_id": 29,
   "movements": [
     {
       "id": 1,
@@ -286,6 +286,86 @@
       "group_id": null,
       "nota": null,
       "user_id": "test"
+    },
+    {
+      "id": 23,
+      "tipo": "transfer_out",
+      "estabelecimento_id": "matriz",
+      "produto_id": "1",
+      "qty": 2,
+      "at": "2026-07-31T11:35:23",
+      "ref_tipo": "transfer",
+      "ref_id": "58756b48",
+      "group_id": "58756b48",
+      "nota": "teste ui",
+      "user_id": null
+    },
+    {
+      "id": 24,
+      "tipo": "transfer_in",
+      "estabelecimento_id": "filial_sp",
+      "produto_id": "1",
+      "qty": 2,
+      "at": "2026-07-31T11:35:23",
+      "ref_tipo": "transfer",
+      "ref_id": "58756b48",
+      "group_id": "58756b48",
+      "nota": "teste ui",
+      "user_id": null
+    },
+    {
+      "id": 25,
+      "tipo": "transfer_out",
+      "estabelecimento_id": "filial_sp",
+      "produto_id": "1",
+      "qty": 2,
+      "at": "2026-07-31T11:35:23",
+      "ref_tipo": "transfer",
+      "ref_id": "563de7c0",
+      "group_id": "563de7c0",
+      "nota": "revert",
+      "user_id": null
+    },
+    {
+      "id": 26,
+      "tipo": "transfer_in",
+      "estabelecimento_id": "matriz",
+      "produto_id": "1",
+      "qty": 2,
+      "at": "2026-07-31T11:35:23",
+      "ref_tipo": "transfer",
+      "ref_id": "563de7c0",
+      "group_id": "563de7c0",
+      "nota": "revert",
+      "user_id": null
+    },
+    {
+      "id": 27,
+      "tipo": "adjust",
+      "estabelecimento_id": "matriz",
+      "produto_id": "10",
+      "qty": 1,
+      "at": "2026-07-31T11:35:23",
+      "ref_tipo": "adjust",
+      "ref_id": null,
+      "group_id": null,
+      "nota": "teste ajuste",
+      "user_id": null,
+      "sign": 1
+    },
+    {
+      "id": 28,
+      "tipo": "adjust",
+      "estabelecimento_id": "matriz",
+      "produto_id": "10",
+      "qty": 1,
+      "at": "2026-07-31T11:35:23",
+      "ref_tipo": "adjust",
+      "ref_id": null,
+      "group_id": null,
+      "nota": "revert ajuste",
+      "user_id": null,
+      "sign": -1
     }
   ]
 }

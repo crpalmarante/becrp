@@ -74,10 +74,10 @@
         "id": "inventario",
         "label": "Inventário",
         "icon": "icon-box",
-        "href": "pages/recebimento.html",
+        "href": "pages/estoque.html",
         "apps": [
+            { "id": "estoque", "label": "Estoque", "icon": "icon-box", "href": "pages/estoque.html" },
             { "id": "recebimento", "label": "Recebimento", "icon": "icon-truck", "href": "pages/recebimento.html" },
-            { "id": "estoque", "label": "Estoque", "icon": "icon-box", "href": "?mod=estoque" },
             { "id": "ncm", "label": "NCM", "icon": "icon-file-text", "href": "?mod=ncm" }
         ]
     },

@@ -35,7 +35,7 @@ Fonte das verdades: warehouse = estabelecimento; toda qty = movimento; Promise s
 **Não agora:** Inventário “puro” / WMS ([`RFC-5000`](./RFC-INVENTORY-ENGINE/RFC-5000%20-%20INVENTORY-ARCHITECTURE.md)) — lote, bin, reserva formal, contagem cíclica. O MVP **é** o inventário operacional. Só aprofundar se surgir dor (transferir / ajustar / ver saldo).
 
 Próximos ganhos possíveis (escolher por dor, não por RFC):
-- UI fina de inventário (saldo + transfer + adjust) — se gerente precisar
+- ~~UI fina de inventário (saldo + transfer + adjust)~~ ✅ `pages/estoque.html`
 - Receiving mais útil (XML/NF-e) — se entrada manual doer
 - Endurecer POS / fiscal real — se venda doer
 

@@ -369,6 +369,9 @@ def inventory_transfer(origem, destino, linhas, *, user_id=None, nota=None):
         q = int(round(float(line.get("qty") or line.get("quantidade") or 0)))
         if not pid or q <= 0:
             continue
+        atual = inventory_balance(o, pid, balances=balances)
+        if q > atual:
+            raise ValueError(f"estoque insuficiente em {o} para produto {pid} (tem {atual}, pediu {q})")
         r_out = inventory_apply_movement(
             "transfer_out", o, pid, q,
             ref_tipo="transfer", ref_id=group_id, group_id=group_id,
@@ -382,10 +385,56 @@ def inventory_transfer(origem, destino, linhas, *, user_id=None, nota=None):
             movements=movements, balances=balances, transit=transit, persist=False,
         )
         ids.extend([r_out["movement_id"], r_in["movement_id"]])
+    if not ids:
+        raise ValueError("nenhum item válido para transferir")
     save_movements(movements)
     save_balances(balances)
     save_transit(transit)
     return {"group_id": group_id, "movement_ids": ids}
+
+
+def inventory_adjust(estabelecimento_id, produto_id, qty, *, direcao="in", nota=None, user_id=None):
+    """Ajuste auditável. direcao: in (+ ) ou out (−)."""
+    eid = str(estabelecimento_id or "").strip()
+    pid = str(produto_id)
+    try:
+        q = int(round(float(qty)))
+    except (TypeError, ValueError):
+        q = 0
+    if not eid or not pid or q <= 0:
+        raise ValueError("estabelecimento, produto e qty > 0 obrigatórios")
+    d = str(direcao or "in").strip().lower()
+    if d in ("out", "-", "saida", "saída", "down"):
+        sign = -1
+        atual = inventory_balance(eid, pid)
+        if q > atual:
+            raise ValueError(f"ajuste de saída maior que saldo ({atual})")
+    else:
+        sign = 1
+    return inventory_apply_movement(
+        "adjust",
+        eid,
+        pid,
+        q,
+        sign=sign,
+        ref_tipo="adjust",
+        ref_id=None,
+        nota=nota or "ajuste manual",
+        user_id=user_id,
+    )
+
+
+def list_recent_movements(limit=50, estabelecimento_id=None, produto_id=None):
+    mov = load_movements().get("movements") or []
+    eid = str(estabelecimento_id or "").strip()
+    pid = str(produto_id or "").strip()
+    rows = list(mov)
+    if eid:
+        rows = [m for m in rows if str(m.get("estabelecimento_id") or "") == eid]
+    if pid:
+        rows = [m for m in rows if str(m.get("produto_id") or "") == pid]
+    rows.sort(key=lambda m: m.get("id") or 0, reverse=True)
+    return rows[: max(1, min(int(limit or 50), 200))]
 
 
 def inventory_promise(estabelecimento_id, produto_id, *, empresas=None, balances=None, transit=None):

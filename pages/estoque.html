@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Estoque</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .stk-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+    .stk-toolbar select { min-width:160px; }
+    .stk-table { width:100%; border-collapse:collapse; }
+    .stk-table th, .stk-table td { padding:10px 12px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08); }
+    .stk-table th { font-size:12px; text-transform:uppercase; opacity:.7; }
+    .stk-msg { margin:8px 0; font-size:14px; }
+    .stk-msg.err { color:#f87171; }
+    .stk-msg.ok { color:#4ade80; }
+    .stk-panels { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:20px; }
+    @media (max-width: 900px) { .stk-panels { grid-template-columns: 1fr; } }
+    .stk-card { padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .stk-card h3 { margin:0 0 10px; font-size:15px; }
+    .stk-zero { opacity:.45; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="estoque.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Estoque</span>
+      </a>
+      <a class="menu-item" href="recebimento.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="menu-label">Recebimento</span>
+      </a>
+      <a class="menu-item" href="produtos.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Produtos</span>
+      </a>
+      <a class="menu-item" href="../index4.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Dashboard</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="topbar-title">Estoque</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <button class="dialog-btn dialog-btn-secondary" id="btn-transfer">Transferir</button>
+        <button class="dialog-btn dialog-btn-primary" id="btn-adjust">Ajustar</button>
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Inventário / Estoque</div>
+          <h2 class="workspace-title">Saldos por loja</h2>
+        </div>
+        <div class="workspace-content">
+          <div class="stk-toolbar">
+            <select class="form-input" id="filter-estab"></select>
+            <label style="display:flex;gap:6px;align-items:center;font-size:13px">
+              <input type="checkbox" id="hide-zero" checked> Ocultar zerados
+            </label>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-refresh">Atualizar</button>
+          </div>
+          <div id="msg" class="stk-msg"></div>
+          <div id="balances"></div>
+          <div class="stk-panels">
+            <div class="stk-card">
+              <h3>Movimentos recentes</h3>
+              <div id="movements"></div>
+            </div>
+            <div class="stk-card">
+              <h3>Em trânsito</h3>
+              <div id="transit"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="transfer-modal" style="display:none">
+  <div class="dialog-box" style="max-width:440px">
+    <div class="dialog-header">
+      <h3 class="dialog-title">Transferir entre lojas</h3>
+      <button class="dialog-close" data-close="transfer-modal">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field"><label>Origem</label><select class="form-input" id="tr-from"></select></div>
+      <div class="field"><label>Destino</label><select class="form-input" id="tr-to"></select></div>
+      <div class="field"><label>Produto ID</label><input class="form-input" id="tr-pid" placeholder="ex.: 1"></div>
+      <div class="field"><label>Quantidade</label><input class="form-input" id="tr-qty" type="number" min="1" value="1"></div>
+      <div class="field"><label>Nota</label><input class="form-input" id="tr-nota" placeholder="opcional"></div>
+      <div class="form-error" id="tr-error"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn dialog-btn-secondary" data-close="transfer-modal">Cancelar</button>
+      <button class="dialog-btn dialog-btn-primary" id="tr-save">Transferir</button>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="adjust-modal" style="display:none">
+  <div class="dialog-box" style="max-width:440px">
+    <div class="dialog-header">
+      <h3 class="dialog-title">Ajuste de estoque</h3>
+      <button class="dialog-close" data-close="adjust-modal">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field"><label>Loja</label><select class="form-input" id="aj-estab"></select></div>
+      <div class="field"><label>Produto ID</label><input class="form-input" id="aj-pid" placeholder="ex.: 1"></div>
+      <div class="field"><label>Direção</label>
+        <select class="form-input" id="aj-dir">
+          <option value="in">Entrada (+)</option>
+          <option value="out">Saída (−)</option>
+        </select>
+      </div>
+      <div class="field"><label>Quantidade</label><input class="form-input" id="aj-qty" type="number" min="1" value="1"></div>
+      <div class="field"><label>Motivo</label><input class="form-input" id="aj-nota" placeholder="obrigatório" required></div>
+      <div class="form-error" id="aj-error"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn dialog-btn-secondary" data-close="adjust-modal">Cancelar</button>
+      <button class="dialog-btn dialog-btn-primary" id="aj-save">Salvar ajuste</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let empresas = {};
+  let nomes = {};
+
+  function msg(text, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = text || "";
+    el.className = "stk-msg " + (ok ? "ok" : text ? "err" : "");
+  }
+
+  function fillSelects(ids) {
+    const opts = Object.keys(empresas).map((id) =>
+      `<option value="${id}">${empresas[id].nome || id}</option>`
+    ).join("");
+    ids.forEach((selId) => {
+      const el = document.getElementById(selId);
+      if (el) el.innerHTML = opts;
+    });
+  }
+
+  async function loadEmpresas() {
+    empresas = {};
+    let lista = [];
+    const mine = await AuthService.api("/api/auth/minhas-empresas");
+    if (mine.status === "ok" && mine.empresas && mine.empresas.length) lista = mine.empresas;
+    else {
+      const data = await AuthService.api("/api/admin/empresas");
+      if (data.status === "ok") lista = data.empresas || [];
+    }
+    if (!lista.length) {
+      lista = [
+        { id: "matriz", nome: "Matriz" },
+        { id: "filial_sp", nome: "Filial São Paulo" },
+        { id: "filial_rj", nome: "Filial Rio de Janeiro" },
+      ];
+    }
+    lista.forEach((e) => { empresas[e.id] = e; });
+    const filterOpts = `<option value="">Todas lojas</option>` +
+      Object.keys(empresas).map((id) => `<option value="${id}">${empresas[id].nome || id}</option>`).join("");
+    document.getElementById("filter-estab").innerHTML = filterOpts;
+    fillSelects(["tr-from", "tr-to", "aj-estab"]);
+  }
+
+  async function loadNomes(estab) {
+    nomes = {};
+    const qs = estab ? ("?estabelecimento_id=" + encodeURIComponent(estab)) : "";
+    const data = await AuthService.api("/api/pos/produtos" + qs);
+    (data.produtos || []).forEach((p) => {
+      nomes[String(p.id)] = p.nome || String(p.id);
+    });
+  }
+
+  async function loadBalances() {
+    const estab = document.getElementById("filter-estab").value;
+    const hideZero = document.getElementById("hide-zero").checked;
+    await loadNomes(estab || "matriz");
+
+    let por = {};
+    if (estab) {
+      const data = await AuthService.api("/api/inventory/balance?estabelecimento_id=" + encodeURIComponent(estab));
+      if (data.status !== "ok") return msg(data.message || "Falha ao carregar");
+      por[estab] = data.balances || {};
+    } else {
+      const data = await AuthService.api("/api/inventory/balance");
+      if (data.status !== "ok") return msg(data.message || "Falha ao carregar");
+      por = data.por_estabelecimento || {};
+    }
+
+    const rows = [];
+    Object.keys(por).forEach((eid) => {
+      const loja = por[eid] || {};
+      Object.keys(loja).forEach((pid) => {
+        const qty = Number(loja[pid] || 0);
+        if (hideZero && qty <= 0) return;
+        rows.push({ eid, pid, qty });
+      });
+    });
+    rows.sort((a, b) => (a.eid + a.pid).localeCompare(b.eid + b.pid));
+
+    if (!rows.length) {
+      document.getElementById("balances").innerHTML = "<p>Nenhum saldo.</p>";
+      return;
+    }
+
+    document.getElementById("balances").innerHTML = `
+      <table class="stk-table">
+        <thead><tr><th>Loja</th><th>Produto</th><th>Saldo</th></tr></thead>
+        <tbody>
+          ${rows.map((r) => `
+            <tr class="${r.qty <= 0 ? "stk-zero" : ""}">
+              <td>${(empresas[r.eid] || {}).nome || r.eid}</td>
+              <td>${r.pid} · ${nomes[r.pid] || "—"}</td>
+              <td><strong>${r.qty}</strong></td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  async function loadMovements() {
+    const estab = document.getElementById("filter-estab").value;
+    const qs = new URLSearchParams({ limit: "20" });
+    if (estab) qs.set("estabelecimento_id", estab);
+    const data = await AuthService.api("/api/inventory/movements?" + qs.toString());
+    const rows = data.movements || [];
+    if (!rows.length) {
+      document.getElementById("movements").innerHTML = "<p>Sem movimentos.</p>";
+      return;
+    }
+    document.getElementById("movements").innerHTML = `
+      <table class="stk-table">
+        <thead><tr><th>#</th><th>Tipo</th><th>Prod.</th><th>Qty</th><th>Loja</th></tr></thead>
+        <tbody>
+          ${rows.map((m) => `
+            <tr>
+              <td>${m.id}</td>
+              <td>${m.tipo}${m.sign === -1 ? " (−)" : m.sign === 1 && m.tipo === "adjust" ? " (+)" : ""}</td>
+              <td>${m.produto_id}</td>
+              <td>${m.qty}</td>
+              <td>${m.estabelecimento_id || "—"}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  async function loadTransit() {
+    const data = await AuthService.api("/api/inventory/transit");
+    const itens = data.itens || [];
+    if (!itens.length) {
+      document.getElementById("transit").innerHTML = "<p>Nada em trânsito.</p>";
+      return;
+    }
+    document.getElementById("transit").innerHTML = `
+      <table class="stk-table">
+        <thead><tr><th>Prod.</th><th>Qty</th><th>Destino</th><th>ETA</th></tr></thead>
+        <tbody>
+          ${itens.map((t) => `
+            <tr>
+              <td>${t.produto_id} · ${nomes[t.produto_id] || ""}</td>
+              <td>${t.qty}</td>
+              <td>${(empresas[t.destino_estabelecimento_id] || {}).nome || t.destino_estabelecimento_id || "—"}</td>
+              <td>~${t.eta_horas || "?"}h</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  async function refresh() {
+    msg("");
+    await loadBalances();
+    await loadMovements();
+    await loadTransit();
+  }
+
+  function openModal(id) {
+    document.getElementById(id).style.display = "flex";
+  }
+  function closeModal(id) {
+    document.getElementById(id).style.display = "none";
+  }
+
+  document.querySelectorAll("[data-close]").forEach((btn) => {
+    btn.addEventListener("click", () => closeModal(btn.dataset.close));
+  });
+  document.getElementById("btn-transfer").onclick = () => {
+    document.getElementById("tr-error").textContent = "";
+    openModal("transfer-modal");
+  };
+  document.getElementById("btn-adjust").onclick = () => {
+    document.getElementById("aj-error").textContent = "";
+    const estab = document.getElementById("filter-estab").value;
+    if (estab) document.getElementById("aj-estab").value = estab;
+    openModal("adjust-modal");
+  };
+  document.getElementById("btn-refresh").onclick = refresh;
+  document.getElementById("filter-estab").onchange = refresh;
+  document.getElementById("hide-zero").onchange = loadBalances;
+
+  document.getElementById("tr-save").onclick = async () => {
+    const err = document.getElementById("tr-error");
+    err.textContent = "";
+    const res = await AuthService.api("/api/inventory/transfer", {
+      method: "POST",
+      body: JSON.stringify({
+        origem: document.getElementById("tr-from").value,
+        destino: document.getElementById("tr-to").value,
+        items: [{ produto_id: document.getElementById("tr-pid").value.trim(), qty: Number(document.getElementById("tr-qty").value || 0) }],
+        nota: document.getElementById("tr-nota").value.trim(),
+      }),
+    });
+    if (res.status !== "ok") {
+      err.textContent = res.message || "Falha na transferência";
+      return;
+    }
+    closeModal("transfer-modal");
+    msg("Transferência ok · movimentos " + (res.movement_ids || []).join(", "), true);
+    refresh();
+  };
+
+  document.getElementById("aj-save").onclick = async () => {
+    const err = document.getElementById("aj-error");
+    err.textContent = "";
+    const nota = document.getElementById("aj-nota").value.trim();
+    if (!nota) {
+      err.textContent = "Informe o motivo do ajuste";
+      return;
+    }
+    const res = await AuthService.api("/api/inventory/adjust", {
+      method: "POST",
+      body: JSON.stringify({
+        estabelecimento_id: document.getElementById("aj-estab").value,
+        produto_id: document.getElementById("aj-pid").value.trim(),
+        qty: Number(document.getElementById("aj-qty").value || 0),
+        direcao: document.getElementById("aj-dir").value,
+        nota,
+      }),
+    });
+    if (res.status !== "ok") {
+      err.textContent = res.message || "Falha no ajuste";
+      return;
+    }
+    closeModal("adjust-modal");
+    msg("Ajuste ok · movimento #" + res.movement_id, true);
+    refresh();
+  };
+
+  (async function boot() {
+    await loadEmpresas();
+    await refresh();
+  })();
+})();
+</script>
+</body>
+</html>
