@@ -34,6 +34,10 @@
       <button type="button" data-store="servico">Serviço</button>
     </div>
 
+    <div class="pos-training-mode" id="training-mode" role="tablist" aria-label="Modo treinamento">
+      <button type="button" id="btn-training" data-training="off">Treino</button>
+    </div>
+
     <div class="pos-top-spacer"></div>
 
     <div class="pos-meta">
@@ -52,15 +56,49 @@
       <div id="pos-workspace">
         <!-- Catálogo -->
         <section class="pos-panel" id="pos-catalog">
-          <div class="pos-panel-head">
+          <div class="pos-panel-head catalog-head">
             <input class="pos-search" id="prod-search" placeholder="Buscar produto, EAN ou SKU" autocomplete="off">
+            <button type="button" class="toggle-chip" id="btn-consulta" title="Consulta de preço — não adiciona ao pedido">Consulta</button>
           </div>
           <div class="catalog-tabs" id="catalog-tabs" role="tablist" aria-label="Filtro do catálogo">
             <button type="button" class="active" data-tab="todos">Todos</button>
             <button type="button" data-tab="favoritos">Favoritos</button>
             <button type="button" data-tab="ultimos">Últimos</button>
           </div>
-          <div class="pos-cats" id="prod-cats"></div>
+          <div class="vitrine-cats" id="prod-cats" role="tablist" aria-label="Categorias"></div>
+          <div class="vitrine-subcats" id="prod-subcats" hidden></div>
+          <div class="catalog-toolbar" id="catalog-toolbar">
+            <span class="catalog-result-label" id="catalog-result-label">Mostruário</span>
+            <label class="catalog-filter">
+              <span>Ordenar</span>
+              <select id="catalog-sort">
+                <option value="relevancia">Relevância</option>
+                <option value="preco-asc">Menor preço</option>
+                <option value="preco-desc">Maior preço</option>
+                <option value="novidades">Novidades</option>
+              </select>
+            </label>
+            <label class="catalog-filter">
+              <span>Preço</span>
+              <select id="catalog-price">
+                <option value="">Qualquer</option>
+                <option value="0-20">Até R$ 20</option>
+                <option value="20-50">R$ 20–50</option>
+                <option value="50-100">R$ 50–100</option>
+                <option value="100+">Acima de R$ 100</option>
+              </select>
+            </label>
+            <label class="catalog-filter">
+              <span>Estoque</span>
+              <select id="catalog-avail">
+                <option value="">Todos</option>
+                <option value="local">Na loja</option>
+                <option value="disponivel">Disponível</option>
+                <option value="branch">Outra filial</option>
+                <option value="none">Indisponível</option>
+              </select>
+            </label>
+          </div>
           <div id="prod-grid"></div>
         </section>
 
@@ -99,6 +137,11 @@
                   <span id="client-hint">Toque para buscar</span>
                 </div>
               </button>
+              <div id="client-history" class="client-history" hidden></div>
+            </div>
+
+            <div id="training-banner" class="training-banner" hidden>
+              Modo treinamento — não vai ao caixa real
             </div>
 
             <div class="side-block">
@@ -120,6 +163,9 @@
                 <div class="actionable" id="btn-open-installments" role="button" tabindex="0">
                   <span>Parcelamento</span><strong id="summary-parc">—</strong>
                 </div>
+                <div class="summary-promo" id="summary-promo-row" hidden>
+                  <span id="summary-promo-label">Promo</span><strong id="summary-promo">−R$ 0,00</strong>
+                </div>
                 <div class="total"><span>Total</span><strong id="order-total">R$ 0,00</strong></div>
               </div>
             </div>
@@ -129,8 +175,12 @@
               <button type="button" class="pos-cta secondary" id="btn-convert-order" hidden>Virar pedido</button>
               <div class="cta-stack three">
                 <button type="button" class="pos-cta secondary" id="btn-suspend">Suspender</button>
+                <button type="button" class="pos-cta secondary" id="btn-espera">Espera</button>
                 <button type="button" class="pos-cta secondary" id="btn-undo" disabled>Desfazer</button>
+              </div>
+              <div class="cta-stack" style="grid-template-columns:1fr 1fr;margin-top:8px">
                 <button type="button" class="pos-cta secondary" id="btn-clear">Limpar</button>
+                <button type="button" class="pos-cta secondary" id="btn-exchange">Troca/devolução</button>
               </div>
               <div class="cta-stack" style="grid-template-columns:1fr;margin-top:8px">
                 <button type="button" class="pos-cta secondary" id="btn-side-price" disabled>Valor manual</button>
@@ -285,6 +335,42 @@
             <div class="numpad-actions">
               <button type="button" class="pos-cta secondary" id="variant-cancel">Cancelar</button>
               <button type="button" class="pos-cta" id="variant-apply">Adicionar</button>
+            </div>
+          </div>
+
+          <!-- Consulta de preço -->
+          <div id="smart-ctx-price" class="smart-ctx" hidden>
+            <div class="side-block">
+              <h3 id="price-consult-name">—</h3>
+              <p class="price-consult-val" id="price-consult-price">R$ 0,00</p>
+              <p class="mode-note" id="price-consult-stock">—</p>
+            </div>
+            <div class="side-block smart-footer">
+              <button type="button" class="pos-cta" id="btn-price-add">Adicionar ao pedido</button>
+              <button type="button" class="pos-cta secondary" id="btn-price-back" style="width:100%;margin-top:8px">Voltar</button>
+            </div>
+          </div>
+
+          <!-- Troca / devolução -->
+          <div id="smart-ctx-exchange" class="smart-ctx" hidden>
+            <div class="side-block">
+              <input class="pos-search" id="exchange-search" placeholder="NFC-e ou CPF do cliente" autocomplete="off">
+            </div>
+            <div class="side-block grow-summary" id="exchange-results"></div>
+            <div class="side-block smart-footer">
+              <button type="button" class="pos-cta secondary" id="btn-exchange-back" style="width:100%">Cancelar</button>
+            </div>
+          </div>
+
+          <!-- Produtos similares -->
+          <div id="smart-ctx-similar" class="smart-ctx" hidden>
+            <div class="numpad-head">
+              <h3>Alternativas</h3>
+              <p class="numpad-sub" id="similar-sub">Produto indisponível</p>
+            </div>
+            <div class="side-block grow-summary" id="similar-list"></div>
+            <div class="side-block smart-footer">
+              <button type="button" class="pos-cta secondary" id="btn-similar-back" style="width:100%">Voltar</button>
             </div>
           </div>
 
@@ -451,9 +537,51 @@
     <span>Sessão local</span>
     <span id="status-mode">Modo PDV</span>
     <span id="status-store">Loja: Mercearia</span>
+    <span id="status-goal" class="status-goal">Meta —</span>
     <span class="grow" id="status-hint">Smart Panel — console contextual do operador</span>
     <span id="status-user">—</span>
   </footer>
+</div>
+
+<!-- Mostruário / galeria do produto (Fase 3) -->
+<div id="showcase" class="showcase" hidden aria-modal="true" role="dialog" aria-labelledby="showcase-name">
+  <div class="showcase-backdrop" id="showcase-backdrop"></div>
+  <div class="showcase-sheet">
+    <button type="button" class="showcase-close" id="showcase-close" title="Fechar">×</button>
+    <div class="showcase-gallery">
+      <button type="button" class="showcase-nav prev" id="showcase-prev" aria-label="Foto anterior">‹</button>
+      <div class="showcase-stage">
+        <img id="showcase-img" src="" alt="">
+        <div class="showcase-dots" id="showcase-dots"></div>
+      </div>
+      <button type="button" class="showcase-nav next" id="showcase-next" aria-label="Próxima foto">›</button>
+    </div>
+    <div class="showcase-body">
+      <div class="showcase-head">
+        <div>
+          <h2 id="showcase-name">Produto</h2>
+          <p class="showcase-meta" id="showcase-meta"></p>
+        </div>
+        <div class="showcase-price" id="showcase-price">R$ 0,00</div>
+      </div>
+      <p class="showcase-desc" id="showcase-desc"></p>
+      <div class="showcase-stock" id="showcase-stock"></div>
+      <div class="showcase-variants" id="showcase-variants" hidden>
+        <div class="showcase-var-block">
+          <h3>Cor</h3>
+          <div class="swatch-row" id="showcase-cores"></div>
+        </div>
+        <div class="showcase-var-block">
+          <h3>Tamanho</h3>
+          <div class="swatch-row" id="showcase-tamanhos"></div>
+        </div>
+      </div>
+      <div class="showcase-actions">
+        <button type="button" class="pos-cta secondary" id="showcase-consult">Consultar preço</button>
+        <button type="button" class="pos-cta" id="showcase-add">Adicionar ao pedido</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="../js/services/AuthService.js"></script>

@@ -268,30 +268,45 @@ Implementado em `pages/pos.html` + `js/pos-pdv.js` + `css/pos.css` (mock/local):
 9. **Feedback pós-envio ao caixa** — banner no resumo + status bar; estados mock Aguardando → Em pagamento → Pago; item entra na fila do Caixa; permanece no PDV.
 10. **Perfil da loja** — seletor Mercearia | Moda | Serviço na topbar; filtra ênfase do catálogo; persistido; label na barra de status.
 
+### 2.6 Produtividade avançada (PDV — lote 2)
+
+Implementado em `pages/pos.html` + `js/pos-pdv.js` + `css/pos.css` (mock/local):
+
+1. **Consulta de preço** — toggle **Consulta** ao lado da busca; quando ativo, toque/scan abre contexto **Consulta de Preço** no Smart Panel (nome, preço, badge de estoque) sem adicionar ao pedido; botão **Adicionar ao pedido** opcional; Enter na busca também respeita o modo.
+2. **Troca / devolução** — botão **Troca/devolução** no resumo; contexto **Troca / Devolução** com busca por NFC-e ou CPF; 3 vendas mock; seleção carrega linhas negativas/tagged `troca: true` com observação da NFC-e; permanece no PDV.
+3. **Lista de espera / camarim** — botão **Espera** junto a Suspender; sessão marcada `espera` com label (primeiro nome) e badge de prioridade; trilho renderiza badge **espera**; retomar funciona como suspensa.
+4. **Meta / comissão do dia** — `#status-goal` na barra de status (ex. **Meta 72%**); meta mock R$ 5.000/dia; progresso soma pedidos enviados ao caixa (localStorage); não incrementa em modo treinamento.
+5. **Produto similar na falta** — Sabão em pó `stockStatus: none` com `similares: [7, 2]`; contexto **Produtos Similares** e bloco no painel Estoque com botões **Trocar**; dispara ao adicionar produto indisponível ou consultar estoque.
+6. **Kit / promoção automática** — regras mock: 3+ Detergentes −10%; Leite 3 por 2; linha **Promo** no resumo com desconto aplicado ao total; recalculado em `renderOrder`.
+7. **Histórico do cliente** — `historico` e `tamanhoUsual` nos parceiros mock; hint enriquecido ao selecionar; bloco `#client-history` sob o chip com últimas compras e dica de tamanho (moda).
+8. **Bip composto** — Enter em `#prod-search` interpreta `2*SKU`, `SKU*2`, `2xSKU` (case insensitive); busca por sku/id/ean; adiciona quantidade; limpa busca; Enter simples = primeiro filtrado (ou consulta se toggle ativo).
+9. **Modo treinamento** — toggle **Treino** na topbar; classes `training` no body/app; status **TREINO**; banner no resumo; envio simula fila com badge Treino sem ciclo de pagamento real nem meta.
+10. **Avisos operacionais** — produtos com `alertas: ["promo","recall"]`; badges nos cards; recall exige confirmação antes de adicionar; promo badge visual (Leite, Detergente promo; Sabão recall).
+
 ---
 
 ## Fase 3 — Mostruário Eletrônico Integrado
 
 **Objetivo:** O vendedor mostra o produto ao cliente sem sair do fluxo de venda.
 
+Implementado em `pages/pos.html` + `js/pos-pdv.js` + `css/pos.css` (mock/local):
+
 ### 3.1 Galeria no Contexto da Venda
-- Ao clicar no card do produto, abre modal com:
-  - Imagens em galeria (swipe ou setas)
-  - Descrição completa
-  - Variações (cor, tamanho) com seleção
-  - Preço por variação
-  - Botão "Adicionar ao pedido" direto da galeria
+- Toque no card abre o overlay **Mostruário** (`#showcase`): galeria com setas, dots e swipe; descrição; estoque; badges Novo/Promo/Recall.
+- Variações (cor/tamanho) no próprio mostruário com **preço por combinação** (`ajusteCor` / `ajusteTam`).
+- CTA **Adicionar ao pedido** e **Consultar preço**; ESC / backdrop fecha; setas do teclado trocam foto.
+- Bip (Enter na busca) continua adicionando direto, sem abrir galeria.
+- Modo Consulta: toque no card ainda abre consulta de preço (sem mostruário).
 
 ### 3.2 Vitrine por Categoria (Visual)
-- Categorias como abas visuais (não dropdown)
-- Cada aba mostra os produtos daquela categoria em grid
-- Subcategorias como badges/filtros dentro da aba
-- Destaque para novidades e promoções (badge visual)
+- Abas visuais `#prod-cats` (`.vitrine-cat`) com ícone, nome e contagem — não é dropdown.
+- Subcategorias (`.vitrine-sub`) quando a categoria tem `subcat` (ex. Mercearia → Grãos / Óleos).
+- Badges **Novo**, **Promo** e **Recall** nos cards e no mostruário.
 
 ### 3.3 Busca com Fotos
-- Resultados da busca em grid de imagens (não lista)
-- Filtro por: categoria, faixa de preço, disponibilidade
-- Ordenação: relevância, menor preço, maior preço, novidades
+- Resultados permanecem em **grid de imagens** (`#prod-grid`).
+- Toolbar: ordenar (relevância / menor / maior preço / novidades); faixa de preço; disponibilidade.
+- Label dinâmico (ex. “3 resultados · fotos”) quando há busca.
 
 ---
 
@@ -348,8 +363,8 @@ Implementado em `pages/pos.html` + `js/pos-pdv.js` + `css/pos.css` (mock/local):
 | Fase | Prioridade | Esforço | Dependências |
 |------|-----------|---------|-------------|
 | **Fase 1** — POS Renovado | 🔴 Alta | Média | BusinessUI já existe |
-| **Fase 2** — Fluxo Centrado | 🔴 Alta | Média | Fase 1 concluída |
-| **Fase 3** — Mostruário | 🟡 Média | Alta | Imagens já funcionam via API |
+| **Fase 2** — Fluxo Centrado | ✅ Feita | Média | Smart Panel + produtividade |
+| **Fase 3** — Mostruário | ✅ Feita | Alta | Galeria + vitrine + busca com fotos |
 | **Fase 4** — Capacidades | 🟡 Média | Alta | Fase 1 + 2 concluídas |
 | **Fase 5** — Promise Engine | 🟢 Baixa | Muito alta | Multi-filial operacional |
 
@@ -357,8 +372,7 @@ Implementado em `pages/pos.html` + `js/pos-pdv.js` + `css/pos.css` (mock/local):
 
 ## Como Começar (Próximo Passo Imediato)
 
-**Fase 1, Item 1.1 + 1.2:**
+**Fase 3 concluída (mostruário).** Próximo natural:
 
-Extrair o CSS do `pos.html` para `frontend/css/pos.css`, reaplicar usando as variáveis e tokens do BusinessUI (`businessui/assets/css/`), e transformar a grade de produtos de cards textuais para cards com espaço para imagem.
-
-Isso já dá uma cara nova ao POS sem mexer em nenhuma lógica de negócio.
+- **Fase 4** — aprofundar modos Mercearia (peso/balança), Moda (grade no card) e Serviço; ou
+- **APIs reais** — produtos/imagens/parceiros no lugar do mock `SAMPLE`.
