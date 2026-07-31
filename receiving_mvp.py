@@ -75,6 +75,8 @@ def _normalize_items(items, allow_unmatched=False):
         }
         if isinstance(it.get("nfe_item"), dict):
             row["nfe_item"] = it["nfe_item"]
+        if isinstance(it.get("suggestions"), list):
+            row["suggestions"] = it["suggestions"]
         out.append(row)
     return out
 
@@ -152,8 +154,8 @@ def create_receiving(payload, user_id=None):
     return rec
 
 
-def link_item_product(rid, item_index, produto_id, produto_nome=None, user_id=None):
-    """Vincula item sem match a um produto interno (RFC-4004 mínima)."""
+def link_item_product(rid, item_index, produto_id, produto_nome=None, user_id=None, remember=True):
+    """Vincula item sem match a um produto interno (RFC-4004) e grava vínculo fornecedor."""
     data = _load()
     rec = None
     for r in data.get("receivings") or []:
@@ -174,16 +176,44 @@ def link_item_product(rid, item_index, produto_id, produto_nome=None, user_id=No
     pid = str(produto_id or "").strip()
     if not pid:
         raise ValueError("produto_id obrigatório")
+
+    nome = (produto_nome or "").strip()
+    if not nome:
+        try:
+            import cobol_bridge
+            for p in cobol_bridge.produtos_listar() or []:
+                if str(p.get("id")) == pid:
+                    nome = p.get("nome") or ""
+                    break
+        except Exception:
+            pass
+
     items[idx]["produto_id"] = pid
-    if produto_nome:
-        items[idx]["produto_nome"] = str(produto_nome).strip()
+    if nome:
+        items[idx]["produto_nome"] = nome
     items[idx]["match"] = "manual"
+    items[idx].pop("suggestions", None)
     rec["items"] = items
     if isinstance(rec.get("nfe"), dict):
         rec["nfe"]["itens_sem_match"] = unmatched_count(rec)
-    rec.setdefault("events", []).append({
-        "at": _now(), "tipo": "product_linked", "by": user_id, "item_index": idx, "produto_id": pid,
-    })
+
+    ref = None
+    if remember:
+        try:
+            import product_localization
+            ref = product_localization.remember_from_receiving_item(
+                rec, items[idx], pid, produto_nome=nome or None, user_id=user_id
+            )
+        except Exception:
+            ref = None
+
+    event = {
+        "at": _now(), "tipo": "product_linked", "by": user_id,
+        "item_index": idx, "produto_id": pid,
+    }
+    if ref:
+        event["ref_id"] = ref.get("id")
+    rec.setdefault("events", []).append(event)
     _save(data)
     return rec
 

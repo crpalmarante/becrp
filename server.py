@@ -13,6 +13,7 @@ import cobol_bridge
 import inventory_mvp
 import receiving_mvp
 import nfe_inbound
+import product_localization
 import pos_caixa
 import org_store
 from modules.certificate import cert_service
@@ -833,12 +834,34 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             rows = receiving_mvp.list_receivings(estabelecimento_id=estab, status=status)
             return self._json({"status": "ok", "receivings": rows, "total": len(rows)})
 
+        if parsed.path == "/api/receiving/product-search":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            q = (qs.get("q") or [""])[0].strip()
+            try:
+                limit = int((qs.get("limit") or ["20"])[0])
+            except ValueError:
+                limit = 20
+            rows = product_localization.search_products(q, limit=limit)
+            return self._json({"status": "ok", "produtos": rows, "total": len(rows)})
+
+        if parsed.path == "/api/receiving/product-refs":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            cnpj = (qs.get("supplier_cnpj") or qs.get("cnpj") or [""])[0].strip()
+            rows = product_localization.list_refs(supplier_cnpj=cnpj or None)
+            return self._json({"status": "ok", "refs": rows, "total": len(rows)})
+
         if parsed.path.startswith("/api/receiving/"):
             token = self.headers.get("X-Auth-Token", "")
             if not self._find_user(token, load_users()):
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
             rid = parsed.path.rstrip("/").split("/")[-1]
-            if rid in ("verify", "complete", "cancel"):
+            if rid in ("verify", "complete", "cancel", "product-search", "product-refs", "from-xml", "link-product"):
                 return self._json({"status": "error", "message": "id obrigatório"}, 400)
             rec = receiving_mvp.get_receiving(rid)
             if not rec:
@@ -1275,12 +1298,15 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 elif action == "cancel":
                     rec = receiving_mvp.cancel_receiving(rid, user_id=uid, motivo=body.get("motivo"))
                 elif action == "link-product":
+                    rem = body.get("remember")
+                    remember = True if rem is None else bool(rem)
                     rec = receiving_mvp.link_item_product(
                         rid,
                         body.get("item_index"),
                         body.get("produto_id") or body.get("id"),
                         produto_nome=body.get("produto_nome") or body.get("nome"),
                         user_id=uid,
+                        remember=remember,
                     )
                 else:
                     return self._json({"status": "error", "message": f"ação desconhecida: {action}"}, 400)

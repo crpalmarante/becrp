@@ -15,6 +15,7 @@ from xml.etree import ElementTree as ET
 
 import org_store
 import receiving_mvp
+import product_localization
 
 try:
     from lxml import etree as LET
@@ -238,21 +239,11 @@ def resolve_estabelecimento_by_cnpj(dest_cnpj, hint_id=None):
     raise ValueError("empresa destinatária não identificada (CNPJ não casa com nenhum estabelecimento)")
 
 
-def match_produto(item, catalog):
-    """
-    Match mínimo RFC-4004: EAN → código barras; depois código fornecedor == id/sku.
-    """
-    ean = _digits(item.get("ean"))
-    cprod = str(item.get("codigo_fornecedor") or "").strip()
-    for p in catalog or []:
-        pid = str(p.get("id") or "")
-        bars = _digits(p.get("codigo_barras") or p.get("ean") or "")
-        sku = str(p.get("sku") or "").strip()
-        if ean and bars and ean == bars:
-            return {"produto_id": pid, "produto_nome": p.get("nome") or "", "match": "ean"}
-        if cprod and (cprod == pid or cprod == sku):
-            return {"produto_id": pid, "produto_nome": p.get("nome") or "", "match": "codigo"}
-    return {"produto_id": "", "produto_nome": item.get("descricao") or "", "match": "none"}
+def match_produto(item, catalog, supplier_cnpj=None):
+    """Delega à RFC-4004 (product_localization)."""
+    return product_localization.match_item(
+        item, catalog=catalog, supplier_cnpj=supplier_cnpj
+    )
 
 
 def _store_xml(chave, raw: bytes):
@@ -303,8 +294,9 @@ def create_receiving_from_nfe(xml_text_or_bytes, *, estabelecimento_id=None, use
 
     items = []
     pending = 0
+    supplier_cnpj = parsed.get("fornecedor_cnpj") or ""
     for it in parsed["itens"]:
-        m = match_produto(it, catalog)
+        m = match_produto(it, catalog, supplier_cnpj=supplier_cnpj)
         qty = it.get("qty") or 0
         try:
             qty_i = int(round(float(qty)))
@@ -317,7 +309,7 @@ def create_receiving_from_nfe(xml_text_or_bytes, *, estabelecimento_id=None, use
             continue
         if m["match"] == "none":
             pending += 1
-        items.append({
+        row = {
             "produto_id": m["produto_id"] or "",
             "produto_nome": m["produto_nome"] or it.get("descricao") or "",
             "qty_expected": qty_i,
@@ -333,7 +325,10 @@ def create_receiving_from_nfe(xml_text_or_bytes, *, estabelecimento_id=None, use
                 "qty_xml": it.get("qty"),
                 "preco_unit": it.get("preco_unit"),
             },
-        })
+        }
+        if m.get("suggestions"):
+            row["suggestions"] = m["suggestions"]
+        items.append(row)
 
     if not items:
         raise ValueError("nenhum item com quantidade válida")
