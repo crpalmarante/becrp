@@ -365,11 +365,16 @@ Categorias e seções da vitrine vêm do cadastro do mix — não de um “modo 
 - Variação / peso / serviço disparam **só** pelos atributos do produto (`variants`, `peso`, `servico`).
 - Catálogo = mix completo mock (`catalogPool` / SAMPLE), sem filtro por “modo”.
 
-### 4.5 Ainda a aprofundar (capacidades)
+### 4.5 Capacidades aprofundadas (feita no protótipo)
 
-- Peso/KG + balança; grade de variante no card; descrição de serviço na linha.
+1. **Peso / KG** — badge KG no card; ao adicionar abre numpad de peso; chips `0,250`…`1,500` + **Balança** (mock); linha em kg.
+2. **Variante** — grade de cores/tamanhos no card; toque no tamanho/cor abre painel com seleção; preço por combinação (já no mostruário).
+3. **Serviço** — badge Serviço; ao adicionar abre editor de descrição + frases rápidas; linha com tag e texto `servicoDesc`.
+
+Ainda fora:
 - Promise Engine multi-filial (Fase 5).
 - Lógica de CNAE / tributário (Fiscal Engine — fora do PDV).
+- Balança física (serial/USB) — hoje só mock.
 
 ---
 
@@ -436,5 +441,6 @@ Categorias e seções da vitrine vêm do cadastro do mix — não de um “modo 
 
 Próximo natural:
 
-1. Ajustar CSC/IE/UF do emitente e validar autorização SEFAZ de ponta a ponta.
-2. Aprofundar capacidades (peso/balança, grade variante, serviço na linha).
+1. Ajustar CSC/IE/UF do emitente e validar autorização SEFAZ de ponta a ponta (recurso externo).
+2. Promise Engine / multi-filial quando inventário estiver pronto.
+3. Balança física no lugar do mock.

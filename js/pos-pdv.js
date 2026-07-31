@@ -371,6 +371,8 @@
   let pendingVariant = null;
   let variantPick = { cor: "", tamanho: "" };
   let longPressTimer = null;
+  /** @type {"note"|"service"} */
+  let textEditorMode = "note";
 
   let caixaDue = 186.4;
   let cashReceived = 0;
@@ -905,6 +907,8 @@
       if (numpad.kind === "weight") text = text + " kg";
       if (numpad.kind === "price") text = "R$ " + text;
       document.getElementById("numpad-display").textContent = text;
+      const chips = document.getElementById("weight-chips");
+      if (chips) chips.hidden = numpad.kind !== "weight";
     } else {
       document.getElementById("caixa-numpad-title").textContent = numpad.title;
       document.getElementById("caixa-numpad-sub").textContent = numpad.sub;
@@ -913,6 +917,20 @@
         numpad.allowDecimal
       );
     }
+  }
+
+  function applyWeightPreset(val) {
+    if (!numpad || numpad.kind !== "weight") return;
+    if (val === "balanca") {
+      // Mock de balança: peso entre 0,320 e 2,480 kg
+      const w = Math.round((0.32 + Math.random() * 2.16) * 1000) / 1000;
+      numpad.raw = String(w);
+      document.getElementById("status-hint").textContent =
+        "Balança (mock) · " + String(w).replace(".", ",") + " kg";
+    } else {
+      numpad.raw = String(val);
+    }
+    syncNumpadUI();
   }
 
   function syncAdjPadUI() {
@@ -1262,24 +1280,62 @@
     });
   }
 
+  function syncTextPhrases() {
+    const note = document.getElementById("note-phrases");
+    const svc = document.getElementById("service-phrases");
+    if (note) note.hidden = textEditorMode !== "note";
+    if (svc) svc.hidden = textEditorMode !== "service";
+  }
+
   function openNoteEditor() {
     const s = getSession();
     if (!s || s.selectedLine < 0 || !s.lines[s.selectedLine]) return;
     const line = s.lines[s.selectedLine];
-    document.getElementById("text-title").textContent = "Observação";
+    textEditorMode = line.servico ? "service" : "note";
+    document.getElementById("text-title").textContent =
+      textEditorMode === "service" ? "Descrição do serviço" : "Observação";
     document.getElementById("text-sub").textContent = line.nome;
-    document.getElementById("text-editor").value = line.obs || "";
-    setSmartCtx("text", "Observação");
+    document.getElementById("text-editor").value =
+      textEditorMode === "service" ? line.servicoDesc || line.obs || "" : line.obs || "";
+    document.getElementById("text-editor").placeholder =
+      textEditorMode === "service"
+        ? "Descreva o serviço prestado…"
+        : "Digite a observação…";
+    syncTextPhrases();
+    setSmartCtx("text", textEditorMode === "service" ? "Serviço" : "Observação");
+    document.getElementById("text-editor").focus();
+  }
+
+  function openServiceEditor() {
+    const s = getSession();
+    if (!s || s.selectedLine < 0 || !s.lines[s.selectedLine]) return;
+    textEditorMode = "service";
+    const line = s.lines[s.selectedLine];
+    document.getElementById("text-title").textContent = "Descrição do serviço";
+    document.getElementById("text-sub").textContent = line.nome;
+    document.getElementById("text-editor").value = line.servicoDesc || "";
+    document.getElementById("text-editor").placeholder = "Descreva o serviço prestado…";
+    syncTextPhrases();
+    setSmartCtx("text", "Serviço");
     document.getElementById("text-editor").focus();
   }
 
   function confirmText() {
     const s = getSession();
     if (s && s.selectedLine >= 0 && s.lines[s.selectedLine]) {
-      pushUndo("observação");
-      s.lines[s.selectedLine].obs = (document.getElementById("text-editor").value || "").trim();
+      const val = (document.getElementById("text-editor").value || "").trim();
+      if (textEditorMode === "service") {
+        pushUndo("descrição serviço");
+        s.lines[s.selectedLine].servicoDesc = val;
+        s.lines[s.selectedLine].servico = true;
+      } else {
+        pushUndo("observação");
+        s.lines[s.selectedLine].obs = val;
+      }
       renderOrder();
     }
+    textEditorMode = "note";
+    syncTextPhrases();
     setSmartCtx("summary");
   }
 
@@ -2125,6 +2181,9 @@
   function alertBadgesHtml(p) {
     const bits = [];
     if (p.novo) bits.push('<span class="prod-alert alert-novo">Novo</span>');
+    if (p.peso) bits.push('<span class="prod-alert alert-kg">KG</span>');
+    if (p.servico) bits.push('<span class="prod-alert alert-svc">Serviço</span>');
+    if (p.variants) bits.push('<span class="prod-alert alert-var">Variação</span>');
     if (p.alertas && p.alertas.length) {
       p.alertas.forEach((a) => {
         const cls = a === "recall" ? "alert-recall" : "alert-promo";
@@ -2135,6 +2194,57 @@
     return bits.join("");
   }
 
+  function colorSwatchStyle(name) {
+    const map = {
+      Branca: "#f8fafc",
+      Preta: "#0f172a",
+      Azul: "#2563eb",
+      "Azul escuro": "#1e3a8a",
+      Preto: "#111827",
+    };
+    if (map[name]) return map[name];
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) % 360;
+    return "hsl(" + h + " 55% 45%)";
+  }
+
+  function cardVariantHtml(p) {
+    if (!p.variants) return "";
+    const cores = (p.variants.cores || []).slice(0, 5);
+    const tams = (p.variants.tamanhos || []).slice(0, 6);
+    return (
+      '<div class="prod-var-grade">' +
+      (cores.length
+        ? '<div class="prod-var-cores">' +
+          cores
+            .map(
+              (c) =>
+                `<button type="button" class="prod-dot" title="${c}" data-quick-cor="${c}" data-id="${p.id}" style="background:${colorSwatchStyle(c)}"></button>`
+            )
+            .join("") +
+          "</div>"
+        : "") +
+      (tams.length
+        ? '<div class="prod-var-tams">' +
+          tams
+            .map(
+              (t) =>
+                `<button type="button" class="prod-size" data-quick-tam="${t}" data-id="${p.id}">${t}</button>`
+            )
+            .join("") +
+          "</div>"
+        : "") +
+      "</div>"
+    );
+  }
+
+  function openVariantPanelWithPick(product, pick) {
+    openVariantPanel(product);
+    if (pick && pick.cor) variantPick.cor = pick.cor;
+    if (pick && pick.tamanho) variantPick.tamanho = pick.tamanho;
+    renderVariantSwatches();
+  }
+
   function renderProducts() {
     const list = filteredProducts();
     renderCatalogToolbar();
@@ -2143,18 +2253,22 @@
         const fav = favorites.includes(p.id);
         const src = p.foto || FALLBACK_FOTO;
         const multi = productPhotos(p).length > 1;
+        const unit = p.peso ? "/kg" : p.servico ? "/hora" : "";
         return `
-      <button type="button" class="prod-card ${fav ? "fav" : ""}" data-id="${p.id}" title="Abrir mostruário">
+      <div class="prod-card ${fav ? "fav" : ""}" data-id="${p.id}" role="button" tabindex="0" title="Abrir mostruário">
         <span class="prod-fav ${fav ? "on" : ""}" data-fav="${p.id}" title="Favorito">★</span>
         <div class="prod-alerts">${alertBadgesHtml(p)}</div>
         <div class="thumb">
           <img src="${src}" alt="" loading="lazy" onerror="this.onerror=null;this.src='${FALLBACK_FOTO}'">
           ${multi ? '<span class="prod-gallery-hint">galeria</span>' : ""}
+          ${p.peso ? '<span class="prod-cap-hint">informe o peso</span>' : ""}
+          ${p.servico ? '<span class="prod-cap-hint">serviço</span>' : ""}
         </div>
         <div class="name">${p.nome}</div>
-        <div class="price">${money(p.preco)}${p.peso ? "<small>/kg</small>" : p.servico ? "<small>/hora</small>" : ""}</div>
+        <div class="price">${money(p.preco)}${unit ? "<small>" + unit + "</small>" : ""}</div>
+        ${cardVariantHtml(p)}
         ${stockBadgeHtml(p)}
-      </button>`;
+      </div>`;
       })
       .join("");
   }
@@ -2236,15 +2350,24 @@
     empty.style.display = "none";
     box.innerHTML = s.lines
       .map((l, i) => {
-        const qtyLabel = l.peso ? String(l.qtd).replace(".", ",") + " kg" : String(l.qtd);
+        const qtyLabel = l.peso
+          ? String(l.qtd).replace(".", ",") + " kg"
+          : l.servico
+            ? String(l.qtd) + " h"
+            : String(l.qtd);
         const note = l.obs ? `<span class="disc" title="${l.obs}">obs</span>` : "";
+        const svcTag = l.servico ? '<span class="svc-tag">serviço</span>' : "";
+        const svcDesc = l.servicoDesc
+          ? `<div class="line-svc-desc">${l.servicoDesc}</div>`
+          : "";
         const trocaTag = l.troca ? '<span class="troca-tag">troca</span>' : "";
         const negCls = l.qtd < 0 || l.troca ? " troca-line" : "";
+        const unitPrice = l.peso ? "/kg" : l.servico ? "/h" : " un.";
         return `
       <div class="order-line${negCls} ${i === s.selectedLine ? "sel" : ""}" data-idx="${i}">
-        <div class="title">${l.nome} ${note}${trocaTag}</div>
+        <div class="title">${l.nome} ${note}${svcTag}${trocaTag}${svcDesc}</div>
         <div class="line-total">${money(lineTotal(l))}</div>
-        <div class="meta">${money(l.preco)}${l.peso ? "/kg" : " un."}</div>
+        <div class="meta">${money(l.preco)}${unitPrice}</div>
         <div></div>
         <div class="qty-row">
           <button type="button" data-act="dec" data-idx="${i}">−</button>
@@ -2288,32 +2411,61 @@
     }
 
     if (p.variants) {
-      openVariantPanel(p);
+      openVariantPanelWithPick(p, opts.variantPick || null);
       return;
     }
 
     if (p.peso) {
-      const hit = s.lines.find((l) => l.id === p.id && !l.variantKey);
+      const hit = s.lines.find((l) => l.id === p.id && !l.variantKey && l.peso);
       if (!hit) {
         pushUndo("adicionar item");
-        s.lines.push({ id: p.id, nome: p.nome, preco: p.preco, qtd: 0, peso: true, descPct: 0 });
+        s.lines.push({
+          id: p.id,
+          nome: p.nome,
+          preco: p.preco,
+          qtd: 0,
+          peso: true,
+          descPct: 0,
+        });
       }
       s.selectedLine = s.lines.findIndex((l) => l.id === p.id && l.peso);
       trackRecent(p.id);
       renderOrder();
       openQtyPad(s.selectedLine);
+      document.getElementById("status-hint").textContent =
+        "Informe o peso em kg (atalhos ou balança mock)";
       if (p.stockStatus === "none") openSimilarPanel(p);
       return;
     }
 
+    if (p.servico) {
+      pushUndo("adicionar item");
+      s.lines.push({
+        id: p.id,
+        nome: p.nome,
+        preco: p.preco,
+        qtd: 1,
+        descPct: 0,
+        servico: true,
+        servicoDesc: "",
+      });
+      s.selectedLine = s.lines.length - 1;
+      trackRecent(p.id);
+      renderOrder();
+      openServiceEditor();
+      document.getElementById("status-hint").textContent =
+        "Descreva o serviço antes de enviar ao caixa";
+      return;
+    }
+
     const hit = s.lines.find(
-      (l) => l.id === p.id && !l.peso && !l.variantKey && !l.troca
+      (l) => l.id === p.id && !l.peso && !l.variantKey && !l.troca && !l.servico
     );
     pushUndo("adicionar item");
     if (hit) hit.qtd += 1;
     else s.lines.push({ id: p.id, nome: p.nome, preco: p.preco, qtd: 1, descPct: 0 });
     s.selectedLine = s.lines.findIndex(
-      (l) => l.id === p.id && !l.peso && !l.variantKey && !l.troca
+      (l) => l.id === p.id && !l.peso && !l.variantKey && !l.troca && !l.servico
     );
     trackRecent(p.id);
     renderOrder();
@@ -2356,9 +2508,11 @@
         preco: l.preco,
         qtd: l.qtd,
         peso: !!l.peso,
+        servico: !!l.servico,
         troca: !!l.troca,
         variantKey: l.variantKey || "",
         obs: l.obs || "",
+        servicoDesc: l.servicoDesc || "",
         descPct: l.descPct || 0,
       })),
       subtotal: sessionSubtotal(session),
@@ -2880,6 +3034,19 @@
         toggleFavorite(favBtn.dataset.fav);
         return;
       }
+      const quickTam = e.target.closest("[data-quick-tam]");
+      const quickCor = e.target.closest("[data-quick-cor]");
+      if (quickTam || quickCor) {
+        e.stopPropagation();
+        const el = quickTam || quickCor;
+        const p = SAMPLE.find((x) => x.id === Number(el.dataset.id));
+        if (!p || !p.variants) return;
+        openVariantPanelWithPick(p, {
+          cor: quickCor ? quickCor.dataset.quickCor : p.variants.cores[0],
+          tamanho: quickTam ? quickTam.dataset.quickTam : p.variants.tamanhos[0],
+        });
+        return;
+      }
       const card = e.target.closest(".prod-card");
       if (card) {
         const p = SAMPLE.find((x) => x.id === Number(card.dataset.id));
@@ -2887,9 +3054,18 @@
       }
     });
 
+    document.getElementById("prod-grid").addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      const card = e.target.closest(".prod-card");
+      if (!card || e.target.closest("button")) return;
+      e.preventDefault();
+      const p = SAMPLE.find((x) => x.id === Number(card.dataset.id));
+      if (p) openShowcase(p);
+    });
+
     document.getElementById("prod-grid").addEventListener("mousedown", (e) => {
       const card = e.target.closest(".prod-card");
-      if (!card || e.target.closest("[data-fav]")) return;
+      if (!card || e.target.closest("[data-fav], [data-quick-tam], [data-quick-cor]")) return;
       longPressTimer = setTimeout(() => toggleFavorite(card.dataset.id), 600);
     });
     document.getElementById("prod-grid").addEventListener("mouseup", () => clearTimeout(longPressTimer));
@@ -3005,6 +3181,15 @@
 
     bindNumpadKeys(document.getElementById("numpad-keys"));
     bindNumpadKeys(document.getElementById("caixa-numpad-keys"));
+    document.getElementById("weight-chips")?.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-w]");
+      if (btn) applyWeightPreset(btn.dataset.w);
+    });
+    document.getElementById("service-phrases")?.addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-phrase]");
+      if (btn) appendNotePhrase(btn.dataset.phrase);
+    });
+
     document.getElementById("numpad-ok").addEventListener("click", confirmNumpad);
     document.getElementById("numpad-cancel").addEventListener("click", closeNumpad);
     document.getElementById("caixa-numpad-ok").addEventListener("click", confirmNumpad);
