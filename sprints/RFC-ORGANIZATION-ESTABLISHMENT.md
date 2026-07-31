@@ -57,20 +57,39 @@ Ao **criar** um terminal PDV (ou Caixa), ele já nasce:
 
 ---
 
-## 2.2 Admin: criar PDVs, Caixas e configs genéricas (decisão travada)
+## 2.2 Hub Configurações (decisão travada)
 
-Só o **Administrador do sistema** (papel na Organização) cria, edita, desativa e reatribui terminais.  
-Vendedor, Caixa operacional e Gerente de loja **não** cadastram PDV/Caixa nem alteram configs genéricas.
+No menu principal existe o card **Configurações** (`pages/configuracoes.html`).
 
-> Simple: um lugar só — **Admin → Estabelecimento → Terminais**. Nada disso vive dentro da tela de venda.
+Esse hub **não** é “só PDV”. É o lugar único onde o **Administrador do sistema** faz as **configurações genéricas de todos os módulos instalados** na organização.
 
-### Onde fica
+```
+Menu principal
+ └─ Configurações          ← hub Admin
+     ├─ Organização / Estabelecimentos (Empresa, filiais, fiscal…)
+     ├─ Usuários / Perfis
+     ├─ POS: PDVs e Caixas  ← um dos módulos
+     ├─ Fiscal / NFC-e      ← outro módulo (quando instalado)
+     ├─ Contabilidade       ← …
+     └─ … demais módulos instalados
+```
+
+### Princípios
+
+1. **Um hub** — configs genéricas entram por Configurações, não pela tela operacional do módulo.  
+2. **Por módulo instalado** — só aparecem seções dos módulos que a org contratou/ativou.  
+3. **Só Administrador** — vendedor/caixa/gerente operam o módulo; não cadastram estrutura genérica.  
+4. **Genérico ≠ operação** — criar PDV, CSC, numeração, usuários = Configurações; vender/pagar = PDV/Caixa.
+
+### Onde fica o POS dentro disso
 
 | Área | Quem | O quê |
 |------|------|--------|
-| **Admin (BRE / Config)** | Administrador | Criar PDV/Caixa, vínculo pessoa, configs genéricas, ativar/desativar |
-| **Estabelecimento (Fiscal)** | Administrador | CNPJ, IE, certificado, CSC, série/número NFC-e (não é campo do terminal) |
-| **PDV / Caixa (operação)** | Vendedor / Caixa / Gerente | Vender, fila, pagar, abrir/fechar sessão — **sem** tela de cadastro de terminal |
+| **Configurações → POS (PDVs / Caixas)** | Administrador | Criar terminal, vínculo pessoa, configs genéricas do POS, ativar/desativar |
+| **Configurações → Estabelecimento / Fiscal** | Administrador | CNPJ, IE, certificado, CSC, série/número NFC-e (nível estabelecimento) |
+| **PDV / Caixa (operação)** | Vendedor / Caixa / Gerente | Vender, fila, pagar, abrir/fechar sessão — **sem** cadastro de terminal |
+
+> Simple: operação vende; Configurações estrutura.
 
 ### Pré-requisitos para criar um terminal
 
@@ -151,20 +170,20 @@ PDV/Caixa **consomem** esses dados; nunca editam.
 
 **Não** podem: criar terminal, mudar vínculo titular, alterar impressora/balança/CSC.
 
-### Modelo mental de tela Admin
+### Modelo mental (Configurações → POS)
 
 ```
-Organização
- └─ Estabelecimentos
-     └─ [Filial Centro]
-         ├─ Fiscal (CNPJ, cert, CSC, série)
-         └─ Terminais
-             ├─ + Novo PDV
-             ├─ + Novo Caixa
-             ├─ PDV-01 → Ana (Vendedor) · Ativo
-             ├─ PDV-02 → Bruno (Vendedor) · Ativo
-             └─ CX-01  → Carla (Caixa) · Ativo · vê todos
+Configurações
+ └─ POS — Terminais
+     └─ Estabelecimento: [Filial Centro]
+         ├─ + Novo PDV
+         ├─ + Novo Caixa
+         ├─ PDV-01 → Ana (Vendedor) · Ativo
+         ├─ PDV-02 → Bruno (Vendedor) · Ativo
+         └─ CX-01  → Carla (Caixa) · Ativo · vê todos
 ```
+
+(Fiscal CSC/cert continua em Configurações → Empresa/Filiais ou seção Fiscal do mesmo hub.)
 
 ---
 
@@ -206,7 +225,7 @@ Sem quebrar o catálogo único, a filial pode ter overlays:
 | CNPJ, IE, endereço, CNAE | Estabelecimento |
 | Certificado A1/A3, CSC, série/número NFC-e | Estabelecimento |
 | Estoque | Estabelecimento |
-| PDVs, Caixas, configs genéricas, vínculos | Estabelecimento · **só Administrador** (ver §2.2) |
+| Configs genéricas de módulos instalados (incl. PDVs/Caixas) | Hub **Configurações** · **só Administrador** (ver §2.2) |
 | Abrir/fechar sessão, fila, pagamento | Terminal · operação (Caixa/Gerente/Vendedor) |
 
 PDV **não** edita CSC/certificado nem cadastro de terminal.
@@ -256,3 +275,4 @@ Preço/estoque exibidos = da filial `E`.
 | 31/07/2026 | Terminal criado já vinculado a vendedor (1 PDV) ou gerente/caixa (visão de todos PDVs/Caixas); sem troca de filial no fluxo. |
 | 31/07/2026 | Relação vendedor ↔ PDV travada em **1:1**. |
 | 31/07/2026 | Admin-only: wizard criar PDV/Caixa + configs genéricas; fiscal no estabelecimento; operação sem cadastro de terminal. |
+| 31/07/2026 | Hub **Configurações** = configs genéricas de **todos** os módulos instalados; POS é uma seção, não o hub inteiro. |
