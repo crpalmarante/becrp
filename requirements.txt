@@ -1,6 +1,9 @@
-# BECRP — dependências Python
+# BECRP — dependências Python apenas
 # Instalação: pip install -r requirements.txt
 # Runtime principal: python3 server.py
+#
+# NÃO inclui COBOL (GnuCOBOL/cobc, bridge, programas .cbl).
+# COBOL é runtime de sistema separado — fora deste arquivo.
 #
 # Nota WeasyPrint (DANFE/PDF): no Linux pode exigir libs do sistema
 #   Debian/Ubuntu: sudo apt install libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 libffi-dev shared-mime-info
