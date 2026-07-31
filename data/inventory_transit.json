@@ -7,8 +7,9 @@
       "origem": "CD Central",
       "destino_estabelecimento_id": "matriz",
       "eta_horas": 24,
-      "status": "open",
-      "movement_id": 21
+      "status": "closed",
+      "movement_id": 21,
+      "closed_by_movement_id": 22
     }
   ]
 }

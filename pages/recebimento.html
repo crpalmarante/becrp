@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Recebimento</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .rcv-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; align-items:center; }
+    .rcv-toolbar select, .rcv-toolbar input { min-width:140px; }
+    .rcv-table { width:100%; border-collapse:collapse; }
+    .rcv-table th, .rcv-table td { padding:10px 12px; text-align:left; border-bottom:1px solid rgba(255,255,255,.08); }
+    .rcv-table th { font-size:12px; text-transform:uppercase; opacity:.7; }
+    .rcv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; }
+    .st-draft { background:#555; }
+    .st-verified { background:#8a6d3b; }
+    .st-completed { background:#2d6a4f; }
+    .st-cancelled { background:#6c2b2b; }
+    .rcv-detail { margin-top:20px; padding:16px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .rcv-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .rcv-items-edit { display:flex; flex-direction:column; gap:8px; }
+    .rcv-item-row { display:grid; grid-template-columns: 1fr 100px 100px auto; gap:8px; align-items:center; }
+    .rcv-msg { margin:8px 0; font-size:14px; }
+    .rcv-msg.err { color:#f87171; }
+    .rcv-msg.ok { color:#4ade80; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="recebimento.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="menu-label">Recebimento</span>
+      </a>
+      <a class="menu-item" href="produtos.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Produtos</span>
+      </a>
+      <a class="menu-item" href="parceiros.html?role=SUPPLIER">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+        <span class="menu-label">Fornecedores</span>
+      </a>
+      <a class="menu-item" href="../index4.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Dashboard</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="topbar-title">Recebimento</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <button class="topbar-icon-btn" id="btn-new" title="Novo recebimento">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-plus"/></svg>
+        </button>
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Inventário / Recebimento</div>
+          <h2 class="workspace-title">Entrada de mercadorias</h2>
+        </div>
+        <div class="workspace-content">
+          <div class="rcv-toolbar">
+            <select class="form-input" id="filter-estab"></select>
+            <select class="form-input" id="filter-status">
+              <option value="">Todos status</option>
+              <option value="draft">Rascunho</option>
+              <option value="verified">Conferido</option>
+              <option value="completed">Concluído</option>
+              <option value="cancelled">Cancelado</option>
+            </select>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-refresh">Atualizar</button>
+          </div>
+          <div id="msg" class="rcv-msg"></div>
+          <div id="list"></div>
+          <div id="detail" class="rcv-detail" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="new-modal" style="display:none">
+  <div class="dialog-box" style="max-width:560px">
+    <div class="dialog-header">
+      <h3 class="dialog-title">Novo recebimento</h3>
+      <button class="dialog-close" id="btn-close-modal">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field">
+        <label>Estabelecimento</label>
+        <select class="form-input" id="new-estab"></select>
+      </div>
+      <div class="field">
+        <label>Fornecedor / origem</label>
+        <input class="form-input" id="new-fornecedor" placeholder="Ex.: CD Central">
+      </div>
+      <div class="field">
+        <label>Documento ref.</label>
+        <input class="form-input" id="new-doc" placeholder="NF / romaneio">
+      </div>
+      <div class="field">
+        <label>Itens</label>
+        <div class="rcv-items-edit" id="new-items"></div>
+        <button type="button" class="dialog-btn dialog-btn-secondary" id="btn-add-item" style="margin-top:8px">+ item</button>
+      </div>
+      <div class="form-error" id="new-error"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn dialog-btn-secondary" id="btn-cancel-modal">Cancelar</button>
+      <button class="dialog-btn dialog-btn-primary" id="btn-save-new">Criar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  const STATUS_LABEL = {
+    draft: "Rascunho",
+    verified: "Conferido",
+    completed: "Concluído",
+    cancelled: "Cancelado",
+  };
+
+  let empresas = {};
+  let selectedId = null;
+
+  function msg(text, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = text || "";
+    el.className = "rcv-msg " + (ok ? "ok" : text ? "err" : "");
+  }
+
+  async function loadEmpresas() {
+    empresas = {};
+    let lista = [];
+    const mine = await AuthService.api("/api/auth/minhas-empresas");
+    if (mine.status === "ok" && Array.isArray(mine.empresas) && mine.empresas.length) {
+      lista = mine.empresas;
+    } else {
+      const data = await AuthService.api("/api/admin/empresas");
+      if (data.status === "ok" && Array.isArray(data.empresas)) lista = data.empresas;
+    }
+    if (!lista.length) {
+      lista = [
+        { id: "matriz", nome: "Matriz" },
+        { id: "filial_sp", nome: "Filial São Paulo" },
+        { id: "filial_rj", nome: "Filial Rio de Janeiro" },
+      ];
+    }
+    lista.forEach((e) => { empresas[e.id] = e; });
+    const opts = Object.keys(empresas).map((id) => {
+      const nome = empresas[id].nome || id;
+      return `<option value="${id}">${nome}</option>`;
+    }).join("");
+    document.getElementById("filter-estab").innerHTML =
+      `<option value="">Todas lojas</option>` + opts;
+    document.getElementById("new-estab").innerHTML = opts || `<option value="matriz">Matriz</option>`;
+  }
+
+  async function loadList() {
+    const estab = document.getElementById("filter-estab").value;
+    const status = document.getElementById("filter-status").value;
+    const qs = new URLSearchParams();
+    if (estab) qs.set("estabelecimento_id", estab);
+    if (status) qs.set("status", status);
+    const data = await AuthService.api("/api/receiving?" + qs.toString());
+    if (data.status !== "ok") {
+      msg(data.message || "Falha ao listar");
+      return;
+    }
+    const rows = data.receivings || [];
+    if (!rows.length) {
+      document.getElementById("list").innerHTML = "<p class='mode-note'>Nenhum recebimento.</p>";
+      return;
+    }
+    document.getElementById("list").innerHTML = `
+      <table class="rcv-table">
+        <thead><tr>
+          <th>#</th><th>Loja</th><th>Fornecedor</th><th>Itens</th><th>Status</th><th></th>
+        </tr></thead>
+        <tbody>
+          ${rows.map((r) => {
+            const loja = (empresas[r.estabelecimento_id] || {}).nome || r.estabelecimento_id;
+            const n = (r.items || []).length;
+            return `<tr>
+              <td>${r.id}</td>
+              <td>${loja}</td>
+              <td>${r.fornecedor_nome || "—"}</td>
+              <td>${n}</td>
+              <td><span class="rcv-badge st-${r.status}">${STATUS_LABEL[r.status] || r.status}</span></td>
+              <td><button class="dialog-btn dialog-btn-secondary" data-open="${r.id}">Abrir</button></td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+    document.querySelectorAll("[data-open]").forEach((btn) => {
+      btn.addEventListener("click", () => openDetail(btn.dataset.open));
+    });
+  }
+
+  async function openDetail(id) {
+    selectedId = id;
+    const data = await AuthService.api("/api/receiving/" + id);
+    if (data.status !== "ok") {
+      msg(data.message || "Não encontrado");
+      return;
+    }
+    const r = data.receiving;
+    const loja = (empresas[r.estabelecimento_id] || {}).nome || r.estabelecimento_id;
+    const itemsHtml = (r.items || []).map((it, idx) => `
+      <tr>
+        <td>${it.produto_id} ${it.produto_nome ? "· " + it.produto_nome : ""}</td>
+        <td>${it.qty_expected}</td>
+        <td>
+          ${r.status === "draft" || r.status === "verified"
+            ? `<input class="form-input qty-ver" data-idx="${idx}" data-pid="${it.produto_id}" type="number" min="0" value="${it.qty_verified != null ? it.qty_verified : it.qty_expected}">`
+            : (it.qty_verified != null ? it.qty_verified : "—")}
+        </td>
+      </tr>`).join("");
+
+    const inv = r.inventory
+      ? `<p>Inventário: ${r.inventory.status} · movimentos ${(r.inventory.movement_ids || []).join(", ") || "—"}</p>`
+      : "";
+
+    let actions = "";
+    if (r.status === "draft" || r.status === "verified") {
+      actions += `<button class="dialog-btn dialog-btn-secondary" id="act-verify">Conferir</button>`;
+      actions += `<button class="dialog-btn dialog-btn-primary" id="act-complete">Concluir (entra estoque)</button>`;
+      actions += `<button class="dialog-btn dialog-btn-secondary" id="act-cancel">Cancelar</button>`;
+    }
+
+    const box = document.getElementById("detail");
+    box.style.display = "block";
+    box.innerHTML = `
+      <h3>Recebimento #${r.id}</h3>
+      <p>${loja} · ${r.fornecedor_nome || "sem fornecedor"} · ${r.documento_ref || "sem doc"} ·
+        <span class="rcv-badge st-${r.status}">${STATUS_LABEL[r.status] || r.status}</span></p>
+      ${r.nota ? `<p>${r.nota}</p>` : ""}
+      <table class="rcv-table">
+        <thead><tr><th>Produto</th><th>Esperado</th><th>Conferido</th></tr></thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+      ${inv}
+      <div class="rcv-actions">${actions}</div>`;
+
+    const collectItems = () =>
+      Array.from(box.querySelectorAll(".qty-ver")).map((inp) => ({
+        produto_id: inp.dataset.pid,
+        qty_verified: Number(inp.value || 0),
+      }));
+
+    const verifyBtn = document.getElementById("act-verify");
+    if (verifyBtn) {
+      verifyBtn.onclick = async () => {
+        const res = await AuthService.api("/api/receiving/" + id + "/verify", {
+          method: "POST",
+          body: JSON.stringify({ items: collectItems() }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha na conferência");
+        msg("Conferido.", true);
+        await loadList();
+        openDetail(id);
+      };
+    }
+    const completeBtn = document.getElementById("act-complete");
+    if (completeBtn) {
+      completeBtn.onclick = async () => {
+        if (r.status === "draft") {
+          const v = await AuthService.api("/api/receiving/" + id + "/verify", {
+            method: "POST",
+            body: JSON.stringify({ items: collectItems() }),
+          });
+          if (v.status !== "ok") return msg(v.message || "Falha na conferência");
+        }
+        const res = await AuthService.api("/api/receiving/" + id + "/complete", {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha ao concluir");
+        msg("Concluído — estoque atualizado.", true);
+        await loadList();
+        openDetail(id);
+      };
+    }
+    const cancelBtn = document.getElementById("act-cancel");
+    if (cancelBtn) {
+      cancelBtn.onclick = async () => {
+        const res = await AuthService.api("/api/receiving/" + id + "/cancel", {
+          method: "POST",
+          body: JSON.stringify({ motivo: "cancelado na UI" }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha ao cancelar");
+        msg("Cancelado.", true);
+        await loadList();
+        openDetail(id);
+      };
+    }
+  }
+
+  function addItemRow(pid, qty) {
+    const wrap = document.getElementById("new-items");
+    const row = document.createElement("div");
+    row.className = "rcv-item-row";
+    row.innerHTML = `
+      <input class="form-input item-pid" placeholder="produto_id" value="${pid || ""}">
+      <input class="form-input item-nome" placeholder="nome (opc.)">
+      <input class="form-input item-qty" type="number" min="1" placeholder="qty" value="${qty || 1}">
+      <button type="button" class="dialog-btn dialog-btn-secondary item-rm">×</button>`;
+    row.querySelector(".item-rm").onclick = () => row.remove();
+    wrap.appendChild(row);
+  }
+
+  function openModal() {
+    document.getElementById("new-error").textContent = "";
+    document.getElementById("new-fornecedor").value = "";
+    document.getElementById("new-doc").value = "";
+    document.getElementById("new-items").innerHTML = "";
+    addItemRow("4", 40);
+    document.getElementById("new-modal").style.display = "flex";
+  }
+  function closeModal() {
+    document.getElementById("new-modal").style.display = "none";
+  }
+
+  document.getElementById("btn-new").onclick = openModal;
+  document.getElementById("btn-close-modal").onclick = closeModal;
+  document.getElementById("btn-cancel-modal").onclick = closeModal;
+  document.getElementById("btn-add-item").onclick = () => addItemRow("", 1);
+  document.getElementById("btn-refresh").onclick = () => { msg(""); loadList(); };
+  document.getElementById("filter-estab").onchange = loadList;
+  document.getElementById("filter-status").onchange = loadList;
+
+  document.getElementById("btn-save-new").onclick = async () => {
+    const err = document.getElementById("new-error");
+    err.textContent = "";
+    const items = Array.from(document.querySelectorAll("#new-items .rcv-item-row")).map((row) => ({
+      produto_id: row.querySelector(".item-pid").value.trim(),
+      produto_nome: row.querySelector(".item-nome").value.trim(),
+      qty: Number(row.querySelector(".item-qty").value || 0),
+    })).filter((i) => i.produto_id && i.qty > 0);
+    const body = {
+      estabelecimento_id: document.getElementById("new-estab").value,
+      fornecedor_nome: document.getElementById("new-fornecedor").value.trim(),
+      documento_ref: document.getElementById("new-doc").value.trim(),
+      origem: "manual",
+      items,
+    };
+    const res = await AuthService.api("/api/receiving", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") {
+      err.textContent = res.message || "Erro ao criar";
+      return;
+    }
+    closeModal();
+    msg("Recebimento #" + res.receiving.id + " criado.", true);
+    await loadList();
+    openDetail(res.receiving.id);
+  };
+
+  (async function boot() {
+    await loadEmpresas();
+    await loadList();
+  })();
+})();
+</script>
+</body>
+</html>

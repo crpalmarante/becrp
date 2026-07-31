@@ -11,6 +11,7 @@ import uuid
 from datetime import datetime
 import cobol_bridge
 import inventory_mvp
+import receiving_mvp
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
 from modules.sefaz import nfce_xml
@@ -720,6 +721,28 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "balances": loja,
             })
 
+        if parsed.path == "/api/receiving":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            status = (qs.get("status") or [""])[0].strip() or None
+            rows = receiving_mvp.list_receivings(estabelecimento_id=estab, status=status)
+            return self._json({"status": "ok", "receivings": rows, "total": len(rows)})
+
+        if parsed.path.startswith("/api/receiving/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            rid = parsed.path.rstrip("/").split("/")[-1]
+            if rid in ("verify", "complete", "cancel"):
+                return self._json({"status": "error", "message": "id obrigatório"}, 400)
+            rec = receiving_mvp.get_receiving(rid)
+            if not rec:
+                return self._json({"status": "error", "message": "Recebimento não encontrado"}, 404)
+            return self._json({"status": "ok", "receiving": rec})
+
         if parsed.path == "/api/pos/parceiros":
             token = self.headers.get("X-Auth-Token", "")
             if not self._find_user(token, load_users()):
@@ -1044,6 +1067,42 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             }
             save_users(users)
             return self._json({"status": "ok", "id": uid, "token": token, "nome": nome, "usuario": usuario, "role": "admin"})
+
+        # ── Receiving MVP ──
+        if parsed.path == "/api/receiving" or parsed.path.startswith("/api/receiving/"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+
+            if parsed.path == "/api/receiving":
+                try:
+                    rec = receiving_mvp.create_receiving(body, user_id=uid)
+                    return self._json({"status": "ok", "receiving": rec}, 201)
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+
+            parts = parsed.path.rstrip("/").split("/")
+            # /api/receiving/{id}/{action?}
+            if len(parts) < 4:
+                return self._json({"status": "error", "message": "Rota inválida"}, 400)
+            rid = parts[3]
+            action = parts[4] if len(parts) > 4 else (body.get("action") or "update")
+            try:
+                if action == "verify":
+                    rec = receiving_mvp.verify_receiving(rid, body, user_id=uid)
+                elif action == "complete":
+                    auto = bool(body.get("auto_verify"))
+                    rec = receiving_mvp.complete_receiving(rid, user_id=uid, auto_verify=auto)
+                elif action == "cancel":
+                    rec = receiving_mvp.cancel_receiving(rid, user_id=uid, motivo=body.get("motivo"))
+                else:
+                    return self._json({"status": "error", "message": f"ação desconhecida: {action}"}, 400)
+                return self._json({"status": "ok", "receiving": rec})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
 
         # ── POS: criar pedido na fila ──
         if parsed.path == "/api/pos/fila":

@@ -1,5 +1,5 @@
 {
-  "next_id": 22,
+  "next_id": 23,
   "movements": [
     {
       "id": 1,
@@ -273,6 +273,19 @@
       "group_id": null,
       "nota": "migração trânsito legado",
       "user_id": null
+    },
+    {
+      "id": 22,
+      "tipo": "receive",
+      "estabelecimento_id": "matriz",
+      "produto_id": "4",
+      "qty": 40,
+      "at": "2026-07-31T11:25:15",
+      "ref_tipo": "receiving",
+      "ref_id": "1",
+      "group_id": null,
+      "nota": null,
+      "user_id": "test"
     }
   ]
 }

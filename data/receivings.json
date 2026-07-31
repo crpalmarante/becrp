@@ -1,0 +1,90 @@
+{
+  "next_id": 3,
+  "receivings": [
+    {
+      "id": 1,
+      "status": "completed",
+      "origem": "manual",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "CD Central",
+      "fornecedor_id": null,
+      "documento_ref": "ROMANEIO-DEMO-4",
+      "nota": "Seed: conferir e concluir para entrar Açúcar e fechar trânsito no Promise",
+      "items": [
+        {
+          "produto_id": "4",
+          "produto_nome": "Acucar 2kg",
+          "qty_expected": 40,
+          "qty_verified": 40,
+          "unidade": "UN"
+        }
+      ],
+      "created_at": "2026-07-31T11:25:12",
+      "created_by": "seed",
+      "verified_at": "2026-07-31T11:25:15",
+      "verified_by": "test",
+      "completed_at": "2026-07-31T11:25:15",
+      "completed_by": "test",
+      "inventory": {
+        "status": "Completed",
+        "movement_ids": [
+          22
+        ],
+        "completed_at": "2026-07-31T11:25:15"
+      },
+      "events": [
+        {
+          "at": "2026-07-31T11:25:12",
+          "tipo": "created",
+          "by": "seed"
+        },
+        {
+          "at": "2026-07-31T11:25:15",
+          "tipo": "verified",
+          "by": "test"
+        },
+        {
+          "at": "2026-07-31T11:25:15",
+          "tipo": "completed",
+          "by": "test",
+          "movement_ids": [
+            22
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "status": "draft",
+      "origem": "manual",
+      "estabelecimento_id": "filial_sp",
+      "fornecedor_nome": "Distribuidora Demo",
+      "fornecedor_id": null,
+      "documento_ref": "NF-DEMO-2",
+      "nota": "Seed UI: conferir e concluir Feijão na Filial SP",
+      "items": [
+        {
+          "produto_id": "2",
+          "produto_nome": "Feijao 1kg",
+          "qty_expected": 20,
+          "qty_verified": null,
+          "unidade": "UN"
+        }
+      ],
+      "created_at": "2026-07-31T11:25:28",
+      "created_by": "seed",
+      "verified_at": null,
+      "verified_by": null,
+      "completed_at": null,
+      "completed_by": null,
+      "inventory": null,
+      "events": [
+        {
+          "at": "2026-07-31T11:25:28",
+          "tipo": "created",
+          "by": "seed"
+        }
+      ]
+    }
+  ]
+}

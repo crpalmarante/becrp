@@ -28,7 +28,7 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 |---|------|--------|
 | **A** | **RFC Inventário MVP** — [`RFC-INVENTORY-MVP.md`](./RFC-INVENTORY-MVP.md) | ✅ |
 | **B** | Migrar `estoque.json` → movimentos + saldo + Promise na nova fonte | ✅ |
-| **C** | Receiving Engine (pluga em `inventory_apply_receive`) | ⏳ próximo |
+| **C** | Receiving Engine (pluga em `inventory_apply_receive`) | ✅ |
 
 Fonte das verdades: warehouse = estabelecimento; toda qty = movimento; Promise só lê.
 
@@ -105,7 +105,7 @@ Fonte das verdades: warehouse = estabelecimento; toda qty = movimento; Promise s
 5. ~~Usuários operacionais (perfis)~~ ✅  
 6. ~~Inventário / Promise~~ ✅ (`estoque.json` + badges no POS)  
 7. ~~Inventário MVP~~ ✅ (`inventory_mvp.py` + ledger JSON)  
-8. **Receiving** ← próximo (pluga em `inventory_apply_receive`)  
+8. ~~Receiving~~ ✅ ([`RFC-RECEIVING-MVP.md`](./RFC-RECEIVING-MVP.md) · `receiving_mvp.py` · `/pages/recebimento.html`)  
 
 ---
 
