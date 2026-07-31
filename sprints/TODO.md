@@ -25,24 +25,25 @@
 
 ### 1. Hub Configurações (shell)
 
-- [ ] Refatorar `pages/configuracoes.html` para o shell aprovado
+- [x] Refatorar `pages/configuracoes.html` para o shell aprovado
   - Sidebar: **Gerais** (default) + módulos instalados
   - Área de contexto: formulário do item ativo (sem grade de cards como destino)
-- [ ] Sidebar alimentada pelos módulos ativos da organização
-- [ ] Restringir acesso ao papel Administrador
+- [x] Sidebar alimentada pelos módulos ativos da organização (`js/configuracoes.js`)
+- [ ] Restringir acesso ao papel Administrador (ainda sem guard de auth)
 
 ### 2. Gerais (primeira visão)
 
-- [ ] Bloco **Organização** — nome, logo, contato, módulos ligados
-- [ ] Bloco **Estabelecimentos** — lista/criar matriz-filiais (código, nome, ativo, endereço, CNPJ/IE, país/UF)
-- [ ] Bloco **Usuários e perfis** — CRUD + perfis (Admin, Vendedor, Caixa, Gerente)
-- [ ] Bloco **Preferências** — idioma, fuso, formato data/número, moeda, tema
-- [ ] Bloco **Segurança** — timeout, política de senha, bloqueio de login
-- [ ] Controles: select, país, password, toggle, máscaras CNPJ/CEP, upload logo
-- [ ] **Não** colocar CSC/certificado/série NFC-e aqui
+- [x] Bloco **Organização** — nome, logo, contato, módulos ligados (localStorage demo)
+- [x] Bloco **Estabelecimentos** — lista (API admin ou `data/empresas.json`); CRUD completo ainda em `empresas.html`
+- [x] Bloco **Usuários e perfis** — campos demo + link para `usuarios.html` (CRUD completo depois)
+- [x] Bloco **Preferências** — idioma, fuso, formato data, moeda, tema, país
+- [x] Bloco **Segurança** — timeout, política de senha, bloqueio, reauth
+- [x] Controles: select, país, password, toggle, upload logo
+- [x] **Não** colocar CSC/certificado/série NFC-e aqui
 
 ### 3. Módulo POS (dentro de Configurações)
 
+- [x] Placeholder na sidebar / painel POS
 - [ ] Seção **Terminais** — listar PDVs e Caixas por estabelecimento
 - [ ] Wizard: tipo → estabelecimento → código/nome → vínculo → configs → ativo
 - [ ] Vendedor 1:1; gerente/caixa com visão ampla
@@ -51,6 +52,7 @@
 
 ### 4. Módulo Fiscal (dentro de Configurações)
 
+- [x] Placeholder + atalhos certificados / NFC-e
 - [ ] Certificado, CSC, série/número NFC-e por estabelecimento
 - [ ] Ambiente homologação/produção
 - [ ] Consumido pelo Caixa; nunca editado no PDV
@@ -81,12 +83,13 @@
 
 ## Ordem sugerida ao voltar
 
-1. Shell Configurações (Gerais + sidebar)  
-2. Gerais mínimos (org + estabelecimentos + usuários)  
-3. POS → terminais (wizard)  
+1. ~~Shell Configurações (Gerais + sidebar)~~ ✅  
+2. ~~Gerais mínimos (formulário)~~ ✅ (persistência demo localStorage)  
+3. **POS → terminais (wizard)** ← próximo  
 4. Fiscal por estabelecimento  
 5. Ligar POS operacional ao estabelecimento/terminal  
+6. Guard Admin + APIs reais de org/config  
 
 ---
 
-*Pausa — continuar a partir daqui.*
+*Retomado 31/07/2026 — shell + Gerais no ar.*

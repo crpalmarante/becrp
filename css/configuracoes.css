@@ -1,0 +1,251 @@
+/* Hub Configurações — shell Gerais + módulos */
+
+.cfg-layout {
+  display: flex;
+  gap: 0;
+  min-height: 0;
+  flex: 1;
+  width: 100%;
+}
+
+.cfg-mod-nav {
+  width: 220px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  border-right: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  overflow-y: auto;
+}
+
+.cfg-mod-nav-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, rgba(255, 255, 255, 0.45));
+  padding: 0.5rem 0.75rem 0.35rem;
+}
+
+.cfg-mod-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.cfg-mod-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary, #fff);
+}
+
+.cfg-mod-btn.active {
+  background: rgba(20, 184, 166, 0.15);
+  color: var(--color-primary, #14b8a6);
+  font-weight: 600;
+}
+
+.cfg-mod-btn .icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.cfg-context {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  padding: 0 0.25rem 1rem;
+}
+
+.cfg-panel {
+  display: none;
+  animation: cfgFade 180ms ease;
+}
+
+.cfg-panel.active {
+  display: block;
+}
+
+@keyframes cfgFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+.cfg-panel-intro {
+  font-size: 0.875rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.65));
+  margin: 0 0 1.25rem;
+  max-width: 42rem;
+}
+
+.cfg-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+.cfg-context .btn,
+.cfg-stub .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.cfg-context .btn-primary {
+  background: var(--color-primary, #14b8a6);
+  color: #042f2e;
+}
+
+.cfg-context .btn-primary:hover {
+  filter: brightness(1.08);
+}
+
+.cfg-context .btn-secondary,
+.cfg-stub .btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary, #fff);
+  border-color: var(--border-color, rgba(255, 255, 255, 0.15));
+}
+
+.cfg-context .btn-secondary:hover,
+.cfg-stub .btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.cfg-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 0.5rem;
+}
+
+.cfg-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.cfg-table th,
+.cfg-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+}
+
+.cfg-table th {
+  color: var(--text-muted, rgba(255, 255, 255, 0.45));
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cfg-table tr:last-child td {
+  border-bottom: none;
+}
+
+.cfg-badge {
+  display: inline-block;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.cfg-badge.on {
+  background: rgba(22, 163, 74, 0.2);
+  color: #4ade80;
+}
+
+.cfg-badge.off {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted, rgba(255, 255, 255, 0.45));
+}
+
+.cfg-stub {
+  padding: 2rem 1.5rem;
+  border: 1px dashed var(--border-color, rgba(255, 255, 255, 0.15));
+  border-radius: 0.5rem;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.65));
+  font-size: 0.875rem;
+  max-width: 36rem;
+}
+
+.cfg-stub strong {
+  color: var(--text-primary, #fff);
+  display: block;
+  margin-bottom: 0.35rem;
+}
+
+.cfg-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.cfg-toast {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  padding: 0.75rem 1.1rem;
+  background: rgba(20, 184, 166, 0.95);
+  color: #042f2e;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.cfg-toast.show {
+  opacity: 1;
+}
+
+@media (max-width: 768px) {
+  .cfg-layout {
+    flex-direction: column;
+  }
+
+  .cfg-mod-nav {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+    padding-bottom: 0.75rem;
+  }
+
+  .cfg-mod-nav-label {
+    width: 100%;
+  }
+
+  .cfg-mod-btn {
+    width: auto;
+  }
+}
