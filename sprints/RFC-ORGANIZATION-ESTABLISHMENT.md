@@ -109,14 +109,17 @@ O que afeta a organização inteira, independente de qual módulo está instalad
 
 **Não** entra em Gerais: CSC, série NFC-e, criar PDV, plano de contas — isso é do módulo (Fiscal, POS, Contabilidade…).
 
-### Por módulo (sidebar)
+### Sequência (exato)
+
+1. **Gerais** — transversal a todos os módulos (primeira visão).  
+2. Em seguida, **cada módulo instalado** na sidebar tem **suas próprias** configurações genéricas no contexto — sem misturar com outro módulo.
 
 | Item sidebar | Contexto |
 |--------------|----------|
-| **Gerais** | Transversal (acima) — default ao abrir |
-| **POS** | PDVs, Caixas, vínculos, impressora/balança… |
-| **Fiscal** | Certificado, CSC, série/numeração (por estabelecimento) |
-| **…** | Demais módulos instalados |
+| **Gerais** | Transversal — default ao abrir |
+| **POS** | Só POS: PDVs, Caixas, vínculos, impressora/balança… |
+| **Fiscal** | Só Fiscal: certificado, CSC, série/numeração… |
+| **…** | Só aquele módulo |
 
 ### Princípios
 
