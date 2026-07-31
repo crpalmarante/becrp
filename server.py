@@ -39,12 +39,73 @@ POS_TERMINAIS_FILE = os.path.join(DATA_DIR, "pos_terminais.json")
 os.makedirs(DATA_DIR, exist_ok=True)
 
 EMPRESA_JSON = os.path.join(BASE_DIR, "dados", "empresa.json")
+ESTAB_FISCAL_FILE = os.path.join(DATA_DIR, "estabelecimentos_fiscal.json")
 
 def load_empresa_fiscal():
     if not os.path.exists(EMPRESA_JSON):
         return {}
     with open(EMPRESA_JSON, "r") as f:
         return json.load(f)
+
+def load_estab_fiscal_store():
+    data = load_json(ESTAB_FISCAL_FILE)
+    return data if isinstance(data, dict) else {}
+
+def save_estab_fiscal_store(data):
+    save_json(ESTAB_FISCAL_FILE, data if isinstance(data, dict) else {})
+
+def _digits(val):
+    return "".join(ch for ch in str(val or "") if ch.isdigit())
+
+def resolve_empresa_fiscal(estabelecimento_id=None):
+    """
+    Emitente NFC-e = estabelecimento do terminal.
+    Camadas: dados/empresa.json (legado) ← dados estruturais da filial ← overlay fiscal.
+    """
+    base = dict(load_empresa_fiscal() or {})
+    eid = str(estabelecimento_id or "").strip()
+    if not eid:
+        base["estabelecimento_id"] = None
+        return base
+
+    empresas = load_empresas()
+    estab = dict(empresas.get(eid, {}) or {})
+    overlay = dict(load_estab_fiscal_store().get(eid, {}) or {})
+
+    if estab.get("nome"):
+        base["nome_fantasia"] = estab["nome"]
+        if not overlay.get("nome"):
+            base["nome"] = estab["nome"]
+    cnpj = overlay.get("cnpj") or estab.get("cnpj")
+    if cnpj:
+        base["cnpj"] = _digits(cnpj) or base.get("cnpj")
+    ie = overlay.get("inscricao_est") or overlay.get("ie") or estab.get("ie")
+    if ie:
+        base["inscricao_est"] = ie
+    if estab.get("cidade") and not overlay.get("municipio"):
+        base["municipio"] = estab["cidade"]
+    uf_estab = overlay.get("uf") if overlay.get("uf") is not None else estab.get("uf")
+    if uf_estab is not None and uf_estab != "":
+        base["uf"] = uf_estab
+
+    for k, v in overlay.items():
+        if v is None or v == "":
+            continue
+        if k in ("cnpj",):
+            base[k] = _digits(v) or base.get(k)
+        else:
+            base[k] = v
+
+    base["estabelecimento_id"] = eid
+    return base
+
+def _terminal_do_usuario(uid):
+    if not uid:
+        return None
+    for t in load_pos_terminais().get("terminais", []):
+        if t.get("ativo", True) and t.get("usuario_id") == uid:
+            return t
+    return None
 
 def load_users():
     if not os.path.exists(USERS_FILE):
@@ -193,7 +254,18 @@ def _pedido_para_venda(pedido, forma_pg="Dinheiro"):
         "itens": itens,
     }
 
-def _avancar_numero_nfce():
+def _avancar_numero_nfce(estabelecimento_id=None):
+    eid = str(estabelecimento_id or "").strip()
+    if eid:
+        store = load_estab_fiscal_store()
+        entry = dict(store.get(eid) or {})
+        n = int(entry.get("numero_nfce") or 0) + 1
+        entry["numero_nfce"] = n
+        if "serie_nfce" not in entry:
+            entry["serie_nfce"] = 1
+        store[eid] = entry
+        save_estab_fiscal_store(store)
+        return n
     cobol_bridge._compile_if_needed("gerir_numeracao")
     out, _ = cobol_bridge._run("gerir_numeracao", {"ACAO": "avancar-nfce"})
     for line in out.splitlines():
@@ -212,8 +284,11 @@ def _autorizar_nfce_de_venda(venda, empresa, cert_id, cert_senha, ambiente=2, se
             42: "SC", 43: "RS", 50: "MS", 51: "MT", 52: "GO", 53: "DF",
         }
         uf = uf_codes.get(int(uf), "RS")
+    elif isinstance(uf, str) and len(uf) == 2:
+        uf = uf.upper()
+    eid = empresa.get("estabelecimento_id")
     if not numero:
-        numero = _avancar_numero_nfce()
+        numero = _avancar_numero_nfce(eid)
     if not numero:
         raise ValueError("Erro ao obter numeração NFC-e")
     xml_envi = nfce_xml.montar_envi_nfe(venda, empresa, ambiente, serie, numero)
@@ -228,6 +303,7 @@ def _autorizar_nfce_de_venda(venda, empresa, cert_id, cert_senha, ambiente=2, se
     notas.append({
         "venda_id": venda.get("id"),
         "pos_pedido_id": venda.get("pos_pedido_id"),
+        "estabelecimento_id": eid,
         "numero": numero,
         "serie": serie,
         "chave": resultado.get("chave", ""),
@@ -347,6 +423,57 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": "Acesso negado"}, 403)
             data = load_pos_terminais()
             return self._json({"status": "ok", "terminais": data.get("terminais", [])})
+
+        if parsed.path == "/api/admin/fiscal/estabelecimentos":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") != "admin":
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            empresas = load_empresas()
+            store = load_estab_fiscal_store()
+            lista = []
+            for eid, e in empresas.items():
+                merged = resolve_empresa_fiscal(eid)
+                item = {
+                    "id": eid,
+                    "nome": e.get("nome"),
+                    "cnpj_cadastro": e.get("cnpj"),
+                    "ativo": e.get("ativo", True),
+                    "fiscal": {
+                        "csc_id": merged.get("csc_id", "1"),
+                        "csc": merged.get("csc", ""),
+                        "serie_nfce": int(merged.get("serie_nfce") or 1),
+                        "numero_nfce": int(merged.get("numero_nfce") or 0),
+                        "ambiente": int(merged.get("ambiente") or 2),
+                        "certificado": merged.get("certificado", ""),
+                        "cert_senha_set": bool(merged.get("cert_senha")),
+                        "crt": merged.get("crt", 1),
+                        "uf": merged.get("uf"),
+                        "inscricao_est": merged.get("inscricao_est", ""),
+                        "cod_municipio": merged.get("cod_municipio", ""),
+                        "municipio": merged.get("municipio", ""),
+                        "has_overlay": eid in store,
+                    },
+                }
+                lista.append(item)
+            return self._json({"status": "ok", "estabelecimentos": lista})
+
+        if parsed.path.startswith("/api/admin/fiscal/estabelecimentos/"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") != "admin":
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            eid = parsed.path.rstrip("/").split("/")[-1]
+            if eid not in load_empresas():
+                return self._json({"status": "error", "message": "Estabelecimento não encontrado"}, 404)
+            return self._json({
+                "status": "ok",
+                "id": eid,
+                "empresa": resolve_empresa_fiscal(eid),
+                "overlay": load_estab_fiscal_store().get(eid, {}),
+            })
 
         if parsed.path.startswith("/api/admin/pos/terminais/"):
             token = self.headers.get("X-Auth-Token", "")
@@ -817,6 +944,18 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             fila["next_num"] = order_num + 1
             now = datetime.now().isoformat(timespec="seconds")
             client = body.get("client") if isinstance(body.get("client"), dict) else {}
+            pdv_uid = next(
+                    (uid for uid, u in users.items() if u.get("token") == token),
+                    "",
+                )
+            term = _terminal_do_usuario(pdv_uid)
+            estab_id = (body.get("estabelecimento_id") or "").strip()
+            term_id = (body.get("terminal_id") or "").strip()
+            if term:
+                if not estab_id:
+                    estab_id = (term.get("estabelecimento_id") or "").strip()
+                if not term_id:
+                    term_id = term.get("id") or ""
             pedido = {
                 "id": str(uuid.uuid4())[:12],
                 "orderNum": order_num,
@@ -825,10 +964,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "createdAt": now,
                 "updatedAt": now,
                 "pdvUser": user.get("nome") or user.get("usuario") or "",
-                "pdvUserId": next(
-                    (uid for uid, u in users.items() if u.get("token") == token),
-                    "",
-                ),
+                "pdvUserId": pdv_uid,
+                "estabelecimento_id": estab_id,
+                "terminal_id": term_id,
                 "sessionId": body.get("sessionId") or "",
                 "client": {
                     "id": client.get("id") or "cf",
@@ -909,14 +1047,27 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 nfce_out = None
                 aviso = ""
                 if emitir:
-                    empresa = load_empresa_fiscal()
+                    estab_id = (pedido.get("estabelecimento_id") or body.get("estabelecimento_id") or "").strip()
+                    if not estab_id:
+                        # fallback: terminal do caixa logado
+                        caixa_uid = next(
+                            (uid for uid, u in load_users().items() if u.get("token") == token),
+                            "",
+                        )
+                        term_cx = _terminal_do_usuario(caixa_uid)
+                        if term_cx:
+                            estab_id = (term_cx.get("estabelecimento_id") or "").strip()
+                    empresa = resolve_empresa_fiscal(estab_id or None)
                     csc = str(empresa.get("csc") or "").strip()
                     if not csc or "ALTERAR" in csc.upper() or csc == "HOMOLOGACAO-CSC-ALTERAR":
-                        aviso = "CSC de homologação/produção não configurado em dados/empresa.json (campo csc)."
+                        aviso = (
+                            f"CSC não configurado para o estabelecimento "
+                            f"'{estab_id or 'legado'}' (Configurações → Fiscal)."
+                        )
                     cert_id = _resolve_cert_id(empresa, body.get("cert_id", ""))
                     cert_senha = body.get("cert_senha") or empresa.get("cert_senha") or ""
                     ambiente = int(body.get("ambiente", empresa.get("ambiente", 2) or 2))
-                    serie = int(body.get("serie", 1) or 1)
+                    serie = int(body.get("serie", empresa.get("serie_nfce", 1) or 1))
                     if not cert_id:
                         aviso = (aviso + " " if aviso else "") + "Nenhum certificado válido no índice."
                     elif not cert_senha:
@@ -930,6 +1081,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                                 "numero": nfce_out.get("numero"),
                                 "serie": nfce_out.get("serie"),
                                 "chave": nfce_out.get("chave"),
+                                "estabelecimento_id": estab_id,
                                 "cStat": (nfce_out.get("resultado") or {}).get("cStat"),
                                 "xMotivo": (nfce_out.get("resultado") or {}).get("xMotivo"),
                                 "status": (nfce_out.get("resultado") or {}).get("status"),
@@ -940,7 +1092,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                             }
                         except Exception as e:
                             aviso = (aviso + " " if aviso else "") + f"Falha NFC-e: {e}"
-                            pedido["nfce"] = {"status": "ERRO", "xMotivo": str(e)}
+                            pedido["nfce"] = {"status": "ERRO", "xMotivo": str(e), "estabelecimento_id": estab_id}
 
                 pedido["state"] = "pago"
                 pedido["updatedAt"] = datetime.now().isoformat(timespec="seconds")
@@ -1096,6 +1248,44 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if body.get("uf") is not None: empresas[eid]["uf"] = body["uf"]
                 save_empresas(empresas)
                 return self._json({"status": "ok", "message": "Empresa atualizada"})
+
+        if parsed.path.startswith("/api/admin/fiscal/estabelecimentos/"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") != "admin":
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            eid = parsed.path.rstrip("/").split("/")[-1]
+            if eid not in load_empresas():
+                return self._json({"status": "error", "message": "Estabelecimento não encontrado"}, 404)
+            store = load_estab_fiscal_store()
+            entry = dict(store.get(eid) or {})
+            fields = (
+                "csc", "csc_id", "serie_nfce", "numero_nfce", "ambiente",
+                "certificado", "cert_senha", "crt", "uf", "inscricao_est",
+                "cod_municipio", "municipio", "nome", "nome_fantasia", "cnpj",
+                "endereco", "cep", "telefone", "email", "tipo_fiscal",
+            )
+            for f in fields:
+                if f in body:
+                    entry[f] = body[f]
+            if "serie_nfce" in entry:
+                entry["serie_nfce"] = int(entry.get("serie_nfce") or 1)
+            if "numero_nfce" in entry:
+                entry["numero_nfce"] = int(entry.get("numero_nfce") or 0)
+            if "ambiente" in entry:
+                entry["ambiente"] = int(entry.get("ambiente") or 2)
+            if entry.get("cnpj"):
+                entry["cnpj"] = _digits(entry["cnpj"])
+            store[eid] = entry
+            save_estab_fiscal_store(store)
+            return self._json({
+                "status": "ok",
+                "id": eid,
+                "overlay": entry,
+                "empresa": resolve_empresa_fiscal(eid),
+                "message": "Fiscal do estabelecimento salvo",
+            })
 
         if parsed.path == "/api/admin/pos/terminais":
             token = self.headers.get("X-Auth-Token", "")

@@ -253,16 +253,80 @@
               <!-- FISCAL -->
               <div class="cfg-panel" id="panel-fiscal" data-panel="fiscal">
                 <p class="cfg-panel-intro">
-                  Certificado A1, CSC, série/número NFC-e e ambiente SEFAZ — por estabelecimento.
+                  CSC, certificado, série/número NFC-e e ambiente — <strong>por estabelecimento</strong>.
+                  O Caixa emite com o emitente da loja do pedido/terminal.
                 </p>
-                <div class="cfg-stub">
-                  <strong>Fiscal</strong>
-                  Não editar no PDV. Atalho atual:
-                  <div class="cfg-actions" style="border:none;padding-top:0.75rem">
+                <div class="form-field" style="max-width:320px;margin-bottom:1rem">
+                  <label class="form-label" for="fiscal-estab">Estabelecimento</label>
+                  <select class="form-input" id="fiscal-estab"></select>
+                </div>
+                <form id="form-fiscal" class="form-container" autocomplete="off">
+                  <div class="form-row">
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-csc-id">CSC ID (idToken)</label>
+                      <input class="form-input" id="fisc-csc-id" placeholder="1">
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-csc">CSC</label>
+                      <input class="form-input" id="fisc-csc" placeholder="token CSC SEFAZ">
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-serie">Série NFC-e</label>
+                      <input class="form-input" type="number" id="fisc-serie" min="1" value="1">
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-numero">Próximo número NFC-e</label>
+                      <input class="form-input" type="number" id="fisc-numero" min="0" value="1">
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-ambiente">Ambiente</label>
+                      <select class="form-input" id="fisc-ambiente">
+                        <option value="2">Homologação (2)</option>
+                        <option value="1">Produção (1)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-cert">Arquivo certificado (nome no índice)</label>
+                      <input class="form-input" id="fisc-cert" placeholder="empresa.pfx">
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-cert-senha">Senha do certificado</label>
+                      <input class="form-input" type="password" id="fisc-cert-senha" autocomplete="new-password">
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-crt">CRT</label>
+                      <select class="form-input" id="fisc-crt">
+                        <option value="1">1 — Simples Nacional</option>
+                        <option value="2">2 — Simples excesso</option>
+                        <option value="3">3 — Regime Normal</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-ie">IE</label>
+                      <input class="form-input" id="fisc-ie">
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-uf">UF (código IBGE ou sigla)</label>
+                      <input class="form-input" id="fisc-uf" placeholder="43 ou RS">
+                    </div>
+                    <div class="form-field">
+                      <label class="form-label" for="fisc-mun-cod">Cód. município</label>
+                      <input class="form-input" id="fisc-mun-cod">
+                    </div>
+                  </div>
+                  <p class="form-help" id="fiscal-hint">Selecione um estabelecimento.</p>
+                  <div class="cfg-actions">
+                    <button type="submit" class="btn btn-primary">Salvar fiscal da loja</button>
                     <a class="btn btn-secondary" href="certificados.html">Certificados</a>
                     <a class="btn btn-secondary" href="nfce.html">NFC-e</a>
                   </div>
-                </div>
+                </form>
               </div>
 
               <!-- CONTABILIDADE -->

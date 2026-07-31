@@ -104,6 +104,7 @@
     url.searchParams.set("mod", id);
     history.replaceState(null, "", url);
     if (id === "pos") loadTerminais();
+    if (id === "fiscal") loadFiscalPanel();
   }
 
   function renderModuleNav(state) {
@@ -617,6 +618,94 @@
     toast("Status atualizado (local)");
   }
 
+  let cacheFiscalLista = [];
+
+  async function loadFiscalPanel() {
+    const sel = document.getElementById("fiscal-estab");
+    const hint = document.getElementById("fiscal-hint");
+    if (!sel) return;
+    try {
+      const data = await apiGet("/api/admin/fiscal/estabelecimentos");
+      cacheFiscalLista = data.estabelecimentos || [];
+    } catch {
+      cacheFiscalLista = [];
+      if (hint) hint.textContent = "Faça login como admin para editar o fiscal por loja.";
+    }
+    const cur = sel.value;
+    fillSelect(
+      sel,
+      cacheFiscalLista.map((e) => ({
+        value: e.id,
+        label: `${e.nome || e.id}${e.fiscal && !e.fiscal.csc ? " · sem CSC" : ""}`,
+      })),
+      cacheFiscalLista.length ? null : "Nenhum estabelecimento"
+    );
+    if (cur && cacheFiscalLista.some((e) => e.id === cur)) sel.value = cur;
+    else if (cacheFiscalLista.length) sel.value = cacheFiscalLista[0].id;
+    await fillFiscalForm(sel.value);
+  }
+
+  async function fillFiscalForm(eid) {
+    const hint = document.getElementById("fiscal-hint");
+    if (!eid) return;
+    let empresa = {};
+    try {
+      const data = await apiGet("/api/admin/fiscal/estabelecimentos/" + encodeURIComponent(eid));
+      empresa = data.empresa || {};
+    } catch {
+      const row = cacheFiscalLista.find((e) => e.id === eid);
+      empresa = (row && row.fiscal) || {};
+    }
+    setVal("fisc-csc-id", empresa.csc_id || "1");
+    setVal("fisc-csc", empresa.csc || "");
+    setVal("fisc-serie", empresa.serie_nfce || 1);
+    setVal("fisc-numero", empresa.numero_nfce || 0);
+    setVal("fisc-ambiente", String(empresa.ambiente != null ? empresa.ambiente : 2));
+    setVal("fisc-cert", empresa.certificado || "");
+    setVal("fisc-cert-senha", empresa.cert_senha || "");
+    setVal("fisc-crt", String(empresa.crt != null ? empresa.crt : 1));
+    setVal("fisc-ie", empresa.inscricao_est || "");
+    setVal("fisc-uf", empresa.uf != null ? empresa.uf : "");
+    setVal("fisc-mun-cod", empresa.cod_municipio || "");
+    if (hint) {
+      const csc = String(empresa.csc || "");
+      const ok = csc && !/ALTERAR/i.test(csc);
+      hint.textContent = ok
+        ? `Emitente: ${empresa.nome_fantasia || empresa.nome || eid} · CSC ok`
+        : `Emitente: ${empresa.nome_fantasia || empresa.nome || eid} · configure o CSC real antes de produção`;
+    }
+  }
+
+  async function saveFiscal(ev) {
+    ev.preventDefault();
+    const eid = document.getElementById("fiscal-estab")?.value;
+    if (!eid) {
+      toast("Selecione o estabelecimento");
+      return;
+    }
+    const payload = {
+      csc_id: val("fisc-csc-id") || "1",
+      csc: val("fisc-csc"),
+      serie_nfce: num("fisc-serie", 1),
+      numero_nfce: num("fisc-numero", 0),
+      ambiente: num("fisc-ambiente", 2),
+      certificado: val("fisc-cert"),
+      crt: num("fisc-crt", 1),
+      inscricao_est: val("fisc-ie"),
+      uf: val("fisc-uf"),
+      cod_municipio: val("fisc-mun-cod"),
+    };
+    const senha = val("fisc-cert-senha");
+    if (senha) payload.cert_senha = senha;
+    try {
+      await apiPost("/api/admin/fiscal/estabelecimentos/" + encodeURIComponent(eid), payload);
+      toast("Fiscal da loja salvo");
+      await loadFiscalPanel();
+    } catch (err) {
+      toast(err.message || "Erro ao salvar fiscal");
+    }
+  }
+
   function esc(s) {
     return String(s)
       .replace(/&/g, "&amp;")
@@ -674,6 +763,10 @@
     document.getElementById("terminal-modal-cancel")?.addEventListener("click", closeTerminalModal);
     document.getElementById("term-tipo")?.addEventListener("change", syncTipoFields);
     document.getElementById("form-terminal")?.addEventListener("submit", saveTerminal);
+    document.getElementById("fiscal-estab")?.addEventListener("change", (e) =>
+      fillFiscalForm(e.target.value)
+    );
+    document.getElementById("form-fiscal")?.addEventListener("submit", saveFiscal);
 
     const params = new URLSearchParams(location.search);
     const mod = params.get("mod") || "gerais";

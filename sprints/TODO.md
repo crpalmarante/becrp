@@ -14,8 +14,8 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 |---|------|--------|
 | **1** | **Terminal → POS** (login, estabelecimento, papel/modo) | ✅ |
 | **2** | **Produtos + `available_at`** (catálogo por filial) | ✅ |
-| **3** | **Fiscal por estabelecimento** (cert/CSC/série = emitente da loja) | 🔄 próximo |
-| **4** | **Usuários operacionais** (vendedor/caixa/gerente) — não RH Funcionários | pendente |
+| **3** | **Fiscal por estabelecimento** (cert/CSC/série = emitente da loja) | ✅ |
+| **4** | **Usuários operacionais** (vendedor/caixa/gerente) — não RH Funcionários | 🔄 próximo |
 | **5** | **Inventário** / Promise Engine | depois |
 
 **Fora do caminho crítico do POS agora:** Funcionários (folha/RH), Receiving, balança física, CSC SEFAZ ponta a ponta (recurso externo).
@@ -56,7 +56,7 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 
 - [x] Wizard terminais + API `/api/admin/pos/terminais` + 1:1
 - [x] **#2** Catálogo `available_at` + filtro no POS (`produtos_para_pos`, UI em Produtos)
-- [ ] **#3** Fiscal por estabelecimento (cert/CSC/série)
+- [x] **#3** Fiscal por estabelecimento (cert/CSC/série) — `data/estabelecimentos_fiscal.json` + Configurações → Fiscal
 - [ ] **#5** Inventário real (depois)
 
 ### 4. Modelo de dados / APIs
@@ -89,10 +89,10 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 1. ~~Shell + Gerais + wizard terminais~~ ✅  
 2. ~~Terminal → POS operacional~~ ✅ (`/api/pos/contexto`)  
 3. ~~Produtos + `available_at`~~ ✅  
-4. **Fiscal por estabelecimento** ← próximo  
-5. Usuários operacionais (perfis)  
+4. ~~Fiscal por estabelecimento~~ ✅  
+5. **Usuários operacionais (perfis)** ← próximo  
 6. Inventário / Promise  
 
 ---
 
-*Demo escopo: produto 5 só RJ; produto 3 Matriz+SP. Usuários: `ana`/`carla` senha `123`.*
+*Fiscal: Configurações → Fiscal. NFC-e usa emitente da loja do pedido. CSC real ainda externo.*

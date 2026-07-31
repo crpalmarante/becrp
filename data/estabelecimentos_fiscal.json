@@ -1,0 +1,40 @@
+{
+  "matriz": {
+    "nome": "COMERCIAL FABIELI LTDA",
+    "nome_fantasia": "COMERCIAL FABIELI",
+    "cnpj": "62832155000141",
+    "inscricao_est": "ISENTO",
+    "crt": 1,
+    "tipo_fiscal": "Simples Nacional",
+    "uf": 43,
+    "cod_municipio": "4314100",
+    "municipio": "Passo Fundo",
+    "cep": "99010001",
+    "endereco": "RUA RIO GRANDE DO SUL, 372, CENTRO, PASSO FUNDO/RS",
+    "telefone": "(54)3311-5000",
+    "email": "fabieli@fabieli.com.br",
+    "certificado": "COMERCIAL FABIELI LTDA_62832155000141.pfx",
+    "cert_senha": "123456",
+    "csc_id": "1",
+    "csc": "HOMOLOGACAO-CSC-ALTERAR",
+    "serie_nfce": 1,
+    "numero_nfce": 1,
+    "ambiente": 2
+  },
+  "filial_sp": {
+    "csc_id": "1",
+    "csc": "",
+    "serie_nfce": 1,
+    "numero_nfce": 1,
+    "ambiente": 2,
+    "cert_senha": ""
+  },
+  "filial_rj": {
+    "csc_id": "1",
+    "csc": "",
+    "serie_nfce": 1,
+    "numero_nfce": 1,
+    "ambiente": 2,
+    "cert_senha": ""
+  }
+}

@@ -2506,8 +2506,13 @@
 
   function buildFilaPayload(session) {
     const promo = calcPromoForSession(session);
+    const estab =
+      (posContexto && posContexto.estabelecimento && posContexto.estabelecimento.id) || "";
+    const term = (posContexto && posContexto.terminal && posContexto.terminal.id) || "";
     return {
       sessionId: session.id,
+      estabelecimento_id: estab,
+      terminal_id: term,
       client: {
         id: session.client.id,
         nome: session.client.nome,
