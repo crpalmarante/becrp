@@ -411,15 +411,26 @@ Categorias e seções da vitrine vêm do cadastro do mix — não de um “modo 
 
 **Fase 3 concluída.** Fase 4 (decisão + limpeza): **Varejo genérico** no protótipo; CNAE no Fiscal.
 
-### APIs do POS (leitura)
+### APIs do POS
 
+**Leitura**
 - `GET /api/pos/produtos` — catálogo (autenticado; COBOL + extras).
 - `GET /api/pos/parceiros?role=CUSTOMER` — clientes (autenticado; `partners.json`).
 - PDV carrega na boot (`loadPosDataFromApi`); se falhar ou vier vazio → **demo** local.
 - Status: `Catálogo: API` ou `Catálogo: demo`.
-- Fila PDV→Caixa e venda ainda mock (sem POST).
+
+**Fila PDV → Caixa** (`data/pos_fila.json`)
+- `POST /api/pos/fila` — PDV envia pedido (itens, cliente, totais).
+- `GET /api/pos/fila?state=aguardando,pagamento` — Caixa lista fila aberta.
+- `GET /api/pos/fila?id=` — PDV consulta status do pedido enviado.
+- `POST /api/pos/fila/{id}` — `{ action: "status", state }` (`aguardando` → `pagamento` → `pago`).
+- Treino **não** grava na API; offline → fila local (demo).
+- Polling: Caixa 5s; PDV 4s no pedido enviado.
+
+**Ainda não**
+- NFC-e no confirmação de pagamento (precisa certificado digital válido nos testes).
 
 Próximo natural:
 
-1. Aprofundar capacidades (peso/balança, grade variante, serviço na linha).
-2. Fila / pedido PDV→Caixa na API.
+1. NFC-e no Caixa (com certificado A1/A3 válido — homologação SC + CSC).
+2. Aprofundar capacidades (peso/balança, grade variante, serviço na linha).

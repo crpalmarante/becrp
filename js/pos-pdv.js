@@ -2320,32 +2320,225 @@
     if (p.stockStatus === "none" && !opts.fromSimilar) openSimilarPanel(p);
   }
 
-  function addToFila(session, orderNum, isTraining) {
+  /** @type {null | object} */
+  let activeFilaPedido = null;
+  /** @type {object[]} */
+  let filaPedidos = [];
+  let filaPollTimer = null;
+  let pdvQueuePollTimer = null;
+
+  function clearSessionAfterSend(s) {
+    s.lines = [];
+    s.selectedLine = -1;
+    s.orderDisc = { type: "val", value: 0 };
+    s.orderAcr = { type: "val", value: 0 };
+    s.orderParc = null;
+    undoStack = [];
+    syncUndoBtn();
+    renderOrder();
+  }
+
+  function buildFilaPayload(session) {
+    const promo = calcPromoForSession(session);
+    return {
+      sessionId: session.id,
+      client: {
+        id: session.client.id,
+        nome: session.client.nome,
+        av: session.client.av,
+        cpf: session.client.cpf || "",
+        hint: session.client.hint || "",
+      },
+      lines: session.lines.map((l) => ({
+        id: l.id,
+        nome: l.nome,
+        preco: l.preco,
+        qtd: l.qtd,
+        peso: !!l.peso,
+        troca: !!l.troca,
+        variantKey: l.variantKey || "",
+        obs: l.obs || "",
+        descPct: l.descPct || 0,
+      })),
+      subtotal: sessionSubtotal(session),
+      discount: sessionDiscAmount(session),
+      surcharge: sessionAcrAmount(session),
+      promo: promo.discount || 0,
+      total: sessionTotal(session),
+      orderDisc: session.orderDisc,
+      orderAcr: session.orderAcr,
+      orderParc: session.orderParc,
+    };
+  }
+
+  function renderFilaList(pedidos) {
     const list = document.getElementById("fila-list");
-    const el = document.createElement("div");
-    el.className = "fila-item" + (isTraining ? " fila-training" : "");
-    el.dataset.order = String(orderNum);
-    const treinoBadge = isTraining ? " · TREINO" : "";
-    el.innerHTML = `
-      <div>
-        <strong>Pedido #${orderNum} · ${session.client.nome}${treinoBadge}</strong>
-        <span>PDV · agora · ${session.lines.length} ${session.lines.length === 1 ? "item" : "itens"}</span>
-      </div>
-      <div class="val">${money(sessionTotal(session))}</div>`;
-    el.addEventListener("click", () => {
-      document.querySelectorAll("#fila-list .fila-item").forEach((x) => x.classList.remove("active"));
-      el.classList.add("active");
-      caixaDue = sessionTotal(session);
-      document.getElementById("caixa-due").textContent = money(caixaDue);
+    if (!list) return;
+    filaPedidos = pedidos || [];
+    if (!filaPedidos.length) {
+      list.innerHTML =
+        '<div class="order-empty" style="padding:24px;text-align:center;color:var(--text-muted)">Fila vazia — aguarde pedidos do PDV</div>';
+      return;
+    }
+    const activeId = activeFilaPedido && activeFilaPedido.id;
+    list.innerHTML = filaPedidos
+      .map((p) => {
+        const treino = p.training ? " fila-training" : "";
+        const active = p.id === activeId ? " active" : "";
+        const n = (p.lines || []).length;
+        const when = p.createdAt ? String(p.createdAt).replace("T", " ").slice(11, 16) : "";
+        return `<div class="fila-item${treino}${active}" data-fila-id="${p.id}" data-order="${p.orderNum}">
+          <div>
+            <strong>Pedido #${p.orderNum} · ${(p.client && p.client.nome) || "Cliente"}</strong>
+            <span>${p.pdvUser || "PDV"} · ${when || "agora"} · ${n} ${n === 1 ? "item" : "itens"} · ${p.state}</span>
+          </div>
+          <div class="val">${money(p.total || 0)}</div>
+        </div>`;
+      })
+      .join("");
+  }
+
+  async function selectFilaPedido(pedido) {
+    if (!pedido) return;
+    activeFilaPedido = pedido;
+    caixaDue = Number(pedido.total) || 0;
+    cashReceived = 0;
+    document.getElementById("caixa-due").textContent = money(caixaDue);
+    document.getElementById("btn-confirm-pay").disabled = false;
+    renderFilaList(filaPedidos);
+    document.querySelectorAll("#fila-list .fila-item").forEach((el) => {
+      el.classList.toggle("active", el.dataset.filaId === pedido.id);
     });
-    list.insertBefore(el, list.firstChild);
+    if (!pedido.training && pedido.state === "aguardando") {
+      const updated = await updateFilaStatus(pedido.id, "pagamento");
+      if (updated) {
+        activeFilaPedido = updated;
+        syncSessionQueueFromPedido(updated);
+      }
+    }
+    document.getElementById("status-hint").textContent =
+      "Caixa · Pedido #" + pedido.orderNum + " · " + money(caixaDue);
+  }
+
+  async function updateFilaStatus(id, state) {
+    const api = window.AuthService && window.AuthService.api;
+    if (!api || !id) return null;
+    try {
+      const res = await api("/api/pos/fila/" + encodeURIComponent(id), {
+        method: "POST",
+        body: JSON.stringify({ action: "status", state }),
+      });
+      if (res && res.status === "ok" && res.pedido) return res.pedido;
+    } catch (err) {
+      console.warn("[POS] update fila", err);
+    }
+    return null;
+  }
+
+  function syncSessionQueueFromPedido(pedido) {
+    if (!pedido) return;
+    sessions.forEach((s) => {
+      if (s.queueStatus && (s.queueStatus.id === pedido.id || s.queueStatus.orderNum === pedido.orderNum)) {
+        s.queueStatus.state = pedido.state;
+        s.queueStatus.id = pedido.id;
+        s.queueStatus.orderNum = pedido.orderNum;
+      }
+    });
+    const cur = getSession();
+    if (cur && cur.queueStatus && cur.queueStatus.id === pedido.id) renderQueueBanner();
+  }
+
+  async function refreshFilaCaixa() {
+    const api = window.AuthService && window.AuthService.api;
+    if (!api) {
+      renderFilaList(filaPedidos);
+      return;
+    }
+    try {
+      const res = await api("/api/pos/fila?state=aguardando,pagamento");
+      if (res && res.status === "ok" && Array.isArray(res.pedidos)) {
+        renderFilaList(res.pedidos);
+        if (activeFilaPedido) {
+          const still = res.pedidos.find((p) => p.id === activeFilaPedido.id);
+          if (still) activeFilaPedido = still;
+          else {
+            activeFilaPedido = null;
+            document.getElementById("btn-confirm-pay").disabled = true;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn("[POS] refresh fila", err);
+    }
+  }
+
+  function startFilaPolling() {
+    stopFilaPolling();
+    refreshFilaCaixa();
+    filaPollTimer = setInterval(() => {
+      if (mode === "caixa") refreshFilaCaixa();
+    }, 5000);
+  }
+
+  function stopFilaPolling() {
+    if (filaPollTimer) {
+      clearInterval(filaPollTimer);
+      filaPollTimer = null;
+    }
+  }
+
+  function startPdvQueuePolling() {
+    stopPdvQueuePolling();
+    pdvQueuePollTimer = setInterval(async () => {
+      const s = getSession();
+      if (!s || !s.queueStatus || !s.queueStatus.id || s.queueStatus.training) return;
+      if (s.queueStatus.state === "pago" || s.queueStatus.state === "cancelado") return;
+      const api = window.AuthService && window.AuthService.api;
+      if (!api) return;
+      try {
+        const res = await api("/api/pos/fila?id=" + encodeURIComponent(s.queueStatus.id));
+        if (res && res.status === "ok" && res.pedido) {
+          s.queueStatus.state = res.pedido.state;
+          renderQueueBanner();
+          const labels = { aguardando: "Aguardando", pagamento: "Em pagamento", pago: "Pago" };
+          document.getElementById("status-hint").textContent =
+            "Pedido #" + s.queueStatus.orderNum + " · " + (labels[s.queueStatus.state] || s.queueStatus.state);
+        }
+      } catch (_) {
+        /* ignore */
+      }
+    }, 4000);
+  }
+
+  function stopPdvQueuePolling() {
+    if (pdvQueuePollTimer) {
+      clearInterval(pdvQueuePollTimer);
+      pdvQueuePollTimer = null;
+    }
+  }
+
+  function addToFilaLocal(pedido, isTraining) {
+    const list = filaPedidos.slice();
+    list.unshift(pedido);
+    renderFilaList(list);
   }
 
   function startQueueMock(session) {
     const orderNum = nextOrderNum++;
-    session.queueStatus = { orderNum, state: "aguardando" };
+    const pedido = {
+      id: "local-" + orderNum,
+      orderNum,
+      state: "aguardando",
+      training: false,
+      createdAt: new Date().toISOString(),
+      pdvUser: "PDV",
+      client: session.client,
+      lines: session.lines.slice(),
+      total: sessionTotal(session),
+    };
+    session.queueStatus = { orderNum, state: "aguardando", id: pedido.id };
     renderQueueBanner();
-    addToFila(session, orderNum, false);
+    addToFilaLocal(pedido, false);
 
     const states = ["aguardando", "pagamento", "pago"];
     let step = 0;
@@ -2358,54 +2551,112 @@
         return;
       }
       session.queueStatus.state = states[step];
+      pedido.state = states[step];
       renderQueueBanner();
+      renderFilaList(filaPedidos.map((p) => (p.id === pedido.id ? pedido : p)));
       const labels = { aguardando: "Aguardando", pagamento: "Em pagamento", pago: "Pago" };
       document.getElementById("status-hint").textContent =
-        "Pedido #" + orderNum + " · " + labels[session.queueStatus.state];
+        "Pedido #" + orderNum + " · " + labels[session.queueStatus.state] + " (demo)";
     }, 4000);
   }
 
-  function sendToCashier() {
+  async function sendToCashier() {
     const s = getSession();
     if (!s || !s.lines.length) return;
     const total = orderTotal();
 
     if (s.orderType === "orcamento") {
       document.getElementById("status-hint").textContent =
-        "Orçamento salvo (mock) · " + money(total);
-      s.lines = [];
-      s.selectedLine = -1;
-      s.orderDisc = { type: "val", value: 0 };
-      s.orderAcr = { type: "val", value: 0 };
-      s.orderParc = null;
-      undoStack = [];
-      syncUndoBtn();
-      renderOrder();
+        "Orçamento salvo (local) · " + money(total);
+      clearSessionAfterSend(s);
       return;
     }
 
     if (trainingMode) {
       const orderNum = nextOrderNum++;
-      s.queueStatus = { orderNum, state: "aguardando", training: true };
+      const pedido = {
+        id: "treino-" + orderNum,
+        orderNum,
+        state: "aguardando",
+        training: true,
+        createdAt: new Date().toISOString(),
+        pdvUser: "TREINO",
+        client: s.client,
+        lines: s.lines.slice(),
+        total,
+      };
+      s.queueStatus = { orderNum, state: "aguardando", training: true, id: pedido.id };
       renderQueueBanner();
-      addToFila(s, orderNum, true);
+      addToFilaLocal(pedido, true);
       document.getElementById("status-hint").textContent =
         "Treino · Pedido #" + orderNum + " simulado · " + money(total);
-    } else {
-      startQueueMock(s);
-      addToDailyGoal(total);
-      document.getElementById("status-hint").textContent =
-        "Pedido #" + s.queueStatus.orderNum + " na fila · Aguardando · " + money(total);
+      clearSessionAfterSend(s);
+      return;
     }
 
-    s.lines = [];
-    s.selectedLine = -1;
-    s.orderDisc = { type: "val", value: 0 };
-    s.orderAcr = { type: "val", value: 0 };
-    s.orderParc = null;
-    undoStack = [];
-    syncUndoBtn();
-    renderOrder();
+    const api = window.AuthService && window.AuthService.api;
+    if (api) {
+      try {
+        const res = await api("/api/pos/fila", {
+          method: "POST",
+          body: JSON.stringify(buildFilaPayload(s)),
+        });
+        if (res && res.status === "ok" && res.pedido) {
+          const p = res.pedido;
+          s.queueStatus = { orderNum: p.orderNum, state: p.state, id: p.id };
+          renderQueueBanner();
+          addToDailyGoal(total);
+          document.getElementById("status-hint").textContent =
+            "Pedido #" + p.orderNum + " na fila · Aguardando · " + money(total);
+          if (mode === "caixa") refreshFilaCaixa();
+          else startPdvQueuePolling();
+          clearSessionAfterSend(s);
+          return;
+        }
+        document.getElementById("status-hint").textContent =
+          (res && res.message) || "Falha ao enviar — usando fila local";
+      } catch (err) {
+        console.warn("[POS] send fila", err);
+        document.getElementById("status-hint").textContent =
+          "API indisponível — fila local (demo)";
+      }
+    }
+
+    startQueueMock(s);
+    addToDailyGoal(total);
+    document.getElementById("status-hint").textContent =
+      "Pedido #" + s.queueStatus.orderNum + " na fila (demo) · " + money(total);
+    clearSessionAfterSend(s);
+  }
+
+  async function confirmCaixaPayment() {
+    if (!activeFilaPedido) {
+      document.getElementById("status-hint").textContent = "Selecione um pedido na fila";
+      return;
+    }
+    const pedido = activeFilaPedido;
+    if (pedido.training || String(pedido.id).startsWith("local-") || String(pedido.id).startsWith("treino-")) {
+      pedido.state = "pago";
+      syncSessionQueueFromPedido(pedido);
+      filaPedidos = filaPedidos.filter((p) => p.id !== pedido.id);
+      renderFilaList(filaPedidos);
+      activeFilaPedido = null;
+      document.getElementById("btn-confirm-pay").disabled = true;
+      document.getElementById("status-hint").textContent =
+        "Pagamento confirmado (demo) — Pedido #" + pedido.orderNum;
+      return;
+    }
+    const updated = await updateFilaStatus(pedido.id, "pago");
+    if (!updated) {
+      document.getElementById("status-hint").textContent = "Não foi possível confirmar o pagamento";
+      return;
+    }
+    syncSessionQueueFromPedido(updated);
+    activeFilaPedido = null;
+    document.getElementById("btn-confirm-pay").disabled = true;
+    await refreshFilaCaixa();
+    document.getElementById("status-hint").textContent =
+      "Pagamento confirmado · Pedido #" + updated.orderNum + " — NFC-e na próxima etapa (certificado)";
   }
 
   function convertToOrder() {
@@ -2448,6 +2699,13 @@
       mode === "pdv" ? "Terminal PDV" : "Terminal Caixa";
     document.getElementById("status-mode").textContent =
       mode === "pdv" ? "Modo PDV" : "Modo Caixa";
+    if (mode === "caixa") {
+      startFilaPolling();
+      stopPdvQueuePolling();
+    } else {
+      stopFilaPolling();
+      startPdvQueuePolling();
+    }
   }
 
   function bindNumpadKeys(el) {
@@ -2840,23 +3098,17 @@
     });
 
     document.getElementById("btn-confirm-pay").addEventListener("click", () => {
-      document.getElementById("status-hint").textContent =
-        "Pagamento confirmado (mock) — NFC-e na próxima etapa";
-      document.getElementById("btn-confirm-pay").disabled = true;
+      confirmCaixaPayment();
     });
 
     renderCashMoveLog();
-    document.querySelectorAll("#fila-list .fila-item").forEach((el) => {
-      el.addEventListener("click", () => {
-        document.querySelectorAll("#fila-list .fila-item").forEach((x) => x.classList.remove("active"));
-        el.classList.add("active");
-        const val = el.querySelector(".val");
-        if (val) {
-          caixaDue = parseFloat(val.textContent.replace(/[^\d,]/g, "").replace(",", ".")) || 0;
-          document.getElementById("caixa-due").textContent = money(caixaDue);
-        }
-      });
+    document.getElementById("fila-list").addEventListener("click", (e) => {
+      const item = e.target.closest(".fila-item[data-fila-id]");
+      if (!item) return;
+      const pedido = filaPedidos.find((p) => p.id === item.dataset.filaId);
+      if (pedido) selectFilaPedido(pedido);
     });
+    startPdvQueuePolling();
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {

@@ -33,6 +33,7 @@ MARCAS_FILE = os.path.join(DATA_DIR, "marcas.json")
 FABRICANTES_FILE = os.path.join(DATA_DIR, "fabricantes.json")
 CONTATOS_FILE = os.path.join(DATA_DIR, "contatos.json")
 PARTNERS_FILE = os.path.join(DATA_DIR, "partners.json")
+POS_FILA_FILE = os.path.join(DATA_DIR, "pos_fila.json")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -73,6 +74,25 @@ def load_json(path):
 def save_json(path, data):
     with open(path, "w") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+
+def load_pos_fila():
+    data = load_json(POS_FILA_FILE)
+    if not isinstance(data, dict) or "pedidos" not in data:
+        return {"next_num": 1000, "pedidos": []}
+    if not isinstance(data.get("pedidos"), list):
+        data["pedidos"] = []
+    if not isinstance(data.get("next_num"), int):
+        data["next_num"] = 1000
+    return data
+
+def save_pos_fila(data):
+    save_json(POS_FILA_FILE, data)
+
+def _safe_float(val, default=0.0):
+    try:
+        return float(val)
+    except (TypeError, ValueError):
+        return float(default)
 
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
@@ -195,6 +215,24 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     continue
                 lista.append(item)
             return self._json({"status": "ok", "source": "api", "parceiros": lista})
+
+        # ── POS: fila PDV → Caixa ──
+        if parsed.path == "/api/pos/fila":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            fila = load_pos_fila()
+            pid = self._get_query_param(parsed.query, "id", "").strip()
+            if pid:
+                hit = next((p for p in fila["pedidos"] if str(p.get("id")) == pid), None)
+                if not hit:
+                    return self._json({"status": "error", "message": "Pedido não encontrado"}, 404)
+                return self._json({"status": "ok", "pedido": hit})
+            states_raw = self._get_query_param(parsed.query, "state", "aguardando,pagamento")
+            states = {s.strip().lower() for s in states_raw.split(",") if s.strip()}
+            pedidos = [p for p in fila["pedidos"] if str(p.get("state", "")).lower() in states]
+            pedidos.sort(key=lambda p: p.get("createdAt") or "", reverse=True)
+            return self._json({"status": "ok", "pedidos": pedidos, "next_num": fila.get("next_num")})
 
         # ── COBOL: Produtos ──
         if parsed.path == "/api/admin/produtos":
@@ -484,6 +522,98 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             }
             save_users(users)
             return self._json({"status": "ok", "id": uid, "token": token, "nome": nome, "usuario": usuario, "role": "admin"})
+
+        # ── POS: criar pedido na fila ──
+        if parsed.path == "/api/pos/fila":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            lines = body.get("lines") or []
+            if not isinstance(lines, list) or not lines:
+                return self._json({"status": "error", "message": "Pedido sem itens"}, 400)
+            if body.get("training"):
+                return self._json({"status": "error", "message": "Treino não grava na fila"}, 400)
+            total = _safe_float(body.get("total"), 0)
+            if total <= 0:
+                return self._json({"status": "error", "message": "Total inválido"}, 400)
+            fila = load_pos_fila()
+            order_num = int(fila.get("next_num") or 1000)
+            fila["next_num"] = order_num + 1
+            now = datetime.now().isoformat(timespec="seconds")
+            client = body.get("client") if isinstance(body.get("client"), dict) else {}
+            pedido = {
+                "id": str(uuid.uuid4())[:12],
+                "orderNum": order_num,
+                "state": "aguardando",
+                "training": False,
+                "createdAt": now,
+                "updatedAt": now,
+                "pdvUser": user.get("nome") or user.get("usuario") or "",
+                "pdvUserId": next(
+                    (uid for uid, u in users.items() if u.get("token") == token),
+                    "",
+                ),
+                "sessionId": body.get("sessionId") or "",
+                "client": {
+                    "id": client.get("id") or "cf",
+                    "nome": client.get("nome") or "Consumidor final",
+                    "av": client.get("av") or "CF",
+                    "cpf": client.get("cpf") or "",
+                    "hint": client.get("hint") or "",
+                },
+                "lines": lines,
+                "subtotal": _safe_float(body.get("subtotal"), 0),
+                "discount": _safe_float(body.get("discount"), 0),
+                "surcharge": _safe_float(body.get("surcharge"), 0),
+                "promo": _safe_float(body.get("promo"), 0),
+                "total": round(total, 2),
+                "orderDisc": body.get("orderDisc") or {"type": "val", "value": 0},
+                "orderAcr": body.get("orderAcr") or {"type": "val", "value": 0},
+                "orderParc": body.get("orderParc"),
+            }
+            fila["pedidos"].append(pedido)
+            # mantém no máximo 200 pedidos no arquivo
+            if len(fila["pedidos"]) > 200:
+                fila["pedidos"] = fila["pedidos"][-200:]
+            save_pos_fila(fila)
+            return self._json({"status": "ok", "pedido": pedido})
+
+        if parsed.path.startswith("/api/pos/fila/"):
+            token = self.headers.get("X-Auth-Token", "")
+            user = self._find_user(token, load_users())
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            pid = parsed.path.rstrip("/").split("/")[-1]
+            fila = load_pos_fila()
+            pedido = next((p for p in fila["pedidos"] if str(p.get("id")) == pid), None)
+            if not pedido:
+                return self._json({"status": "error", "message": "Pedido não encontrado"}, 404)
+            action = (body.get("action") or "").strip().lower()
+            if action != "status":
+                return self._json({"status": "error", "message": "Ação inválida"}, 400)
+            new_state = str(body.get("state") or "").strip().lower()
+            allowed = {
+                "aguardando": {"pagamento", "cancelado"},
+                "pagamento": {"pago", "aguardando", "cancelado"},
+                "pago": set(),
+                "cancelado": set(),
+            }
+            cur = str(pedido.get("state") or "aguardando").lower()
+            if new_state not in allowed.get(cur, set()) and new_state != cur:
+                return self._json(
+                    {
+                        "status": "error",
+                        "message": f"Transição inválida: {cur} → {new_state}",
+                    },
+                    400,
+                )
+            pedido["state"] = new_state
+            pedido["updatedAt"] = datetime.now().isoformat(timespec="seconds")
+            pedido["caixaUser"] = user.get("nome") or user.get("usuario") or ""
+            save_pos_fila(fila)
+            return self._json({"status": "ok", "pedido": pedido})
 
         if parsed.path == "/api/auth/login":
             usuario = body.get("usuario", "").strip()
