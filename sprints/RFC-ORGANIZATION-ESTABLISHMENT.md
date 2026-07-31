@@ -43,15 +43,17 @@ Ao **criar** um terminal PDV (ou Caixa), ele já nasce:
 
 | Papel vinculado | Escopo operacional |
 |-----------------|--------------------|
-| **Vendedor** | Opera **aquele** PDV (atendimento / pedido). Não vê outros PDVs nem caixas. |
+| **Vendedor** | Opera **aquele** PDV (atendimento / pedido). Não vê outros PDVs nem caixas. Relação **1:1** (um vendedor ↔ um PDV). |
 | **Gerente** ou **Caixa** | Pode ver / operar a visão de **todos os PDVs e Caixas** do estabelecimento (fila, supervisão, financeiro). |
 
 ### Implicações
 
 - Criação de terminal = cadastro do ponto **+** vínculo pessoa (não são passos separados opcionais).
-- Um vendedor típico = 1 PDV fixo na loja; sem seletor de filial.
+- **Vendedor ↔ PDV = 1:1** — um vendedor não opera dois PDVs; um PDV não fica com dois vendedores titulares.
+- Sem seletor de filial no fluxo de venda.
 - Gerente/Caixa = painel amplo (PDVs + Caixas) no mesmo estabelecimento do terminal/sessão.
 - Troca de estabelecimento só via **outro terminal** (ou reconfiguração administrativa), nunca no fluxo de venda.
+- Cobertura eventual (férias/falta): reatribuir o vínculo do PDV (admin), não “logar em outro PDV” sem troca de vínculo.
 
 ---
 
@@ -115,8 +117,7 @@ PDV **não** edita CSC/certificado.
 
 1. Preço: lista única da org com override local, ou só local.  
 2. Numeração NFC-e: sempre por estabelecimento (provável sim).  
-3. Um vendedor pode ter mais de um PDV no mesmo estabelecimento? (default sugerido: **não**, 1:1).  
-4. Gerente/Caixa: um terminal “hub” vs login com papel elevado em qualquer estação do estabelecimento.
+3. Gerente/Caixa: um terminal “hub” vs login com papel elevado em qualquer estação do estabelecimento.
 
 ---
 
@@ -140,3 +141,4 @@ Preço/estoque exibidos = da filial `E`.
 |------|------|
 | 31/07/2026 | Decisões: catálogo único; `available_at` multi-select; vazio = todas; fiscal no estabelecimento. |
 | 31/07/2026 | Terminal criado já vinculado a vendedor (1 PDV) ou gerente/caixa (visão de todos PDVs/Caixas); sem troca de filial no fluxo. |
+| 31/07/2026 | Relação vendedor ↔ PDV travada em **1:1**. |
