@@ -411,7 +411,15 @@ Categorias e seções da vitrine vêm do cadastro do mix — não de um “modo 
 
 **Fase 3 concluída.** Fase 4 (decisão + limpeza): **Varejo genérico** no protótipo; CNAE no Fiscal.
 
+### APIs do POS (leitura)
+
+- `GET /api/pos/produtos` — catálogo (autenticado; COBOL + extras).
+- `GET /api/pos/parceiros?role=CUSTOMER` — clientes (autenticado; `partners.json`).
+- PDV carrega na boot (`loadPosDataFromApi`); se falhar ou vier vazio → **demo** local.
+- Status: `Catálogo: API` ou `Catálogo: demo`.
+- Fila PDV→Caixa e venda ainda mock (sem POST).
+
 Próximo natural:
 
 1. Aprofundar capacidades (peso/balança, grade variante, serviço na linha).
-2. APIs reais (catálogo = mix da empresa).
+2. Fila / pedido PDV→Caixa na API.

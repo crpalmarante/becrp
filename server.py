@@ -170,6 +170,32 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": "Acesso negado"}, 403)
             return self._json({"status": "ok", "roles": ROLES})
 
+        # ── POS: leitura (qualquer usuário autenticado) ──
+        if parsed.path == "/api/pos/produtos":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            produtos = cobol_bridge.produtos_listar()
+            return self._json({"status": "ok", "source": "api", "produtos": produtos})
+
+        if parsed.path == "/api/pos/parceiros":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            data = load_json(PARTNERS_FILE)
+            role_filter = self._get_query_param(parsed.query, "role", "CUSTOMER").upper().strip()
+            lista = []
+            for eid, e in data.items():
+                item = dict(e)
+                item["id"] = eid
+                if item.get("ativo") is False or str(item.get("status", "")).upper() == "INACTIVE":
+                    continue
+                roles = [str(r).upper() for r in (item.get("roles") or [])]
+                if role_filter and role_filter not in roles:
+                    continue
+                lista.append(item)
+            return self._json({"status": "ok", "source": "api", "parceiros": lista})
+
         # ── COBOL: Produtos ──
         if parsed.path == "/api/admin/produtos":
             token = self.headers.get("X-Auth-Token", "")

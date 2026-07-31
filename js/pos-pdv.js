@@ -29,18 +29,21 @@
       `<strong>Sem previsão — ver similares</strong><br>Produto indisponível. Sugestão: item equivalente da mesma categoria.`,
   };
 
-  const MOCK_CUSTOMERS = [
-    {
-      id: "cf",
-      nome: "Consumidor final",
-      av: "CF",
-      cpf: "",
-      telefone: "",
-      hint: "Venda sem identificação",
-      crediario: 0,
-      ultimaCompra: null,
-      historico: [],
-    },
+  const CONSUMIDOR_FINAL = {
+    id: "cf",
+    nome: "Consumidor final",
+    av: "CF",
+    cpf: "",
+    telefone: "",
+    hint: "Venda sem identificação",
+    crediario: 0,
+    ultimaCompra: null,
+    historico: [],
+  };
+
+  /** Clientes do PDV — demo até a API responder. */
+  let MOCK_CUSTOMERS = [
+    CONSUMIDOR_FINAL,
     {
       id: "joao",
       nome: "João da Silva",
@@ -145,7 +148,9 @@
 
   const FALLBACK_FOTO = "../assets/images/sem-foto.png";
 
-  const SAMPLE = [
+  /** Catálogo do PDV — demo até a API responder. */
+  let dataSource = "demo";
+  let SAMPLE = [
     {
       id: 1,
       nome: "Arroz 5kg",
@@ -1845,9 +1850,135 @@
     return Math.round(price * 100) / 100;
   }
 
-  /** Catálogo do varejo = mix da empresa (mock: SAMPLE completo). */
+  /** Catálogo do varejo = mix da empresa (API ou demo). */
   function catalogPool() {
     return SAMPLE.slice();
+  }
+
+  function initials(nome) {
+    const parts = String(nome || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    if (!parts.length) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  }
+
+  function mapApiProduct(p) {
+    const id = Number(p.id);
+    const pid = Number.isFinite(id) ? id : p.id;
+    const unidade = String(p.unidade || "UN").trim().toUpperCase();
+    const peso = !!p.peso || unidade === "KG";
+    const stock = Number(p.stock);
+    const stockNum = Number.isFinite(stock) ? stock : 0;
+    let stockStatus = p.stockStatus || "local";
+    if (!p.stockStatus && stockNum <= 0) stockStatus = "none";
+    const foto = p.foto || FALLBACK_FOTO;
+    const fotos = Array.isArray(p.fotos) && p.fotos.length ? p.fotos.slice() : [foto];
+    let variants = p.variants || null;
+    if (!variants && p.variacoes && typeof p.variacoes === "object") {
+      const v = p.variacoes;
+      if (v.cores || v.tamanhos || v.colors || v.sizes) {
+        variants = {
+          cores: v.cores || v.colors || [],
+          tamanhos: v.tamanhos || v.sizes || [],
+          ajusteCor: v.ajusteCor || {},
+          ajusteTam: v.ajusteTam || {},
+        };
+      }
+    }
+    const skuRaw = p.sku != null && String(p.sku).trim() !== "" ? String(p.sku) : String(pid);
+    return {
+      id: pid,
+      nome: p.nome || "Produto",
+      preco: Number(p.preco) || 0,
+      stock: stockNum,
+      cat: p.categoria || p.cat || "Geral",
+      subcat: p.sub_categoria || p.subcat || "",
+      sku: skuRaw.padStart(6, "0").slice(-12),
+      ean: p.codigo_barras || p.ean || "",
+      descricao: p.descricao || "",
+      foto,
+      fotos,
+      peso,
+      servico: !!p.servico || String(p.categoria || "").toLowerCase() === "serviços",
+      stockStatus,
+      alertas: Array.isArray(p.alertas) ? p.alertas : [],
+      similares: Array.isArray(p.similares) ? p.similares : [],
+      variants,
+      novo: !!p.novo,
+      criadoEm: p.criadoEm || p.criado_em || "",
+    };
+  }
+
+  function mapApiCustomer(p) {
+    const docs = p.documents || [];
+    const docCpf = docs.find((d) => String(d.document_type || "").toUpperCase() === "CPF");
+    const docCnpj = docs.find((d) => String(d.document_type || "").toUpperCase() === "CNPJ");
+    const contato =
+      (p.contacts || []).find((c) => c.preferred) || (p.contacts || [])[0] || {};
+    const nome = p.display_name || p.trade_name || p.legal_name || p.nome || "Cliente";
+    return {
+      id: String(p.id),
+      nome,
+      av: initials(nome),
+      cpf: (docCpf && docCpf.document_number) || (docCnpj && docCnpj.document_number) || p.cpf || "",
+      telefone: contato.phone || contato.mobile || p.telefone || "",
+      hint: "",
+      crediario: Number(p.crediario) || 0,
+      ultimaCompra: p.ultimaCompra || null,
+      historico: Array.isArray(p.historico) ? p.historico : [],
+      tamanhoUsual: p.tamanhoUsual || "",
+    };
+  }
+
+  function setDataSource(src, detail) {
+    dataSource = src;
+    const el = document.getElementById("status-data");
+    if (!el) return;
+    if (src === "api") {
+      el.textContent = "Catálogo: API" + (detail ? " · " + detail : "");
+    } else {
+      el.textContent = "Catálogo: demo" + (detail ? " · " + detail : "");
+    }
+  }
+
+  async function loadPosDataFromApi() {
+    const api = window.AuthService && window.AuthService.api;
+    if (!api) {
+      setDataSource("demo", "sem AuthService");
+      return;
+    }
+    try {
+      const [prodRes, partRes] = await Promise.all([
+        api("/api/pos/produtos"),
+        api("/api/pos/parceiros?role=CUSTOMER"),
+      ]);
+      let nProd = 0;
+      let nPart = 0;
+      if (prodRes && prodRes.status === "ok" && Array.isArray(prodRes.produtos) && prodRes.produtos.length) {
+        SAMPLE = prodRes.produtos.map(mapApiProduct);
+        nProd = SAMPLE.length;
+      }
+      if (partRes && partRes.status === "ok") {
+        const raw = partRes.parceiros || partRes.partners || [];
+        if (Array.isArray(raw) && raw.length) {
+          MOCK_CUSTOMERS = [CONSUMIDOR_FINAL].concat(raw.map(mapApiCustomer));
+          nPart = raw.length;
+        }
+      }
+      if (nProd || nPart) {
+        setDataSource("api", nProd + " prod · " + nPart + " clientes");
+        document.getElementById("status-hint").textContent =
+          "Varejo · catálogo da API · toque no produto para o mostruário";
+      } else {
+        setDataSource("demo", "API vazia");
+      }
+    } catch (err) {
+      console.warn("[POS] falha ao carregar API — usando demo", err);
+      setDataSource("demo", "offline");
+    }
   }
 
   function scoreRelevance(p, q) {
@@ -2326,7 +2457,7 @@
     });
   }
 
-  function boot() {
+  async function boot() {
     const user = (window.AuthService && window.AuthService.getUser()) || {};
     const name = user.nome || user.usuario || "Operador";
     document.getElementById("op-name").textContent = name;
@@ -2334,14 +2465,18 @@
 
     createSession();
     document.getElementById("status-store").textContent = "Varejo";
+    setDataSource("demo");
+    await loadPosDataFromApi();
     renderClientResults();
     renderAll();
     setSmartCtx("summary");
     setCaixaCtx("default");
     setMode("pdv");
     syncUndoBtn();
-    document.getElementById("status-hint").textContent =
-      "Varejo · toque no produto para o mostruário · bip (Enter) adiciona direto";
+    if (dataSource === "demo") {
+      document.getElementById("status-hint").textContent =
+        "Varejo · demo · toque no produto para o mostruário · bip (Enter) adiciona direto";
+    }
 
     setInterval(() => {
       const d = new Date();
