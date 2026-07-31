@@ -74,10 +74,31 @@ Menu principal
      └─ … demais módulos instalados
 ```
 
+### Shell da tela Configurações (UX travada)
+
+```
+Menu principal  →  card Configurações  →  tela hub
+
+┌──────────────┬─────────────────────────────────────────┐
+│  SIDEBAR     │  ÁREA DE CONTEXTO                       │
+│  (módulos)   │  (configs genéricas do módulo ativo)    │
+│              │                                         │
+│  POS         │  ← conteúdo muda conforme o item        │
+│  Fiscal      │     selecionado na sidebar              │
+│  Usuários    │                                         │
+│  …           │                                         │
+└──────────────┴─────────────────────────────────────────┘
+```
+
+1. Entra por **Configurações** no menu principal (cards de módulos somem dessa navegação).  
+2. Na tela seguinte, os **nomes dos módulos instalados** vão para a **sidebar à esquerda**.  
+3. A **área de contexto** (centro) mostra as **configurações genéricas** do módulo selecionado.  
+4. Não é uma grade de “mini-cards” como destino final — a sidebar é o índice; o contexto é o trabalho.
+
 ### Princípios
 
 1. **Um hub** — configs genéricas entram por Configurações, não pela tela operacional do módulo.  
-2. **Por módulo instalado** — só aparecem seções dos módulos que a org contratou/ativou.  
+2. **Por módulo instalado** — a sidebar só lista módulos que a org contratou/ativou.  
 3. **Só Administrador** — vendedor/caixa/gerente operam o módulo; não cadastram estrutura genérica.  
 4. **Genérico ≠ operação** — criar PDV, CSC, numeração, usuários = Configurações; vender/pagar = PDV/Caixa.
 
@@ -276,3 +297,4 @@ Preço/estoque exibidos = da filial `E`.
 | 31/07/2026 | Relação vendedor ↔ PDV travada em **1:1**. |
 | 31/07/2026 | Admin-only: wizard criar PDV/Caixa + configs genéricas; fiscal no estabelecimento; operação sem cadastro de terminal. |
 | 31/07/2026 | Hub **Configurações** = configs genéricas de **todos** os módulos instalados; POS é uma seção, não o hub inteiro. |
+| 31/07/2026 | UX Configurações: sidebar esquerda = módulos; área de contexto = configs genéricas do módulo selecionado. |
