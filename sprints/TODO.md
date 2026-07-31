@@ -16,7 +16,7 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 | **2** | **Produtos + `available_at`** (catálogo por filial) | ✅ |
 | **3** | **Fiscal por estabelecimento** (cert/CSC/série = emitente da loja) | ✅ |
 | **4** | **Usuários operacionais** (vendedor/caixa/gerente) — não RH Funcionários | ✅ |
-| **5** | **Inventário** / Promise Engine | 🔄 próximo |
+| **5** | **Inventário** / Promise Engine | ✅ |
 
 **Fora do caminho crítico do POS agora:** Funcionários (folha/RH), Receiving, balança física, CSC SEFAZ ponta a ponta (recurso externo).
 
@@ -57,15 +57,16 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 - [x] Wizard terminais + API `/api/admin/pos/terminais` + 1:1
 - [x] **#2** Catálogo `available_at` + filtro no POS (`produtos_para_pos`, UI em Produtos)
 - [x] **#3** Fiscal por estabelecimento (cert/CSC/série) — `data/estabelecimentos_fiscal.json` + Configurações → Fiscal
-- [ ] **#5** Inventário real (depois)
+- [x] **#5** Inventário / Promise (`data/estoque.json`, enrich `/api/pos/produtos`, `GET /api/pos/promise`, baixa na finalização)
 
 ### 4. Modelo de dados / APIs
 
 - [ ] Unificar `data/empresas.json` + `dados/empresa.json` → Organização + Estabelecimentos
 - [x] Persistência de terminais (PDV/Caixa) + vínculo usuário
-- [ ] `available_at` no cadastro de produto
-- [ ] POS filtrar catálogo por estabelecimento + `available_at`
-- [ ] Emitente NFC-e = estabelecimento do terminal
+- [x] `available_at` no cadastro de produto
+- [x] POS filtrar catálogo por estabelecimento + `available_at`
+- [x] Emitente NFC-e = estabelecimento do terminal
+- [x] Promise Engine multi-filial (local / branch / transit / none)
 
 ### 5. Em aberto (decidir depois)
 
@@ -77,7 +78,6 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 ### 6. Fora deste plano (não misturar)
 
 - CSC real / SEFAZ ponta a ponta (recurso externo)
-- Promise Engine multi-filial
 - Balança física (hoje mock)
 - RFCs de Receiving (`RFC-RECEIVING-ENGINE/`) — pasta local
 - Módulo RH Funcionários completo (não é pré-requisito do POS)
@@ -91,7 +91,7 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 3. ~~Produtos + `available_at`~~ ✅  
 4. ~~Fiscal por estabelecimento~~ ✅  
 5. ~~Usuários operacionais (perfis)~~ ✅  
-6. **Inventário / Promise** ← próximo (quando estoque real estiver pronto)  
+6. ~~Inventário / Promise~~ ✅ (`estoque.json` + badges no POS)  
 
 ---
 

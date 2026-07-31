@@ -19,14 +19,33 @@
   };
 
   const STOCK_MESSAGES = {
-    local: (p) =>
-      `<strong>Tem nesta loja</strong><br>${p.stock} un. disponíveis na filial atual.`,
-    branch: () =>
-      `<strong>Tem na Filial Centro em ~2h</strong><br>Retirada ou transferência expressa.`,
-    transit: () =>
-      `<strong>Em trânsito — chega amanhã</strong><br>Previsão de recebimento: amanhã, período da manhã.`,
-    none: () =>
-      `<strong>Sem previsão — ver similares</strong><br>Produto indisponível. Sugestão: item equivalente da mesma categoria.`,
+    local: (p) => {
+      const label = (p.promise && p.promise.label) || "Disponível nesta loja";
+      return `<strong>${label}</strong><br>${p.stock} un. disponíveis na filial atual.`;
+    },
+    branch: (p) => {
+      const label =
+        (p.promise && p.promise.label) ||
+        (p.promiseBranches && p.promiseBranches[0] && p.promiseBranches[0].label) ||
+        "Disponível em outra filial (~2h)";
+      const extra =
+        p.promiseBranches && p.promiseBranches.length > 1
+          ? `<br>Também em ${p.promiseBranches
+              .slice(1)
+              .map((b) => b.estabelecimento_nome)
+              .join(", ")}.`
+          : "<br>Retirada ou transferência expressa.";
+      return `<strong>${label}</strong>${extra}`;
+    },
+    transit: (p) => {
+      const label = (p.promise && p.promise.label) || "Em trânsito — chega em breve";
+      const origem = p.promise && p.promise.origem ? `<br>Origem: ${p.promise.origem}.` : "";
+      return `<strong>${label}</strong>${origem}`;
+    },
+    none: (p) => {
+      const label = (p.promise && p.promise.label) || "Sem previsão — ver similares";
+      return `<strong>${label}</strong><br>Produto indisponível. Sugestão: item equivalente da mesma categoria.`;
+    },
   };
 
   const CONSUMIDOR_FINAL = {
@@ -1401,8 +1420,14 @@
     document.getElementById("price-consult-name").textContent = product.nome;
     document.getElementById("price-consult-price").textContent = money(product.preco);
     const st = STOCK_LABELS[product.stockStatus || "local"] || STOCK_LABELS.local;
+    const promiseLabel =
+      (product.promise && product.promise.label) || st.long;
+    const qtyBit =
+      product.stockStatus === "local" && product.stock != null
+        ? ` · ${product.stock} un.`
+        : "";
     document.getElementById("price-consult-stock").innerHTML =
-      `<span class="stock-badge ${st.cls}">${st.short}</span> · ${product.stock != null ? product.stock + " un." : "—"}`;
+      `<span class="stock-badge ${st.cls}">${st.short}</span> · ${promiseLabel}${qtyBit}`;
     setSmartCtx("price");
   }
 
@@ -1947,6 +1972,8 @@
       }
     }
     const skuRaw = p.sku != null && String(p.sku).trim() !== "" ? String(p.sku) : String(pid);
+    const promise = p.promise && typeof p.promise === "object" ? p.promise : null;
+    const promiseBranches = Array.isArray(p.promiseBranches) ? p.promiseBranches : [];
     return {
       id: pid,
       nome: p.nome || "Produto",
@@ -1962,6 +1989,8 @@
       peso,
       servico: !!p.servico || String(p.categoria || "").toLowerCase() === "serviços",
       stockStatus,
+      promise,
+      promiseBranches,
       alertas: Array.isArray(p.alertas) ? p.alertas : [],
       similares: Array.isArray(p.similares) ? p.similares : [],
       variants,
