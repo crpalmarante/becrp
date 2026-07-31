@@ -81,19 +81,42 @@ Menu principal  →  card Configurações  →  tela hub
 
 ┌──────────────┬─────────────────────────────────────────┐
 │  SIDEBAR     │  ÁREA DE CONTEXTO                       │
-│  (módulos)   │  (configs genéricas do módulo ativo)    │
 │              │                                         │
-│  POS         │  ← conteúdo muda conforme o item        │
-│  Fiscal      │     selecionado na sidebar              │
-│  Usuários    │                                         │
-│  …           │                                         │
+│  Gerais  ●   │  ← 1ª visão (default): o que é comum    │
+│  POS         │     a TODOS os módulos                  │
+│  Fiscal      │                                         │
+│  …           │  demais itens: configs do módulo ativo  │
 └──────────────┴─────────────────────────────────────────┘
 ```
 
-1. Entra por **Configurações** no menu principal (cards de módulos somem dessa navegação).  
-2. Na tela seguinte, os **nomes dos módulos instalados** vão para a **sidebar à esquerda**.  
-3. A **área de contexto** (centro) mostra as **configurações genéricas** do módulo selecionado.  
-4. Não é uma grade de “mini-cards” como destino final — a sidebar é o índice; o contexto é o trabalho.
+1. Entra por **Configurações** no menu principal.  
+2. Sidebar esquerda: **Gerais** (sempre) + **módulos instalados**.  
+3. **Primeira visão (default) = Gerais** — só o que é transversal a todos os módulos.  
+4. Ao clicar num módulo na sidebar, o contexto troca para as configs genéricas **daquele** módulo.  
+5. Sidebar = índice; contexto = trabalho (não grade de cards como destino final).
+
+### Gerais (primeira visão) — transversal
+
+O que afeta a organização inteira, independente de qual módulo está instalado:
+
+| Grupo | Exemplos |
+|-------|----------|
+| Organização | Nome, branding, plano / módulos ativos |
+| Estabelecimentos | Matriz/filiais (lista), endereço base |
+| Usuários e perfis | Admin, vendedor, caixa, gerente |
+| Preferências globais | Idioma default, fuso, tema |
+| Segurança / sessão | Políticas de senha, timeout global |
+
+**Não** entra em Gerais: CSC, série NFC-e, criar PDV, plano de contas — isso é do módulo (Fiscal, POS, Contabilidade…).
+
+### Por módulo (sidebar)
+
+| Item sidebar | Contexto |
+|--------------|----------|
+| **Gerais** | Transversal (acima) — default ao abrir |
+| **POS** | PDVs, Caixas, vínculos, impressora/balança… |
+| **Fiscal** | Certificado, CSC, série/numeração (por estabelecimento) |
+| **…** | Demais módulos instalados |
 
 ### Princípios
 
@@ -298,3 +321,4 @@ Preço/estoque exibidos = da filial `E`.
 | 31/07/2026 | Admin-only: wizard criar PDV/Caixa + configs genéricas; fiscal no estabelecimento; operação sem cadastro de terminal. |
 | 31/07/2026 | Hub **Configurações** = configs genéricas de **todos** os módulos instalados; POS é uma seção, não o hub inteiro. |
 | 31/07/2026 | UX Configurações: sidebar esquerda = módulos; área de contexto = configs genéricas do módulo selecionado. |
+| 31/07/2026 | 1ª visão Configurações = **Gerais** (transversal a todos os módulos); módulos na sidebar abaixo. |
