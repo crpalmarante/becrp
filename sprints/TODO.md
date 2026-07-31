@@ -38,7 +38,10 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ~~UI fina de inventário (saldo + transfer + adjust)~~ ✅ `pages/estoque.html`
 - ~~Endurecer POS (interno)~~ ✅ estoque bloqueia · troca via `/api/pos/vendas` · sangria/suprimento persistidos
 - ~~Unificar org/estabelecimentos~~ ✅ `org_store.py`
-- Receiving mais útil (XML/NF-e) — se entrada manual doer
+- Receiving mais útil (XML/NF-e) — se entrada manual doer  
+  **Decisão:** XML de entrada ≠ Inventário ≠ Faturamento.  
+  Fluxo: `XML → Fiscal/Documentos (parse) → Receiving (conferência) → Inventory (receive)`.  
+  UI: Recebimento / Compras, não Estoque nem Faturamento.
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
 ---
