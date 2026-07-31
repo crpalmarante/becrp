@@ -34,6 +34,7 @@ FABRICANTES_FILE = os.path.join(DATA_DIR, "fabricantes.json")
 CONTATOS_FILE = os.path.join(DATA_DIR, "contatos.json")
 PARTNERS_FILE = os.path.join(DATA_DIR, "partners.json")
 POS_FILA_FILE = os.path.join(DATA_DIR, "pos_fila.json")
+POS_TERMINAIS_FILE = os.path.join(DATA_DIR, "pos_terminais.json")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
@@ -74,6 +75,34 @@ def load_json(path):
 def save_json(path, data):
     with open(path, "w") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
+
+def load_pos_terminais():
+    data = load_json(POS_TERMINAIS_FILE)
+    if not isinstance(data, dict) or "terminais" not in data:
+        return {"terminais": []}
+    if not isinstance(data.get("terminais"), list):
+        data["terminais"] = []
+    return data
+
+def save_pos_terminais(data):
+    if not isinstance(data, dict):
+        data = {"terminais": []}
+    if not isinstance(data.get("terminais"), list):
+        data["terminais"] = []
+    save_json(POS_TERMINAIS_FILE, data)
+
+def _pdv_user_conflict(terminais, usuario_id, exclude_id=None):
+    """Vendedor ↔ PDV 1:1 — retorna terminal conflitante ou None."""
+    if not usuario_id:
+        return None
+    for t in terminais:
+        if t.get("tipo") != "pdv":
+            continue
+        if not t.get("ativo", True):
+            continue
+        if t.get("usuario_id") == usuario_id and t.get("id") != exclude_id:
+            return t
+    return None
 
 def load_pos_fila():
     data = load_json(POS_FILA_FILE)
@@ -309,6 +338,28 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not current or current.get("role") != "admin":
                 return self._json({"status": "error", "message": "Acesso negado"}, 403)
             return self._json({"status": "ok", "roles": ROLES})
+
+        if parsed.path == "/api/admin/pos/terminais":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") != "admin":
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            data = load_pos_terminais()
+            return self._json({"status": "ok", "terminais": data.get("terminais", [])})
+
+        if parsed.path.startswith("/api/admin/pos/terminais/"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") != "admin":
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            tid = parsed.path.rstrip("/").split("/")[-1]
+            data = load_pos_terminais()
+            for t in data.get("terminais", []):
+                if t.get("id") == tid:
+                    return self._json({"status": "ok", "terminal": t})
+            return self._json({"status": "error", "message": "Terminal não encontrado"}, 404)
 
         # ── POS: leitura (qualquer usuário autenticado) ──
         if parsed.path == "/api/pos/produtos":
@@ -942,6 +993,117 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if body.get("uf") is not None: empresas[eid]["uf"] = body["uf"]
                 save_empresas(empresas)
                 return self._json({"status": "ok", "message": "Empresa atualizada"})
+
+        if parsed.path == "/api/admin/pos/terminais":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") != "admin":
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            tipo = (body.get("tipo") or "").strip().lower()
+            codigo = (body.get("codigo") or "").strip().upper()
+            nome = (body.get("nome") or "").strip()
+            estabelecimento_id = (body.get("estabelecimento_id") or "").strip()
+            usuario_id = (body.get("usuario_id") or "").strip()
+            if tipo not in ("pdv", "caixa"):
+                return self._json({"status": "error", "message": "Tipo deve ser pdv ou caixa"}, 400)
+            if not codigo or not nome or not estabelecimento_id:
+                return self._json({"status": "error", "message": "Código, nome e estabelecimento são obrigatórios"}, 400)
+            if not usuario_id:
+                return self._json({"status": "error", "message": "Vínculo com usuário é obrigatório"}, 400)
+            if usuario_id not in users:
+                return self._json({"status": "error", "message": "Usuário não encontrado"}, 400)
+            data = load_pos_terminais()
+            terminais = data.get("terminais", [])
+            if any(t.get("codigo", "").upper() == codigo for t in terminais):
+                return self._json({"status": "error", "message": "Código de terminal já existe"}, 400)
+            if tipo == "pdv":
+                conflict = _pdv_user_conflict(terminais, usuario_id)
+                if conflict:
+                    return self._json({
+                        "status": "error",
+                        "message": f"Vendedor já vinculado ao PDV {conflict.get('codigo')} (relação 1:1)"
+                    }, 400)
+            tid = "t-" + str(uuid.uuid4())[:8]
+            terminal = {
+                "id": tid,
+                "tipo": tipo,
+                "codigo": codigo,
+                "nome": nome,
+                "estabelecimento_id": estabelecimento_id,
+                "usuario_id": usuario_id,
+                "usuario_nome": users[usuario_id].get("nome", ""),
+                "ativo": True,
+                "treino": bool(body.get("treino", True)),
+                "impressora": (body.get("impressora") or "").strip(),
+                "balanca": (body.get("balanca") or ("mock" if tipo == "pdv" else "nenhuma")).strip(),
+                "timeout_min": int(body.get("timeout_min") or 30),
+                "emite_nfce": bool(body.get("emite_nfce", tipo == "caixa")),
+                "criado_em": datetime.now().isoformat(timespec="seconds"),
+            }
+            terminais.append(terminal)
+            data["terminais"] = terminais
+            save_pos_terminais(data)
+            return self._json({"status": "ok", "id": tid, "terminal": terminal, "message": "Terminal criado"})
+
+        if parsed.path.startswith("/api/admin/pos/terminais/"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") != "admin":
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            tid = parsed.path.rstrip("/").split("/")[-1]
+            data = load_pos_terminais()
+            terminais = data.get("terminais", [])
+            idx = next((i for i, t in enumerate(terminais) if t.get("id") == tid), None)
+            if idx is None:
+                return self._json({"status": "error", "message": "Terminal não encontrado"}, 404)
+            action = body.get("action") or "update"
+            if action == "delete":
+                terminais.pop(idx)
+                data["terminais"] = terminais
+                save_pos_terminais(data)
+                return self._json({"status": "ok", "message": "Terminal removido"})
+            if action == "toggle":
+                terminais[idx]["ativo"] = not terminais[idx].get("ativo", True)
+                data["terminais"] = terminais
+                save_pos_terminais(data)
+                return self._json({"status": "ok", "ativo": terminais[idx]["ativo"], "terminal": terminais[idx]})
+            # update / reassign
+            t = terminais[idx]
+            if body.get("nome") is not None:
+                t["nome"] = str(body.get("nome") or "").strip() or t["nome"]
+            if body.get("estabelecimento_id"):
+                t["estabelecimento_id"] = str(body["estabelecimento_id"]).strip()
+            if "treino" in body:
+                t["treino"] = bool(body["treino"])
+            if "impressora" in body:
+                t["impressora"] = str(body.get("impressora") or "").strip()
+            if "balanca" in body:
+                t["balanca"] = str(body.get("balanca") or "").strip()
+            if "timeout_min" in body:
+                t["timeout_min"] = int(body.get("timeout_min") or 30)
+            if "emite_nfce" in body:
+                t["emite_nfce"] = bool(body["emite_nfce"])
+            if "ativo" in body:
+                t["ativo"] = bool(body["ativo"])
+            if body.get("usuario_id"):
+                uid = str(body["usuario_id"]).strip()
+                if uid not in users:
+                    return self._json({"status": "error", "message": "Usuário não encontrado"}, 400)
+                if t.get("tipo") == "pdv":
+                    conflict = _pdv_user_conflict(terminais, uid, exclude_id=tid)
+                    if conflict:
+                        return self._json({
+                            "status": "error",
+                            "message": f"Vendedor já vinculado ao PDV {conflict.get('codigo')} (relação 1:1)"
+                        }, 400)
+                t["usuario_id"] = uid
+                t["usuario_nome"] = users[uid].get("nome", "")
+            terminais[idx] = t
+            data["terminais"] = terminais
+            save_pos_terminais(data)
+            return self._json({"status": "ok", "terminal": t, "message": "Terminal atualizado"})
 
         crud_token = self.headers.get("X-Auth-Token", "")
 

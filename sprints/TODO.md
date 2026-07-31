@@ -44,11 +44,12 @@
 ### 3. Módulo POS (dentro de Configurações)
 
 - [x] Placeholder na sidebar / painel POS
-- [ ] Seção **Terminais** — listar PDVs e Caixas por estabelecimento
-- [ ] Wizard: tipo → estabelecimento → código/nome → vínculo → configs → ativo
-- [ ] Vendedor 1:1; gerente/caixa com visão ampla
-- [ ] Configs genéricas POS (impressora, balança, treino, timeout, fila destino…)
-- [ ] Reatribuição de vínculo só via Admin (cobertura)
+- [x] Seção **Terminais** — listar PDVs e Caixas (`/api/admin/pos/terminais` + fallback local)
+- [x] Wizard: tipo → estabelecimento → código/nome → vínculo → configs → ativo
+- [x] Vendedor 1:1 enforced na API; gerente/caixa no select do Caixa
+- [x] Configs genéricas POS (impressora, balança, treino, timeout, emite NFC-e)
+- [x] Reatribuição de vínculo só via Admin (editar titular no wizard)
+- [ ] Ligar terminal ao login do PDV operacional (`pos.html`)
 
 ### 4. Módulo Fiscal (dentro de Configurações)
 
@@ -84,13 +85,12 @@
 ## Ordem sugerida ao voltar
 
 1. ~~Shell Configurações (Gerais + sidebar)~~ ✅  
-2. ~~Gerais mínimos (formulário)~~ ✅ (persistência demo localStorage)  
-3. **POS → terminais (wizard)** ← próximo  
-4. Fiscal por estabelecimento  
+2. ~~Gerais mínimos (formulário)~~ ✅  
+3. ~~POS → terminais (wizard)~~ ✅  
+4. **Fiscal por estabelecimento** ← próximo  
 5. Ligar POS operacional ao estabelecimento/terminal  
-6. Guard Admin + APIs reais de org/config  
+6. Guard Admin na página Configurações  
 
 ---
 
-*Retomado 31/07/2026 — shell + Gerais no ar.*  
-*Gerais simplificado (estilo Odoo leve): resumo Usuários + cards Estabelecimentos; convite/permissões finas/CSC/PDV fora da 1ª visão.*
+*POS terminais: Configurações → POS → + Novo terminal (`data/pos_terminais.json`).*

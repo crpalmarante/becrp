@@ -224,12 +224,29 @@
               <!-- POS -->
               <div class="cfg-panel" id="panel-pos" data-panel="pos">
                 <p class="cfg-panel-intro">
-                  Terminais PDV e Caixa: criação, vínculo 1:1 com vendedor, configs genéricas (impressora, balança, fila).
+                  Criar PDV ou Caixa já vinculado a pessoa. Vendedor ↔ PDV = <strong>1:1</strong>.
+                  Gerente/Caixa enxerga todos os terminais do estabelecimento. Só Administrador altera.
                 </p>
-                <div class="cfg-stub">
-                  <strong>POS — Terminais</strong>
-                  Próximo passo do TODO: wizard Admin (tipo → estabelecimento → código → vínculo → configs → ativo).
-                  Vendedor ↔ PDV = 1:1. Gerente/Caixa vê todos os terminais do estabelecimento.
+                <div class="cfg-overview-actions" style="margin-bottom:1rem">
+                  <button type="button" class="btn btn-primary" id="btn-novo-terminal">+ Novo terminal</button>
+                </div>
+                <div class="cfg-table-wrap">
+                  <table class="cfg-table">
+                    <thead>
+                      <tr>
+                        <th>Código</th>
+                        <th>Tipo</th>
+                        <th>Nome</th>
+                        <th>Estabelecimento</th>
+                        <th>Titular</th>
+                        <th>Status</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody id="terminais-tbody">
+                      <tr><td colspan="7">Carregando…</td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
@@ -289,6 +306,82 @@
 </div>
 
 <div class="cfg-toast" id="cfg-toast" role="status"></div>
+
+<div class="dialog-overlay" id="terminal-modal" hidden>
+  <div class="dialog-box cfg-dialog" role="dialog" aria-labelledby="terminal-modal-title">
+    <div class="dialog-header">
+      <h3 class="dialog-title" id="terminal-modal-title">Novo terminal</h3>
+      <button type="button" class="dialog-close" id="terminal-modal-close" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <form id="form-terminal" class="form-container" autocomplete="off">
+        <input type="hidden" id="term-id" value="">
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label" for="term-tipo">Tipo <span class="required">*</span></label>
+            <select class="form-input" id="term-tipo" required>
+              <option value="pdv">PDV (vendedor)</option>
+              <option value="caixa">Caixa / Gerente</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="term-estab">Estabelecimento <span class="required">*</span></label>
+            <select class="form-input" id="term-estab" required></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label" for="term-codigo">Código <span class="required">*</span></label>
+            <input class="form-input" id="term-codigo" required placeholder="PDV-01">
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="term-nome">Nome amigável <span class="required">*</span></label>
+            <input class="form-input" id="term-nome" required placeholder="Balcão frente">
+          </div>
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="term-usuario">Usuário titular <span class="required">*</span></label>
+          <select class="form-input" id="term-usuario" required></select>
+          <span class="form-help" id="term-usuario-help">PDV: um vendedor (1:1). Caixa: gerente ou caixa.</span>
+        </div>
+        <div class="form-row">
+          <div class="form-field">
+            <label class="form-label" for="term-impressora">Impressora</label>
+            <input class="form-input" id="term-impressora" placeholder="Opcional">
+          </div>
+          <div class="form-field" id="term-balanca-wrap">
+            <label class="form-label" for="term-balanca">Balança</label>
+            <select class="form-input" id="term-balanca">
+              <option value="nenhuma">Nenhuma</option>
+              <option value="mock" selected>Mock</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="term-timeout">Timeout (min)</label>
+            <input class="form-input" type="number" id="term-timeout" min="5" max="480" value="30">
+          </div>
+        </div>
+        <label class="form-switch">
+          <input type="checkbox" id="term-treino" checked>
+          <span>Permitir modo treino</span>
+        </label>
+        <label class="form-switch" style="margin-top:0.5rem" id="term-nfce-wrap">
+          <input type="checkbox" id="term-nfce">
+          <span>Emite NFC-e (Caixa)</span>
+        </label>
+        <label class="form-switch" style="margin-top:0.5rem">
+          <input type="checkbox" id="term-ativo" checked>
+          <span>Ativo</span>
+        </label>
+        <div class="cfg-actions">
+          <button type="submit" class="btn btn-primary">Salvar terminal</button>
+          <button type="button" class="btn btn-secondary" id="terminal-modal-cancel">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script src="../js/configuracoes.js"></script>
 </body>
 </html>

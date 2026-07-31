@@ -340,6 +340,28 @@
   gap: 1rem;
 }
 
+.cfg-dialog {
+  max-width: 560px;
+  width: min(560px, 94vw);
+}
+
+#terminal-modal:not([hidden]) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cfg-actions-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.cfg-actions-inline .btn {
+  padding: 0.3rem 0.55rem;
+  font-size: 0.75rem;
+}
+
 .cfg-toast {
   position: fixed;
   bottom: 1.5rem;

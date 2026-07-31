@@ -103,6 +103,7 @@
     const url = new URL(location.href);
     url.searchParams.set("mod", id);
     history.replaceState(null, "", url);
+    if (id === "pos") loadTerminais();
   }
 
   function renderModuleNav(state) {
@@ -211,40 +212,100 @@
     return Number.isFinite(n) ? n : fallback;
   }
 
-  function authHeaders() {
-    const token = localStorage.getItem("token") || localStorage.getItem("becrp_token");
-    return token ? { Authorization: "Bearer " + token } : {};
+  const TERM_LS = "becrp_pos_terminais";
+  let cacheEstabs = [];
+  let cacheUsers = [];
+  let cacheTerminais = [];
+
+  function authHeaders(json) {
+    const token =
+      localStorage.getItem("auth_token") ||
+      localStorage.getItem("token") ||
+      localStorage.getItem("becrp_token");
+    const h = {};
+    if (token) h["X-Auth-Token"] = token;
+    if (json) h["Content-Type"] = "application/json";
+    return h;
+  }
+
+  async function apiGet(url) {
+    const r = await fetch(url, { headers: authHeaders() });
+    if (!r.ok) throw new Error(String(r.status));
+    return r.json();
+  }
+
+  async function apiPost(url, body) {
+    const r = await fetch(url, {
+      method: "POST",
+      headers: authHeaders(true),
+      body: JSON.stringify(body || {}),
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.message || "Erro " + r.status);
+    return data;
+  }
+
+  async function loadUsersList() {
+    try {
+      const data = await apiGet("/api/admin/users");
+      cacheUsers = data.users || [];
+      return cacheUsers;
+    } catch {
+      try {
+        const r = await fetch("../data/users.json");
+        if (r.ok) {
+          const map = await r.json();
+          cacheUsers = Object.keys(map).map((id) => ({
+            id,
+            nome: map[id].nome,
+            usuario: map[id].usuario,
+            role: map[id].role,
+            ativo: map[id].ativo !== false,
+          }));
+          return cacheUsers;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    cacheUsers = [];
+    return cacheUsers;
+  }
+
+  async function loadEstabsList() {
+    try {
+      const data = await apiGet("/api/admin/empresas");
+      cacheEstabs = data.empresas || [];
+      return cacheEstabs;
+    } catch {
+      try {
+        const r = await fetch("../data/empresas.json");
+        if (r.ok) {
+          const map = await r.json();
+          cacheEstabs = Object.keys(map).map((id) => ({ id, ...map[id] }));
+          return cacheEstabs;
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    cacheEstabs = [];
+    return cacheEstabs;
+  }
+
+  function estabName(id) {
+    const e = cacheEstabs.find((x) => x.id === id);
+    return e ? e.nome : id || "—";
   }
 
   async function loadUsuariosResumo() {
     const countEl = document.getElementById("users-count");
     const labelEl = document.getElementById("users-count-label");
-    let n = 0;
-    try {
-      const r = await fetch("/api/admin/users", { headers: authHeaders() });
-      if (r.ok) {
-        const data = await r.json();
-        const users = data.users || data.usuarios || [];
-        n = Array.isArray(users) ? users.length : Object.keys(users).length;
-      }
-    } catch {
-      /* ignore */
-    }
-    if (!n) {
-      try {
-        const r = await fetch("../data/users.json");
-        if (r.ok) {
-          const map = await r.json();
-          n = Object.keys(map).length;
-        }
-      } catch {
-        n = 0;
-      }
-    }
+    await loadUsersList();
+    const n = cacheUsers.filter((u) => u.ativo !== false).length;
     if (countEl) countEl.textContent = String(n || 0);
     if (labelEl) {
-      labelEl.textContent =
-        n === 1 ? "usuário ativo" : "usuários ativos";
+      labelEl.textContent = n === 1 ? "usuário ativo" : "usuários ativos";
     }
   }
 
@@ -252,47 +313,24 @@
     const cards = document.getElementById("estabs-cards");
     const countEl = document.getElementById("estabs-count");
     if (!cards) return;
-
-    let lista = [];
-    try {
-      const r = await fetch("/api/admin/empresas", { headers: authHeaders() });
-      if (r.ok) {
-        const data = await r.json();
-        lista = data.empresas || [];
-      }
-    } catch {
-      /* fallback static */
-    }
-
-    if (!lista.length) {
-      try {
-        const r = await fetch("../data/empresas.json");
-        if (r.ok) {
-          const map = await r.json();
-          lista = Object.keys(map).map((id) => ({ id, ...map[id] }));
-        }
-      } catch {
-        lista = [];
-      }
-    }
-
+    await loadEstabsList();
+    const lista = cacheEstabs;
     if (countEl) countEl.textContent = String(lista.length);
-
     if (!lista.length) {
       cards.innerHTML =
         '<p class="form-help">Nenhum estabelecimento. Use Gerir estabelecimentos.</p>';
       return;
     }
-
     cards.innerHTML = lista
       .map((e) => {
         const nome = e.nome || e.id || "—";
-        const initials = String(nome)
-          .split(/\s+/)
-          .slice(0, 2)
-          .map((w) => w[0] || "")
-          .join("")
-          .toUpperCase() || "?";
+        const initials =
+          String(nome)
+            .split(/\s+/)
+            .slice(0, 2)
+            .map((w) => w[0] || "")
+            .join("")
+            .toUpperCase() || "?";
         const linha2 = [e.cidade, e.uf].filter(Boolean).join(" / ") || "—";
         const ativo = e.ativo !== false;
         return (
@@ -309,6 +347,274 @@
         );
       })
       .join("");
+  }
+
+  function loadTerminaisLocal() {
+    try {
+      const raw = localStorage.getItem(TERM_LS);
+      if (!raw) return null;
+      const data = JSON.parse(raw);
+      return Array.isArray(data) ? data : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function saveTerminaisLocal(list) {
+    localStorage.setItem(TERM_LS, JSON.stringify(list));
+  }
+
+  async function loadTerminais() {
+    const tbody = document.getElementById("terminais-tbody");
+    if (!tbody) return;
+    await loadEstabsList();
+    await loadUsersList();
+    let lista = [];
+    try {
+      const data = await apiGet("/api/admin/pos/terminais");
+      lista = data.terminais || [];
+    } catch {
+      lista = loadTerminaisLocal();
+      if (!lista) {
+        try {
+          const r = await fetch("../data/pos_terminais.json");
+          if (r.ok) {
+            const data = await r.json();
+            lista = data.terminais || [];
+          }
+        } catch {
+          lista = [];
+        }
+      }
+    }
+    cacheTerminais = lista;
+    renderTerminaisTable();
+  }
+
+  function renderTerminaisTable() {
+    const tbody = document.getElementById("terminais-tbody");
+    if (!tbody) return;
+    if (!cacheTerminais.length) {
+      tbody.innerHTML =
+        '<tr><td colspan="7">Nenhum terminal. Clique em + Novo terminal.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = cacheTerminais
+      .map((t) => {
+        const ativo = t.ativo !== false;
+        return (
+          `<tr>` +
+          `<td>${esc(t.codigo || "—")}</td>` +
+          `<td>${t.tipo === "caixa" ? "Caixa" : "PDV"}</td>` +
+          `<td>${esc(t.nome || "—")}</td>` +
+          `<td>${esc(estabName(t.estabelecimento_id))}</td>` +
+          `<td>${esc(t.usuario_nome || t.usuario_id || "—")}</td>` +
+          `<td><span class="cfg-badge ${ativo ? "on" : "off"}">${ativo ? "Ativo" : "Inativo"}</span></td>` +
+          `<td><div class="cfg-actions-inline">` +
+          `<button type="button" class="btn btn-secondary" data-term-edit="${esc(t.id)}">Editar</button>` +
+          `<button type="button" class="btn btn-secondary" data-term-toggle="${esc(t.id)}">${ativo ? "Desativar" : "Ativar"}</button>` +
+          `</div></td>` +
+          `</tr>`
+        );
+      })
+      .join("");
+
+    tbody.querySelectorAll("[data-term-edit]").forEach((btn) => {
+      btn.addEventListener("click", () => openTerminalModal(btn.dataset.termEdit));
+    });
+    tbody.querySelectorAll("[data-term-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => toggleTerminal(btn.dataset.termToggle));
+    });
+  }
+
+  function fillSelect(el, options, emptyLabel) {
+    if (!el) return;
+    el.innerHTML =
+      (emptyLabel ? `<option value="">${emptyLabel}</option>` : "") +
+      options
+        .map((o) => `<option value="${esc(o.value)}">${esc(o.label)}</option>`)
+        .join("");
+  }
+
+  function syncTipoFields() {
+    const tipo = document.getElementById("term-tipo")?.value;
+    const balWrap = document.getElementById("term-balanca-wrap");
+    const nfceWrap = document.getElementById("term-nfce-wrap");
+    const help = document.getElementById("term-usuario-help");
+    if (balWrap) balWrap.style.display = tipo === "pdv" ? "" : "none";
+    if (nfceWrap) nfceWrap.style.display = tipo === "caixa" ? "" : "none";
+    if (help) {
+      help.textContent =
+        tipo === "pdv"
+          ? "PDV: um vendedor por terminal (relação 1:1)."
+          : "Caixa: gerente ou caixa — visão de todos os PDVs/Caixas do estabelecimento.";
+    }
+    const users = cacheUsers.filter((u) => {
+      if (u.ativo === false) return false;
+      const role = (u.role || "").toLowerCase();
+      if (tipo === "pdv") return role === "vendedor" || role === "operador" || role === "admin";
+      return role === "caixa" || role === "gerente" || role === "admin";
+    });
+    fillSelect(
+      document.getElementById("term-usuario"),
+      users.map((u) => ({
+        value: u.id,
+        label: `${u.nome || u.usuario} (${u.role || "—"})`,
+      })),
+      "Selecione…"
+    );
+  }
+
+  async function openTerminalModal(editId) {
+    await loadEstabsList();
+    await loadUsersList();
+    fillSelect(
+      document.getElementById("term-estab"),
+      cacheEstabs
+        .filter((e) => e.ativo !== false)
+        .map((e) => ({ value: e.id, label: e.nome || e.id })),
+      "Selecione…"
+    );
+    const modal = document.getElementById("terminal-modal");
+    const title = document.getElementById("terminal-modal-title");
+    const form = document.getElementById("form-terminal");
+    form?.reset();
+    document.getElementById("term-id").value = editId || "";
+    document.getElementById("term-treino").checked = true;
+    document.getElementById("term-ativo").checked = true;
+    document.getElementById("term-timeout").value = "30";
+    document.getElementById("term-balanca").value = "mock";
+    document.getElementById("term-nfce").checked = false;
+    document.getElementById("term-codigo").disabled = !!editId;
+
+    if (editId) {
+      const t = cacheTerminais.find((x) => x.id === editId);
+      if (!t) return;
+      if (title) title.textContent = "Editar terminal";
+      document.getElementById("term-tipo").value = t.tipo || "pdv";
+      syncTipoFields();
+      document.getElementById("term-estab").value = t.estabelecimento_id || "";
+      document.getElementById("term-codigo").value = t.codigo || "";
+      document.getElementById("term-nome").value = t.nome || "";
+      document.getElementById("term-usuario").value = t.usuario_id || "";
+      document.getElementById("term-impressora").value = t.impressora || "";
+      document.getElementById("term-balanca").value = t.balanca || "mock";
+      document.getElementById("term-timeout").value = String(t.timeout_min || 30);
+      document.getElementById("term-treino").checked = t.treino !== false;
+      document.getElementById("term-nfce").checked = !!t.emite_nfce;
+      document.getElementById("term-ativo").checked = t.ativo !== false;
+    } else {
+      if (title) title.textContent = "Novo terminal";
+      document.getElementById("term-tipo").value = "pdv";
+      syncTipoFields();
+    }
+    if (modal) modal.hidden = false;
+  }
+
+  function closeTerminalModal() {
+    const modal = document.getElementById("terminal-modal");
+    if (modal) modal.hidden = true;
+  }
+
+  async function saveTerminal(ev) {
+    ev.preventDefault();
+    const id = document.getElementById("term-id").value;
+    const payload = {
+      tipo: document.getElementById("term-tipo").value,
+      estabelecimento_id: document.getElementById("term-estab").value,
+      codigo: document.getElementById("term-codigo").value.trim().toUpperCase(),
+      nome: document.getElementById("term-nome").value.trim(),
+      usuario_id: document.getElementById("term-usuario").value,
+      impressora: document.getElementById("term-impressora").value.trim(),
+      balanca: document.getElementById("term-balanca").value,
+      timeout_min: num("term-timeout", 30),
+      treino: !!document.getElementById("term-treino")?.checked,
+      emite_nfce: !!document.getElementById("term-nfce")?.checked,
+      ativo: !!document.getElementById("term-ativo")?.checked,
+    };
+    if (!payload.codigo || !payload.nome || !payload.estabelecimento_id || !payload.usuario_id) {
+      toast("Preencha os campos obrigatórios");
+      return;
+    }
+    const user = cacheUsers.find((u) => u.id === payload.usuario_id);
+    payload.usuario_nome = user ? user.nome || user.usuario : "";
+
+    try {
+      if (id) {
+        await apiPost("/api/admin/pos/terminais/" + id, { action: "update", ...payload });
+      } else {
+        await apiPost("/api/admin/pos/terminais", payload);
+      }
+      toast(id ? "Terminal atualizado" : "Terminal criado");
+      closeTerminalModal();
+      await loadTerminais();
+      return;
+    } catch (err) {
+      /* fallback local se API negada */
+      if (String(err.message).includes("403") || String(err.message).includes("401")) {
+        /* continue local */
+      } else if (!String(err.message).match(/^[45]/)) {
+        /* API returned business error */
+        const msg = err.message || "Erro ao salvar";
+        if (!msg.includes("Acesso") && !msg.includes("autentic")) {
+          toast(msg);
+          return;
+        }
+      }
+    }
+
+    // Demo local (sem admin logado)
+    let list = loadTerminaisLocal() || cacheTerminais.slice();
+    if (payload.tipo === "pdv") {
+      const conflict = list.find(
+        (t) =>
+          t.tipo === "pdv" &&
+          t.ativo !== false &&
+          t.usuario_id === payload.usuario_id &&
+          t.id !== id
+      );
+      if (conflict) {
+        toast("Vendedor já vinculado ao " + conflict.codigo + " (1:1)");
+        return;
+      }
+    }
+    if (id) {
+      list = list.map((t) => (t.id === id ? { ...t, ...payload, id } : t));
+    } else {
+      if (list.some((t) => (t.codigo || "").toUpperCase() === payload.codigo)) {
+        toast("Código já existe");
+        return;
+      }
+      list.push({
+        ...payload,
+        id: "local-" + Date.now().toString(36),
+        criado_em: new Date().toISOString(),
+      });
+    }
+    saveTerminaisLocal(list);
+    cacheTerminais = list;
+    toast(id ? "Terminal atualizado (local)" : "Terminal criado (local)");
+    closeTerminalModal();
+    renderTerminaisTable();
+  }
+
+  async function toggleTerminal(id) {
+    try {
+      await apiPost("/api/admin/pos/terminais/" + id, { action: "toggle" });
+      toast("Status atualizado");
+      await loadTerminais();
+      return;
+    } catch {
+      /* local */
+    }
+    let list = loadTerminaisLocal() || cacheTerminais.slice();
+    list = list.map((t) =>
+      t.id === id ? { ...t, ativo: t.ativo === false ? true : false } : t
+    );
+    saveTerminaisLocal(list);
+    cacheTerminais = list;
+    renderTerminaisTable();
+    toast("Status atualizado (local)");
   }
 
   function esc(s) {
@@ -349,7 +655,6 @@
     });
 
     document.getElementById("org-modulos")?.addEventListener("change", () => {
-      /* preview sidebar on toggle without full save */
       const draft = readForm();
       renderModuleNav(draft);
     });
@@ -361,6 +666,14 @@
       renderModuleNav(state);
       toast("Padrões restaurados");
     });
+
+    document.getElementById("btn-novo-terminal")?.addEventListener("click", () =>
+      openTerminalModal(null)
+    );
+    document.getElementById("terminal-modal-close")?.addEventListener("click", closeTerminalModal);
+    document.getElementById("terminal-modal-cancel")?.addEventListener("click", closeTerminalModal);
+    document.getElementById("term-tipo")?.addEventListener("change", syncTipoFields);
+    document.getElementById("form-terminal")?.addEventListener("submit", saveTerminal);
 
     const params = new URLSearchParams(location.search);
     const mod = params.get("mod") || "gerais";
