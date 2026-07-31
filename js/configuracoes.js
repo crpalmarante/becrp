@@ -5,6 +5,17 @@
 (function () {
   "use strict";
 
+  // Só Administrador opera este hub
+  (function guardAdmin() {
+    const auth = window.AuthService && window.AuthService.requireAuth("../index.html");
+    if (!auth) return;
+    const role = (auth.user && auth.user.role) || "";
+    if (role !== "admin") {
+      alert("Configurações: acesso apenas para Administrador.");
+      location.href = "../index4.html";
+    }
+  })();
+
   const STORAGE_KEY = "becrp_config_gerais";
 
   const MODULES = [

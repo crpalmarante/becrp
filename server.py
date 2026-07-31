@@ -326,11 +326,64 @@ def make_token():
     return hashlib.sha256(uuid.uuid4().bytes).hexdigest()[:32]
 
 ROLES = {
-    "admin": {"label": "Administrador", "permissoes": "*"},
-    "supervisor": {"label": "Supervisor", "permissoes": ["dashboard", "nfe", "nfce", "nfse", "clientes", "produtos", "relatorios", "folha", "contabilidade"]},
-    "operador": {"label": "Operador", "permissoes": ["dashboard", "nfe", "nfce"]},
-    "fiscal": {"label": "Fiscal", "permissoes": ["dashboard", "nfe", "nfce", "nfse", "certificados", "sped"]}
+    # Administração / sistema
+    "admin": {
+        "label": "Administrador",
+        "grupo": "sistema",
+        "permissoes": "*",
+        "pos": "hub",
+        "descricao": "Configurações, usuários, terminais e todos os módulos",
+    },
+    # Operação POS (plano RFC)
+    "vendedor": {
+        "label": "Vendedor",
+        "grupo": "pos",
+        "permissoes": ["dashboard", "pos", "produtos"],
+        "pos": "pdv",
+        "descricao": "Opera um PDV (vínculo 1:1). Não acessa Caixa nem Configurações.",
+    },
+    "caixa": {
+        "label": "Caixa",
+        "grupo": "pos",
+        "permissoes": ["dashboard", "pos", "nfce"],
+        "pos": "caixa",
+        "descricao": "Terminal Caixa: fila, pagamento e NFC-e. Vê PDVs da loja.",
+    },
+    "gerente": {
+        "label": "Gerente",
+        "grupo": "pos",
+        "permissoes": ["dashboard", "pos", "nfce", "produtos", "relatorios"],
+        "pos": "ambos",
+        "descricao": "Supervisão da loja: PDVs e Caixas do estabelecimento.",
+    },
+    # Legado (mantidos)
+    "supervisor": {
+        "label": "Supervisor",
+        "grupo": "legado",
+        "permissoes": ["dashboard", "nfe", "nfce", "nfse", "clientes", "produtos", "relatorios", "folha", "contabilidade"],
+        "pos": "ambos",
+        "descricao": "Perfil legado — preferir Gerente no POS.",
+    },
+    "operador": {
+        "label": "Operador",
+        "grupo": "legado",
+        "permissoes": ["dashboard", "nfe", "nfce", "pos"],
+        "pos": "pdv",
+        "descricao": "Perfil legado — preferir Vendedor no POS.",
+    },
+    "fiscal": {
+        "label": "Fiscal",
+        "grupo": "legado",
+        "permissoes": ["dashboard", "nfe", "nfce", "nfse", "certificados", "sped"],
+        "pos": None,
+        "descricao": "Documentos fiscais (não é perfil de loja POS).",
+    },
 }
+
+ROLE_IDS = set(ROLES.keys())
+
+def role_label(role):
+    return (ROLES.get(role) or {}).get("label") or role or "—"
 
 def user_empresas(user):
     if user.get("role") == "admin":
@@ -387,11 +440,13 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": "Acesso negado"}, 403)
             lista = []
             for uid, u in users.items():
+                role = u.get("role", "operador")
                 item = {"id": uid, "usuario": u["usuario"], "nome": u.get("nome", ""),
-                        "role": u.get("role", "operador"), "ativo": u.get("ativo", True),
+                        "role": role, "role_label": role_label(role),
+                        "ativo": u.get("ativo", True),
                         "email": u.get("email", ""), "empresas": u.get("empresas", {})}
                 lista.append(item)
-            return self._json({"status": "ok", "users": lista})
+            return self._json({"status": "ok", "users": lista, "roles": ROLES})
 
         if parsed.path == "/api/admin/empresas":
             token = self.headers.get("X-Auth-Token", "")
@@ -1156,7 +1211,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             usuario = body.get("usuario", "").strip()
             nome = body.get("nome", "").strip()
             senha = body.get("senha", "")
-            role = body.get("role", "operador")
+            role = body.get("role", "vendedor")
+            if role not in ROLE_IDS:
+                return self._json({"status": "error", "message": f"Perfil inválido: {role}"}, 400)
             empresas = body.get("empresas", {})
             if not usuario or not nome or not senha:
                 return self._json({"status": "error", "message": "Preencha todos os campos"}, 400)
@@ -1196,10 +1253,15 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "ok", "message": "Usuário removido"})
             if body.get("action") == "update":
                 if body.get("nome"): users[uid]["nome"] = body["nome"]
-                if body.get("role"): users[uid]["role"] = body["role"]
+                if body.get("role"):
+                    if body["role"] not in ROLE_IDS:
+                        return self._json({"status": "error", "message": f"Perfil inválido: {body['role']}"}, 400)
+                    users[uid]["role"] = body["role"]
                 if body.get("senha"): users[uid]["senha"] = hash_password(body["senha"])
                 if "empresas" in body:
                     users[uid]["empresas"] = body["empresas"]
+                if "email" in body:
+                    users[uid]["email"] = body.get("email") or ""
                 save_users(users)
                 return self._json({"status": "ok", "message": "Usuário atualizado"})
 

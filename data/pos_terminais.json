@@ -31,6 +31,22 @@
       "timeout_min": 30,
       "emite_nfce": true,
       "criado_em": "2026-07-31T12:00:00"
+    },
+    {
+      "id": "cx-ger",
+      "tipo": "caixa",
+      "codigo": "CX-GER",
+      "nome": "Hub gerente",
+      "estabelecimento_id": "matriz",
+      "usuario_id": "gerent01",
+      "usuario_nome": "Bruno Gerente",
+      "ativo": true,
+      "treino": true,
+      "impressora": "",
+      "balanca": "nenhuma",
+      "timeout_min": 30,
+      "emite_nfce": true,
+      "criado_em": "2026-07-31T12:00:00"
     }
   ]
 }

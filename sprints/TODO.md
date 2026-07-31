@@ -15,8 +15,8 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 | **1** | **Terminal → POS** (login, estabelecimento, papel/modo) | ✅ |
 | **2** | **Produtos + `available_at`** (catálogo por filial) | ✅ |
 | **3** | **Fiscal por estabelecimento** (cert/CSC/série = emitente da loja) | ✅ |
-| **4** | **Usuários operacionais** (vendedor/caixa/gerente) — não RH Funcionários | 🔄 próximo |
-| **5** | **Inventário** / Promise Engine | depois |
+| **4** | **Usuários operacionais** (vendedor/caixa/gerente) — não RH Funcionários | ✅ |
+| **5** | **Inventário** / Promise Engine | 🔄 próximo |
 
 **Fora do caminho crítico do POS agora:** Funcionários (folha/RH), Receiving, balança física, CSC SEFAZ ponta a ponta (recurso externo).
 
@@ -44,7 +44,7 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 
 - [x] Refatorar `pages/configuracoes.html` para o shell aprovado
 - [x] Sidebar alimentada pelos módulos ativos da organização
-- [ ] Restringir acesso ao papel Administrador (ainda sem guard de auth)
+- [x] Restringir acesso ao papel Administrador (guard em `configuracoes.js`)
 
 ### 2. Gerais (primeira visão)
 
@@ -90,9 +90,9 @@ Atacar o que **desbloqueia venda hoje**. Se não impede *pedido → caixa → NF
 2. ~~Terminal → POS operacional~~ ✅ (`/api/pos/contexto`)  
 3. ~~Produtos + `available_at`~~ ✅  
 4. ~~Fiscal por estabelecimento~~ ✅  
-5. **Usuários operacionais (perfis)** ← próximo  
-6. Inventário / Promise  
+5. ~~Usuários operacionais (perfis)~~ ✅  
+6. **Inventário / Promise** ← próximo (quando estoque real estiver pronto)  
 
 ---
 
-*Fiscal: Configurações → Fiscal. NFC-e usa emitente da loja do pedido. CSC real ainda externo.*
+*Perfis POS: admin · vendedor · caixa · gerente. Demo: `ana` / `carla` / `bruno` / `admin` · senha `123`.*

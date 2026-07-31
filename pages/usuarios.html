@@ -110,10 +110,21 @@
                 <div class="field">
                     <label>Perfil</label>
                     <select class="form-input" id="edit-role">
-                        <option value="operador">Operador</option>
-                        <option value="supervisor">Supervisor</option>
-                        <option value="admin">Administrador</option>
+                        <optgroup label="POS / Loja">
+                            <option value="vendedor">Vendedor</option>
+                            <option value="caixa">Caixa</option>
+                            <option value="gerente">Gerente</option>
+                        </optgroup>
+                        <optgroup label="Sistema">
+                            <option value="admin">Administrador</option>
+                        </optgroup>
+                        <optgroup label="Outros / legado">
+                            <option value="operador">Operador</option>
+                            <option value="supervisor">Supervisor</option>
+                            <option value="fiscal">Fiscal</option>
+                        </optgroup>
                     </select>
+                    <span class="form-help" id="role-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px"></span>
                 </div>
                 <div class="field">
                     <label>Senha</label>
@@ -144,6 +155,27 @@
     const TOKEN = localStorage.getItem("auth_token");
     let editingUserId = null;
     let empresasDisponiveis = [];
+
+    function labelRole(role) {
+        const map = {
+            admin: "Administrador",
+            vendedor: "Vendedor",
+            caixa: "Caixa",
+            gerente: "Gerente",
+            operador: "Operador",
+            supervisor: "Supervisor",
+            fiscal: "Fiscal",
+        };
+        return map[role] || role || "—";
+    }
+
+    function roleBadge(role) {
+        if (role === "admin") return "primary";
+        if (role === "gerente" || role === "supervisor") return "info";
+        if (role === "caixa") return "success";
+        if (role === "vendedor" || role === "operador") return "default";
+        return "default";
+    }
 
     async function api(path, opts = {}) {
         const res = await fetch(path, {
@@ -188,7 +220,7 @@
                                 <td class="dg-cell dg-cell-center">${u.id}</td>
                                 <td class="dg-cell">${u.nome}</td>
                                 <td class="dg-cell">${u.usuario}</td>
-                                <td class="dg-cell"><span class="badge badge-${u.role === 'admin' ? 'primary' : u.role === 'supervisor' ? 'info' : 'default'}">${u.role}</span></td>
+                                <td class="dg-cell"><span class="badge badge-${roleBadge(u.role)}">${u.role_label || labelRole(u.role)}</span></td>
                                 <td class="dg-cell" style="font-size:var(--font-xs)">${(()=>{const es=u.empresas||{};const ks=Object.keys(es);return ks.length?ks.map(k=>`<span class="badge badge-default">${k.substring(0,6)}</span>`).join(' '):'<span style="color:var(--text-disabled)">—</span>'})()}</td>
                                 <td class="dg-cell"><span class="badge badge-${u.ativo ? 'success' : 'danger'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
                                 <td class="dg-cell">
@@ -211,10 +243,19 @@
         document.getElementById("edit-name").value = data ? data.nome : "";
         document.getElementById("edit-user").value = data ? data.usuario : "";
         document.getElementById("edit-email").value = data ? (data.email || "") : "";
-        document.getElementById("edit-role").value = data ? data.role : "operador";
+        document.getElementById("edit-role").value = data ? data.role : "vendedor";
         document.getElementById("edit-pass").value = "";
         document.getElementById("edit-user").disabled = !!editingUserId;
         document.getElementById("user-form-error").classList.remove("visible");
+        // ensure role option exists if unexpected
+        const roleSel = document.getElementById("edit-role");
+        if (data && data.role && ![...roleSel.options].some((o) => o.value === data.role)) {
+            const opt = document.createElement("option");
+            opt.value = data.role;
+            opt.textContent = data.role;
+            roleSel.appendChild(opt);
+            roleSel.value = data.role;
+        }
 
         if(empresasDisponiveis.length===0){
             const res=await api("/api/admin/empresas");
@@ -231,21 +272,40 @@
                     <input type="checkbox" class="emp-chk" value="${e.id}" ${e.id in userEmpresas?'checked':''} ${data&&data.role==='admin'?'disabled':''}>
                     <span>${e.nome}</span>
                     <select class="emp-role form-input" ${e.id in userEmpresas?'':'style="display:none"'}>
+                        <option value="vendedor" ${userEmpresas[e.id]==='vendedor'?'selected':''}>Vendedor</option>
+                        <option value="caixa" ${userEmpresas[e.id]==='caixa'?'selected':''}>Caixa</option>
+                        <option value="gerente" ${userEmpresas[e.id]==='gerente'?'selected':''}>Gerente</option>
                         <option value="operador" ${userEmpresas[e.id]==='operador'?'selected':''}>Operador</option>
-                        <option value="supervisor" ${userEmpresas[e.id]==='supervisor'?'selected':''}>Supervisor</option>
-                        <option value="admin" ${userEmpresas[e.id]==='admin'?'selected':''}>Admin</option>
+                        <option value="admin" ${userEmpresas[e.id]==='admin'?'selected':''}>Admin loja</option>
                     </select>
                 </label>
             `).join('');
             list.querySelectorAll('.emp-chk').forEach(cb=>{
                 cb.addEventListener('change',function(){
                     const sel=this.closest('.empresa-check').querySelector('.emp-role');
-                    sel.style.display=this.checked?'block':'none';
-                    if(this.checked&&!sel.value) sel.value='operador';
+                                    sel.style.display=this.checked?'block':'none';
+                    if(this.checked&&!sel.value) sel.value='vendedor';
                 });
             });
         }
+        updateRoleHint();
         document.getElementById("user-modal").classList.add("dialog-open");
+    }
+
+    const ROLE_HINTS = {
+        vendedor: "PDV 1:1 — não vê Caixa nem Configurações.",
+        caixa: "Caixa da loja — fila, pagamento, NFC-e.",
+        gerente: "Vê todos os PDVs/Caixas do estabelecimento.",
+        admin: "Acesso total, inclusive Configurações.",
+        operador: "Legado — preferir Vendedor.",
+        supervisor: "Legado — preferir Gerente.",
+        fiscal: "Documentos fiscais (fora do PDV de loja).",
+    };
+
+    function updateRoleHint() {
+        const role = document.getElementById("edit-role").value;
+        const el = document.getElementById("role-hint");
+        if (el) el.textContent = ROLE_HINTS[role] || "";
     }
 
     function closeUserModal() {
@@ -311,6 +371,7 @@
         document.getElementById("user-search").addEventListener("input", function () {
             renderUsers(window._lastUsers || []);
         });
+        document.getElementById("edit-role").addEventListener("change", updateRoleHint);
         const stored = localStorage.getItem("user_data");
         if (stored) {
             try {
