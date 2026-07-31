@@ -64,188 +64,155 @@
               <!-- GERAIS -->
               <div class="cfg-panel active" id="panel-gerais" data-panel="gerais">
                 <p class="cfg-panel-intro">
-                  Parâmetros comuns a todos os módulos. País, idioma, filiais, usuários e segurança.
-                  CSC, certificado e PDVs ficam nos módulos da sidebar.
+                  Visão geral da organização. Convites, permissões finas, CSC/certificado e PDVs
+                  ficam em Usuários, Permissões ou nos módulos da sidebar — não aqui.
                 </p>
 
-                <form id="form-gerais" class="form-container" autocomplete="off">
-                  <section class="form-section">
-                    <h3 class="form-section-title">1. Organização</h3>
-                    <div class="form-row">
-                      <div class="form-field">
-                        <label class="form-label" for="org-nome">Nome fantasia <span class="required">*</span></label>
-                        <input class="form-input" id="org-nome" name="nome" required>
-                      </div>
-                      <div class="form-field">
-                        <label class="form-label" for="org-razao">Razão social</label>
-                        <input class="form-input" id="org-razao" name="razao">
-                      </div>
+                <!-- Resumo estilo “Definições gerais” (simples) -->
+                <section class="cfg-overview">
+                  <div class="cfg-overview-block">
+                    <div class="cfg-overview-head">
+                      <h3 class="cfg-overview-title">Usuários</h3>
+                      <span class="cfg-overview-count" id="users-count">—</span>
                     </div>
-                    <div class="form-row">
-                      <div class="form-field">
-                        <label class="form-label" for="org-email">E-mail admin</label>
-                        <input class="form-input" type="email" id="org-email" name="email">
-                      </div>
-                      <div class="form-field">
-                        <label class="form-label" for="org-telefone">Telefone</label>
-                        <input class="form-input" id="org-telefone" name="telefone" placeholder="(00) 00000-0000">
-                      </div>
-                    </div>
-                    <div class="form-field">
-                      <label class="form-label" for="org-logo">Logo</label>
-                      <input class="form-input" type="file" id="org-logo" accept="image/*">
-                      <span class="form-help">Upload local (demo). Persistência completa depois.</span>
-                    </div>
-                    <div class="form-field">
-                      <span class="form-label">Módulos instalados</span>
-                      <div class="cfg-modules-grid" id="org-modulos"></div>
-                      <span class="form-help">Define o que aparece na sidebar à esquerda.</span>
-                    </div>
-                  </section>
-
-                  <section class="form-section">
-                    <h3 class="form-section-title">2. Estabelecimentos</h3>
-                    <p class="form-help" style="margin-bottom:0.75rem">
-                      Matriz e filiais (estrutura). CSC / certificado → módulo Fiscal.
+                    <p class="cfg-overview-text">
+                      <span id="users-count-label">usuários ativos</span>
                     </p>
-                    <div class="cfg-table-wrap">
-                      <table class="cfg-table">
-                        <thead>
-                          <tr>
-                            <th>Código</th>
-                            <th>Nome</th>
-                            <th>CNPJ</th>
-                            <th>Cidade/UF</th>
-                            <th>Status</th>
-                          </tr>
-                        </thead>
-                        <tbody id="estabs-tbody">
-                          <tr><td colspan="5">Carregando…</td></tr>
-                        </tbody>
-                      </table>
+                    <div class="cfg-overview-actions">
+                      <a class="btn btn-secondary" href="usuarios.html">Gerir usuários</a>
+                      <a class="btn btn-secondary" href="permissoes.html">Permissões</a>
                     </div>
-                    <div class="cfg-actions" style="border:none;margin-top:0.75rem;padding-top:0">
-                      <a class="btn btn-secondary" href="empresas.html">Gerenciar estabelecimentos</a>
-                    </div>
-                  </section>
+                  </div>
 
-                  <section class="form-section">
-                    <h3 class="form-section-title">3. Usuários e perfis</h3>
-                    <div class="form-row">
-                      <div class="form-field">
-                        <label class="form-label" for="usr-nome">Nome</label>
-                        <input class="form-input" id="usr-nome" placeholder="Novo usuário (demo)">
-                      </div>
-                      <div class="form-field">
-                        <label class="form-label" for="usr-login">Login</label>
-                        <input class="form-input" id="usr-login" autocomplete="off">
-                      </div>
-                      <div class="form-field">
-                        <label class="form-label" for="usr-perfil">Perfil</label>
-                        <select class="form-input" id="usr-perfil">
-                          <option value="admin">Administrador</option>
-                          <option value="vendedor">Vendedor</option>
-                          <option value="caixa">Caixa</option>
-                          <option value="gerente">Gerente</option>
-                        </select>
-                      </div>
+                  <div class="cfg-overview-block">
+                    <div class="cfg-overview-head">
+                      <h3 class="cfg-overview-title">Estabelecimentos</h3>
+                      <span class="cfg-overview-count" id="estabs-count">—</span>
                     </div>
-                    <div class="form-row">
-                      <div class="form-field">
-                        <label class="form-label" for="usr-senha">Senha</label>
-                        <input class="form-input" type="password" id="usr-senha" autocomplete="new-password">
-                      </div>
-                      <div class="form-field">
-                        <label class="form-label" for="usr-senha2">Confirmar senha</label>
-                        <input class="form-input" type="password" id="usr-senha2" autocomplete="new-password">
-                      </div>
+                    <p class="cfg-overview-text">matriz e filiais</p>
+                    <div class="cfg-company-grid" id="estabs-cards">
+                      <p class="form-help">Carregando…</p>
                     </div>
-                    <div class="cfg-actions" style="border:none;margin-top:0.5rem;padding-top:0">
-                      <a class="btn btn-secondary" href="usuarios.html">Abrir cadastro de usuários</a>
+                    <div class="cfg-overview-actions">
+                      <a class="btn btn-secondary" href="empresas.html">Gerir estabelecimentos</a>
                     </div>
-                  </section>
+                  </div>
+                </section>
 
-                  <section class="form-section">
-                    <h3 class="form-section-title">4. Preferências globais</h3>
-                    <div class="form-row">
-                      <div class="form-field">
-                        <label class="form-label" for="pref-pais">País</label>
-                        <select class="form-input" id="pref-pais">
-                          <option value="BR" selected>Brasil</option>
-                          <option value="PT">Portugal</option>
-                          <option value="US">Estados Unidos</option>
-                        </select>
+                <form id="form-gerais" class="form-container" autocomplete="off">
+                  <details class="cfg-more" open>
+                    <summary>Organização e módulos</summary>
+                    <div class="cfg-more-body">
+                      <div class="form-row">
+                        <div class="form-field">
+                          <label class="form-label" for="org-nome">Nome fantasia <span class="required">*</span></label>
+                          <input class="form-input" id="org-nome" name="nome" required>
+                        </div>
+                        <div class="form-field">
+                          <label class="form-label" for="org-razao">Razão social</label>
+                          <input class="form-input" id="org-razao" name="razao">
+                        </div>
+                      </div>
+                      <div class="form-row">
+                        <div class="form-field">
+                          <label class="form-label" for="org-email">E-mail admin</label>
+                          <input class="form-input" type="email" id="org-email" name="email">
+                        </div>
+                        <div class="form-field">
+                          <label class="form-label" for="org-telefone">Telefone</label>
+                          <input class="form-input" id="org-telefone" name="telefone" placeholder="(00) 00000-0000">
+                        </div>
+                        <div class="form-field">
+                          <label class="form-label" for="org-logo">Logo</label>
+                          <input class="form-input" type="file" id="org-logo" accept="image/*">
+                        </div>
                       </div>
                       <div class="form-field">
-                        <label class="form-label" for="pref-idioma">Idioma</label>
-                        <select class="form-input" id="pref-idioma">
-                          <option value="pt-BR" selected>Português (Brasil)</option>
-                          <option value="pt-PT">Português (Portugal)</option>
-                          <option value="en">English</option>
-                        </select>
-                      </div>
-                      <div class="form-field">
-                        <label class="form-label" for="pref-fuso">Fuso horário</label>
-                        <select class="form-input" id="pref-fuso">
-                          <option value="America/Sao_Paulo" selected>America/Sao_Paulo</option>
-                          <option value="America/Manaus">America/Manaus</option>
-                          <option value="America/Fortaleza">America/Fortaleza</option>
-                          <option value="America/Belem">America/Belem</option>
-                        </select>
-                      </div>
-                    </div>
-                    <div class="form-row">
-                      <div class="form-field">
-                        <label class="form-label" for="pref-moeda">Moeda</label>
-                        <select class="form-input" id="pref-moeda">
-                          <option value="BRL" selected>BRL — Real</option>
-                          <option value="USD">USD — Dólar</option>
-                          <option value="EUR">EUR — Euro</option>
-                        </select>
-                      </div>
-                      <div class="form-field">
-                        <label class="form-label" for="pref-tema">Tema padrão</label>
-                        <select class="form-input" id="pref-tema">
-                          <option value="dark" selected>Escuro</option>
-                          <option value="light">Claro</option>
-                        </select>
-                      </div>
-                      <div class="form-field">
-                        <label class="form-label" for="pref-data">Formato de data</label>
-                        <select class="form-input" id="pref-data">
-                          <option value="dd/mm/aaaa" selected>dd/mm/aaaa</option>
-                          <option value="mm/dd/yyyy">mm/dd/yyyy</option>
-                          <option value="yyyy-mm-dd">yyyy-mm-dd</option>
-                        </select>
+                        <span class="form-label">Módulos na sidebar</span>
+                        <div class="cfg-modules-grid" id="org-modulos"></div>
                       </div>
                     </div>
-                  </section>
+                  </details>
 
-                  <section class="form-section">
-                    <h3 class="form-section-title">5. Segurança e sessão</h3>
-                    <div class="form-row">
-                      <div class="form-field">
-                        <label class="form-label" for="sec-timeout">Timeout de sessão (min)</label>
-                        <input class="form-input" type="number" id="sec-timeout" min="5" max="480" value="30">
+                  <details class="cfg-more">
+                    <summary>Preferências e segurança</summary>
+                    <div class="cfg-more-body">
+                      <div class="form-row">
+                        <div class="form-field">
+                          <label class="form-label" for="pref-pais">País</label>
+                          <select class="form-input" id="pref-pais">
+                            <option value="BR" selected>Brasil</option>
+                            <option value="PT">Portugal</option>
+                            <option value="US">Estados Unidos</option>
+                          </select>
+                        </div>
+                        <div class="form-field">
+                          <label class="form-label" for="pref-idioma">Idioma</label>
+                          <select class="form-input" id="pref-idioma">
+                            <option value="pt-BR" selected>Português (Brasil)</option>
+                            <option value="pt-PT">Português (Portugal)</option>
+                            <option value="en">English</option>
+                          </select>
+                        </div>
+                        <div class="form-field">
+                          <label class="form-label" for="pref-fuso">Fuso horário</label>
+                          <select class="form-input" id="pref-fuso">
+                            <option value="America/Sao_Paulo" selected>America/Sao_Paulo</option>
+                            <option value="America/Manaus">America/Manaus</option>
+                            <option value="America/Fortaleza">America/Fortaleza</option>
+                            <option value="America/Belem">America/Belem</option>
+                          </select>
+                        </div>
                       </div>
-                      <div class="form-field">
-                        <label class="form-label" for="sec-senha-min">Tamanho mínimo da senha</label>
-                        <input class="form-input" type="number" id="sec-senha-min" min="6" max="64" value="8">
+                      <div class="form-row">
+                        <div class="form-field">
+                          <label class="form-label" for="pref-moeda">Moeda</label>
+                          <select class="form-input" id="pref-moeda">
+                            <option value="BRL" selected>BRL — Real</option>
+                            <option value="USD">USD — Dólar</option>
+                            <option value="EUR">EUR — Euro</option>
+                          </select>
+                        </div>
+                        <div class="form-field">
+                          <label class="form-label" for="pref-tema">Tema padrão</label>
+                          <select class="form-input" id="pref-tema">
+                            <option value="dark" selected>Escuro</option>
+                            <option value="light">Claro</option>
+                          </select>
+                        </div>
+                        <div class="form-field">
+                          <label class="form-label" for="pref-data">Formato de data</label>
+                          <select class="form-input" id="pref-data">
+                            <option value="dd/mm/aaaa" selected>dd/mm/aaaa</option>
+                            <option value="mm/dd/yyyy">mm/dd/yyyy</option>
+                            <option value="yyyy-mm-dd">yyyy-mm-dd</option>
+                          </select>
+                        </div>
                       </div>
-                      <div class="form-field">
-                        <label class="form-label" for="sec-tentativas">Tentativas até bloqueio</label>
-                        <input class="form-input" type="number" id="sec-tentativas" min="3" max="20" value="5">
+                      <div class="form-row">
+                        <div class="form-field">
+                          <label class="form-label" for="sec-timeout">Timeout de sessão (min)</label>
+                          <input class="form-input" type="number" id="sec-timeout" min="5" max="480" value="30">
+                        </div>
+                        <div class="form-field">
+                          <label class="form-label" for="sec-senha-min">Tamanho mínimo da senha</label>
+                          <input class="form-input" type="number" id="sec-senha-min" min="6" max="64" value="8">
+                        </div>
+                        <div class="form-field">
+                          <label class="form-label" for="sec-tentativas">Tentativas até bloqueio</label>
+                          <input class="form-input" type="number" id="sec-tentativas" min="3" max="20" value="5">
+                        </div>
                       </div>
+                      <label class="form-switch">
+                        <input type="checkbox" id="sec-troca-senha">
+                        <span>Exigir troca periódica de senha</span>
+                      </label>
+                      <label class="form-switch" style="margin-top:0.5rem">
+                        <input type="checkbox" id="sec-reauth" checked>
+                        <span>Reautenticar em ações críticas</span>
+                      </label>
                     </div>
-                    <label class="form-switch">
-                      <input type="checkbox" id="sec-troca-senha">
-                      <span>Exigir troca periódica de senha</span>
-                    </label>
-                    <label class="form-switch" style="margin-top:0.5rem">
-                      <input type="checkbox" id="sec-reauth" checked>
-                      <span>Reautenticar em ações críticas (desativar filial, mudar admin)</span>
-                    </label>
-                  </section>
+                  </details>
 
                   <div class="cfg-actions">
                     <button type="submit" class="btn btn-primary">Salvar Gerais</button>

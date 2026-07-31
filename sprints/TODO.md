@@ -92,4 +92,5 @@
 
 ---
 
-*Retomado 31/07/2026 — shell + Gerais no ar.*
+*Retomado 31/07/2026 — shell + Gerais no ar.*  
+*Gerais simplificado (estilo Odoo leve): resumo Usuários + cards Estabelecimentos; convite/permissões finas/CSC/PDV fora da 1ª visão.*

@@ -211,21 +211,54 @@
     return Number.isFinite(n) ? n : fallback;
   }
 
+  function authHeaders() {
+    const token = localStorage.getItem("token") || localStorage.getItem("becrp_token");
+    return token ? { Authorization: "Bearer " + token } : {};
+  }
+
+  async function loadUsuariosResumo() {
+    const countEl = document.getElementById("users-count");
+    const labelEl = document.getElementById("users-count-label");
+    let n = 0;
+    try {
+      const r = await fetch("/api/admin/users", { headers: authHeaders() });
+      if (r.ok) {
+        const data = await r.json();
+        const users = data.users || data.usuarios || [];
+        n = Array.isArray(users) ? users.length : Object.keys(users).length;
+      }
+    } catch {
+      /* ignore */
+    }
+    if (!n) {
+      try {
+        const r = await fetch("../data/users.json");
+        if (r.ok) {
+          const map = await r.json();
+          n = Object.keys(map).length;
+        }
+      } catch {
+        n = 0;
+      }
+    }
+    if (countEl) countEl.textContent = String(n || 0);
+    if (labelEl) {
+      labelEl.textContent =
+        n === 1 ? "usuário ativo" : "usuários ativos";
+    }
+  }
+
   async function loadEstabelecimentos() {
-    const tbody = document.getElementById("estabs-tbody");
-    if (!tbody) return;
+    const cards = document.getElementById("estabs-cards");
+    const countEl = document.getElementById("estabs-count");
+    if (!cards) return;
 
     let lista = [];
     try {
-      const token = localStorage.getItem("token") || localStorage.getItem("becrp_token");
-      if (token) {
-        const r = await fetch("/api/admin/empresas", {
-          headers: { Authorization: "Bearer " + token },
-        });
-        if (r.ok) {
-          const data = await r.json();
-          lista = data.empresas || [];
-        }
+      const r = await fetch("/api/admin/empresas", { headers: authHeaders() });
+      if (r.ok) {
+        const data = await r.json();
+        lista = data.empresas || [];
       }
     } catch {
       /* fallback static */
@@ -243,23 +276,36 @@
       }
     }
 
+    if (countEl) countEl.textContent = String(lista.length);
+
     if (!lista.length) {
-      tbody.innerHTML =
-        '<tr><td colspan="5">Nenhum estabelecimento. Use Gerenciar estabelecimentos.</td></tr>';
+      cards.innerHTML =
+        '<p class="form-help">Nenhum estabelecimento. Use Gerir estabelecimentos.</p>';
       return;
     }
 
-    tbody.innerHTML = lista
+    cards.innerHTML = lista
       .map((e) => {
+        const nome = e.nome || e.id || "—";
+        const initials = String(nome)
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((w) => w[0] || "")
+          .join("")
+          .toUpperCase() || "?";
+        const linha2 = [e.cidade, e.uf].filter(Boolean).join(" / ") || "—";
         const ativo = e.ativo !== false;
         return (
-          `<tr>` +
-          `<td>${esc(e.id || e.codigo || "—")}</td>` +
-          `<td>${esc(e.nome || "—")}</td>` +
-          `<td>${esc(e.cnpj || "—")}</td>` +
-          `<td>${esc((e.cidade || "") + (e.uf ? "/" + e.uf : "") || "—")}</td>` +
-          `<td><span class="cfg-badge ${ativo ? "on" : "off"}">${ativo ? "Ativo" : "Inativo"}</span></td>` +
-          `</tr>`
+          `<article class="cfg-company-card">` +
+          `<div class="cfg-company-avatar" aria-hidden="true">${esc(initials)}</div>` +
+          `<div class="cfg-company-body">` +
+          `<p class="cfg-company-name">${esc(nome)}` +
+          (ativo ? "" : ' <span class="cfg-badge off">Inativo</span>') +
+          `</p>` +
+          `<p class="cfg-company-meta">${esc(linha2)}<br>CNPJ ${esc(e.cnpj || "—")}` +
+          (e.ie ? `<br>IE ${esc(e.ie)}` : "") +
+          `</p>` +
+          `</div></article>`
         );
       })
       .join("");
@@ -277,6 +323,7 @@
     let state = loadState();
     fillForm(state);
     renderModuleNav(state);
+    loadUsuariosResumo();
     loadEstabelecimentos();
 
     document.querySelectorAll('.cfg-mod-btn[data-panel="gerais"]').forEach((b) => {
