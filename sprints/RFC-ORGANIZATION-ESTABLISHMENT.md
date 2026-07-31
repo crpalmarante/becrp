@@ -95,19 +95,85 @@ Menu principal  →  card Configurações  →  tela hub
 4. Ao clicar num módulo na sidebar, o contexto troca para as configs genéricas **daquele** módulo.  
 5. Sidebar = índice; contexto = trabalho (não grade de cards como destino final).
 
-### Gerais (primeira visão) — transversal
+### Gerais (primeira visão) — quadro da tela
 
-O que afeta a organização inteira, independente de qual módulo está instalado:
+Teste mental: *“Isso vale mesmo se a org só tivesse um módulo qualquer?”*  
+**Sim** → Gerais. **Não** → sidebar do módulo.
 
-| Grupo | Exemplos |
-|-------|----------|
-| Organização | Nome, branding, plano / módulos ativos |
-| Estabelecimentos | Matriz/filiais (lista), endereço base |
-| Usuários e perfis | Admin, vendedor, caixa, gerente |
-| Preferências globais | Idioma default, fuso, tema |
-| Segurança / sessão | Políticas de senha, timeout global |
+Na área de contexto, blocos (abas ou seções empilhadas):
 
-**Não** entra em Gerais: CSC, série NFC-e, criar PDV, plano de contas — isso é do módulo (Fiscal, POS, Contabilidade…).
+#### 1. Organização
+
+| Parâmetro | Configurável | Notas |
+|-----------|--------------|--------|
+| Razão social / nome fantasia do grupo | Sim | Identidade do tenant |
+| Logo / branding (cores básicas) | Sim | Menu, login, relatórios |
+| Documento raiz (CNPJ holding, se houver) | Sim | Opcional; filiais têm o delas |
+| Contato admin (e-mail / telefone) | Sim | Suporte / alertas |
+| Módulos instalados (liga/desliga) | Sim | Define o que aparece na sidebar |
+
+#### 2. Estabelecimentos (matriz / filiais)
+
+Lista + cadastro **estrutural** (não fiscal profundo):
+
+| Parâmetro | Configurável | Notas |
+|-----------|--------------|--------|
+| Código / nome da filial | Sim | Ex.: MATRIZ, FILIAL-CENTRO |
+| Tipo (matriz / filial) | Sim | |
+| Ativo / inativo | Sim | Inativa some do POS e do `available_at` “todas” |
+| Endereço / cidade / UF | Sim | Base operacional e fiscal depois |
+| CNPJ / IE (identificação) | Sim | Cadastro; **CSC/cert/série** → módulo Fiscal |
+| Fuso da loja (override) | Sim | Default = fuso da org |
+
+#### 3. Usuários e perfis
+
+| Parâmetro | Configurável | Notas |
+|-----------|--------------|--------|
+| Usuários (criar/editar/desativar) | Sim | Nome, login, e-mail |
+| Perfil | Sim | Admin · Vendedor · Caixa · Gerente (mínimo) |
+| Estabelecimento(s) de acesso | Sim | Onde a pessoa pode atuar |
+| Vínculo PDV | Não aqui | Feito em **Configurações → POS** (1:1) |
+
+#### 4. Preferências globais (UI / locale)
+
+| Parâmetro | Configurável | Notas |
+|-----------|--------------|--------|
+| Idioma padrão | Sim | Hoje PT-BR; i18n depois |
+| Fuso horário padrão | Sim | Ex.: America/Sao_Paulo |
+| Formato data / hora / número | Sim | dd/mm/aaaa, 1.234,56 |
+| Moeda padrão | Sim | BRL |
+| Tema padrão (claro/escuro) | Sim | Usuário pode override pessoal depois |
+| Página inicial pós-login | Sim | Menu / último módulo |
+
+#### 5. Segurança e sessão
+
+| Parâmetro | Configurável | Notas |
+|-----------|--------------|--------|
+| Timeout de sessão (minutos) | Sim | Global; terminal pode ter o seu no POS |
+| Política de senha | Sim | Tamanho mínimo, troca periódica |
+| Tentativas de login / bloqueio | Sim | |
+| Exigir reauth em ações críticas | Sim | Ex.: desativar filial, mudar admin |
+
+#### 6. Comunicação (opcional, fase 2)
+
+| Parâmetro | Configurável | Notas |
+|-----------|--------------|--------|
+| E-mail SMTP / provedor | Sim | Avisos do sistema |
+| Remetente padrão | Sim | |
+
+---
+
+**Fora de Gerais** (vai para o módulo):
+
+| Assunto | Módulo |
+|---------|--------|
+| Criar PDV/Caixa, impressora, balança, fila | **POS** |
+| Certificado, CSC, série/número NFC-e, ambiente SEFAZ | **Fiscal** |
+| Plano de contas, diários | **Contabilidade** |
+| Tabelas INSS/IRRF, cargos | **Folha / RH** |
+| `available_at` no produto | **Cadastro / Produtos** (não Gerais) |
+
+---
 
 ### Sequência (exato)
 
