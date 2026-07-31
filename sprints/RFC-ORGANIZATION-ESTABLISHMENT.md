@@ -2,9 +2,9 @@
 
 | Campo | Valor |
 |--------|--------|
-| Status | Decisão (draft estruturante) |
+| Status | **Plano aprovado** — seguir na implementação |
 | Data | 31/07/2026 |
-| Escopo | Tenant / multi-filial / catálogo do POS |
+| Escopo | Tenant / multi-filial / catálogo do POS / hub Configurações |
 | Relaciona | `PLANO_EXPERIENCIA_VENDEDOR.md`, POS, Fiscal, Inventário |
 
 ---
@@ -325,3 +325,4 @@ Preço/estoque exibidos = da filial `E`.
 | 31/07/2026 | Hub **Configurações** = configs genéricas de **todos** os módulos instalados; POS é uma seção, não o hub inteiro. |
 | 31/07/2026 | UX Configurações: sidebar esquerda = módulos; área de contexto = configs genéricas do módulo selecionado. |
 | 31/07/2026 | 1ª visão Configurações = **Gerais** (transversal a todos os módulos); módulos na sidebar abaixo. |
+| 31/07/2026 | Plano confirmado pelo produto: Organização/Estabelecimento + hub Configurações (Gerais → por módulo) é o caminho a seguir. |

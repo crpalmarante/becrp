@@ -443,7 +443,7 @@ Ainda fora:
 
 Próximo natural:
 
-1. Fechar modelo Organização/Estabelecimento no código (`RFC-ORGANIZATION-ESTABLISHMENT.md`) — inclui Admin wizard PDV/Caixa (§2.2); falta preço local, login gerente/caixa e amarra de device.
+1. Implementar conforme plano aprovado em `RFC-ORGANIZATION-ESTABLISHMENT.md` (hub Configurações: Gerais → por módulo; PDVs/Caixas no POS). Ainda aberto no detalhe: preço local, login gerente/caixa, amarra de device.
 2. Ajustar CSC/IE/UF do emitente e validar autorização SEFAZ de ponta a ponta (recurso externo).
 3. Promise Engine / multi-filial quando inventário por filial estiver pronto.
 4. Balança física no lugar do mock.
