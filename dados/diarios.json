@@ -1,5 +1,5 @@
 {
-  "atualizado_em": "2026-07-31T22:40:34",
+  "atualizado_em": "2026-07-31T22:43:11",
   "diarios": [
     {
       "codigo": "VEN",
@@ -35,7 +35,7 @@
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:40:34"
+      "atualizado_em": "2026-07-31T22:43:11"
     },
     {
       "codigo": "BCO",
@@ -71,7 +71,7 @@
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:40:34"
+      "atualizado_em": "2026-07-31T22:43:11"
     }
   ],
   "total": 6

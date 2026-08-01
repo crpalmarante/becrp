@@ -22,6 +22,7 @@ import price_lists
 import campaigns
 import planocontas
 import journals
+import journal_entries
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -1236,6 +1237,47 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not row:
                 return self._json({"status": "error", "message": "Diário não encontrado"}, 404)
             return self._json({"status": "ok", "diario": row})
+
+        # ── Lançamentos contábeis (RFC-8003 MVP) ──
+        if parsed.path == "/api/lancamentos":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                limit = int((qs.get("limit") or ["200"])[0] or 200)
+            except (TypeError, ValueError):
+                limit = 200
+            try:
+                out = journal_entries.list_lancamentos(
+                    q=(qs.get("q") or [""])[0],
+                    diario=(qs.get("diario") or [""])[0] or None,
+                    status=(qs.get("status") or [""])[0] or None,
+                    limit=limit,
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            role = self._user_role(token)
+            return self._json({
+                "status": "ok",
+                **out,
+                "permissoes": {
+                    "pode_escrever": role in JOURNALS_WRITE_ROLES,
+                    "pode_excluir": role in JOURNALS_DELETE_ROLES,
+                    "pode_postar": role in JOURNALS_WRITE_ROLES,
+                    "role": role,
+                },
+            })
+
+        if parsed.path.startswith("/api/lancamentos/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            row = journal_entries.get_lancamento(key)
+            if not row:
+                return self._json({"status": "error", "message": "Lançamento não encontrado"}, 404)
+            return self._json({"status": "ok", "lancamento": row})
 
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":
@@ -2593,6 +2635,74 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 row = journals.update_diario(key, body or {})
                 return self._json({"status": "ok", "diario": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Lançamentos: CRUD / post / estorno ──
+        if parsed.path == "/api/admin/lancamentos":
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode criar lançamentos",
+                }, 403)
+            try:
+                row = journal_entries.create_lancamento(body or {})
+                return self._json({"status": "ok", "lancamento": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/lancamentos/"):
+            parts = [p for p in parsed.path.rstrip("/").split("/") if p]
+            # /api/admin/lancamentos/{key}[/{action}]
+            key = urllib.parse.unquote(parts[3]) if len(parts) >= 4 else ""
+            action = urllib.parse.unquote(parts[4]) if len(parts) >= 5 else ""
+            if isinstance(body, dict) and not action:
+                action = str(body.get("action") or "").strip().lower()
+
+            if action == "post":
+                if not self._can_write_journals(crud_token):
+                    return self._json({
+                        "status": "error",
+                        "message": "Apenas responsável contábil/fiscal ou admin pode postar",
+                    }, 403)
+                try:
+                    row = journal_entries.post_lancamento(key)
+                    return self._json({"status": "ok", "lancamento": row, "message": "Lançamento postado"})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+
+            if action in ("reverse", "estorno", "cancel"):
+                if not self._can_write_journals(crud_token):
+                    return self._json({
+                        "status": "error",
+                        "message": "Apenas responsável contábil/fiscal ou admin pode estornar",
+                    }, 403)
+                try:
+                    row = journal_entries.reverse_lancamento(key, body or {})
+                    return self._json({"status": "ok", "lancamento": row, "message": "Estorno gerado"})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+
+            if action == "delete":
+                if not self._can_delete_journals(crud_token):
+                    return self._json({
+                        "status": "error",
+                        "message": "Exclusão permitida apenas ao responsável contábil/fiscal",
+                    }, 403)
+                try:
+                    journal_entries.delete_lancamento(key)
+                    return self._json({"status": "ok", "message": "Lançamento excluído"})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode editar lançamentos",
+                }, 403)
+            try:
+                row = journal_entries.update_lancamento(key, body or {})
+                return self._json({"status": "ok", "lancamento": row})
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 

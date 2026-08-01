@@ -320,7 +320,7 @@ def delete_diario(codigo):
 
 
 def mark_uso(codigo, n=1):
-    """Incrementa contador de uso (chamado pelos lançamentos no futuro)."""
+    """Incrementa contador de uso (lançamentos postados)."""
     data = _load_raw()
     key = str(codigo or "").strip().upper()
     for i, d in enumerate(data.get("diarios") or []):
@@ -331,3 +331,25 @@ def mark_uso(codigo, n=1):
             _save(data)
             return _enrich(d)
     raise ValueError("diário não encontrado")
+
+
+def allocate_numero(codigo):
+    """Reserva próximo número do diário (PREFIXO-000001). Exige diário ativo."""
+    data = _load_raw()
+    key = str(codigo or "").strip().upper()
+    for i, d in enumerate(data.get("diarios") or []):
+        if str(d.get("codigo") or "").upper() != key:
+            continue
+        if not d.get("ativo", True):
+            raise ValueError(f"diário {key} está inativo")
+        n = int(d.get("proximo") or 1)
+        if n < 1:
+            n = 1
+        prefix = str(d.get("prefixo") or key).strip().upper() or key
+        numero = f"{prefix}-{n:06d}"
+        d["proximo"] = n + 1
+        d["atualizado_em"] = _now()
+        data["diarios"][i] = d
+        _save(data)
+        return numero
+    raise ValueError(f"diário não encontrado: {key}")

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Lançamentos Contábeis</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:120px; }
+    .pc-toolbar .grow { flex:1; min-width:180px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-form { margin:0 0 16px; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .pc-form .grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; }
+    .pc-form .field { margin:0; }
+    .pc-form .span2 { grid-column: span 2; }
+    .pc-form .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .pc-table td.num { text-align:right; font-variant-numeric: tabular-nums; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); }
+    .badge.draft { opacity:.85; }
+    .badge.posted { border-color:#4ade80; color:#4ade80; }
+    .badge.cancelled { opacity:.55; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 10px; }
+    .lines-head { display:flex; justify-content:space-between; align-items:center; margin:12px 0 6px; }
+    .bal { font-size:13px; margin-top:8px; }
+    .bal.ok { color:#4ade80; }
+    .bal.bad { color:#f87171; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="plano-contas.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="menu-label">Plano de Contas</span>
+      </a>
+      <a class="menu-item" href="diarios.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Diários</span>
+      </a>
+      <a class="menu-item active" href="lancamentos.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Lançamentos</span>
+      </a>
+      <a class="menu-item" href="contabilidade.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Contabilidade</span>
+      </a>
+      <a class="menu-item" href="configuracoes.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="menu-label">Configurações</span>
+      </a>
+      <a class="menu-item" href="../index4.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Dashboard</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="topbar-title">Lançamentos Contábeis</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Contabilidade / Lançamentos</div>
+          <h2 class="workspace-title">Partida dobrada</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">
+            Rascunho editável → Postar (exige D = C) → Estorno gera lançamento inverso.
+            Demo: <code>lucia</code> / <code>123</code>.
+          </p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="pc-form" id="form-box" hidden>
+            <input type="hidden" id="f-id">
+            <div class="grid">
+              <div class="field"><label>Diário</label>
+                <select class="form-input" id="f-diario"></select>
+              </div>
+              <div class="field"><label>Data</label>
+                <input class="form-input" type="date" id="f-data">
+              </div>
+              <div class="field span2"><label>Histórico</label>
+                <input class="form-input" id="f-historico" placeholder="Descrição do lançamento">
+              </div>
+              <div class="field span2"><label>Referência</label>
+                <input class="form-input" id="f-ref" placeholder="Documento / origem">
+              </div>
+            </div>
+
+            <div class="lines-head">
+              <strong style="font-size:13px">Linhas</strong>
+              <button type="button" class="dialog-btn dialog-btn-secondary" id="btn-add-line" style="padding:3px 8px;font-size:11px">+ Linha</button>
+            </div>
+            <div style="overflow:auto">
+              <table class="pc-table" id="lines-table">
+                <thead>
+                  <tr>
+                    <th style="min-width:180px">Conta</th>
+                    <th>Débito</th>
+                    <th>Crédito</th>
+                    <th>Histórico linha</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="lines"></tbody>
+              </table>
+            </div>
+            <div id="bal" class="bal"></div>
+            <datalist id="contas-sugestao"></datalist>
+
+            <div class="actions">
+              <button class="dialog-btn dialog-btn-primary" id="btn-save">Salvar rascunho</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-clear">Limpar</button>
+            </div>
+          </div>
+
+          <div class="pc-toolbar">
+            <div class="field grow">
+              <label>Buscar</label>
+              <input class="form-input" id="q" placeholder="número, histórico, diário">
+            </div>
+            <div class="field">
+              <label>Diário</label>
+              <select class="form-input" id="filtro-diario"><option value="">Todos</option></select>
+            </div>
+            <div class="field">
+              <label>Status</label>
+              <select class="form-input" id="filtro-status">
+                <option value="">Todos</option>
+                <option value="draft">Rascunho</option>
+                <option value="posted">Postado</option>
+                <option value="cancelled">Estornado</option>
+              </select>
+            </div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-search">Filtrar</button>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-new" hidden>Novo</button>
+          </div>
+
+          <div style="overflow:auto; max-height:calc(100vh - 280px)">
+            <table class="pc-table">
+              <thead>
+                <tr>
+                  <th>Número</th>
+                  <th>Data</th>
+                  <th>Diário</th>
+                  <th>Histórico</th>
+                  <th>Débito</th>
+                  <th>Crédito</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let perms = { pode_escrever: false, pode_excluir: false, pode_postar: false };
+  let diarios = [];
+  let editingId = "";
+
+  function money(n) {
+    return Number(n || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function today() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function statusLabel(s) {
+    if (s === "posted") return "Postado";
+    if (s === "cancelled") return "Estornado";
+    return "Rascunho";
+  }
+
+  function addLine(data) {
+    const tr = document.createElement("tr");
+    const d = data || {};
+    tr.innerHTML = `
+      <td><input class="form-input ln-conta" list="contas-sugestao" value="${d.conta || ""}" placeholder="classificação"></td>
+      <td><input class="form-input ln-deb num" type="number" min="0" step="0.01" value="${d.debito || ""}"></td>
+      <td><input class="form-input ln-cred num" type="number" min="0" step="0.01" value="${d.credito || ""}"></td>
+      <td><input class="form-input ln-hist" value="${d.historico || ""}"></td>
+      <td><button type="button" class="dialog-btn dialog-btn-secondary ln-del" style="padding:3px 8px;font-size:11px">×</button></td>`;
+    tr.querySelector(".ln-del").onclick = () => {
+      tr.remove();
+      updateBal();
+    };
+    tr.querySelectorAll("input").forEach((inp) => inp.addEventListener("input", updateBal));
+    document.getElementById("lines").appendChild(tr);
+    updateBal();
+  }
+
+  function readLines() {
+    return Array.from(document.querySelectorAll("#lines tr")).map((tr) => ({
+      conta: tr.querySelector(".ln-conta").value.trim(),
+      debito: parseFloat(tr.querySelector(".ln-deb").value || "0") || 0,
+      credito: parseFloat(tr.querySelector(".ln-cred").value || "0") || 0,
+      historico: tr.querySelector(".ln-hist").value.trim(),
+    }));
+  }
+
+  function updateBal() {
+    const lines = readLines();
+    let d = 0, c = 0;
+    lines.forEach((ln) => { d += ln.debito; c += ln.credito; });
+    const el = document.getElementById("bal");
+    const ok = Math.abs(d - c) < 0.005 && d > 0;
+    el.textContent = `Total D ${money(d)} · C ${money(c)}` + (ok ? " · balanceado" : d || c ? " · desbalanceado" : "");
+    el.className = "bal " + (ok ? "ok" : d || c ? "bad" : "");
+  }
+
+  function clearForm() {
+    editingId = "";
+    document.getElementById("f-id").value = "";
+    document.getElementById("f-diario").disabled = false;
+    document.getElementById("f-data").value = today();
+    document.getElementById("f-historico").value = "";
+    document.getElementById("f-ref").value = "";
+    document.getElementById("lines").innerHTML = "";
+    addLine();
+    addLine();
+    updateBal();
+  }
+
+  function fillDiarios() {
+    const opts = diarios
+      .filter((d) => d.ativo !== false)
+      .map((d) => `<option value="${d.codigo}">${d.codigo} — ${d.nome}</option>`)
+      .join("");
+    document.getElementById("f-diario").innerHTML = opts;
+    const filtro = document.getElementById("filtro-diario");
+    filtro.innerHTML = '<option value="">Todos</option>' + opts;
+  }
+
+  async function loadMeta() {
+    const [jd, pc] = await Promise.all([
+      AuthService.api("/api/diarios?ativos=1"),
+      AuthService.api("/api/planocontas?analiticas=1&limit=400"),
+    ]);
+    diarios = (jd.diarios || []);
+    fillDiarios();
+    const dl = document.getElementById("contas-sugestao");
+    dl.innerHTML = (pc.contas || [])
+      .map((c) => `<option value="${c.classificacao || c.codigo}">${(c.classificacao || c.codigo)} — ${c.nome || ""}</option>`)
+      .join("");
+  }
+
+  function editRow(r) {
+    if (r.status !== "draft") {
+      msg("Só rascunho é editável. Postado: use Estornar.", false);
+      return;
+    }
+    editingId = r.id;
+    document.getElementById("form-box").hidden = !perms.pode_escrever;
+    document.getElementById("f-id").value = r.id;
+    document.getElementById("f-diario").value = r.diario;
+    document.getElementById("f-diario").disabled = true;
+    document.getElementById("f-data").value = r.data || today();
+    document.getElementById("f-historico").value = r.historico || "";
+    document.getElementById("f-ref").value = r.referencia || "";
+    document.getElementById("lines").innerHTML = "";
+    (r.linhas || []).forEach((ln) => addLine(ln));
+    if (!(r.linhas || []).length) { addLine(); addLine(); }
+    updateBal();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams({ limit: "300" });
+    const q = document.getElementById("q").value.trim();
+    const diario = document.getElementById("filtro-diario").value;
+    const status = document.getElementById("filtro-status").value;
+    if (q) qs.set("q", q);
+    if (diario) qs.set("diario", diario);
+    if (status) qs.set("status", status);
+    const data = await AuthService.api("/api/lancamentos?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha ao carregar", false);
+    perms = data.permissoes || perms;
+    document.getElementById("form-box").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new").hidden = !perms.pode_escrever;
+    document.getElementById("meta").textContent =
+      (data.total || 0) + " lançamentos · perfil " +
+      ((data.permissoes && data.permissoes.role) || auth.user.role || "—");
+
+    const tb = document.getElementById("rows");
+    const rows = data.lancamentos || [];
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="8" style="opacity:.6;padding:24px;text-align:center">Nenhum lançamento</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((r) => {
+      const id = encodeURIComponent(r.id);
+      let acts = "";
+      if (perms.pode_escrever && r.status === "draft") {
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-edit="${id}" style="padding:3px 8px;font-size:11px">Editar</button> `;
+        acts += `<button class="dialog-btn dialog-btn-primary" data-post="${id}" style="padding:3px 8px;font-size:11px">Postar</button> `;
+      }
+      if (perms.pode_excluir && r.status === "draft") {
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-del="${id}" style="padding:3px 8px;font-size:11px">Excluir</button> `;
+      }
+      if (perms.pode_escrever && r.status === "posted") {
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-rev="${id}" style="padding:3px 8px;font-size:11px">Estornar</button>`;
+      }
+      return `<tr>
+        <td>${r.numero || ""}</td>
+        <td>${r.data || ""}</td>
+        <td>${r.diario || ""}</td>
+        <td>${r.historico || ""}</td>
+        <td class="num">${money(r.total_debito)}</td>
+        <td class="num">${money(r.total_credito)}</td>
+        <td><span class="badge ${r.status || "draft"}">${statusLabel(r.status)}</span></td>
+        <td style="white-space:nowrap">${acts || "—"}</td>
+      </tr>`;
+    }).join("");
+
+    tb.querySelectorAll("[data-edit]").forEach((btn) => {
+      btn.onclick = () => {
+        const r = rows.find((x) => x.id === decodeURIComponent(btn.dataset.edit));
+        if (r) editRow(r);
+      };
+    });
+    tb.querySelectorAll("[data-post]").forEach((btn) => {
+      btn.onclick = async () => {
+        if (!confirm("Postar este lançamento? Ele passará a integrar a contabilidade oficial.")) return;
+        const res = await AuthService.api("/api/admin/lancamentos/" + btn.dataset.post + "/post", {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha ao postar", false);
+        msg("Lançamento postado", true);
+        load();
+      };
+    });
+    tb.querySelectorAll("[data-del]").forEach((btn) => {
+      btn.onclick = async () => {
+        if (!confirm("Excluir rascunho?")) return;
+        const res = await AuthService.api("/api/admin/lancamentos/" + btn.dataset.del, {
+          method: "POST",
+          body: JSON.stringify({ action: "delete" }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha ao excluir", false);
+        msg("Excluído", true);
+        load();
+      };
+    });
+    tb.querySelectorAll("[data-rev]").forEach((btn) => {
+      btn.onclick = async () => {
+        if (!confirm("Estornar? Será gerado um lançamento inverso postado.")) return;
+        const res = await AuthService.api("/api/admin/lancamentos/" + btn.dataset.rev + "/reverse", {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha ao estornar", false);
+        msg("Estorno gerado: " + (res.lancamento && res.lancamento.numero), true);
+        load();
+      };
+    });
+  }
+
+  document.getElementById("btn-add-line").onclick = () => addLine();
+  document.getElementById("btn-search").onclick = load;
+  document.getElementById("q").addEventListener("keydown", (e) => { if (e.key === "Enter") load(); });
+  document.getElementById("filtro-diario").onchange = load;
+  document.getElementById("filtro-status").onchange = load;
+  document.getElementById("btn-clear").onclick = clearForm;
+  document.getElementById("btn-new").onclick = () => {
+    clearForm();
+    document.getElementById("form-box").hidden = false;
+  };
+
+  document.getElementById("f-diario").onchange = () => {
+    const d = diarios.find((x) => x.codigo === document.getElementById("f-diario").value);
+    if (!d || !d.conta_padrao || editingId) return;
+    const lines = document.querySelectorAll("#lines tr");
+    if (lines[0] && !lines[0].querySelector(".ln-conta").value) {
+      lines[0].querySelector(".ln-conta").value = d.conta_padrao;
+    }
+  };
+
+  document.getElementById("btn-save").onclick = async () => {
+    const body = {
+      diario: document.getElementById("f-diario").value,
+      data: document.getElementById("f-data").value,
+      historico: document.getElementById("f-historico").value.trim(),
+      referencia: document.getElementById("f-ref").value.trim(),
+      linhas: readLines(),
+    };
+    const path = editingId
+      ? "/api/admin/lancamentos/" + encodeURIComponent(editingId)
+      : "/api/admin/lancamentos";
+    const res = await AuthService.api(path, { method: "POST", body: JSON.stringify(body) });
+    if (res.status !== "ok") return msg(res.message || "Falha ao salvar", false);
+    msg(editingId ? "Rascunho atualizado" : "Rascunho criado: " + (res.lancamento && res.lancamento.numero), true);
+    clearForm();
+    load();
+  };
+
+  loadMeta().then(() => {
+    clearForm();
+    load();
+  });
+})();
+</script>
+</body>
+</html>
