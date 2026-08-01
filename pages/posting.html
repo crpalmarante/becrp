@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Posting Engine</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:120px; }
+    .pc-toolbar .grow { flex:1; min-width:160px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 10px; }
+    .pc-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin:0 0 16px; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .pc-form .field { margin:0; }
+    .pc-form .span2 { grid-column: span 2; }
+    .pc-form .actions { display:flex; gap:8px; flex-wrap:wrap; align-items:end; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .tabs { display:flex; gap:8px; margin-bottom:14px; }
+    .tabs button.active { border-color: rgba(255,255,255,.35); }
+    .panel { display:none; }
+    .panel.active { display:block; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); }
+    .badge.ok { border-color:#4ade80; color:#4ade80; }
+    .badge.err { border-color:#f87171; color:#f87171; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="plano-contas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Plano de Contas</span></a>
+      <a class="menu-item" href="diarios.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Diários</span></a>
+      <a class="menu-item" href="lancamentos.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Lançamentos</span></a>
+      <a class="menu-item" href="razao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Razão / Saldos</span></a>
+      <a class="menu-item active" href="posting.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Posting</span></a>
+      <a class="menu-item" href="contabilidade.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Contabilidade</span></a>
+      <a class="menu-item" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="topbar-title">Posting Engine</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Contabilidade / Posting</div>
+          <h2 class="workspace-title">Regras e gate de postagem</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">
+            Evento operacional → regra → lançamento (opcional auto-post).
+            Postar em Lançamentos passa por este engine (validação + histórico).
+            Demo: <code>lucia</code> / <code>123</code>.
+          </p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="tabs">
+            <button type="button" class="dialog-btn dialog-btn-secondary active" data-tab="regras">Regras</button>
+            <button type="button" class="dialog-btn dialog-btn-secondary" data-tab="aplicar">Aplicar evento</button>
+            <button type="button" class="dialog-btn dialog-btn-secondary" data-tab="hist">Histórico</button>
+          </div>
+
+          <div class="panel active" id="panel-regras">
+            <div class="pc-form" id="form-box" hidden>
+              <div class="field"><label>Código</label><input class="form-input" id="f-codigo" maxlength="20" placeholder="SALE_CASH"></div>
+              <div class="field span2"><label>Nome</label><input class="form-input" id="f-nome" placeholder="Venda à vista"></div>
+              <div class="field"><label>Evento</label><input class="form-input" id="f-evento" placeholder="sale_cash"></div>
+              <div class="field"><label>Diário</label><select class="form-input" id="f-diario"></select></div>
+              <div class="field span2"><label>Conta débito</label><input class="form-input" id="f-deb" list="contas-sugestao"></div>
+              <div class="field span2"><label>Conta crédito</label><input class="form-input" id="f-cred" list="contas-sugestao"></div>
+              <datalist id="contas-sugestao"></datalist>
+              <div class="field"><label>Auto-post</label>
+                <select class="form-input" id="f-auto"><option value="1">Sim</option><option value="0">Não</option></select>
+              </div>
+              <div class="field"><label>Ativo</label>
+                <select class="form-input" id="f-ativo"><option value="1">Sim</option><option value="0">Não</option></select>
+              </div>
+              <div class="actions">
+                <button class="dialog-btn dialog-btn-primary" id="btn-save">Salvar</button>
+                <button class="dialog-btn dialog-btn-secondary" id="btn-clear">Limpar</button>
+              </div>
+            </div>
+            <div class="pc-toolbar">
+              <div class="field grow"><label>Buscar</label><input class="form-input" id="q" placeholder="código, evento, nome"></div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-search">Filtrar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-new" hidden>Nova regra</button>
+            </div>
+            <div style="overflow:auto; max-height:calc(100vh - 340px)">
+              <table class="pc-table">
+                <thead><tr><th>Código</th><th>Evento</th><th>Diário</th><th>D / C</th><th>Auto</th><th></th></tr></thead>
+                <tbody id="rows"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel" id="panel-aplicar">
+            <div class="pc-form" style="display:grid">
+              <div class="field span2"><label>Regra / evento</label><select class="form-input" id="a-regra"></select></div>
+              <div class="field"><label>Valor</label><input class="form-input" id="a-valor" type="number" min="0.01" step="0.01" value="100"></div>
+              <div class="field"><label>Data</label><input class="form-input" id="a-data" type="date"></div>
+              <div class="field span2"><label>Referência</label><input class="form-input" id="a-ref" placeholder="DOC-001"></div>
+              <div class="field span2"><label>Histórico</label><input class="form-input" id="a-hist" placeholder="opcional"></div>
+              <div class="field"><label>Forçar auto-post</label>
+                <select class="form-input" id="a-auto">
+                  <option value="">Usar regra</option>
+                  <option value="1">Postar agora</option>
+                  <option value="0">Só rascunho</option>
+                </select>
+              </div>
+              <div class="actions"><button class="dialog-btn dialog-btn-primary" id="btn-apply">Aplicar</button></div>
+            </div>
+          </div>
+
+          <div class="panel" id="panel-hist">
+            <button class="dialog-btn dialog-btn-secondary" id="btn-hist" style="margin-bottom:10px">Atualizar</button>
+            <div style="overflow:auto; max-height:calc(100vh - 300px)">
+              <table class="pc-table">
+                <thead><tr><th>Quando</th><th>Ação</th><th>Número</th><th>Resultado</th><th>Detalhe</th></tr></thead>
+                <tbody id="h-rows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let perms = { pode_escrever: false, pode_excluir: false };
+  let editing = false;
+  let regras = [];
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  document.querySelectorAll(".tabs button").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+      if (btn.dataset.tab === "hist") loadHist();
+    };
+  });
+
+  function clearForm() {
+    editing = false;
+    document.getElementById("f-codigo").disabled = false;
+    document.getElementById("f-codigo").value = "";
+    document.getElementById("f-nome").value = "";
+    document.getElementById("f-evento").value = "";
+    document.getElementById("f-deb").value = "";
+    document.getElementById("f-cred").value = "";
+    document.getElementById("f-auto").value = "0";
+    document.getElementById("f-ativo").value = "1";
+  }
+
+  async function loadMeta() {
+    const [jd, pc] = await Promise.all([
+      AuthService.api("/api/diarios?ativos=1"),
+      AuthService.api("/api/planocontas?analiticas=1&limit=400"),
+    ]);
+    document.getElementById("f-diario").innerHTML = (jd.diarios || [])
+      .map((d) => `<option value="${d.codigo}">${d.codigo} — ${d.nome}</option>`).join("");
+    document.getElementById("contas-sugestao").innerHTML = (pc.contas || [])
+      .map((c) => `<option value="${c.classificacao || c.codigo}">${c.nome || ""}</option>`).join("");
+    document.getElementById("a-data").value = new Date().toISOString().slice(0, 10);
+  }
+
+  function fillApplySelect() {
+    document.getElementById("a-regra").innerHTML = regras
+      .filter((r) => r.ativo !== false)
+      .map((r) => `<option value="${r.codigo}">${r.codigo} · ${r.evento} — ${r.nome}</option>`)
+      .join("");
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    const q = document.getElementById("q").value.trim();
+    if (q) qs.set("q", q);
+    const data = await AuthService.api("/api/posting/rules?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha", false);
+    perms = data.permissoes || perms;
+    regras = data.regras || [];
+    fillApplySelect();
+    document.getElementById("form-box").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new").hidden = !perms.pode_escrever;
+    document.getElementById("meta").textContent =
+      (data.total || 0) + " regras · perfil " + ((data.permissoes && data.permissoes.role) || "—");
+
+    const tb = document.getElementById("rows");
+    if (!regras.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Nenhuma regra</td></tr>';
+      return;
+    }
+    tb.innerHTML = regras.map((r) => {
+      const id = encodeURIComponent(r.codigo);
+      let acts = "";
+      if (perms.pode_escrever) acts += `<button class="dialog-btn dialog-btn-secondary" data-edit="${id}" style="padding:3px 8px;font-size:11px">Editar</button> `;
+      if (perms.pode_excluir) acts += `<button class="dialog-btn dialog-btn-secondary" data-del="${id}" style="padding:3px 8px;font-size:11px">Excluir</button>`;
+      return `<tr>
+        <td>${r.codigo}</td>
+        <td>${r.evento}</td>
+        <td>${r.diario}</td>
+        <td style="font-size:11px">${r.conta_debito}<br>→ ${r.conta_credito}</td>
+        <td>${r.auto_post ? "Sim" : "Não"}</td>
+        <td style="white-space:nowrap">${acts || "—"}</td>
+      </tr>`;
+    }).join("");
+
+    tb.querySelectorAll("[data-edit]").forEach((btn) => {
+      btn.onclick = () => {
+        const r = regras.find((x) => x.codigo === decodeURIComponent(btn.dataset.edit));
+        if (!r) return;
+        editing = true;
+        document.getElementById("form-box").hidden = false;
+        document.getElementById("f-codigo").value = r.codigo;
+        document.getElementById("f-codigo").disabled = true;
+        document.getElementById("f-nome").value = r.nome || "";
+        document.getElementById("f-evento").value = r.evento || "";
+        document.getElementById("f-diario").value = r.diario || "";
+        document.getElementById("f-deb").value = r.conta_debito || "";
+        document.getElementById("f-cred").value = r.conta_credito || "";
+        document.getElementById("f-auto").value = r.auto_post ? "1" : "0";
+        document.getElementById("f-ativo").value = r.ativo === false ? "0" : "1";
+      };
+    });
+    tb.querySelectorAll("[data-del]").forEach((btn) => {
+      btn.onclick = async () => {
+        if (!confirm("Excluir regra?")) return;
+        const res = await AuthService.api("/api/admin/posting/rules/" + btn.dataset.del, {
+          method: "POST", body: JSON.stringify({ action: "delete" }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Regra excluída", true);
+        load();
+      };
+    });
+  }
+
+  async function loadHist() {
+    const data = await AuthService.api("/api/posting/history?limit=80");
+    const tb = document.getElementById("h-rows");
+    const rows = data.eventos || [];
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="5" style="opacity:.6;padding:24px;text-align:center">Sem histórico</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((e) => `
+      <tr>
+        <td>${(e.em || "").replace("T", " ")}</td>
+        <td>${e.acao || ""}</td>
+        <td>${e.numero || "—"}</td>
+        <td><span class="badge ${e.ok ? "ok" : "err"}">${e.ok ? "OK" : "Falha"}</span></td>
+        <td style="font-size:12px">${(e.errors && e.errors.length) ? e.errors.join("; ") : (e.regra || e.evento || e.actor || "—")}</td>
+      </tr>`).join("");
+  }
+
+  document.getElementById("btn-search").onclick = load;
+  document.getElementById("btn-hist").onclick = loadHist;
+  document.getElementById("btn-clear").onclick = clearForm;
+  document.getElementById("btn-new").onclick = () => { clearForm(); document.getElementById("form-box").hidden = false; };
+  document.getElementById("q").addEventListener("keydown", (e) => { if (e.key === "Enter") load(); });
+
+  document.getElementById("btn-save").onclick = async () => {
+    const codigo = document.getElementById("f-codigo").value.trim().toUpperCase();
+    const body = {
+      codigo,
+      nome: document.getElementById("f-nome").value.trim(),
+      evento: document.getElementById("f-evento").value.trim(),
+      diario: document.getElementById("f-diario").value,
+      conta_debito: document.getElementById("f-deb").value.trim(),
+      conta_credito: document.getElementById("f-cred").value.trim(),
+      auto_post: document.getElementById("f-auto").value === "1",
+      ativo: document.getElementById("f-ativo").value === "1",
+    };
+    const path = editing
+      ? "/api/admin/posting/rules/" + encodeURIComponent(codigo)
+      : "/api/admin/posting/rules";
+    const res = await AuthService.api(path, { method: "POST", body: JSON.stringify(body) });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg(editing ? "Regra atualizada" : "Regra criada", true);
+    clearForm();
+    load();
+  };
+
+  document.getElementById("btn-apply").onclick = async () => {
+    const body = {
+      regra: document.getElementById("a-regra").value,
+      valor: parseFloat(document.getElementById("a-valor").value || "0"),
+      data: document.getElementById("a-data").value,
+      referencia: document.getElementById("a-ref").value.trim(),
+      historico: document.getElementById("a-hist").value.trim(),
+    };
+    const ap = document.getElementById("a-auto").value;
+    if (ap === "1") body.auto_post = true;
+    if (ap === "0") body.auto_post = false;
+    const res = await AuthService.api("/api/admin/posting/apply", {
+      method: "POST", body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    const n = res.lancamento && res.lancamento.numero;
+    const st = res.lancamento && res.lancamento.status;
+    msg("Gerado " + n + " (" + st + ")", true);
+  };
+
+  loadMeta().then(load);
+})();
+</script>
+</body>
+</html>

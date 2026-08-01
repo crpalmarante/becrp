@@ -1,5 +1,5 @@
 {
-  "atualizado_em": "2026-07-31T22:48:54",
+  "atualizado_em": "2026-07-31T22:51:57",
   "diarios": [
     {
       "codigo": "VEN",
@@ -11,7 +11,7 @@
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:40:34"
+      "atualizado_em": "2026-07-31T22:51:57"
     },
     {
       "codigo": "COM",
@@ -23,7 +23,7 @@
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:40:34"
+      "atualizado_em": "2026-07-31T22:51:57"
     },
     {
       "codigo": "CXA",
@@ -35,7 +35,7 @@
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:48:54"
+      "atualizado_em": "2026-07-31T22:51:57"
     },
     {
       "codigo": "BCO",

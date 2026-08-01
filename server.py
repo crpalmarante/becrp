@@ -24,6 +24,7 @@ import planocontas
 import journals
 import journal_entries
 import ledger
+import posting_engine
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -1325,6 +1326,56 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
             return self._json({"status": "ok", **out, "meta": ledger.meta()})
+
+        # ── Posting Engine (RFC-8004 MVP) ──
+        if parsed.path == "/api/posting/rules":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            ativos = None
+            a_raw = (qs.get("ativos") or [""])[0].strip().lower()
+            if a_raw in ("1", "true", "yes"):
+                ativos = True
+            elif a_raw in ("0", "false", "no"):
+                ativos = False
+            out = posting_engine.list_rules(
+                q=(qs.get("q") or [""])[0],
+                evento=(qs.get("evento") or [""])[0] or None,
+                ativos=ativos,
+            )
+            role = self._user_role(token)
+            return self._json({
+                "status": "ok",
+                **out,
+                "permissoes": {
+                    "pode_escrever": role in JOURNALS_WRITE_ROLES,
+                    "pode_excluir": role in JOURNALS_DELETE_ROLES,
+                    "role": role,
+                },
+            })
+
+        if parsed.path == "/api/posting/history":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                limit = int((qs.get("limit") or ["100"])[0] or 100)
+            except (TypeError, ValueError):
+                limit = 100
+            return self._json({"status": "ok", **posting_engine.list_history(limit=limit)})
+
+        if parsed.path.startswith("/api/posting/validate/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            entry = journal_entries.get_lancamento(key)
+            if not entry:
+                return self._json({"status": "error", "message": "Lançamento não encontrado"}, 404)
+            result = posting_engine.validate_entry(entry)
+            return self._json({"status": "ok", "lancamento": entry, **result})
 
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":
@@ -2713,7 +2764,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         "message": "Apenas responsável contábil/fiscal ou admin pode postar",
                     }, 403)
                 try:
-                    row = journal_entries.post_lancamento(key)
+                    user = self._find_user(crud_token, load_users()) or {}
+                    actor = user.get("usuario") or user.get("nome") or ""
+                    row = posting_engine.post(key, actor=actor, source="api")
                     return self._json({"status": "ok", "lancamento": row, "message": "Lançamento postado"})
                 except ValueError as e:
                     return self._json({"status": "error", "message": str(e)}, 400)
@@ -2725,7 +2778,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         "message": "Apenas responsável contábil/fiscal ou admin pode estornar",
                     }, 403)
                 try:
-                    row = journal_entries.reverse_lancamento(key, body or {})
+                    user = self._find_user(crud_token, load_users()) or {}
+                    actor = user.get("usuario") or user.get("nome") or ""
+                    row = posting_engine.reverse(key, body or {}, actor=actor, source="api")
                     return self._json({"status": "ok", "lancamento": row, "message": "Estorno gerado"})
                 except ValueError as e:
                     return self._json({"status": "error", "message": str(e)}, 400)
@@ -2750,6 +2805,57 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 row = journal_entries.update_lancamento(key, body or {})
                 return self._json({"status": "ok", "lancamento": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Posting: regras + apply_event ──
+        if parsed.path == "/api/admin/posting/apply":
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode aplicar eventos",
+                }, 403)
+            try:
+                user = self._find_user(crud_token, load_users()) or {}
+                actor = user.get("usuario") or user.get("nome") or ""
+                out = posting_engine.apply_event(body or {}, actor=actor)
+                return self._json({"status": "ok", **out}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/admin/posting/rules":
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode criar regras",
+                }, 403)
+            try:
+                row = posting_engine.create_rule(body or {})
+                return self._json({"status": "ok", "regra": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/posting/rules/"):
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if isinstance(body, dict) and body.get("action") == "delete":
+                if not self._can_delete_journals(crud_token):
+                    return self._json({
+                        "status": "error",
+                        "message": "Exclusão permitida apenas ao responsável contábil/fiscal",
+                    }, 403)
+                try:
+                    posting_engine.delete_rule(key)
+                    return self._json({"status": "ok", "message": "Regra excluída"})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode editar regras",
+                }, 403)
+            try:
+                row = posting_engine.update_rule(key, body or {})
+                return self._json({"status": "ok", "regra": row})
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
