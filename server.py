@@ -28,6 +28,7 @@ import posting_engine
 import accounting_periods
 import accounting_reports
 import accounting_integration
+import accounting_analytics
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -1500,6 +1501,45 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             except (TypeError, ValueError):
                 limit = 100
             return self._json({"status": "ok", **accounting_integration.list_log(limit=limit)})
+
+        # ── Analytics contábil (RFC-8009 MVP) ──
+        if parsed.path == "/api/accounting/analytics":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                meses = int((qs.get("meses") or ["6"])[0] or 6)
+            except (TypeError, ValueError):
+                meses = 6
+            try:
+                top = int((qs.get("top") or ["10"])[0] or 10)
+            except (TypeError, ValueError):
+                top = 10
+            try:
+                out = accounting_analytics.dashboard(
+                    data_de=(qs.get("data_de") or [""])[0] or None,
+                    data_ate=(qs.get("data_ate") or [""])[0] or None,
+                    meses=meses,
+                    top=top,
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            return self._json({"status": "ok", **out})
+
+        if parsed.path == "/api/accounting/analytics/compare":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                out = accounting_analytics.compare_periods(
+                    periodo_a=(qs.get("a") or qs.get("periodo_a") or [""])[0] or None,
+                    periodo_b=(qs.get("b") or qs.get("periodo_b") or [""])[0] or None,
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            return self._json({"status": "ok", **out})
 
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Analytics Contábil</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:120px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .kpis { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin-bottom:16px; }
+    .kpi { padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .kpi .lbl { font-size:11px; text-transform:uppercase; opacity:.65; }
+    .kpi .val { font-size:18px; font-variant-numeric: tabular-nums; margin-top:4px; }
+    .grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .pc-table td.num { text-align:right; font-variant-numeric: tabular-nums; }
+    .sec { font-size:14px; font-weight:600; margin:0 0 8px; }
+    .bars { display:flex; flex-direction:column; gap:8px; }
+    .bar-row { display:grid; grid-template-columns: 64px 1fr 72px; gap:8px; align-items:center; font-size:12px; }
+    .bar-track { height:10px; background: rgba(255,255,255,.08); border-radius:4px; overflow:hidden; }
+    .bar-fill { height:100%; background: rgba(74,222,128,.55); border-radius:4px; min-width:0; }
+    .bar-fill.neg { background: rgba(248,113,113,.55); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="plano-contas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Plano de Contas</span></a>
+      <a class="menu-item" href="diarios.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Diários</span></a>
+      <a class="menu-item" href="lancamentos.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Lançamentos</span></a>
+      <a class="menu-item" href="razao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Razão / Saldos</span></a>
+      <a class="menu-item" href="posting.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Posting</span></a>
+      <a class="menu-item" href="periodos.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Períodos</span></a>
+      <a class="menu-item" href="relatorios-contabeis.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Relatórios</span></a>
+      <a class="menu-item" href="integracao-contabil.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Integração</span></a>
+      <a class="menu-item active" href="analytics-contabil.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Analytics</span></a>
+      <a class="menu-item" href="contabilidade.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Contabilidade</span></a>
+      <a class="menu-item" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="topbar-title">Analytics Contábil</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Contabilidade / Analytics</div>
+          <h2 class="workspace-title">Indicadores e tendências</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">Somente lançamentos postados. Demo: <code>lucia</code> / <code>123</code>.</p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="pc-toolbar">
+            <div class="field"><label>De</label><input class="form-input" type="date" id="de"></div>
+            <div class="field"><label>Até</label><input class="form-input" type="date" id="ate"></div>
+            <div class="field"><label>Meses tendência</label>
+              <select class="form-input" id="meses">
+                <option value="3">3</option>
+                <option value="6" selected>6</option>
+                <option value="12">12</option>
+              </select>
+            </div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-run">Atualizar</button>
+          </div>
+
+          <div class="kpis" id="kpis"></div>
+
+          <div class="grid2">
+            <div>
+              <div class="sec">Tendência (resultado)</div>
+              <div class="bars" id="trend"></div>
+            </div>
+            <div>
+              <div class="sec">Comparativo vs mês anterior</div>
+              <div id="cmp"></div>
+            </div>
+          </div>
+
+          <div class="grid2" style="margin-top:18px">
+            <div>
+              <div class="sec">Por diário</div>
+              <div style="overflow:auto; max-height:280px">
+                <table class="pc-table">
+                  <thead><tr><th>Diário</th><th>Qtd</th><th>Volume D</th></tr></thead>
+                  <tbody id="j-rows"></tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <div class="sec">Top contas (movimento)</div>
+              <div style="overflow:auto; max-height:280px">
+                <table class="pc-table">
+                  <thead><tr><th>Conta</th><th>Nome</th><th>Mov.</th></tr></thead>
+                  <tbody id="t-rows"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:16px" class="pc-meta" id="integ"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  function money(n) {
+    return Number(n || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+  function pct(n) {
+    if (n == null || Number.isNaN(n)) return "—";
+    return (Number(n) * 100).toFixed(1) + "%";
+  }
+
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  document.getElementById("de").value = y + "-" + m + "-01";
+  document.getElementById("ate").value = now.toISOString().slice(0, 10);
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams({
+      data_de: document.getElementById("de").value,
+      data_ate: document.getElementById("ate").value,
+      meses: document.getElementById("meses").value,
+      top: "10",
+    });
+    const data = await AuthService.api("/api/accounting/analytics?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha", false);
+
+    const k = data.kpis || {};
+    document.getElementById("meta").textContent =
+      (data.titulo || "Analytics") + " · " +
+      ((data.meta && data.meta.lancamentos_postados) || 0) + " postados no ledger";
+
+    document.getElementById("kpis").innerHTML = [
+      ["Receitas", money(k.receitas)],
+      ["Despesas", money(k.despesas)],
+      ["Resultado", money(k.resultado)],
+      ["Margem", k.margem == null ? "—" : pct(k.margem)],
+      ["Ativo", money(k.ativo)],
+      ["Lançamentos", String(k.lancamentos || 0)],
+      ["Volume D", money(k.volume_debito)],
+      ["Ticket médio", money(k.ticket_medio)],
+    ].map(([lbl, val]) => `<div class="kpi"><div class="lbl">${lbl}</div><div class="val">${val}</div></div>`).join("");
+
+    const trend = data.tendencia || [];
+    const maxAbs = Math.max(1, ...trend.map((t) => Math.abs(t.resultado || 0)));
+    document.getElementById("trend").innerHTML = trend.map((t) => {
+      const w = Math.round((Math.abs(t.resultado || 0) / maxAbs) * 100);
+      const neg = (t.resultado || 0) < 0;
+      return `<div class="bar-row">
+        <span>${t.label}</span>
+        <div class="bar-track"><div class="bar-fill ${neg ? "neg" : ""}" style="width:${w}%"></div></div>
+        <span class="num">${money(t.resultado)}</span>
+      </div>`;
+    }).join("") || "<div style='opacity:.6'>Sem dados</div>";
+
+    document.getElementById("j-rows").innerHTML = (data.por_diario || []).map((r) =>
+      `<tr><td>${r.diario}</td><td class="num">${r.lancamentos}</td><td class="num">${money(r.debito)}</td></tr>`
+    ).join("") || '<tr><td colspan="3" style="opacity:.6">—</td></tr>';
+
+    document.getElementById("t-rows").innerHTML = (data.top_contas || []).map((r) =>
+      `<tr><td>${r.conta}</td><td>${r.conta_nome || ""}</td><td class="num">${money(r.movimento)}</td></tr>`
+    ).join("") || '<tr><td colspan="3" style="opacity:.6">—</td></tr>';
+
+    const integ = data.integracao || {};
+    document.getElementById("integ").textContent =
+      "Integração " + (integ.enabled ? "ON" : "OFF") +
+      " · amostra " + (integ.amostra || 0) +
+      " · ok " + (integ.ok || 0) +
+      " · falhas " + (integ.falhas || 0) +
+      " · skip " + (integ.skipped || 0) +
+      (integ.taxa_sucesso != null ? " · sucesso " + pct(integ.taxa_sucesso) : "");
+
+    const cm = await AuthService.api("/api/accounting/analytics/compare");
+    if (cm.status === "ok") {
+      const d = cm.deltas || {};
+      const rows = ["receitas", "despesas", "resultado", "lancamentos"].map((key) => {
+        const x = d[key] || {};
+        const sign = (x.delta || 0) >= 0 ? "+" : "";
+        return `<tr>
+          <td>${key}</td>
+          <td class="num">${money(x.b)}</td>
+          <td class="num">${money(x.a)}</td>
+          <td class="num">${sign}${money(x.delta)} (${pct(x.pct)})</td>
+        </tr>`;
+      }).join("");
+      document.getElementById("cmp").innerHTML =
+        `<div class="pc-meta">${(cm.periodo_b && cm.periodo_b.periodo) || "B"} → ${(cm.periodo_a && cm.periodo_a.periodo) || "A"}</div>` +
+        `<table class="pc-table"><thead><tr><th>KPI</th><th>Anterior</th><th>Atual</th><th>Δ</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+  }
+
+  document.getElementById("btn-run").onclick = load;
+  load();
+})();
+</script>
+</body>
+</html>

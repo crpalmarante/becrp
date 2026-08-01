@@ -64,9 +64,10 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ✅ **Períodos (RFC-8006 MVP):** `accounting_periods.py` · exercício/meses · open/closing/closed/locked · bloqueia posting · `/api/periodos` · UI `pages/periodos.html`
 - ✅ **Relatórios (RFC-8007 MVP):** `accounting_reports.py` · balancete/BP/DRE/diário · `/api/relatorios/*` · UI `pages/relatorios-contabeis.html`
 - ✅ **Integração (RFC-8008 MVP):** `accounting_integration.py` · POS/Recebimento → posting · idempotente · `/api/accounting/integration` · UI `pages/integracao-contabil.html`
+- ✅ **Analytics (RFC-8009 MVP):** `accounting_analytics.py` · KPIs/tendência/comparativo · `/api/accounting/analytics` · UI `pages/analytics-contabil.html`
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
-**Próximo ataque interno (ordem contábil):** core + integração (8001–8008). Seguinte sob dor: analytics (8009).
+**Trilha contábil (8001–8009):** MVP fechado.
 
 ---
 
@@ -160,6 +161,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 24. ~~Períodos contábeis~~ ✅ (`accounting_periods.py` · `/api/periodos` · `pages/periodos.html`)  
 25. ~~Relatórios contábeis~~ ✅ (`accounting_reports.py` · `/api/relatorios` · `pages/relatorios-contabeis.html`)  
 26. ~~Integração contábil~~ ✅ (`accounting_integration.py` · hooks POS/receiving · `pages/integracao-contabil.html`)  
+27. ~~Analytics contábil~~ ✅ (`accounting_analytics.py` · `/api/accounting/analytics` · `pages/analytics-contabil.html`)  
 
 ---
 
