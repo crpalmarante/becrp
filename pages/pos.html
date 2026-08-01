@@ -136,6 +136,7 @@
               <div id="client-history" class="client-history" hidden></div>
             </div>
 
+            <div id="troca-aprov-banner" class="mode-note" hidden style="margin:0 0 8px;padding:8px 10px;border:1px solid rgba(74,222,128,.35);border-radius:6px;color:#4ade80"></div>
             <div id="training-banner" class="training-banner" hidden>
               Modo treinamento — não vai ao caixa real
             </div>
@@ -360,8 +361,34 @@
             </div>
           </div>
 
+          <!-- Aprovação gerente (troca) -->
+          <div id="smart-ctx-mgr-auth" class="smart-ctx" hidden>
+            <div class="numpad-head">
+              <h3>Aprovação do gerente</h3>
+              <p class="numpad-sub">Troca/devolução exige senha de gerente ou admin</p>
+            </div>
+            <div class="side-block">
+              <label class="mode-note">Usuário</label>
+              <input class="pos-search" id="mgr-user" placeholder="bruno ou admin" autocomplete="username">
+            </div>
+            <div class="side-block">
+              <label class="mode-note">Senha</label>
+              <input class="pos-search" id="mgr-pass" type="password" placeholder="••••" autocomplete="current-password">
+            </div>
+            <div class="side-block">
+              <label class="mode-note">Motivo (opcional)</label>
+              <input class="pos-search" id="mgr-motivo" placeholder="Ex.: defeito / arrependimento" autocomplete="off">
+            </div>
+            <p class="mode-note" id="mgr-auth-error" style="color:#f87171" hidden></p>
+            <div class="side-block smart-footer" style="display:flex;gap:8px">
+              <button type="button" class="pos-cta secondary" id="btn-mgr-cancel" style="flex:1">Cancelar</button>
+              <button type="button" class="pos-cta" id="btn-mgr-ok" style="flex:1">Autorizar</button>
+            </div>
+          </div>
+
           <!-- Troca / devolução -->
           <div id="smart-ctx-exchange" class="smart-ctx" hidden>
+            <p class="mode-note" id="exchange-aprov-hint" style="margin:0 0 8px" hidden></p>
             <div class="side-block">
               <input class="pos-search" id="exchange-search" placeholder="NFC-e ou CPF do cliente" autocomplete="off">
             </div>

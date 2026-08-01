@@ -391,13 +391,14 @@
     variant: "Variação",
     price: "Consulta de Preço",
     exchange: "Troca / Devolução",
+    "mgr-auth": "Aprovação do gerente",
     similar: "Produtos Similares",
     payment: "Pagamento",
   };
 
   const SMART_CTX_IDS = [
     "summary", "customer", "discount", "parcel", "numpad", "text", "stock", "variant",
-    "price", "exchange", "similar",
+    "price", "exchange", "mgr-auth", "similar",
   ];
 
   function loadJson(key, fallback) {
@@ -464,6 +465,7 @@
       queueStatus: null,
       esperaLabel: null,
       esperaPriority: 0,
+      trocaAprovacao: null,
     };
   }
 
@@ -1692,6 +1694,74 @@
     else if (gate.openStock) openStock(product);
   }
 
+  function sessionHasTroca(s) {
+    return !!(s && (s.lines || []).some((l) => l.troca || Number(l.qtd) < 0));
+  }
+
+  function syncExchangeAprovHint() {
+    const hint = document.getElementById("exchange-aprov-hint");
+    const s = getSession();
+    if (!hint) return;
+    if (s && s.trocaAprovacao) {
+      hint.hidden = false;
+      hint.textContent =
+        "Autorizado por " +
+        (s.trocaAprovacao.nome || s.trocaAprovacao.usuario) +
+        (s.trocaAprovacao.motivo ? " · " + s.trocaAprovacao.motivo : "");
+    } else {
+      hint.hidden = true;
+      hint.textContent = "";
+    }
+  }
+
+  function openMgrAuthForExchange() {
+    const err = document.getElementById("mgr-auth-error");
+    if (err) {
+      err.hidden = true;
+      err.textContent = "";
+    }
+    const userEl = document.getElementById("mgr-user");
+    const passEl = document.getElementById("mgr-pass");
+    const motEl = document.getElementById("mgr-motivo");
+    if (userEl && !userEl.value) userEl.value = "bruno";
+    if (passEl) passEl.value = "";
+    if (motEl) motEl.value = "";
+    setSmartCtx("mgr-auth");
+    if (passEl) passEl.focus();
+  }
+
+  async function applyMgrAuth() {
+    const api = window.AuthService && window.AuthService.api;
+    const err = document.getElementById("mgr-auth-error");
+    if (!api) {
+      if (err) {
+        err.hidden = false;
+        err.textContent = "Sem API de autenticação";
+      }
+      return;
+    }
+    const usuario = (document.getElementById("mgr-user").value || "").trim();
+    const senha = document.getElementById("mgr-pass").value || "";
+    const motivo = (document.getElementById("mgr-motivo").value || "").trim();
+    const res = await api("/api/pos/autorizar-gerente", {
+      method: "POST",
+      body: JSON.stringify({ usuario, senha, motivo }),
+    });
+    if (!res || res.status !== "ok") {
+      if (err) {
+        err.hidden = false;
+        err.textContent = (res && res.message) || "Não autorizado";
+      }
+      return;
+    }
+    const s = getSession();
+    if (!s) return;
+    s.trocaAprovacao = res.aprovacao;
+    document.getElementById("status-hint").textContent =
+      "Troca autorizada por " + (res.aprovacao.nome || res.aprovacao.usuario);
+    openExchangePanelAfterAuth();
+  }
+
   async function renderExchangeResults() {
     const q = (document.getElementById("exchange-search").value || "").trim();
     const box = document.getElementById("exchange-results");
@@ -1745,6 +1815,12 @@
   function loadExchangeSale(sale) {
     const s = getSession();
     if (!s) return;
+    if (!s.trocaAprovacao && !trainingMode) {
+      openMgrAuthForExchange();
+      document.getElementById("status-hint").textContent =
+        "Peça a senha do gerente para carregar a troca";
+      return;
+    }
     pushUndo("troca/devolução");
     sale.lines.forEach((line) => {
       s.lines.push({
@@ -1757,18 +1833,51 @@
         obs: "Troca NFC-e " + sale.nfce,
       });
     });
+    if (s.trocaAprovacao) {
+      s.trocaAprovacao = {
+        ...s.trocaAprovacao,
+        venda_ref: String(sale.nfce || sale.id || ""),
+      };
+    }
     s.selectedLine = s.lines.length - 1;
     setSmartCtx("summary");
     renderOrder();
+    const who = s.trocaAprovacao
+      ? " · aut. " + (s.trocaAprovacao.nome || s.trocaAprovacao.usuario)
+      : "";
     document.getElementById("status-hint").textContent =
-      "Troca carregada · NFC-e " + sale.nfce + " · " + sale.lines.length + " itens";
+      "Troca carregada · NFC-e " + sale.nfce + " · " + sale.lines.length + " itens" + who;
   }
 
-  function openExchangePanel() {
+  function openExchangePanelAfterAuth() {
     document.getElementById("exchange-search").value = "";
+    syncExchangeAprovHint();
     renderExchangeResults();
     setSmartCtx("exchange");
     document.getElementById("exchange-search").focus();
+  }
+
+  function openExchangePanel() {
+    const s = getSession();
+    if (trainingMode) {
+      if (s && !s.trocaAprovacao) {
+        s.trocaAprovacao = {
+          user_id: "treino",
+          usuario: "treino",
+          nome: "TREINO",
+          role: "gerente",
+          at: new Date().toISOString(),
+          motivo: "modo treinamento",
+        };
+      }
+      openExchangePanelAfterAuth();
+      return;
+    }
+    if (s && s.trocaAprovacao) {
+      openExchangePanelAfterAuth();
+      return;
+    }
+    openMgrAuthForExchange();
   }
 
   function findProductByCode(code) {
@@ -2666,6 +2775,27 @@
     document.getElementById("btn-side-note").disabled = s.selectedLine < 0 || !s.lines[s.selectedLine];
     document.getElementById("btn-side-price").disabled = s.selectedLine < 0 || !s.lines[s.selectedLine];
 
+    const tab = document.getElementById("troca-aprov-banner");
+    if (tab) {
+      if (sessionHasTroca(s) && s.trocaAprovacao) {
+        tab.hidden = false;
+        tab.textContent =
+          "Troca autorizada · " +
+          (s.trocaAprovacao.nome || s.trocaAprovacao.usuario) +
+          (s.trocaAprovacao.venda_ref ? " · NFC-e " + s.trocaAprovacao.venda_ref : "");
+      } else if (sessionHasTroca(s) && !s.trocaAprovacao) {
+        tab.hidden = false;
+        tab.textContent = "Troca sem aprovação — peça senha do gerente";
+        tab.style.color = "#f87171";
+        tab.style.borderColor = "rgba(248,113,113,.35)";
+      } else {
+        tab.hidden = true;
+        tab.textContent = "";
+        tab.style.color = "#4ade80";
+        tab.style.borderColor = "rgba(74,222,128,.35)";
+      }
+    }
+
     syncOrderTypeUI();
     renderQueueBanner();
 
@@ -2875,6 +3005,7 @@
       orderDisc: session.orderDisc,
       orderAcr: session.orderAcr,
       orderParc: session.orderParc,
+      troca_aprovacao: session.trocaAprovacao || null,
     };
   }
 
@@ -3073,6 +3204,13 @@
     const s = getSession();
     if (!s || !s.lines.length) return;
     const total = orderTotal();
+
+    if (sessionHasTroca(s) && !s.trocaAprovacao && !trainingMode) {
+      openMgrAuthForExchange();
+      document.getElementById("status-hint").textContent =
+        "Troca no pedido — aprovação do gerente obrigatória antes de enviar";
+      return;
+    }
 
     if (s.orderType === "orcamento") {
       document.getElementById("status-hint").textContent =
@@ -3636,6 +3774,14 @@
     document.getElementById("btn-exchange").addEventListener("click", openExchangePanel);
     document.getElementById("exchange-search").addEventListener("input", renderExchangeResults);
     document.getElementById("btn-exchange-back").addEventListener("click", () => setSmartCtx("summary"));
+    document.getElementById("btn-mgr-cancel")?.addEventListener("click", () => setSmartCtx("summary"));
+    document.getElementById("btn-mgr-ok")?.addEventListener("click", applyMgrAuth);
+    document.getElementById("mgr-pass")?.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        applyMgrAuth();
+      }
+    });
     document.getElementById("btn-price-back").addEventListener("click", () => {
       pendingPriceProduct = null;
       setSmartCtx("summary");

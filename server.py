@@ -318,6 +318,62 @@ def hash_password(password):
 def make_token():
     return hashlib.sha256(uuid.uuid4().bytes).hexdigest()[:32]
 
+
+def _pedido_tem_troca(lines):
+    for line in lines or []:
+        if not isinstance(line, dict):
+            continue
+        if line.get("troca") or _safe_float(line.get("qtd"), 0) < 0:
+            return True
+    return False
+
+
+def _validar_troca_aprovacao(aprov):
+    """Exige carimbo de gerente/admin na troca."""
+    if not isinstance(aprov, dict):
+        raise ValueError("troca exige aprovação do gerente")
+    role = str(aprov.get("role") or "").lower()
+    if role not in ("gerente", "admin"):
+        raise ValueError("aprovação deve ser de gerente ou admin")
+    if not (aprov.get("usuario") or aprov.get("user_id") or aprov.get("nome")):
+        raise ValueError("aprovação de troca incompleta")
+    return {
+        "user_id": aprov.get("user_id") or "",
+        "usuario": aprov.get("usuario") or "",
+        "nome": aprov.get("nome") or aprov.get("usuario") or "",
+        "role": role,
+        "at": aprov.get("at") or datetime.now().isoformat(timespec="seconds"),
+        "motivo": (aprov.get("motivo") or "").strip(),
+        "venda_ref": aprov.get("venda_ref") or aprov.get("nfce") or "",
+    }
+
+
+def autorizar_gerente(usuario, senha, users, motivo=""):
+    """Valida senha de gerente/admin para override operacional (troca etc.)."""
+    user_login = str(usuario or "").strip()
+    if not user_login or senha is None or senha == "":
+        raise ValueError("informe usuário e senha do gerente")
+    for uid, u in (users or {}).items():
+        if str(u.get("usuario") or "") != user_login:
+            continue
+        if u.get("senha") != hash_password(senha):
+            raise ValueError("usuário ou senha incorretos")
+        if not u.get("ativo", True):
+            raise ValueError("usuário desativado")
+        role = str(u.get("role") or "").lower()
+        if role not in ("gerente", "admin"):
+            raise ValueError("apenas gerente ou admin pode autorizar")
+        return {
+            "user_id": uid,
+            "usuario": u.get("usuario") or user_login,
+            "nome": u.get("nome") or u.get("usuario") or user_login,
+            "role": role,
+            "at": datetime.now().isoformat(timespec="seconds"),
+            "motivo": str(motivo or "").strip(),
+        }
+    raise ValueError("usuário ou senha incorretos")
+
+
 ROLES = {
     # Administração / sistema
     "admin": {
@@ -1727,8 +1783,15 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if body.get("training"):
                 return self._json({"status": "error", "message": "Treino não grava na fila"}, 400)
             total = _safe_float(body.get("total"), 0)
-            if total <= 0:
+            tem_troca = _pedido_tem_troca(lines)
+            if total <= 0 and not tem_troca:
                 return self._json({"status": "error", "message": "Total inválido"}, 400)
+            troca_aprov = None
+            if tem_troca:
+                try:
+                    troca_aprov = _validar_troca_aprovacao(body.get("troca_aprovacao"))
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 403)
             fila = load_pos_fila()
             order_num = int(fila.get("next_num") or 1000)
             fila["next_num"] = order_num + 1
@@ -1774,6 +1837,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "orderDisc": body.get("orderDisc") or {"type": "val", "value": 0},
                 "orderAcr": body.get("orderAcr") or {"type": "val", "value": 0},
                 "orderParc": body.get("orderParc"),
+                "troca_aprovacao": troca_aprov,
             }
             fila["pedidos"].append(pedido)
             # mantém no máximo 200 pedidos no arquivo
@@ -1827,6 +1891,14 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         "message": "Abra o caixa (fundo de troco) antes de receber pagamentos",
                     }, 400)
 
+                if _pedido_tem_troca(pedido.get("lines") or []):
+                    try:
+                        pedido["troca_aprovacao"] = _validar_troca_aprovacao(
+                            body.get("troca_aprovacao") or pedido.get("troca_aprovacao")
+                        )
+                    except ValueError as e:
+                        return self._json({"status": "error", "message": str(e)}, 403)
+
                 pedido["state"] = "pagamento"
                 pedido["forma_pg"] = forma_pg
                 pedido["caixaUser"] = user.get("nome") or user.get("usuario") or ""
@@ -1839,6 +1911,8 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 pedido["updatedAt"] = datetime.now().isoformat(timespec="seconds")
 
                 venda = _pedido_para_venda(pedido, forma_pg)
+                if pedido.get("troca_aprovacao"):
+                    venda["troca_aprovacao"] = pedido["troca_aprovacao"]
                 vendas_path = os.path.join(BASE_DIR, "dados", "vendas.json")
                 vendas_data = load_json(vendas_path)
                 if not isinstance(vendas_data, dict):
@@ -1868,6 +1942,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
 
                 nfce_out = None
                 aviso = ""
+                if emitir and not (venda.get("itens") or []):
+                    emitir = False
+                    aviso = "Devolução/troca sem itens de venda — NFC-e de venda não emitida."
                 if emitir:
                     estab_id = (pedido.get("estabelecimento_id") or body.get("estabelecimento_id") or "").strip()
                     if not estab_id:
@@ -1950,6 +2027,22 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             pedido["caixaUser"] = user.get("nome") or user.get("usuario") or ""
             save_pos_fila(fila)
             return self._json({"status": "ok", "pedido": pedido})
+
+        if parsed.path == "/api/pos/autorizar-gerente":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            if not self._find_user(token, users):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            try:
+                aprov = autorizar_gerente(
+                    body.get("usuario"),
+                    body.get("senha"),
+                    users,
+                    motivo=body.get("motivo") or body.get("motivo_aprovacao") or "",
+                )
+                return self._json({"status": "ok", "aprovacao": aprov})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 403)
 
         if parsed.path == "/api/auth/login":
             usuario = body.get("usuario", "").strip()
