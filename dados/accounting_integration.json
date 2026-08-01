@@ -1,0 +1,9 @@
+{
+  "enabled": true,
+  "domains": {
+    "pos_sale": true,
+    "receiving": true,
+    "inventory_adjust": false
+  },
+  "atualizado_em": "2026-07-31T23:03:46"
+}

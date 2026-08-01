@@ -27,6 +27,7 @@ import ledger
 import posting_engine
 import accounting_periods
 import accounting_reports
+import accounting_integration
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -1474,6 +1475,32 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": str(e)}, 400)
             return self._json({"status": "ok", **out})
 
+        # ── Integração contábil (RFC-8008 MVP) ──
+        if parsed.path == "/api/accounting/integration":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            role = self._user_role(token)
+            return self._json({
+                "status": "ok",
+                **accounting_integration.status(),
+                "permissoes": {
+                    "pode_escrever": role in JOURNALS_WRITE_ROLES,
+                    "role": role,
+                },
+            })
+
+        if parsed.path == "/api/accounting/integration/log":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                limit = int((qs.get("limit") or ["100"])[0] or 100)
+            except (TypeError, ValueError):
+                limit = 100
+            return self._json({"status": "ok", **accounting_integration.list_log(limit=limit)})
+
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":
             token = self.headers.get("X-Auth-Token", "")
@@ -2098,7 +2125,12 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if action == "complete":
                     auto = bool(body.get("auto_verify"))
                     rec = receiving_mvp.complete_receiving(rid, user_id=uid, auto_verify=auto)
-                    return self._json({"status": "ok", "receiving": rec})
+                    contab = None
+                    try:
+                        contab = accounting_integration.on_receiving_complete(rec, actor=uid)
+                    except Exception as e:
+                        contab = {"ok": False, "error": str(e), "domain": "receiving"}
+                    return self._json({"status": "ok", "receiving": rec, "contabilidade": contab})
                 if action == "cancel":
                     rec = receiving_mvp.cancel_receiving(rid, user_id=uid, motivo=body.get("motivo"))
                     return self._json({"status": "ok", "receiving": rec})
@@ -2342,6 +2374,17 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 except Exception:
                     pass
 
+                # Contabilidade (RFC-8008): evento → posting (não bloqueia venda)
+                contab = None
+                try:
+                    user = self._find_user(token, load_users()) or {}
+                    actor = user.get("usuario") or user.get("nome") or ""
+                    contab = accounting_integration.on_pos_sale(
+                        venda, forma_pg=forma_pg, actor=actor
+                    )
+                except Exception as e:
+                    contab = {"ok": False, "error": str(e), "domain": "pos_sale"}
+
                 nfce_out = None
                 aviso = ""
                 if emitir and not (venda.get("itens") or []):
@@ -2404,6 +2447,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     "venda_id": next_vid,
                     "nfce": nfce_out,
                     "aviso": aviso.strip(),
+                    "contabilidade": contab,
                 })
 
             if action != "status":
@@ -2953,6 +2997,44 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 row = posting_engine.update_rule(key, body or {})
                 return self._json({"status": "ok", "regra": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Integração contábil: config ──
+        if parsed.path == "/api/admin/accounting/integration":
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode alterar integração",
+                }, 403)
+            try:
+                cfg = accounting_integration.update_config(body or {})
+                return self._json({"status": "ok", "config": cfg})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/admin/accounting/integration/publish":
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode republicar eventos",
+                }, 403)
+            try:
+                user = self._find_user(crud_token, load_users()) or {}
+                actor = user.get("usuario") or user.get("nome") or ""
+                b = body or {}
+                out = accounting_integration.publish(
+                    domain=str(b.get("domain") or "manual"),
+                    evento=b.get("evento"),
+                    valor=b.get("valor"),
+                    referencia=b.get("referencia"),
+                    historico=b.get("historico"),
+                    data=b.get("data"),
+                    actor=actor,
+                    auto_post=b.get("auto_post"),
+                )
+                code = 200 if out.get("ok") else 400
+                return self._json({"status": "ok" if out.get("ok") else "error", **out}, code)
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 

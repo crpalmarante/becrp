@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Integração Contábil</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap:10px; margin:0 0 16px; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .pc-form .field { margin:0; }
+    .pc-form .actions { display:flex; gap:8px; align-items:end; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); }
+    .badge.ok { border-color:#4ade80; color:#4ade80; }
+    .badge.err { border-color:#f87171; color:#f87171; }
+    .badge.skip { opacity:.7; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="plano-contas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Plano de Contas</span></a>
+      <a class="menu-item" href="diarios.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Diários</span></a>
+      <a class="menu-item" href="lancamentos.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Lançamentos</span></a>
+      <a class="menu-item" href="razao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Razão / Saldos</span></a>
+      <a class="menu-item" href="posting.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Posting</span></a>
+      <a class="menu-item" href="periodos.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Períodos</span></a>
+      <a class="menu-item" href="relatorios-contabeis.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Relatórios</span></a>
+      <a class="menu-item active" href="integracao-contabil.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Integração</span></a>
+      <a class="menu-item" href="contabilidade.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Contabilidade</span></a>
+      <a class="menu-item" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="topbar-title">Integração Contábil</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Contabilidade / Integração</div>
+          <h2 class="workspace-title">Eventos operacionais → Accounting</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note" id="principio">
+            POS e Recebimento publicam fatos; o Posting Engine gera o lançamento.
+            Falha contábil <strong>não</strong> impede a operação. Demo: <code>lucia</code> / <code>123</code>.
+          </p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="pc-form" id="form-box" hidden>
+            <div class="field"><label>Integração global</label>
+              <select class="form-input" id="f-enabled"><option value="1">Ligada</option><option value="0">Desligada</option></select>
+            </div>
+            <div class="field"><label>POS / vendas</label>
+              <select class="form-input" id="f-pos"><option value="1">On</option><option value="0">Off</option></select>
+            </div>
+            <div class="field"><label>Recebimento</label>
+              <select class="form-input" id="f-rcv"><option value="1">On</option><option value="0">Off</option></select>
+            </div>
+            <div class="field"><label>Ajuste estoque</label>
+              <select class="form-input" id="f-inv"><option value="0">Off</option><option value="1">On</option></select>
+            </div>
+            <div class="actions">
+              <button class="dialog-btn dialog-btn-primary" id="btn-save">Salvar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-reload">Atualizar log</button>
+            </div>
+          </div>
+
+          <div style="overflow:auto; max-height:calc(100vh - 320px)">
+            <table class="pc-table">
+              <thead>
+                <tr>
+                  <th>Quando</th>
+                  <th>Domínio</th>
+                  <th>Evento</th>
+                  <th>Ref.</th>
+                  <th>Valor</th>
+                  <th>Resultado</th>
+                  <th>Lançamento</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let perms = { pode_escrever: false };
+
+  function money(n) {
+    return Number(n || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  async function load() {
+    msg("");
+    const [st, log] = await Promise.all([
+      AuthService.api("/api/accounting/integration"),
+      AuthService.api("/api/accounting/integration/log?limit=80"),
+    ]);
+    if (st.status !== "ok") return msg(st.message || "Falha", false);
+    perms = st.permissoes || perms;
+    document.getElementById("form-box").hidden = !perms.pode_escrever;
+    const cfg = st.config || {};
+    const dom = cfg.domains || {};
+    document.getElementById("f-enabled").value = cfg.enabled === false ? "0" : "1";
+    document.getElementById("f-pos").value = dom.pos_sale === false ? "0" : "1";
+    document.getElementById("f-rcv").value = dom.receiving === false ? "0" : "1";
+    document.getElementById("f-inv").value = dom.inventory_adjust ? "1" : "0";
+    document.getElementById("meta").textContent =
+      (cfg.enabled === false ? "Integração OFF" : "Integração ON") +
+      " · regras: " + ((st.regras_disponiveis || []).join(", ") || "—") +
+      " · perfil " + ((st.permissoes && st.permissoes.role) || "—");
+    if (st.principio) document.getElementById("principio").textContent = st.principio;
+
+    const rows = (log.eventos || []);
+    const tb = document.getElementById("rows");
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="7" style="opacity:.6;padding:24px;text-align:center">Nenhum evento ainda — finalize uma venda no POS</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((e) => {
+      let badge = "ok";
+      let label = "OK";
+      if (!e.ok) { badge = "err"; label = "Falha"; }
+      else if (e.skipped) { badge = "skip"; label = "Skip"; }
+      return `<tr>
+        <td>${(e.em || "").replace("T", " ")}</td>
+        <td>${e.domain || ""}</td>
+        <td>${e.evento || ""}</td>
+        <td>${e.referencia || ""}</td>
+        <td>${money(e.valor)}</td>
+        <td><span class="badge ${badge}">${label}</span> ${(e.reason || e.error || "")}</td>
+        <td>${e.numero || "—"}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  document.getElementById("btn-reload").onclick = load;
+  document.getElementById("btn-save").onclick = async () => {
+    const body = {
+      enabled: document.getElementById("f-enabled").value === "1",
+      domains: {
+        pos_sale: document.getElementById("f-pos").value === "1",
+        receiving: document.getElementById("f-rcv").value === "1",
+        inventory_adjust: document.getElementById("f-inv").value === "1",
+      },
+    };
+    const res = await AuthService.api("/api/admin/accounting/integration", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Configuração salva", true);
+    load();
+  };
+
+  load();
+})();
+</script>
+</body>
+</html>
