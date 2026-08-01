@@ -1,23 +1,78 @@
 {
-  "lancamentos": [
+  "atualizado_em": "2026-07-31T22:40:34",
+  "diarios": [
     {
-      "id": 1,
-      "data": "2026-07-17",
-      "descricao": "Venda a vista",
-      "debito": "1.01.01.01.01",
-      "credito": "4.01.01",
-      "valor": 1500.0,
-      "data_lancamento": "2026-07-17 18:53:27"
+      "codigo": "VEN",
+      "nome": "Diário de Vendas",
+      "tipo": "sales",
+      "prefixo": "VEN",
+      "proximo": 1,
+      "conta_padrao": "3.01.01.01.01.05",
+      "ativo": true,
+      "usos": 0,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:40:34"
     },
     {
-      "id": 2,
-      "data": "2026-07-17",
-      "descricao": "Pagamento fornecedor",
-      "debito": "2.01",
-      "credito": "1.01.01.02.01",
-      "valor": 850.0,
-      "data_lancamento": "2026-07-17 18:53:27"
+      "codigo": "COM",
+      "nome": "Diário de Compras",
+      "tipo": "purchase",
+      "prefixo": "COM",
+      "proximo": 1,
+      "conta_padrao": "2.01.01.03.01",
+      "ativo": true,
+      "usos": 0,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:40:34"
+    },
+    {
+      "codigo": "CXA",
+      "nome": "Diário de Caixa",
+      "tipo": "cash",
+      "prefixo": "CXA",
+      "proximo": 1,
+      "conta_padrao": "1.01.01.01.01",
+      "ativo": true,
+      "usos": 0,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:40:34"
+    },
+    {
+      "codigo": "BCO",
+      "nome": "Diário de Banco",
+      "tipo": "bank",
+      "prefixo": "BCO",
+      "proximo": 1,
+      "conta_padrao": "1.01.01.02.01",
+      "ativo": true,
+      "usos": 0,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:40:34"
+    },
+    {
+      "codigo": "EST",
+      "nome": "Diário de Estoque",
+      "tipo": "inventory",
+      "prefixo": "EST",
+      "proximo": 1,
+      "conta_padrao": "1.01.03.01.01",
+      "ativo": true,
+      "usos": 0,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:40:34"
+    },
+    {
+      "codigo": "GER",
+      "nome": "Diário Geral",
+      "tipo": "general",
+      "prefixo": "GER",
+      "proximo": 1,
+      "conta_padrao": "",
+      "ativo": true,
+      "usos": 0,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:40:34"
     }
   ],
-  "total": 2
+  "total": 6
 }

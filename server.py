@@ -21,6 +21,7 @@ import pos_caixa
 import price_lists
 import campaigns
 import planocontas
+import journals
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -442,6 +443,9 @@ ROLES = {
 PLAN_CONTAS_WRITE_ROLES = frozenset({"admin", "contabil", "fiscal"})
 # Exclusão: só responsável contábil/fiscal (termo técnico) — admin só como break-glass
 PLAN_CONTAS_DELETE_ROLES = frozenset({"contabil", "fiscal", "admin"})
+# Diários: mesmas regras do plano
+JOURNALS_WRITE_ROLES = PLAN_CONTAS_WRITE_ROLES
+JOURNALS_DELETE_ROLES = PLAN_CONTAS_DELETE_ROLES
 
 ROLE_IDS = set(ROLES.keys())
 
@@ -1190,6 +1194,48 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not conta:
                 return self._json({"status": "error", "message": "Conta não encontrada"}, 404)
             return self._json({"status": "ok", "conta": conta})
+
+        # ── Diários contábeis (RFC-8002 MVP) ──
+        if parsed.path == "/api/diarios":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            ativos = None
+            a_raw = (qs.get("ativos") or [""])[0].strip().lower()
+            if a_raw in ("1", "true", "yes"):
+                ativos = True
+            elif a_raw in ("0", "false", "no"):
+                ativos = False
+            try:
+                out = journals.list_diarios(
+                    q=(qs.get("q") or [""])[0],
+                    tipo=(qs.get("tipo") or [""])[0] or None,
+                    ativos=ativos,
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            role = self._user_role(token)
+            return self._json({
+                "status": "ok",
+                **out,
+                "lancamentos": [],  # stub até RFC-8003
+                "permissoes": {
+                    "pode_escrever": role in JOURNALS_WRITE_ROLES,
+                    "pode_excluir": role in JOURNALS_DELETE_ROLES,
+                    "role": role,
+                },
+            })
+
+        if parsed.path.startswith("/api/diarios/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            row = journals.get_diario(key)
+            if not row:
+                return self._json({"status": "error", "message": "Diário não encontrado"}, 404)
+            return self._json({"status": "ok", "diario": row})
 
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":
@@ -2513,6 +2559,43 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
+        # ── Diários: CRUD ──
+        if parsed.path == "/api/admin/diarios":
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode criar diários",
+                }, 403)
+            try:
+                row = journals.create_diario(body or {})
+                return self._json({"status": "ok", "diario": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/diarios/"):
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if isinstance(body, dict) and body.get("action") == "delete":
+                if not self._can_delete_journals(crud_token):
+                    return self._json({
+                        "status": "error",
+                        "message": "Exclusão permitida apenas ao responsável contábil/fiscal",
+                    }, 403)
+                try:
+                    journals.delete_diario(key)
+                    return self._json({"status": "ok", "message": "Diário excluído"})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode editar diários",
+                }, 403)
+            try:
+                row = journals.update_diario(key, body or {})
+                return self._json({"status": "ok", "diario": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
         # ── Campanhas (POST) ──
         if parsed.path == "/api/admin/campaigns":
             if not self._is_admin(crud_token):
@@ -3289,6 +3372,12 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
     def _can_delete_planocontas(self, token):
         """Exclusão: responsável contábil/fiscal (termo técnico)."""
         return self._user_role(token) in PLAN_CONTAS_DELETE_ROLES
+
+    def _can_write_journals(self, token):
+        return self._user_role(token) in JOURNALS_WRITE_ROLES
+
+    def _can_delete_journals(self, token):
+        return self._user_role(token) in JOURNALS_DELETE_ROLES
 
     @staticmethod
     def _get_query_param(query_string: str, key: str, default: str = "") -> str:

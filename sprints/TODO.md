@@ -56,9 +56,11 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ✅ **Plano de contas (sistema):** `planocontas.py` · `dados/planocontas.json` (1069) · import local `Plano Referencial.xls` (não versionar) · `/api/planocontas` · UI `pages/plano-contas.html`
   - CRUD: criar/editar = `contabil` | `fiscal` | `admin`
   - **Excluir** = só responsável contábil/fiscal (`contabil`/`fiscal`; admin break-glass) — termo técnico, não gerente/caixa
+- ✅ **Diários (RFC-8002 MVP):** `journals.py` · `dados/diarios.json` · seed VEN/COM/CXA/BCO/EST/GER · `conta_padrao` no plano · `/api/diarios` · UI `pages/diarios.html`
+  - CRUD + mesmas permissões do plano; exclusão bloqueada se `usos > 0`
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
-**Próximo ataque interno (ordem):** (1) ~~caixa~~ ✅ → (2) ~~preço/listas~~ ✅ → (3) ~~troca + gerente~~ ✅ → (4) ~~campanhas~~ ✅
+**Próximo ataque interno (ordem contábil):** (1) ~~plano de contas~~ ✅ → (2) ~~diários~~ ✅ → (3) lançamentos (RFC-8003)
 
 ---
 
@@ -145,6 +147,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 17. ~~Troca/devolução com gerente~~ ✅ (`/api/pos/autorizar-gerente` · `troca_aprovacao` na fila)  
 18. ~~Campanhas~~ ✅ (`campaigns.py` · `/api/admin/campaigns` · POS/caixa)  
 19. ~~Plano de contas sistema~~ ✅ (`planocontas.py` · `/api/planocontas` · `pages/plano-contas.html`)  
+20. ~~Diários contábeis~~ ✅ (`journals.py` · `/api/diarios` · `pages/diarios.html`)  
 
 ---
 

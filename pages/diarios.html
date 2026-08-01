@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BECRP — Plano de Contas</title>
+  <title>BECRP — Diários Contábeis</title>
   <meta name="theme-color" content="#714B67">
   <link rel="stylesheet" href="../css/fonts.css">
   <link rel="stylesheet" href="../css/variaveis.css">
@@ -27,12 +27,11 @@
     .pc-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin:0 0 16px; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
     .pc-form .field { margin:0; }
     .pc-form .span2 { grid-column: span 2; }
-    .pc-form .actions { display:flex; gap:8px; align-items:end; }
+    .pc-form .actions { display:flex; gap:8px; align-items:end; flex-wrap:wrap; }
     .pc-table { width:100%; border-collapse:collapse; }
     .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; }
     .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
-    .pc-table tr.sintetica td { opacity:.85; }
-    .pc-table tr.analitica td { font-weight:500; }
+    .pc-table tr.inativo td { opacity:.55; }
     .badge-sa { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); }
     .pc-note { font-size:12px; opacity:.65; margin:0 0 10px; }
   </style>
@@ -45,11 +44,11 @@
       <span class="brand-text">BECRP</span>
     </div>
     <nav class="sidebar-nav">
-      <a class="menu-item active" href="plano-contas.html">
+      <a class="menu-item" href="plano-contas.html">
         <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
         <span class="menu-label">Plano de Contas</span>
       </a>
-      <a class="menu-item" href="diarios.html">
+      <a class="menu-item active" href="diarios.html">
         <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
         <span class="menu-label">Diários</span>
       </a>
@@ -71,11 +70,10 @@
   <div class="main-area">
     <header class="topbar">
       <div class="topbar-brand">
-        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
-        <span class="topbar-title">Plano de Contas</span>
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="topbar-title">Diários Contábeis</span>
       </div>
-      <div class="topbar-user" style="margin-left:auto; display:flex; gap:8px; align-items:center">
-        <button class="dialog-btn dialog-btn-secondary" id="btn-import" title="Reimportar Plano Referencial.xls local">Reimportar XLS</button>
+      <div class="topbar-user" style="margin-left:auto">
         <span class="topbar-user-info"><span id="user-name-display">—</span></span>
       </div>
     </header>
@@ -83,22 +81,37 @@
     <div class="workspace">
       <div id="workspace-view" style="display:flex">
         <div class="workspace-header">
-          <div class="workspace-breadcrumb">BECRP / Contabilidade / Plano de Contas</div>
-          <h2 class="workspace-title">Plano do sistema</h2>
+          <div class="workspace-breadcrumb">BECRP / Contabilidade / Diários</div>
+          <h2 class="workspace-title">Diários do sistema</h2>
         </div>
         <div class="workspace-content">
           <div id="meta" class="pc-meta">Carregando…</div>
-          <p class="pc-note">Exclusão só pelo <strong>responsável contábil/fiscal</strong> (perfil técnico). Demo: <code>lucia</code> / senha <code>123</code>.</p>
+          <p class="pc-note">
+            Conta padrão = sugestão conforme a operação do diário (não substitui o lançamento).
+            Exclusão só pelo <strong>responsável contábil/fiscal</strong>. Demo: <code>lucia</code> / <code>123</code>.
+          </p>
           <div id="msg" class="pc-msg"></div>
 
           <div class="pc-form" id="form-box" hidden>
-            <input type="hidden" id="f-codigo">
-            <div class="field span2"><label>Classificação</label><input class="form-input" id="f-classif" placeholder="1.01.01.01.99"></div>
-            <div class="field span2"><label>Nome</label><input class="form-input" id="f-nome" placeholder="Nova conta"></div>
+            <div class="field"><label>Código</label><input class="form-input" id="f-codigo" placeholder="VEN" maxlength="12"></div>
+            <div class="field span2"><label>Nome</label><input class="form-input" id="f-nome" placeholder="Diário de Vendas"></div>
             <div class="field"><label>Tipo</label>
               <select class="form-input" id="f-tipo">
-                <option value="A">Analítica</option>
-                <option value="S">Sintética</option>
+                <option value="sales">Vendas</option>
+                <option value="purchase">Compras</option>
+                <option value="cash">Caixa</option>
+                <option value="bank">Banco</option>
+                <option value="inventory">Estoque</option>
+                <option value="general">Geral</option>
+              </select>
+            </div>
+            <div class="field"><label>Prefixo seq.</label><input class="form-input" id="f-prefixo" placeholder="VEN" maxlength="12"></div>
+            <div class="field span2"><label>Conta padrão</label><input class="form-input" id="f-conta" placeholder="classificação ou código do plano" list="contas-sugestao"></div>
+            <datalist id="contas-sugestao"></datalist>
+            <div class="field"><label>Ativo</label>
+              <select class="form-input" id="f-ativo">
+                <option value="1">Sim</option>
+                <option value="0">Não</option>
               </select>
             </div>
             <div class="actions">
@@ -110,28 +123,33 @@
           <div class="pc-toolbar">
             <div class="field grow">
               <label>Buscar</label>
-              <input class="form-input" id="q" placeholder="código, classificação ou nome">
+              <input class="form-input" id="q" placeholder="código, nome, tipo ou conta">
             </div>
             <div class="field">
               <label>Tipo</label>
               <select class="form-input" id="tipo">
                 <option value="">Todos</option>
-                <option value="A">Analíticas</option>
-                <option value="S">Sintéticas</option>
+                <option value="sales">Vendas</option>
+                <option value="purchase">Compras</option>
+                <option value="cash">Caixa</option>
+                <option value="bank">Banco</option>
+                <option value="inventory">Estoque</option>
+                <option value="general">Geral</option>
               </select>
             </div>
             <button class="dialog-btn dialog-btn-primary" id="btn-search">Filtrar</button>
-            <button class="dialog-btn dialog-btn-secondary" id="btn-new" hidden>Nova conta</button>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-new" hidden>Novo diário</button>
           </div>
           <div style="overflow:auto; max-height:calc(100vh - 320px)">
             <table class="pc-table">
               <thead>
                 <tr>
                   <th>Cód.</th>
-                  <th>Classificação</th>
                   <th>Nome</th>
-                  <th>Nível</th>
-                  <th>S/A</th>
+                  <th>Tipo</th>
+                  <th>Prefixo</th>
+                  <th>Conta padrão</th>
+                  <th>Ativo</th>
                   <th></th>
                 </tr>
               </thead>
@@ -152,6 +170,7 @@
   document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
 
   let perms = { pode_escrever: false, pode_excluir: false };
+  let editing = false;
 
   function msg(t, ok) {
     const el = document.getElementById("msg");
@@ -160,31 +179,49 @@
   }
 
   function clearForm() {
+    editing = false;
     document.getElementById("f-codigo").value = "";
-    document.getElementById("f-classif").value = "";
+    document.getElementById("f-codigo").disabled = false;
     document.getElementById("f-nome").value = "";
-    document.getElementById("f-tipo").value = "A";
-    document.getElementById("f-classif").disabled = false;
+    document.getElementById("f-tipo").value = "general";
+    document.getElementById("f-prefixo").value = "";
+    document.getElementById("f-conta").value = "";
+    document.getElementById("f-ativo").value = "1";
   }
 
-  function editRow(c) {
+  function editRow(d) {
+    editing = true;
     document.getElementById("form-box").hidden = !perms.pode_escrever;
-    document.getElementById("f-codigo").value = c.codigo || "";
-    document.getElementById("f-classif").value = c.classificacao || "";
-    document.getElementById("f-nome").value = c.nome || "";
-    document.getElementById("f-tipo").value = (c.tipo || "A").toUpperCase() === "S" ? "S" : "A";
-    document.getElementById("f-classif").disabled = false;
+    document.getElementById("f-codigo").value = d.codigo || "";
+    document.getElementById("f-codigo").disabled = true;
+    document.getElementById("f-nome").value = d.nome || "";
+    document.getElementById("f-tipo").value = d.tipo || "general";
+    document.getElementById("f-prefixo").value = d.prefixo || "";
+    document.getElementById("f-conta").value = d.conta_padrao || "";
+    document.getElementById("f-ativo").value = d.ativo === false ? "0" : "1";
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function loadContasSugestao() {
+    const data = await AuthService.api("/api/planocontas?analiticas=1&limit=400");
+    const dl = document.getElementById("contas-sugestao");
+    if (data.status !== "ok") return;
+    dl.innerHTML = (data.contas || [])
+      .map((c) => {
+        const label = (c.classificacao || c.codigo) + " — " + (c.nome || "");
+        return `<option value="${c.classificacao || c.codigo}">${label}</option>`;
+      })
+      .join("");
   }
 
   async function load() {
     msg("");
     const q = document.getElementById("q").value.trim();
     const tipo = document.getElementById("tipo").value;
-    const qs = new URLSearchParams({ limit: "2000" });
+    const qs = new URLSearchParams();
     if (q) qs.set("q", q);
     if (tipo) qs.set("tipo", tipo);
-    const data = await AuthService.api("/api/planocontas?" + qs.toString());
+    const data = await AuthService.api("/api/diarios?" + qs.toString());
     if (data.status !== "ok") {
       msg(data.message || "Falha ao carregar", false);
       return;
@@ -192,30 +229,25 @@
     perms = data.permissoes || perms;
     document.getElementById("form-box").hidden = !perms.pode_escrever;
     document.getElementById("btn-new").hidden = !perms.pode_escrever;
-    document.getElementById("btn-import").hidden = !perms.pode_escrever;
 
-    const m = data.meta || {};
     document.getElementById("meta").textContent =
       (data.total || 0) +
-      " contas · fonte " +
-      (m.fonte || data.fonte || "—") +
-      (m.importado_em || data.importado_em ? " · importado " + (m.importado_em || data.importado_em) : "") +
-      " · perfil " +
+      " diários · perfil " +
       ((data.permissoes && data.permissoes.role) || auth.user.role || "—") +
       (perms.pode_excluir ? " · pode excluir" : " · sem exclusão");
 
     const tb = document.getElementById("rows");
-    const rows = data.contas || [];
+    const rows = data.diarios || [];
     if (!rows.length) {
-      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Nenhuma conta</td></tr>';
+      tb.innerHTML = '<tr><td colspan="7" style="opacity:.6;padding:24px;text-align:center">Nenhum diário</td></tr>';
       return;
     }
     tb.innerHTML = rows
-      .map((c) => {
-        const sa = (c.tipo || "").toUpperCase() === "A" ? "A" : "S";
-        const cls = sa === "A" ? "analitica" : "sintetica";
-        const pad = "&nbsp;".repeat(Math.max(0, (c.nivel || 1) - 1) * 2);
-        const id = encodeURIComponent(c.codigo || c.classificacao);
+      .map((d) => {
+        const conta =
+          (d.conta_padrao || "—") +
+          (d.conta_padrao_nome ? " · " + d.conta_padrao_nome : "");
+        const id = encodeURIComponent(d.codigo);
         let acts = "";
         if (perms.pode_escrever) {
           acts += `<button class="dialog-btn dialog-btn-secondary" data-edit="${id}" style="padding:3px 8px;font-size:11px">Editar</button> `;
@@ -223,12 +255,13 @@
         if (perms.pode_excluir) {
           acts += `<button class="dialog-btn dialog-btn-secondary" data-del="${id}" style="padding:3px 8px;font-size:11px">Excluir</button>`;
         }
-        return `<tr class="${cls}">
-          <td>${c.codigo || ""}</td>
-          <td>${c.classificacao || ""}</td>
-          <td>${pad}${c.nome || c.descricao || ""}</td>
-          <td>${c.nivel || ""}</td>
-          <td><span class="badge-sa">${sa === "A" ? "Analítica" : "Sintética"}</span></td>
+        return `<tr class="${d.ativo === false ? "inativo" : ""}">
+          <td>${d.codigo || ""}</td>
+          <td>${d.nome || ""}</td>
+          <td><span class="badge-sa">${d.tipo_label || d.tipo || ""}</span></td>
+          <td>${d.prefixo || ""}</td>
+          <td style="max-width:280px">${conta}</td>
+          <td>${d.ativo === false ? "Não" : "Sim"}</td>
           <td style="white-space:nowrap">${acts || "—"}</td>
         </tr>`;
       })
@@ -237,21 +270,21 @@
     tb.querySelectorAll("[data-edit]").forEach((btn) => {
       btn.onclick = () => {
         const key = decodeURIComponent(btn.dataset.edit);
-        const c = rows.find((x) => String(x.codigo) === key || String(x.classificacao) === key);
-        if (c) editRow(c);
+        const d = rows.find((x) => String(x.codigo) === key);
+        if (d) editRow(d);
       };
     });
     tb.querySelectorAll("[data-del]").forEach((btn) => {
       btn.onclick = async () => {
         if (!perms.pode_excluir) return msg("Exclusão só para responsável contábil/fiscal", false);
-        if (!confirm("Excluir esta conta? Só permitido sem contas filhas.")) return;
+        if (!confirm("Excluir este diário? Só permitido sem lançamentos.")) return;
         const key = decodeURIComponent(btn.dataset.del);
-        const res = await AuthService.api("/api/admin/planocontas/" + encodeURIComponent(key), {
+        const res = await AuthService.api("/api/admin/diarios/" + encodeURIComponent(key), {
           method: "POST",
           body: JSON.stringify({ action: "delete" }),
         });
         if (res.status !== "ok") return msg(res.message || "Falha ao excluir", false);
-        msg("Conta excluída", true);
+        msg("Diário excluído", true);
         load();
       };
     });
@@ -269,33 +302,26 @@
   };
 
   document.getElementById("btn-save").onclick = async () => {
-    const codigo = document.getElementById("f-codigo").value.trim();
+    const codigo = document.getElementById("f-codigo").value.trim().toUpperCase();
     const body = {
-      classificacao: document.getElementById("f-classif").value.trim(),
+      codigo,
       nome: document.getElementById("f-nome").value.trim(),
       tipo: document.getElementById("f-tipo").value,
+      prefixo: document.getElementById("f-prefixo").value.trim().toUpperCase(),
+      conta_padrao: document.getElementById("f-conta").value.trim(),
+      ativo: document.getElementById("f-ativo").value === "1",
     };
-    const path = codigo
-      ? "/api/admin/planocontas/" + encodeURIComponent(codigo)
-      : "/api/admin/planocontas";
+    const path = editing
+      ? "/api/admin/diarios/" + encodeURIComponent(codigo)
+      : "/api/admin/diarios";
     const res = await AuthService.api(path, { method: "POST", body: JSON.stringify(body) });
     if (res.status !== "ok") return msg(res.message || "Falha ao salvar", false);
-    msg(codigo ? "Conta atualizada" : "Conta criada", true);
+    msg(editing ? "Diário atualizado" : "Diário criado", true);
     clearForm();
     load();
   };
 
-  document.getElementById("btn-import").onclick = async () => {
-    if (!confirm("Reimportar do Plano Referencial.xls local? Isso substitui o JSON do sistema.")) return;
-    const res = await AuthService.api("/api/admin/planocontas/import", {
-      method: "POST",
-      body: JSON.stringify({}),
-    });
-    if (res.status !== "ok") return msg(res.message || "Falha na importação", false);
-    msg(res.message || "Importado", true);
-    load();
-  };
-
+  loadContasSugestao();
   load();
 })();
 </script>
