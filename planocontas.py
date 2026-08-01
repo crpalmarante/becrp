@@ -100,6 +100,137 @@ def meta():
     }
 
 
+def _next_codigo(contas):
+    nums = []
+    for c in contas:
+        try:
+            nums.append(int(str(c.get("codigo") or "0")))
+        except ValueError:
+            continue
+    return str((max(nums) if nums else 0) + 1)
+
+
+def _norm_tipo(val):
+    s = str(val or "").strip().upper()
+    if s in ("A", "ANALITICA", "ANALÍTICA", "2"):
+        return "A"
+    if s in ("S", "SINTETICA", "SINTÉTICA", "1"):
+        return "S"
+    raise ValueError("tipo deve ser S (sintética) ou A (analítica)")
+
+
+def _build_conta(payload, codigo=None, existing=None):
+    body = payload if isinstance(payload, dict) else {}
+    classif = str(
+        body.get("classificacao")
+        if body.get("classificacao") is not None
+        else (existing or {}).get("classificacao")
+        or ""
+    ).strip()
+    if not classif:
+        raise ValueError("classificacao obrigatória")
+    nome = str(
+        body.get("nome") if body.get("nome") is not None else (existing or {}).get("nome") or ""
+    ).strip()
+    if not nome:
+        raise ValueError("nome obrigatório")
+    tipo = _norm_tipo(
+        body.get("tipo") if body.get("tipo") is not None else (existing or {}).get("tipo") or "A"
+    )
+    hierarquia = [p for p in classif.split(".") if p]
+    desc = f"{classif}    {nome}"
+    return {
+        "codigo": str(codigo or (existing or {}).get("codigo") or "").strip(),
+        "descricao": desc,
+        "nome": nome,
+        "classificacao": classif,
+        "nivel": len(hierarquia) or 1,
+        "hierarquia": hierarquia or [classif],
+        "tipo": tipo,
+        "valido_de": body.get("valido_de")
+        if "valido_de" in body
+        else (existing or {}).get("valido_de"),
+        "valido_ate": body.get("valido_ate")
+        if "valido_ate" in body
+        else (existing or {}).get("valido_ate"),
+        "origem": (existing or {}).get("origem") or "manual",
+        "atualizado_em": _now(),
+    }
+
+
+def create_conta(payload):
+    data = _load_raw()
+    contas = data.get("contas") or []
+    body = payload if isinstance(payload, dict) else {}
+    classif = str(body.get("classificacao") or "").strip()
+    if any(str(c.get("classificacao")) == classif for c in contas):
+        raise ValueError(f"já existe conta com classificação {classif}")
+    codigo = str(body.get("codigo") or "").strip() or _next_codigo(contas)
+    if any(str(c.get("codigo")) == codigo for c in contas):
+        raise ValueError(f"já existe conta com código {codigo}")
+    row = _build_conta(body, codigo=codigo)
+    row["origem"] = "manual"
+    contas.append(row)
+    data["contas"] = contas
+    _save(data)
+    return row
+
+
+def update_conta(codigo_or_classif, payload):
+    data = _load_raw()
+    key = str(codigo_or_classif or "").strip()
+    idx = None
+    existing = None
+    for i, c in enumerate(data.get("contas") or []):
+        if str(c.get("codigo")) == key or str(c.get("classificacao")) == key:
+            idx = i
+            existing = c
+            break
+    if existing is None:
+        raise ValueError("conta não encontrada")
+    body = dict(payload or {})
+    # código imutável; classificação pode mudar se não colidir
+    new_classif = str(body.get("classificacao") or existing.get("classificacao") or "").strip()
+    for j, c in enumerate(data["contas"]):
+        if j == idx:
+            continue
+        if str(c.get("classificacao")) == new_classif:
+            raise ValueError(f"já existe conta com classificação {new_classif}")
+    row = _build_conta(body, codigo=existing.get("codigo"), existing=existing)
+    data["contas"][idx] = row
+    _save(data)
+    return row
+
+
+def delete_conta(codigo_or_classif):
+    """Remove conta. Bloqueia se houver filhos na hierarquia."""
+    data = _load_raw()
+    key = str(codigo_or_classif or "").strip()
+    idx = None
+    target = None
+    for i, c in enumerate(data.get("contas") or []):
+        if str(c.get("codigo")) == key or str(c.get("classificacao")) == key:
+            idx = i
+            target = c
+            break
+    if target is None:
+        raise ValueError("conta não encontrada")
+    classif = str(target.get("classificacao") or "")
+    prefix = classif + "."
+    filhos = [
+        c
+        for c in data["contas"]
+        if str(c.get("classificacao") or "").startswith(prefix)
+    ]
+    if filhos:
+        raise ValueError(
+            f"não é possível excluir: existem {len(filhos)} conta(s) filha(s) sob {classif}"
+        )
+    data["contas"].pop(idx)
+    _save(data)
+    return True
+
+
 def _col_to_idx(col):
     n = 0
     for ch in col:

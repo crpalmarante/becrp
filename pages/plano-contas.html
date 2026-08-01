@@ -24,12 +24,17 @@
     .pc-msg.err { color:#f87171; }
     .pc-msg.ok { color:#4ade80; }
     .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin:0 0 16px; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .pc-form .field { margin:0; }
+    .pc-form .span2 { grid-column: span 2; }
+    .pc-form .actions { display:flex; gap:8px; align-items:end; }
     .pc-table { width:100%; border-collapse:collapse; }
     .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; }
     .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
     .pc-table tr.sintetica td { opacity:.85; }
     .pc-table tr.analitica td { font-weight:500; }
     .badge-sa { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 10px; }
   </style>
 </head>
 <body>
@@ -75,11 +80,29 @@
       <div id="workspace-view" style="display:flex">
         <div class="workspace-header">
           <div class="workspace-breadcrumb">BECRP / Contabilidade / Plano de Contas</div>
-          <h2 class="workspace-title">Plano do sistema (referencial)</h2>
+          <h2 class="workspace-title">Plano do sistema</h2>
         </div>
         <div class="workspace-content">
           <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">Exclusão só pelo <strong>responsável contábil/fiscal</strong> (perfil técnico). Demo: <code>lucia</code> / senha <code>123</code>.</p>
           <div id="msg" class="pc-msg"></div>
+
+          <div class="pc-form" id="form-box" hidden>
+            <input type="hidden" id="f-codigo">
+            <div class="field span2"><label>Classificação</label><input class="form-input" id="f-classif" placeholder="1.01.01.01.99"></div>
+            <div class="field span2"><label>Nome</label><input class="form-input" id="f-nome" placeholder="Nova conta"></div>
+            <div class="field"><label>Tipo</label>
+              <select class="form-input" id="f-tipo">
+                <option value="A">Analítica</option>
+                <option value="S">Sintética</option>
+              </select>
+            </div>
+            <div class="actions">
+              <button class="dialog-btn dialog-btn-primary" id="btn-save">Salvar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-clear">Limpar</button>
+            </div>
+          </div>
+
           <div class="pc-toolbar">
             <div class="field grow">
               <label>Buscar</label>
@@ -94,8 +117,9 @@
               </select>
             </div>
             <button class="dialog-btn dialog-btn-primary" id="btn-search">Filtrar</button>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-new" hidden>Nova conta</button>
           </div>
-          <div style="overflow:auto; max-height:calc(100vh - 260px)">
+          <div style="overflow:auto; max-height:calc(100vh - 320px)">
             <table class="pc-table">
               <thead>
                 <tr>
@@ -104,6 +128,7 @@
                   <th>Nome</th>
                   <th>Nível</th>
                   <th>S/A</th>
+                  <th></th>
                 </tr>
               </thead>
               <tbody id="rows"></tbody>
@@ -122,10 +147,30 @@
   if (!auth) return;
   document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
 
+  let perms = { pode_escrever: false, pode_excluir: false };
+
   function msg(t, ok) {
     const el = document.getElementById("msg");
     el.textContent = t || "";
     el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function clearForm() {
+    document.getElementById("f-codigo").value = "";
+    document.getElementById("f-classif").value = "";
+    document.getElementById("f-nome").value = "";
+    document.getElementById("f-tipo").value = "A";
+    document.getElementById("f-classif").disabled = false;
+  }
+
+  function editRow(c) {
+    document.getElementById("form-box").hidden = !perms.pode_escrever;
+    document.getElementById("f-codigo").value = c.codigo || "";
+    document.getElementById("f-classif").value = c.classificacao || "";
+    document.getElementById("f-nome").value = c.nome || "";
+    document.getElementById("f-tipo").value = (c.tipo || "A").toUpperCase() === "S" ? "S" : "A";
+    document.getElementById("f-classif").disabled = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function load() {
@@ -140,17 +185,25 @@
       msg(data.message || "Falha ao carregar", false);
       return;
     }
+    perms = data.permissoes || perms;
+    document.getElementById("form-box").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new").hidden = !perms.pode_escrever;
+    document.getElementById("btn-import").hidden = !perms.pode_escrever;
+
     const m = data.meta || {};
     document.getElementById("meta").textContent =
       (data.total || 0) +
       " contas · fonte " +
       (m.fonte || data.fonte || "—") +
       (m.importado_em || data.importado_em ? " · importado " + (m.importado_em || data.importado_em) : "") +
-      (data.filtrado != null ? " · exibindo " + data.filtrado : "");
+      " · perfil " +
+      ((data.permissoes && data.permissoes.role) || auth.user.role || "—") +
+      (perms.pode_excluir ? " · pode excluir" : " · sem exclusão");
+
     const tb = document.getElementById("rows");
     const rows = data.contas || [];
     if (!rows.length) {
-      tb.innerHTML = '<tr><td colspan="5" style="opacity:.6;padding:24px;text-align:center">Nenhuma conta</td></tr>';
+      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Nenhuma conta</td></tr>';
       return;
     }
     tb.innerHTML = rows
@@ -158,15 +211,46 @@
         const sa = (c.tipo || "").toUpperCase() === "A" ? "A" : "S";
         const cls = sa === "A" ? "analitica" : "sintetica";
         const pad = "&nbsp;".repeat(Math.max(0, (c.nivel || 1) - 1) * 2);
+        const id = encodeURIComponent(c.codigo || c.classificacao);
+        let acts = "";
+        if (perms.pode_escrever) {
+          acts += `<button class="dialog-btn dialog-btn-secondary" data-edit="${id}" style="padding:3px 8px;font-size:11px">Editar</button> `;
+        }
+        if (perms.pode_excluir) {
+          acts += `<button class="dialog-btn dialog-btn-secondary" data-del="${id}" style="padding:3px 8px;font-size:11px">Excluir</button>`;
+        }
         return `<tr class="${cls}">
           <td>${c.codigo || ""}</td>
           <td>${c.classificacao || ""}</td>
           <td>${pad}${c.nome || c.descricao || ""}</td>
           <td>${c.nivel || ""}</td>
           <td><span class="badge-sa">${sa === "A" ? "Analítica" : "Sintética"}</span></td>
+          <td style="white-space:nowrap">${acts || "—"}</td>
         </tr>`;
       })
       .join("");
+
+    tb.querySelectorAll("[data-edit]").forEach((btn) => {
+      btn.onclick = () => {
+        const key = decodeURIComponent(btn.dataset.edit);
+        const c = rows.find((x) => String(x.codigo) === key || String(x.classificacao) === key);
+        if (c) editRow(c);
+      };
+    });
+    tb.querySelectorAll("[data-del]").forEach((btn) => {
+      btn.onclick = async () => {
+        if (!perms.pode_excluir) return msg("Exclusão só para responsável contábil/fiscal", false);
+        if (!confirm("Excluir esta conta? Só permitido sem contas filhas.")) return;
+        const key = decodeURIComponent(btn.dataset.del);
+        const res = await AuthService.api("/api/admin/planocontas/" + encodeURIComponent(key), {
+          method: "POST",
+          body: JSON.stringify({ action: "delete" }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha ao excluir", false);
+        msg("Conta excluída", true);
+        load();
+      };
+    });
   }
 
   document.getElementById("btn-search").onclick = load;
@@ -174,6 +258,28 @@
     if (e.key === "Enter") load();
   });
   document.getElementById("tipo").onchange = load;
+  document.getElementById("btn-clear").onclick = clearForm;
+  document.getElementById("btn-new").onclick = () => {
+    clearForm();
+    document.getElementById("form-box").hidden = false;
+  };
+
+  document.getElementById("btn-save").onclick = async () => {
+    const codigo = document.getElementById("f-codigo").value.trim();
+    const body = {
+      classificacao: document.getElementById("f-classif").value.trim(),
+      nome: document.getElementById("f-nome").value.trim(),
+      tipo: document.getElementById("f-tipo").value,
+    };
+    const path = codigo
+      ? "/api/admin/planocontas/" + encodeURIComponent(codigo)
+      : "/api/admin/planocontas";
+    const res = await AuthService.api(path, { method: "POST", body: JSON.stringify(body) });
+    if (res.status !== "ok") return msg(res.message || "Falha ao salvar", false);
+    msg(codigo ? "Conta atualizada" : "Conta criada", true);
+    clearForm();
+    load();
+  };
 
   document.getElementById("btn-import").onclick = async () => {
     if (!confirm("Reimportar do Plano Referencial.xls local? Isso substitui o JSON do sistema.")) return;

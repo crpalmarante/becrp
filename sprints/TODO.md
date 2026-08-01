@@ -54,6 +54,8 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ✅ **Troca/devolução + gerente:** `POST /api/pos/autorizar-gerente` · carimbo na fila/venda · UI senha no Smart Panel · treino auto-autoriza
 - ✅ **Campanhas:** `campaigns.py` · categoria + vigência + forma pgto opcional · UI `pages/campanhas.html` · PDV hint / caixa aplica (ex. Alimentação −20% no PIX)
 - ✅ **Plano de contas (sistema):** `planocontas.py` · `dados/planocontas.json` (1069) · import local `Plano Referencial.xls` (não versionar) · `/api/planocontas` · UI `pages/plano-contas.html`
+  - CRUD: criar/editar = `contabil` | `fiscal` | `admin`
+  - **Excluir** = só responsável contábil/fiscal (`contabil`/`fiscal`; admin break-glass) — termo técnico, não gerente/caixa
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
 **Próximo ataque interno (ordem):** (1) ~~caixa~~ ✅ → (2) ~~preço/listas~~ ✅ → (3) ~~troca + gerente~~ ✅ → (4) ~~campanhas~~ ✅
@@ -146,4 +148,4 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 
 ---
 
-*Perfis POS: admin · vendedor · caixa · gerente. Demo: `ana` / `carla` / `bruno` / `admin` · senha `123`.*
+*Perfis: admin · vendedor · caixa · gerente · contabil · fiscal. Demo: `ana` / `carla` / `bruno` / `lucia` (contábil) / `admin` · senha `123`.*

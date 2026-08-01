@@ -424,12 +424,24 @@ ROLES = {
     },
     "fiscal": {
         "label": "Fiscal",
-        "grupo": "legado",
-        "permissoes": ["dashboard", "nfe", "nfce", "nfse", "certificados", "sped"],
+        "grupo": "fiscal",
+        "permissoes": ["dashboard", "nfe", "nfce", "nfse", "certificados", "sped", "contabilidade"],
         "pos": None,
-        "descricao": "Documentos fiscais (não é perfil de loja POS).",
+        "descricao": "Documentos fiscais e visão contábil (não opera PDV).",
+    },
+    "contabil": {
+        "label": "Responsável Contábil",
+        "grupo": "fiscal",
+        "permissoes": ["dashboard", "contabilidade", "relatorios", "sped"],
+        "pos": None,
+        "descricao": "Dono técnico do plano de contas (CRUD; exclusão exclusiva deste perfil + admin).",
     },
 }
+
+# Quem pode criar/editar plano de contas
+PLAN_CONTAS_WRITE_ROLES = frozenset({"admin", "contabil", "fiscal"})
+# Exclusão: só responsável contábil/fiscal (termo técnico) — admin só como break-glass
+PLAN_CONTAS_DELETE_ROLES = frozenset({"contabil", "fiscal", "admin"})
 
 ROLE_IDS = set(ROLES.keys())
 
@@ -1155,7 +1167,17 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 analiticas=analiticas,
                 limit=limit,
             )
-            return self._json({"status": "ok", **out, "meta": planocontas.meta()})
+            role = self._user_role(token)
+            return self._json({
+                "status": "ok",
+                **out,
+                "meta": planocontas.meta(),
+                "permissoes": {
+                    "pode_escrever": role in PLAN_CONTAS_WRITE_ROLES,
+                    "pode_excluir": role in PLAN_CONTAS_DELETE_ROLES,
+                    "role": role,
+                },
+            })
 
         if parsed.path.startswith("/api/planocontas/"):
             token = self.headers.get("X-Auth-Token", "")
@@ -2437,16 +2459,58 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
 
         crud_token = self.headers.get("X-Auth-Token", "")
 
-        # ── Plano de contas: reimportar do XLS local ──
+        # ── Plano de contas: CRUD + reimport ──
         if parsed.path == "/api/admin/planocontas/import":
-            if not self._is_admin(crud_token):
-                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            if not self._can_write_planocontas(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode reimportar",
+                }, 403)
             try:
                 meta = planocontas.import_from_xls((body or {}).get("path") if isinstance(body, dict) else None)
                 return self._json({"status": "ok", **meta, "message": f"{meta.get('total', 0)} contas importadas"})
             except FileNotFoundError as e:
                 return self._json({"status": "error", "message": str(e)}, 404)
             except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/admin/planocontas":
+            if not self._can_write_planocontas(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode criar contas",
+                }, 403)
+            try:
+                row = planocontas.create_conta(body or {})
+                return self._json({"status": "ok", "conta": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if (
+            parsed.path.startswith("/api/admin/planocontas/")
+            and not parsed.path.rstrip("/").endswith("/import")
+        ):
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if isinstance(body, dict) and body.get("action") == "delete":
+                if not self._can_delete_planocontas(crud_token):
+                    return self._json({
+                        "status": "error",
+                        "message": "Exclusão permitida apenas ao responsável contábil/fiscal",
+                    }, 403)
+                try:
+                    planocontas.delete_conta(key)
+                    return self._json({"status": "ok", "message": "Conta excluída"})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+            if not self._can_write_planocontas(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode editar contas",
+                }, 403)
+            try:
+                row = planocontas.update_conta(key, body or {})
+                return self._json({"status": "ok", "conta": row})
+            except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
         # ── Campanhas (POST) ──
@@ -3212,6 +3276,19 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
 
     def _is_admin(self, token):
         return self._has_permission(token, "admin")
+
+    def _user_role(self, token):
+        user = self._find_user(token, load_users())
+        if not user:
+            return ""
+        return str(user.get("role") or "").lower()
+
+    def _can_write_planocontas(self, token):
+        return self._user_role(token) in PLAN_CONTAS_WRITE_ROLES
+
+    def _can_delete_planocontas(self, token):
+        """Exclusão: responsável contábil/fiscal (termo técnico)."""
+        return self._user_role(token) in PLAN_CONTAS_DELETE_ROLES
 
     @staticmethod
     def _get_query_param(query_string: str, key: str, default: str = "") -> str:
