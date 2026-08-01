@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Períodos Contábeis</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:120px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 10px; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); }
+    .badge.open { border-color:#4ade80; color:#4ade80; }
+    .badge.closing { border-color:#fbbf24; color:#fbbf24; }
+    .badge.closed { opacity:.7; }
+    .badge.locked { border-color:#f87171; color:#f87171; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="plano-contas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Plano de Contas</span></a>
+      <a class="menu-item" href="diarios.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Diários</span></a>
+      <a class="menu-item" href="lancamentos.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Lançamentos</span></a>
+      <a class="menu-item" href="razao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Razão / Saldos</span></a>
+      <a class="menu-item" href="posting.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Posting</span></a>
+      <a class="menu-item active" href="periodos.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Períodos</span></a>
+      <a class="menu-item" href="contabilidade.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Contabilidade</span></a>
+      <a class="menu-item" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="topbar-title">Períodos Contábeis</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Contabilidade / Períodos</div>
+          <h2 class="workspace-title">Exercício e meses</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">
+            <strong>Aberto / Em fechamento</strong> permitem postar.
+            <strong>Fechado / Bloqueado</strong> bloqueiam o Posting Engine.
+            Demo: <code>lucia</code> / <code>123</code>.
+          </p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="pc-toolbar">
+            <div class="field">
+              <label>Exercício</label>
+              <select class="form-input" id="exercicio"></select>
+            </div>
+            <div class="field">
+              <label>Novo exercício</label>
+              <input class="form-input" id="novo-ano" type="number" min="2000" max="2100" placeholder="2027">
+            </div>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-ensure" hidden>Criar exercício</button>
+            <button class="dialog-btn dialog-btn-primary" id="btn-reload">Atualizar</button>
+          </div>
+
+          <div style="overflow:auto; max-height:calc(100vh - 280px)">
+            <table class="pc-table">
+              <thead>
+                <tr>
+                  <th>Código</th>
+                  <th>Nome</th>
+                  <th>Início</th>
+                  <th>Fim</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let perms = { pode_escrever: false };
+  let exercicios = [];
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  async function setStatus(codigo, status) {
+    const res = await AuthService.api("/api/admin/periodos/" + encodeURIComponent(codigo), {
+      method: "POST",
+      body: JSON.stringify({ status }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg(codigo + " → " + (res.periodo && res.periodo.status_label), true);
+    load();
+  }
+
+  async function load() {
+    msg("");
+    const ex = document.getElementById("exercicio").value;
+    const qs = new URLSearchParams();
+    if (ex) qs.set("exercicio", ex);
+    const data = await AuthService.api("/api/periodos?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha", false);
+    perms = data.permissoes || perms;
+    document.getElementById("btn-ensure").hidden = !perms.pode_escrever;
+
+    exercicios = data.exercicios || [];
+    const sel = document.getElementById("exercicio");
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Todos</option>' +
+      exercicios.map((y) => `<option value="${y}">${y}</option>`).join("");
+    if (cur) sel.value = cur;
+
+    const m = data.meta || {};
+    document.getElementById("meta").textContent =
+      (m.total_periodos || data.total || 0) + " períodos · " +
+      (m.abertos || 0) + " abertos · perfil " +
+      ((data.permissoes && data.permissoes.role) || "—");
+
+    const tb = document.getElementById("rows");
+    const rows = data.periodos || [];
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Nenhum período</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((p) => {
+      let acts = "";
+      if (perms.pode_escrever) {
+        const cod = encodeURIComponent(p.codigo);
+        if (p.status !== "open") acts += `<button class="dialog-btn dialog-btn-secondary" data-st="open" data-cod="${cod}" style="padding:3px 8px;font-size:11px">Abrir</button> `;
+        if (p.status === "open") acts += `<button class="dialog-btn dialog-btn-secondary" data-st="closing" data-cod="${cod}" style="padding:3px 8px;font-size:11px">Fechamento</button> `;
+        if (p.status === "open" || p.status === "closing") acts += `<button class="dialog-btn dialog-btn-secondary" data-st="closed" data-cod="${cod}" style="padding:3px 8px;font-size:11px">Fechar</button> `;
+        if (p.status !== "locked") acts += `<button class="dialog-btn dialog-btn-secondary" data-st="locked" data-cod="${cod}" style="padding:3px 8px;font-size:11px">Bloquear</button>`;
+      }
+      return `<tr>
+        <td>${p.codigo}</td>
+        <td>${p.nome || ""}</td>
+        <td>${p.inicio || ""}</td>
+        <td>${p.fim || ""}</td>
+        <td><span class="badge ${p.status || ""}">${p.status_label || p.status}</span></td>
+        <td style="white-space:nowrap">${acts || "—"}</td>
+      </tr>`;
+    }).join("");
+
+    tb.querySelectorAll("[data-st]").forEach((btn) => {
+      btn.onclick = () => setStatus(decodeURIComponent(btn.dataset.cod), btn.dataset.st);
+    });
+  }
+
+  document.getElementById("btn-reload").onclick = load;
+  document.getElementById("exercicio").onchange = load;
+  document.getElementById("btn-ensure").onclick = async () => {
+    const ano = document.getElementById("novo-ano").value || new Date().getFullYear();
+    const res = await AuthService.api("/api/admin/periodos/ensure-year", {
+      method: "POST",
+      body: JSON.stringify({ exercicio: parseInt(ano, 10), status: "open" }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg(res.message || "Exercício pronto", true);
+    document.getElementById("exercicio").value = String(res.exercicio || ano);
+    load();
+  };
+
+  document.getElementById("novo-ano").value = new Date().getFullYear();
+  load();
+})();
+</script>
+</body>
+</html>

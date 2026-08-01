@@ -13,6 +13,7 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 
+import accounting_periods
 import journal_entries
 import journals
 import planocontas
@@ -152,12 +153,9 @@ def _resolve_conta(ref, label="conta"):
 
 
 def _period_allows(data_lanc):
-    """Hook RFC-8006: por enquanto período sempre aberto."""
-    try:
-        date.fromisoformat(str(data_lanc or "")[:10])
-    except ValueError:
-        return False, "data contábil inválida"
-    return True, None
+    """RFC-8006: só open/closing permitem postagem."""
+    ok, err, _periodo = accounting_periods.allows_posting(data_lanc)
+    return ok, err
 
 
 def validate_entry(entry):

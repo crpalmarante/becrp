@@ -25,6 +25,7 @@ import journals
 import journal_entries
 import ledger
 import posting_engine
+import accounting_periods
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -1376,6 +1377,42 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": "Lançamento não encontrado"}, 404)
             result = posting_engine.validate_entry(entry)
             return self._json({"status": "ok", "lancamento": entry, **result})
+
+        # ── Períodos contábeis (RFC-8006 MVP) ──
+        if parsed.path == "/api/periodos":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                out = accounting_periods.list_periodos(
+                    exercicio=(qs.get("exercicio") or [""])[0] or None,
+                    status=(qs.get("status") or [""])[0] or None,
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            role = self._user_role(token)
+            return self._json({
+                "status": "ok",
+                **out,
+                "meta": accounting_periods.meta(),
+                "permissoes": {
+                    "pode_escrever": role in JOURNALS_WRITE_ROLES,
+                    "role": role,
+                },
+            })
+
+        if parsed.path.startswith("/api/periodos/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if key == "meta":
+                return self._json({"status": "ok", **accounting_periods.meta()})
+            row = accounting_periods.get_periodo(key)
+            if not row:
+                return self._json({"status": "error", "message": "Período não encontrado"}, 404)
+            return self._json({"status": "ok", "periodo": row})
 
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":
@@ -2856,6 +2893,56 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 row = posting_engine.update_rule(key, body or {})
                 return self._json({"status": "ok", "regra": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Períodos: ensure-year + status ──
+        if parsed.path == "/api/admin/periodos/ensure-year":
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode criar exercício",
+                }, 403)
+            try:
+                ano = (body or {}).get("exercicio") or (body or {}).get("ano")
+                st = (body or {}).get("status") or "open"
+                out = accounting_periods.ensure_year(ano, status=st)
+                return self._json({"status": "ok", **out, "message": f"Exercício {out.get('exercicio')} pronto"})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/periodos/"):
+            if not self._can_write_journals(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas responsável contábil/fiscal ou admin pode alterar períodos",
+                }, 403)
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if key == "ensure-year":
+                return self._json({"status": "error", "message": "use POST /api/admin/periodos/ensure-year"}, 400)
+            st = None
+            if isinstance(body, dict):
+                st = body.get("status") or body.get("action")
+            if not st:
+                return self._json({"status": "error", "message": "informe status (open|closing|closed|locked)"}, 400)
+            # map action aliases
+            aliases = {
+                "open": "open",
+                "abrir": "open",
+                "closing": "closing",
+                "fechar": "closed",
+                "close": "closed",
+                "closed": "closed",
+                "lock": "locked",
+                "locked": "locked",
+                "bloquear": "locked",
+            }
+            st = aliases.get(str(st).strip().lower(), str(st).strip().lower())
+            try:
+                user = self._find_user(crud_token, load_users()) or {}
+                actor = user.get("usuario") or user.get("nome") or ""
+                row = accounting_periods.set_status(key, st, actor=actor)
+                return self._json({"status": "ok", "periodo": row})
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
