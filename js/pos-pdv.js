@@ -3478,9 +3478,20 @@
       showNfceResult(res);
       await refreshFilaCaixa();
       const chave = (res.nfce && res.nfce.chave) || (res.pedido && res.pedido.nfce && res.pedido.nfce.chave) || "";
-      document.getElementById("status-hint").textContent = chave
+      let hint = chave
         ? "Pedido #" + pedido.orderNum + " pago · NFC-e " + chave.slice(0, 20) + "…"
         : "Pedido #" + pedido.orderNum + " pago" + (res.aviso ? " · " + res.aviso : "");
+      const contab = res.contabilidade;
+      if (contab) {
+        if (contab.ok && !contab.skipped && contab.numero) {
+          hint += " · Contábil " + contab.numero;
+        } else if (contab.ok && contab.skipped) {
+          hint += " · Contábil: " + (contab.reason || "sem lançamento");
+        } else if (!contab.ok) {
+          hint += " · Contábil falhou: " + (contab.error || contab.reason || "erro");
+        }
+      }
+      document.getElementById("status-hint").textContent = hint;
     } catch (err) {
       console.warn("[POS] finalizar", err);
       btn.disabled = false;

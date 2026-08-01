@@ -719,7 +719,18 @@
           body: JSON.stringify({}),
         });
         if (res.status !== "ok") return msg(res.message || "Falha ao concluir");
-        msg("Concluído — estoque atualizado (só qty boa).", true);
+        let t = "Concluído — estoque atualizado (só qty boa).";
+        const c = res.contabilidade;
+        if (c) {
+          if (c.ok && !c.skipped && c.numero) {
+            t += " Contábil " + c.numero + (c.status === "draft" ? " (rascunho)" : "");
+          } else if (c.ok && c.skipped) {
+            t += " Contábil: " + (c.reason || "sem lançamento");
+          } else if (!c.ok) {
+            t += " Contábil falhou: " + (c.error || c.reason || "erro");
+          }
+        }
+        msg(t, !(c && c.ok === false));
         await loadList();
         openDetail(id);
       };

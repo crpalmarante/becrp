@@ -142,6 +142,22 @@ def _map_forma_pg(forma_pg):
     return "sale_cash"
 
 
+def _with_message(ev):
+    """Mensagem curta para UI (POS / recebimento)."""
+    out = dict(ev or {})
+    if out.get("ok") and not out.get("skipped") and out.get("numero"):
+        st = out.get("status") or ""
+        suf = " (rascunho)" if st == "draft" else ""
+        out["message"] = f"Lançamento {out['numero']}{suf}"
+    elif out.get("ok") and out.get("skipped"):
+        out["message"] = out.get("reason") or "sem lançamento"
+    elif not out.get("ok"):
+        out["message"] = out.get("error") or out.get("reason") or "falha contábil"
+    else:
+        out["message"] = ""
+    return out
+
+
 def publish(domain, evento, valor, referencia, historico=None, data=None, actor=None, auto_post=None):
     """
     Publica evento operacional → Posting Engine.
@@ -158,21 +174,24 @@ def publish(domain, evento, valor, referencia, historico=None, data=None, actor=
         "em": _now(),
     }
     if not _domain_on(domain):
-        ev = {**base, "ok": True, "skipped": True, "reason": "domínio desligado"}
+        ev = _with_message({**base, "ok": True, "skipped": True, "reason": "domínio desligado"})
         _append_log(ev)
         return ev
 
     if ref:
         existing = find_by_origem_ref(ref)
         if existing:
-            ev = {
-                **base,
-                "ok": True,
-                "skipped": True,
-                "reason": "já integrado",
-                "lancamento_id": existing.get("id"),
-                "numero": existing.get("numero"),
-            }
+            ev = _with_message(
+                {
+                    **base,
+                    "ok": True,
+                    "skipped": True,
+                    "reason": "já integrado",
+                    "lancamento_id": existing.get("id"),
+                    "numero": existing.get("numero"),
+                    "status": existing.get("status"),
+                }
+            )
             _append_log(ev)
             return ev
 
@@ -188,19 +207,21 @@ def publish(domain, evento, valor, referencia, historico=None, data=None, actor=
             payload["auto_post"] = bool(auto_post)
         out = posting_engine.apply_event(payload, actor=actor)
         lanc = out.get("lancamento") or {}
-        ev = {
-            **base,
-            "ok": True,
-            "skipped": False,
-            "lancamento_id": lanc.get("id"),
-            "numero": lanc.get("numero"),
-            "status": lanc.get("status"),
-            "regra": (out.get("regra") or {}).get("codigo"),
-        }
+        ev = _with_message(
+            {
+                **base,
+                "ok": True,
+                "skipped": False,
+                "lancamento_id": lanc.get("id"),
+                "numero": lanc.get("numero"),
+                "status": lanc.get("status"),
+                "regra": (out.get("regra") or {}).get("codigo"),
+            }
+        )
         _append_log(ev)
         return ev
     except Exception as e:
-        ev = {**base, "ok": False, "skipped": False, "error": str(e)}
+        ev = _with_message({**base, "ok": False, "skipped": False, "error": str(e)})
         _append_log(ev)
         return ev
 
@@ -211,12 +232,14 @@ def on_pos_sale(venda, forma_pg=None, actor=None):
     vid = venda.get("id")
     total = _safe_float(venda.get("total"), 0)
     if total <= 0:
-        return {
-            "ok": True,
-            "skipped": True,
-            "reason": "total zero (troca/devolução)",
-            "domain": "pos_sale",
-        }
+        return _with_message(
+            {
+                "ok": True,
+                "skipped": True,
+                "reason": "total zero (troca/devolução)",
+                "domain": "pos_sale",
+            }
+        )
     forma = forma_pg or venda.get("forma_pg") or "Dinheiro"
     evento = _map_forma_pg(forma)
     data = str(venda.get("data") or venda.get("createdAt") or date.today().isoformat())[:10]
@@ -241,6 +264,7 @@ def _receiving_valor(rec):
             continue
         p = _safe_float(
             it.get("unit_price")
+            or it.get("preco_unit")
             or it.get("preco")
             or it.get("vuncom")
             or it.get("valor_unitario")
@@ -265,13 +289,15 @@ def on_receiving_complete(rec, actor=None):
     rid = rec.get("id")
     valor = _receiving_valor(rec)
     if valor <= 0:
-        return {
-            "ok": True,
-            "skipped": True,
-            "reason": "sem valor monetário nos itens",
-            "domain": "receiving",
-            "referencia": f"RCV-{rid}",
-        }
+        return _with_message(
+            {
+                "ok": True,
+                "skipped": True,
+                "reason": "sem valor monetário nos itens",
+                "domain": "receiving",
+                "referencia": f"RCV-{rid}",
+            }
+        )
     data = str(rec.get("completed_at") or rec.get("data") or date.today().isoformat())[:10]
     return publish(
         domain="receiving",

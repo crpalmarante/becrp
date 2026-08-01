@@ -65,9 +65,10 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ✅ **Relatórios (RFC-8007 MVP):** `accounting_reports.py` · balancete/BP/DRE/diário · `/api/relatorios/*` · UI `pages/relatorios-contabeis.html`
 - ✅ **Integração (RFC-8008 MVP):** `accounting_integration.py` · POS/Recebimento → posting · idempotente · `/api/accounting/integration` · UI `pages/integracao-contabil.html`
 - ✅ **Analytics (RFC-8009 MVP):** `accounting_analytics.py` · KPIs/tendência/comparativo · `/api/accounting/analytics` · UI `pages/analytics-contabil.html`
+- ✅ **Endurecimento contábil (fluxo):** feedback POS/recebimento · `preco_unit` no receiving → compra · smoke `scripts/smoke_accounting_e2e.py` (venda/PIX/razão/DRE/período/idempotência)
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
-**Trilha contábil (8001–8009):** MVP fechado.
+**Trilha contábil (8001–8009):** MVP fechado + endurecimento E2E.
 
 ---
 
@@ -162,6 +163,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 25. ~~Relatórios contábeis~~ ✅ (`accounting_reports.py` · `/api/relatorios` · `pages/relatorios-contabeis.html`)  
 26. ~~Integração contábil~~ ✅ (`accounting_integration.py` · hooks POS/receiving · `pages/integracao-contabil.html`)  
 27. ~~Analytics contábil~~ ✅ (`accounting_analytics.py` · `/api/accounting/analytics` · `pages/analytics-contabil.html`)  
+28. ~~Endurecimento E2E contábil~~ ✅ (POS/recebimento feedback · `scripts/smoke_accounting_e2e.py`)  
 
 ---
 
