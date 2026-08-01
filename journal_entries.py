@@ -341,8 +341,8 @@ def reverse_lancamento(key, payload=None):
         "atualizado_em": _now(),
         "posted_em": _now(),
     }
+    # Original permanece posted (imutável no razão); correção = novo lançamento.
     existing = dict(existing)
-    existing["status"] = "cancelled"
     existing["estornado_por"] = rev["id"]
     existing["atualizado_em"] = _now()
     data["lancamentos"][idx] = existing

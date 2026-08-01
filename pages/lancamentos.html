@@ -167,7 +167,7 @@
                 <option value="">Todos</option>
                 <option value="draft">Rascunho</option>
                 <option value="posted">Postado</option>
-                <option value="cancelled">Estornado</option>
+                <option value="cancelled">Cancelado</option>
               </select>
             </div>
             <button class="dialog-btn dialog-btn-primary" id="btn-search">Filtrar</button>
@@ -222,9 +222,16 @@
     return new Date().toISOString().slice(0, 10);
   }
 
-  function statusLabel(s) {
-    if (s === "posted") return "Postado";
-    if (s === "cancelled") return "Estornado";
+  function statusLabel(r) {
+    if (typeof r === "string") {
+      if (r === "posted") return "Postado";
+      if (r === "cancelled") return "Cancelado";
+      return "Rascunho";
+    }
+    if (r.estornado_por) return "Postado · estornado";
+    if (r.estorna_id || r.origem === "estorno") return "Postado · estorno";
+    if (r.status === "posted") return "Postado";
+    if (r.status === "cancelled") return "Cancelado";
     return "Rascunho";
   }
 
@@ -355,9 +362,10 @@
       if (perms.pode_excluir && r.status === "draft") {
         acts += `<button class="dialog-btn dialog-btn-secondary" data-del="${id}" style="padding:3px 8px;font-size:11px">Excluir</button> `;
       }
-      if (perms.pode_escrever && r.status === "posted") {
+      if (perms.pode_escrever && r.status === "posted" && !r.estornado_por && r.origem !== "estorno") {
         acts += `<button class="dialog-btn dialog-btn-secondary" data-rev="${id}" style="padding:3px 8px;font-size:11px">Estornar</button>`;
       }
+      const badgeCls = r.estornado_por || r.estorna_id ? "cancelled" : (r.status || "draft");
       return `<tr>
         <td>${r.numero || ""}</td>
         <td>${r.data || ""}</td>
@@ -365,7 +373,7 @@
         <td>${r.historico || ""}</td>
         <td class="num">${money(r.total_debito)}</td>
         <td class="num">${money(r.total_credito)}</td>
-        <td><span class="badge ${r.status || "draft"}">${statusLabel(r.status)}</span></td>
+        <td><span class="badge ${badgeCls}">${statusLabel(r)}</span></td>
         <td style="white-space:nowrap">${acts || "—"}</td>
       </tr>`;
     }).join("");
