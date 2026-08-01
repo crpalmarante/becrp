@@ -26,6 +26,7 @@ import journal_entries
 import ledger
 import posting_engine
 import accounting_periods
+import accounting_reports
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -1413,6 +1414,65 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not row:
                 return self._json({"status": "error", "message": "Período não encontrado"}, 404)
             return self._json({"status": "ok", "periodo": row})
+
+        # ── Relatórios contábeis (RFC-8007 MVP) ──
+        if parsed.path.startswith("/api/relatorios/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            kind = parsed.path.rstrip("/").split("/")[-1]
+            try:
+                if kind == "balancete":
+                    try:
+                        limit = int((qs.get("limit") or ["500"])[0] or 500)
+                    except (TypeError, ValueError):
+                        limit = 500
+                    out = accounting_reports.trial_balance(
+                        data_ate=(qs.get("data_ate") or [""])[0] or None,
+                        q=(qs.get("q") or [""])[0] or None,
+                        limit=limit,
+                    )
+                elif kind == "balanco":
+                    out = accounting_reports.balance_sheet(
+                        data_ate=(qs.get("data_ate") or [""])[0] or None,
+                    )
+                elif kind == "dre":
+                    out = accounting_reports.income_statement(
+                        data_de=(qs.get("data_de") or [""])[0] or None,
+                        data_ate=(qs.get("data_ate") or [""])[0] or None,
+                    )
+                elif kind == "diario":
+                    try:
+                        limit = int((qs.get("limit") or ["300"])[0] or 300)
+                    except (TypeError, ValueError):
+                        limit = 300
+                    out = accounting_reports.journal_book(
+                        diario=(qs.get("diario") or [""])[0] or None,
+                        data_de=(qs.get("data_de") or [""])[0] or None,
+                        data_ate=(qs.get("data_ate") or [""])[0] or None,
+                        limit=limit,
+                    )
+                elif kind == "razao":
+                    try:
+                        limit = int((qs.get("limit") or ["2000"])[0] or 2000)
+                    except (TypeError, ValueError):
+                        limit = 2000
+                    out = accounting_reports.general_ledger(
+                        conta=(qs.get("conta") or [""])[0],
+                        data_de=(qs.get("data_de") or [""])[0] or None,
+                        data_ate=(qs.get("data_ate") or [""])[0] or None,
+                        diario=(qs.get("diario") or [""])[0] or None,
+                        limit=limit,
+                    )
+                else:
+                    return self._json({
+                        "status": "error",
+                        "message": "Relatório inválido (balancete|balanco|dre|diario|razao)",
+                    }, 404)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            return self._json({"status": "ok", **out})
 
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":

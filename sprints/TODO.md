@@ -62,9 +62,10 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ✅ **Razão / saldos (RFC-8005 MVP):** `ledger.py` · derivado de postados · `/api/razao` · `/api/saldos` · UI `pages/razao.html`
 - ✅ **Posting Engine (RFC-8004 MVP):** `posting_engine.py` · regras evento→D/C · validate/post/histórico · `/api/posting/*` · UI `pages/posting.html`
 - ✅ **Períodos (RFC-8006 MVP):** `accounting_periods.py` · exercício/meses · open/closing/closed/locked · bloqueia posting · `/api/periodos` · UI `pages/periodos.html`
+- ✅ **Relatórios (RFC-8007 MVP):** `accounting_reports.py` · balancete/BP/DRE/diário · `/api/relatorios/*` · UI `pages/relatorios-contabeis.html`
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
-**Próximo ataque interno (ordem contábil):** (1) ~~plano~~ ✅ → (2) ~~diários~~ ✅ → (3) ~~lançamentos~~ ✅ → (4) ~~razão~~ ✅ → (5) ~~posting~~ ✅ → (6) ~~períodos~~ ✅ → (7) relatórios (8007)
+**Próximo ataque interno (ordem contábil):** core MVP fechado (8001–8007). Seguinte: integração operacional (8008) ou analytics (8009) sob dor.
 
 ---
 
@@ -156,6 +157,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 22. ~~Razão / saldos~~ ✅ (`ledger.py` · `/api/razao` · `/api/saldos` · `pages/razao.html`)  
 23. ~~Posting Engine~~ ✅ (`posting_engine.py` · `/api/posting` · `pages/posting.html`)  
 24. ~~Períodos contábeis~~ ✅ (`accounting_periods.py` · `/api/periodos` · `pages/periodos.html`)  
+25. ~~Relatórios contábeis~~ ✅ (`accounting_reports.py` · `/api/relatorios` · `pages/relatorios-contabeis.html`)  
 
 ---
 
