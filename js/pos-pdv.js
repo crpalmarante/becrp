@@ -131,6 +131,9 @@
     { id: "leite3x2", label: "Leite 3 por 2", productIds: [5], buy: 3, pay: 2 },
   ];
 
+  /** Campanhas ativas (API) — categoria + vigência + forma opcional */
+  let liveCampaigns = [];
+
   const FALLBACK_FOTO = "../assets/images/sem-foto.png";
 
   /** Catálogo do PDV — demo até a API responder. */
@@ -628,8 +631,70 @@
     if (btn) btn.classList.toggle("active", consultaMode);
   }
 
-  function calcPromoForSession(s) {
+  function normFormaPg(fp) {
+    const s = String(fp || "")
+      .trim()
+      .toLowerCase();
+    if (!s) return "";
+    if (["dinheiro", "cash", "especie", "espécie"].includes(s)) return "dinheiro";
+    if (s === "pix") return "pix";
+    if (["debito", "débito", "debit"].includes(s)) return "debito";
+    if (["credito", "crédito", "credit"].includes(s)) return "credito";
+    if (["voucher", "vale", "vr", "va"].includes(s)) return "voucher";
+    return s;
+  }
+
+  function productCategoria(productId) {
+    const p = SAMPLE.find((x) => String(x.id) === String(productId));
+    return (p && (p.cat || p.categoria)) || "";
+  }
+
+  function campaignActiveToday(camp) {
+    if (!camp || camp.active === false) return false;
+    const today = new Date().toISOString().slice(0, 10);
+    if (camp.start && today < String(camp.start).slice(0, 10)) return false;
+    if (camp.end && today > String(camp.end).slice(0, 10)) return false;
+    return true;
+  }
+
+  function calcCampaignsForSession(s, formaPg) {
     let discount = 0;
+    const labels = [];
+    const hints = [];
+    const want = formaPg == null ? null : normFormaPg(formaPg);
+    (liveCampaigns || []).forEach((camp) => {
+      if (!campaignActiveToday(camp)) return;
+      const campFp = normFormaPg(camp.forma_pg);
+      if (campFp) {
+        if (want == null) {
+          // PDV: só hint (desconto no caixa com essa forma)
+        } else if (want !== campFp) {
+          return;
+        }
+      }
+      const cat = String(camp.categoria || "").trim().toLowerCase();
+      const pct = Number(camp.discount_pct) || 0;
+      if (!cat || pct <= 0) return;
+      const matching = (s.lines || []).filter((l) => {
+        if (l.troca || Number(l.qtd) < 0) return false;
+        return productCategoria(l.id).trim().toLowerCase() === cat;
+      });
+      if (!matching.length) return;
+      const sub = matching.reduce((sum, l) => sum + lineTotal(l), 0);
+      const d = Math.round(sub * pct) / 100;
+      const label = (camp.name || "Campanha") + " −" + pct + "%";
+      if (campFp && want == null) {
+        hints.push(label + " (no " + camp.forma_pg + ": −" + money(d) + ")");
+        return;
+      }
+      discount += d;
+      labels.push(label + " −" + money(d));
+    });
+    return { discount, label: labels.join(" · "), hints };
+  }
+
+  function calcPromoForSession(s, formaPg) {
+    let kitsDiscount = 0;
     const labels = [];
     PROMO_RULES.forEach((rule) => {
       const matching = s.lines.filter((l) => rule.productIds.includes(l.id) && !l.troca);
@@ -638,21 +703,69 @@
       const sub = matching.reduce((sum, l) => sum + lineTotal(l), 0);
       if (rule.pct && qty >= (rule.minQty || 1)) {
         const d = (sub * rule.pct) / 100;
-        discount += d;
+        kitsDiscount += d;
         labels.push(rule.label + " −" + money(d));
       } else if (rule.buy && rule.pay && qty >= rule.buy) {
         const freeUnits = Math.floor(qty / rule.buy) * (rule.buy - rule.pay);
         const avgPrice = sub / qty;
         const d = freeUnits * avgPrice;
-        discount += d;
+        kitsDiscount += d;
         labels.push(rule.label + " −" + money(d));
       }
     });
-    return { discount, label: labels.join(" · ") || "" };
+    const camps = calcCampaignsForSession(s, formaPg === undefined ? null : formaPg);
+    const discount = kitsDiscount + (camps.discount || 0);
+    const allLabels = labels.concat(camps.label ? [camps.label] : []);
+    if (camps.hints && camps.hints.length) allLabels.push(...camps.hints);
+    return {
+      discount,
+      kitsDiscount,
+      campaignsDiscount: camps.discount || 0,
+      label: allLabels.join(" · ") || "",
+      hints: camps.hints || [],
+    };
   }
 
   function sessionPromoAmount(s) {
-    return calcPromoForSession(s).discount;
+    return calcPromoForSession(s, null).discount;
+  }
+
+  async function loadCampaignsFromApi() {
+    const api = window.AuthService && window.AuthService.api;
+    if (!api) return;
+    try {
+      const data = await api("/api/pos/campaigns");
+      if (data.status === "ok") liveCampaigns = data.campaigns || [];
+    } catch (_) {
+      liveCampaigns = [];
+    }
+  }
+
+  function refreshCaixaDueForForma() {
+    if (!activeFilaPedido) return;
+    const fake = {
+      lines: activeFilaPedido.lines || [],
+      orderDisc: activeFilaPedido.orderDisc || { type: "val", value: 0 },
+      orderAcr: activeFilaPedido.orderAcr || { type: "val", value: 0 },
+    };
+    const sub = (fake.lines || []).reduce((sum, l) => {
+      if (l.troca || Number(l.qtd) < 0) return sum;
+      return sum + (Number(l.qtd) || 0) * (Number(l.preco) || 0);
+    }, 0);
+    const disc = Number(activeFilaPedido.discount) || 0;
+    const acr = Number(activeFilaPedido.surcharge) || 0;
+    const kits = Number(activeFilaPedido.promo_kits) || 0;
+    const camps = calcCampaignsForSession(fake, caixaFormaPg || "Dinheiro");
+    caixaDue = Math.max(0, Math.round((sub - disc + acr - kits - (camps.discount || 0)) * 100) / 100);
+    document.getElementById("caixa-due").textContent = money(caixaDue);
+    const hintBits = [];
+    if (camps.discount > 0) hintBits.push("Campanha −" + money(camps.discount));
+    if (camps.label) hintBits.push(camps.label);
+    document.getElementById("pay-hint").textContent =
+      (caixaFormaPg || "Dinheiro") +
+      " · a receber " +
+      money(caixaDue) +
+      (hintBits.length ? " · " + hintBits.join(" · ") : "");
   }
 
   function renderSessions() {
@@ -2762,12 +2875,14 @@
     document.getElementById("summary-parc").textContent = s.orderParc
       ? s.orderParc.n + " × " + money(s.orderParc.parcela)
       : "—";
-    const promo = calcPromoForSession(s);
+    const promo = calcPromoForSession(s, null);
     const promoRow = document.getElementById("summary-promo-row");
-    if (promo.discount > 0) {
+    if (promo.discount > 0 || (promo.hints && promo.hints.length)) {
       promoRow.hidden = false;
-      document.getElementById("summary-promo-label").textContent = promo.label || "Promo";
-      document.getElementById("summary-promo").textContent = "−" + money(promo.discount);
+      const lab = [promo.label, ...(promo.hints || [])].filter(Boolean).join(" · ");
+      document.getElementById("summary-promo-label").textContent = lab || "Promo";
+      document.getElementById("summary-promo").textContent =
+        promo.discount > 0 ? "−" + money(promo.discount) : "no pgto";
     } else {
       promoRow.hidden = true;
     }
@@ -2969,7 +3084,7 @@
   }
 
   function buildFilaPayload(session) {
-    const promo = calcPromoForSession(session);
+    const promo = calcPromoForSession(session, null);
     const estab =
       (posContexto && posContexto.estabelecimento && posContexto.estabelecimento.id) || "";
     const term = (posContexto && posContexto.terminal && posContexto.terminal.id) || "";
@@ -2996,11 +3111,14 @@
         obs: l.obs || "",
         servicoDesc: l.servicoDesc || "",
         descPct: l.descPct || 0,
+        categoria: productCategoria(l.id),
+        cat: productCategoria(l.id),
       })),
       subtotal: sessionSubtotal(session),
       discount: sessionDiscAmount(session),
       surcharge: sessionAcrAmount(session),
       promo: promo.discount || 0,
+      promo_kits: promo.kitsDiscount || 0,
       total: sessionTotal(session),
       orderDisc: session.orderDisc,
       orderAcr: session.orderAcr,
@@ -3041,10 +3159,12 @@
     activeFilaPedido = pedido;
     caixaDue = Number(pedido.total) || 0;
     cashReceived = 0;
+    caixaFormaPg = caixaFormaPg || "Dinheiro";
     showNfceResult(null);
     document.getElementById("caixa-due").textContent = money(caixaDue);
     document.getElementById("btn-confirm-pay").disabled = false;
     document.getElementById("btn-confirm-pay").textContent = "Confirmar e emitir NFC-e";
+    refreshCaixaDueForForma();
     renderFilaList(filaPedidos);
     document.querySelectorAll("#fila-list .fila-item").forEach((el) => {
       el.classList.toggle("active", el.dataset.filaId === pedido.id);
@@ -3491,6 +3611,7 @@
     setDataSource("demo");
     await loadPosContexto();
     await loadPosDataFromApi();
+    await loadCampaignsFromApi();
     await loadCashMovesFromApi();
     await loadCaixaSessao();
     renderClientResults();
@@ -3881,19 +4002,13 @@
         };
         caixaFormaPg = formaMap[kind] || "Dinheiro";
         showNfceResult(null);
+        refreshCaixaDueForForma();
         if (kind === "dinheiro") {
           openPaymentPad();
           return;
         }
         if (cashMovePad) cancelCashMove();
         setCaixaCtx("default");
-        const labels = {
-          pix: "PIX selecionado — confirme para receber e emitir NFC-e",
-          debito: "Débito selecionado — confirme para receber e emitir NFC-e",
-          credito: "Crédito selecionado — confirme para receber e emitir NFC-e",
-          voucher: "Voucher selecionado — confirme para receber e emitir NFC-e",
-        };
-        document.getElementById("pay-hint").textContent = labels[kind] || kind;
         document.getElementById("btn-confirm-pay").disabled = !activeFilaPedido;
       }
     });

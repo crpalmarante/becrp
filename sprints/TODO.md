@@ -52,10 +52,10 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ✅ **Fechamento de caixa (turno):** `pos_caixa.py` sessão · Abrir/Fechar no POS · esperado = fundo + dinheiro + supr. − sangria · Δ no fechamento · pagamento exige sessão aberta
 - ✅ **Listas de preço (MVP Odoo-like):** `price_lists.py` · preço fixo por item · `default_price_list_id` no estabelecimento · POS resolve lista→base · UI `pages/listas-preco.html`
 - ✅ **Troca/devolução + gerente:** `POST /api/pos/autorizar-gerente` · carimbo na fila/venda · UI senha no Smart Panel · treino auto-autoriza
+- ✅ **Campanhas:** `campaigns.py` · categoria + vigência + forma pgto opcional · UI `pages/campanhas.html` · PDV hint / caixa aplica (ex. Alimentação −20% no PIX)
 - NFC-e SEFAZ / balança física — força externa (não agora)
-- Campanha (categoria + período + forma pgto) — depois; não misturar no MVP de lista
 
-**Próximo ataque interno (ordem):** (1) ~~caixa~~ ✅ → (2) ~~preço/listas~~ ✅ → (3) ~~troca + gerente~~ ✅
+**Próximo ataque interno (ordem):** (1) ~~caixa~~ ✅ → (2) ~~preço/listas~~ ✅ → (3) ~~troca + gerente~~ ✅ → (4) ~~campanhas~~ ✅
 
 ---
 
@@ -140,6 +140,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 15. ~~Fechamento de caixa~~ ✅ (`pos_caixa` sessão · `/api/pos/caixa/sessao` · Abrir/Fechar no `pages/pos.html`)  
 16. ~~Listas de preço~~ ✅ (`price_lists.py` · `/api/admin/price-lists` · `pages/listas-preco.html` · POS `/api/pos/produtos`)  
 17. ~~Troca/devolução com gerente~~ ✅ (`/api/pos/autorizar-gerente` · `troca_aprovacao` na fila)  
+18. ~~Campanhas~~ ✅ (`campaigns.py` · `/api/admin/campaigns` · POS/caixa)  
 
 ---
 

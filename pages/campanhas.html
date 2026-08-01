@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Campanhas</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .cp-msg { margin:8px 0; font-size:14px; }
+    .cp-msg.err { color:#f87171; }
+    .cp-msg.ok { color:#4ade80; }
+    .cp-table { width:100%; border-collapse:collapse; }
+    .cp-table th, .cp-table td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; }
+    .cp-table th { font-size:12px; text-transform:uppercase; opacity:.7; }
+    .cp-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:10px; margin:16px 0; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .cp-form .field { margin:0; }
+    .cp-form .span2 { grid-column: span 2; }
+    .cp-actions { display:flex; gap:8px; align-items:end; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="campanhas.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="menu-label">Campanhas</span>
+      </a>
+      <a class="menu-item" href="listas-preco.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="menu-label">Listas de Preço</span>
+      </a>
+      <a class="menu-item" href="produtos.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Produtos</span>
+      </a>
+      <a class="menu-item" href="../index4.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Dashboard</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="topbar-title">Campanhas</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Vendas / Campanhas</div>
+          <h2 class="workspace-title">Desconto por categoria + período (+ forma de pgto)</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="msg" class="cp-msg"></div>
+          <div class="cp-form" id="form">
+            <input type="hidden" id="f-id">
+            <div class="field span2"><label>Nome</label><input class="form-input" id="f-name" placeholder="Alimentação no PIX"></div>
+            <div class="field"><label>Categoria</label>
+              <select class="form-input" id="f-cat">
+                <option value="Alimentacao">Alimentacao</option>
+                <option value="Bebidas">Bebidas</option>
+                <option value="Limpeza">Limpeza</option>
+                <option value="Padaria">Padaria</option>
+              </select>
+            </div>
+            <div class="field"><label>% desconto</label><input class="form-input" id="f-pct" type="number" min="1" max="100" step="1" value="20"></div>
+            <div class="field"><label>Início</label><input class="form-input" id="f-start" type="date"></div>
+            <div class="field"><label>Fim</label><input class="form-input" id="f-end" type="date"></div>
+            <div class="field"><label>Forma (opcional)</label>
+              <select class="form-input" id="f-forma">
+                <option value="">Qualquer</option>
+                <option value="PIX">PIX</option>
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Debito">Débito</option>
+                <option value="Credito">Crédito</option>
+              </select>
+            </div>
+            <div class="field"><label>Ativa</label>
+              <select class="form-input" id="f-active"><option value="1">Sim</option><option value="0">Não</option></select>
+            </div>
+            <div class="cp-actions">
+              <button class="dialog-btn dialog-btn-primary" id="btn-save">Salvar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-clear">Limpar</button>
+            </div>
+          </div>
+          <table class="cp-table">
+            <thead>
+              <tr><th>Nome</th><th>Categoria</th><th>%</th><th>Vigência</th><th>Forma</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let rows = [];
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "cp-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function clearForm() {
+    document.getElementById("f-id").value = "";
+    document.getElementById("f-name").value = "";
+    document.getElementById("f-pct").value = "20";
+    document.getElementById("f-forma").value = "";
+    document.getElementById("f-active").value = "1";
+    const t = new Date().toISOString().slice(0, 10);
+    document.getElementById("f-start").value = t;
+    document.getElementById("f-end").value = "2026-12-31";
+  }
+
+  function edit(c) {
+    document.getElementById("f-id").value = c.id || "";
+    document.getElementById("f-name").value = c.name || "";
+    document.getElementById("f-cat").value = c.categoria || "Alimentacao";
+    document.getElementById("f-pct").value = c.discount_pct || 10;
+    document.getElementById("f-start").value = (c.start || "").slice(0, 10);
+    document.getElementById("f-end").value = (c.end || "").slice(0, 10);
+    document.getElementById("f-forma").value = c.forma_pg || "";
+    document.getElementById("f-active").value = c.active === false ? "0" : "1";
+  }
+
+  function render() {
+    const tb = document.getElementById("rows");
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="7" style="opacity:.6">Nenhuma campanha</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((c) => `
+      <tr>
+        <td><strong>${c.name || c.id}</strong></td>
+        <td>${c.categoria || "—"}</td>
+        <td>${c.discount_pct}%</td>
+        <td>${(c.start || "…").slice(0,10)} → ${(c.end || "…").slice(0,10)}</td>
+        <td>${c.forma_pg || "qualquer"}</td>
+        <td>${c.active === false ? "inativa" : "ativa"}</td>
+        <td>
+          <button class="dialog-btn dialog-btn-secondary" data-edit="${c.id}" style="padding:4px 8px;font-size:12px">Editar</button>
+          <button class="dialog-btn dialog-btn-secondary" data-del="${c.id}" style="padding:4px 8px;font-size:12px">Excluir</button>
+        </td>
+      </tr>`).join("");
+    tb.querySelectorAll("[data-edit]").forEach((b) => {
+      b.onclick = () => {
+        const c = rows.find((x) => x.id === b.dataset.edit);
+        if (c) edit(c);
+      };
+    });
+    tb.querySelectorAll("[data-del]").forEach((b) => {
+      b.onclick = async () => {
+        if (!confirm("Excluir campanha?")) return;
+        const res = await AuthService.api("/api/admin/campaigns/" + b.dataset.del, {
+          method: "POST",
+          body: JSON.stringify({ action: "delete" }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Excluída", true);
+        load();
+      };
+    });
+  }
+
+  async function load() {
+    const data = await AuthService.api("/api/admin/campaigns");
+    if (data.status !== "ok") {
+      msg(data.message || "Sem acesso", false);
+      return;
+    }
+    rows = data.campaigns || [];
+    render();
+  }
+
+  document.getElementById("btn-clear").onclick = clearForm;
+  document.getElementById("btn-save").onclick = async () => {
+    const id = document.getElementById("f-id").value;
+    const body = {
+      name: document.getElementById("f-name").value.trim(),
+      categoria: document.getElementById("f-cat").value,
+      discount_pct: document.getElementById("f-pct").value,
+      start: document.getElementById("f-start").value,
+      end: document.getElementById("f-end").value,
+      forma_pg: document.getElementById("f-forma").value,
+      active: document.getElementById("f-active").value === "1",
+    };
+    const path = id ? "/api/admin/campaigns/" + id : "/api/admin/campaigns";
+    const res = await AuthService.api(path, { method: "POST", body: JSON.stringify(body) });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Salva", true);
+    clearForm();
+    load();
+  };
+
+  clearForm();
+  load();
+})();
+</script>
+</body>
+</html>

@@ -19,6 +19,7 @@ import product_localization
 import partner_lookup
 import pos_caixa
 import price_lists
+import campaigns
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -1121,12 +1122,38 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             pedidos.sort(key=lambda p: p.get("createdAt") or "", reverse=True)
             return self._json({"status": "ok", "pedidos": pedidos, "next_num": fila.get("next_num")})
 
+        if parsed.path == "/api/pos/campaigns":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            return self._json({
+                "status": "ok",
+                "campaigns": campaigns.active_campaigns(),
+                "all": campaigns.list_all(),
+            })
+
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":
             token = self.headers.get("X-Auth-Token", "")
             if not self._is_admin(token):
                 return self._json({"status": "error", "message": "Acesso negado"}, 403)
             return self._json({"status": "ok", "lists": price_lists.list_all()})
+
+        if parsed.path == "/api/admin/campaigns":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._is_admin(token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            return self._json({"status": "ok", "campaigns": campaigns.list_all()})
+
+        if parsed.path.startswith("/api/admin/campaigns/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._is_admin(token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            cid = parsed.path.rstrip("/").split("/")[-1]
+            camp = campaigns.get_campaign(cid)
+            if not camp:
+                return self._json({"status": "error", "message": "Campanha não encontrada"}, 404)
+            return self._json({"status": "ok", "campaign": camp})
 
         if parsed.path.startswith("/api/admin/price-lists/"):
             token = self.headers.get("X-Auth-Token", "")
@@ -1833,6 +1860,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "discount": _safe_float(body.get("discount"), 0),
                 "surcharge": _safe_float(body.get("surcharge"), 0),
                 "promo": _safe_float(body.get("promo"), 0),
+                "promo_kits": _safe_float(body.get("promo_kits"), 0),
                 "total": round(total, 2),
                 "orderDisc": body.get("orderDisc") or {"type": "val", "value": 0},
                 "orderAcr": body.get("orderAcr") or {"type": "val", "value": 0},
@@ -1910,7 +1938,39 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     pedido["sessao_id"] = sessao.get("id")
                 pedido["updatedAt"] = datetime.now().isoformat(timespec="seconds")
 
+                # Campanhas: total final = sub − desc + acrésc − kits − campanhas(forma)
+                try:
+                    catalog = {str(p.get("id")): p for p in (cobol_bridge.produtos_listar() or [])}
+                except Exception:
+                    catalog = {}
+                camp_out = campaigns.apply_campaigns(
+                    pedido.get("lines") or [],
+                    catalog_by_id=catalog,
+                    forma_pg=forma_pg,
+                    provisional=False,
+                )
+                base_sub = _safe_float(pedido.get("subtotal"), 0)
+                if base_sub <= 0:
+                    base_sub = round(
+                        sum(
+                            max(0.0, _safe_float(l.get("qtd"), 0) * _safe_float(l.get("preco"), 0))
+                            for l in (pedido.get("lines") or [])
+                            if isinstance(l, dict) and not l.get("troca")
+                        ),
+                        2,
+                    )
+                disc = _safe_float(pedido.get("discount"), 0)
+                acr = _safe_float(pedido.get("surcharge"), 0)
+                kits = _safe_float(pedido.get("promo_kits"), 0)
+                camp_disc = _safe_float(camp_out.get("discount"), 0)
+                total_final = round(max(0.0, base_sub - disc + acr - kits - camp_disc), 2)
+                pedido["promo"] = round(kits + camp_disc, 2)
+                pedido["campaigns"] = camp_out.get("applied") or []
+                pedido["total"] = total_final
+
                 venda = _pedido_para_venda(pedido, forma_pg)
+                if pedido.get("campaigns"):
+                    venda["campaigns"] = pedido["campaigns"]
                 if pedido.get("troca_aprovacao"):
                     venda["troca_aprovacao"] = pedido["troca_aprovacao"]
                 vendas_path = os.path.join(BASE_DIR, "dados", "vendas.json")
@@ -2339,6 +2399,33 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             return self._json({"status": "ok", "terminal": t, "message": "Terminal atualizado"})
 
         crud_token = self.headers.get("X-Auth-Token", "")
+
+        # ── Campanhas (POST) ──
+        if parsed.path == "/api/admin/campaigns":
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                row = campaigns.upsert_campaign(body or {})
+                return self._json({"status": "ok", "campaign": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/campaigns/"):
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            parts = parsed.path.rstrip("/").split("/")
+            cid = parts[4] if len(parts) > 4 else ""
+            if isinstance(body, dict) and body.get("action") == "delete":
+                try:
+                    campaigns.delete_campaign(cid)
+                    return self._json({"status": "ok"})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 404)
+            try:
+                row = campaigns.upsert_campaign(body or {}, campaign_id=cid)
+                return self._json({"status": "ok", "campaign": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
 
         # ── Listas de preço (POST) ──
         if parsed.path == "/api/admin/price-lists":

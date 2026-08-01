@@ -1,0 +1,24 @@
+{
+  "campaigns": [
+    {
+      "id": "camp_alim_pix",
+      "name": "Alimentação no PIX",
+      "active": true,
+      "start": "2026-07-01",
+      "end": "2026-12-31",
+      "categoria": "Alimentacao",
+      "discount_pct": 20,
+      "forma_pg": "PIX"
+    },
+    {
+      "id": "camp_limpeza",
+      "name": "Limpeza da casa",
+      "active": true,
+      "start": "2026-07-01",
+      "end": "2026-08-31",
+      "categoria": "Limpeza",
+      "discount_pct": 10,
+      "forma_pg": ""
+    }
+  ]
+}
