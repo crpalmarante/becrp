@@ -23,6 +23,7 @@ import campaigns
 import planocontas
 import journals
 import journal_entries
+import ledger
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -1278,6 +1279,52 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not row:
                 return self._json({"status": "error", "message": "Lançamento não encontrado"}, 404)
             return self._json({"status": "ok", "lancamento": row})
+
+        # ── Razão / saldos (RFC-8005 MVP) ──
+        if parsed.path == "/api/razao":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            conta = (qs.get("conta") or [""])[0]
+            try:
+                limit = int((qs.get("limit") or ["2000"])[0] or 2000)
+            except (TypeError, ValueError):
+                limit = 2000
+            try:
+                out = ledger.razao(
+                    conta=conta,
+                    data_de=(qs.get("data_de") or [""])[0] or None,
+                    data_ate=(qs.get("data_ate") or [""])[0] or None,
+                    diario=(qs.get("diario") or [""])[0] or None,
+                    limit=limit,
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            return self._json({"status": "ok", **out, "meta": ledger.meta()})
+
+        if parsed.path == "/api/saldos":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            so_mov = (qs.get("so_movimentadas") or ["1"])[0].strip().lower() not in (
+                "0", "false", "no",
+            )
+            try:
+                limit = int((qs.get("limit") or ["500"])[0] or 500)
+            except (TypeError, ValueError):
+                limit = 500
+            try:
+                out = ledger.saldos(
+                    data_ate=(qs.get("data_ate") or [""])[0] or None,
+                    q=(qs.get("q") or [""])[0] or None,
+                    so_movimentadas=so_mov,
+                    limit=limit,
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            return self._json({"status": "ok", **out, "meta": ledger.meta()})
 
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":

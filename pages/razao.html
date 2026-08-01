@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Razão / Saldos</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:120px; }
+    .pc-toolbar .grow { flex:1; min-width:160px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 10px; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .pc-table td.num { text-align:right; font-variant-numeric: tabular-nums; }
+    .tabs { display:flex; gap:8px; margin-bottom:14px; }
+    .tabs button { padding:6px 12px; font-size:13px; }
+    .tabs button.active { border-color: rgba(255,255,255,.35); }
+    .panel { display:none; }
+    .panel.active { display:block; }
+    .sum { font-size:13px; margin:8px 0 12px; opacity:.9; }
+    .clickable { cursor:pointer; text-decoration:underline; text-underline-offset:2px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="plano-contas.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="menu-label">Plano de Contas</span>
+      </a>
+      <a class="menu-item" href="diarios.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Diários</span>
+      </a>
+      <a class="menu-item" href="lancamentos.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Lançamentos</span>
+      </a>
+      <a class="menu-item active" href="razao.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Razão / Saldos</span>
+      </a>
+      <a class="menu-item" href="contabilidade.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Contabilidade</span>
+      </a>
+      <a class="menu-item" href="configuracoes.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="menu-label">Configurações</span>
+      </a>
+      <a class="menu-item" href="../index4.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Dashboard</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="topbar-title">Razão / Saldos</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Contabilidade / Razão</div>
+          <h2 class="workspace-title">Ledger (postados)</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">Somente lançamentos <strong>postados</strong>. Estorno aparece como movimento inverso; o original cancelado não entra.</p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="tabs">
+            <button type="button" class="dialog-btn dialog-btn-secondary active" data-tab="saldos">Saldos</button>
+            <button type="button" class="dialog-btn dialog-btn-secondary" data-tab="razao">Razão</button>
+          </div>
+
+          <div class="panel active" id="panel-saldos">
+            <div class="pc-toolbar">
+              <div class="field grow">
+                <label>Buscar conta</label>
+                <input class="form-input" id="s-q" placeholder="classificação ou nome">
+              </div>
+              <div class="field">
+                <label>Até</label>
+                <input class="form-input" type="date" id="s-ate">
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-saldos">Atualizar</button>
+            </div>
+            <div id="s-sum" class="sum"></div>
+            <div style="overflow:auto; max-height:calc(100vh - 320px)">
+              <table class="pc-table">
+                <thead>
+                  <tr>
+                    <th>Conta</th>
+                    <th>Nome</th>
+                    <th>Débito</th>
+                    <th>Crédito</th>
+                    <th>Saldo</th>
+                    <th>Nat.</th>
+                  </tr>
+                </thead>
+                <tbody id="s-rows"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel" id="panel-razao">
+            <div class="pc-toolbar">
+              <div class="field grow">
+                <label>Conta</label>
+                <input class="form-input" id="r-conta" list="contas-sugestao" placeholder="ex. 1.01.01.01.01">
+              </div>
+              <datalist id="contas-sugestao"></datalist>
+              <div class="field">
+                <label>De</label>
+                <input class="form-input" type="date" id="r-de">
+              </div>
+              <div class="field">
+                <label>Até</label>
+                <input class="form-input" type="date" id="r-ate">
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-razao">Consultar</button>
+            </div>
+            <div id="r-sum" class="sum"></div>
+            <div style="overflow:auto; max-height:calc(100vh - 320px)">
+              <table class="pc-table">
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Número</th>
+                    <th>Histórico</th>
+                    <th>Débito</th>
+                    <th>Crédito</th>
+                    <th>Saldo</th>
+                    <th>Nat.</th>
+                  </tr>
+                </thead>
+                <tbody id="r-rows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  function money(n) {
+    return Number(n || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  document.querySelectorAll(".tabs button").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tabs button").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+    };
+  });
+
+  async function loadSugestao() {
+    const pc = await AuthService.api("/api/planocontas?analiticas=1&limit=400");
+    document.getElementById("contas-sugestao").innerHTML = (pc.contas || [])
+      .map((c) => `<option value="${c.classificacao || c.codigo}">${c.nome || ""}</option>`)
+      .join("");
+  }
+
+  async function loadSaldos() {
+    msg("");
+    const qs = new URLSearchParams({ limit: "1000" });
+    const q = document.getElementById("s-q").value.trim();
+    const ate = document.getElementById("s-ate").value;
+    if (q) qs.set("q", q);
+    if (ate) qs.set("data_ate", ate);
+    const data = await AuthService.api("/api/saldos?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha", false);
+    const m = data.meta || {};
+    document.getElementById("meta").textContent =
+      (m.lancamentos_postados || 0) + " lançamentos postados · " + (data.total_contas || 0) + " contas";
+    const t = data.totais || {};
+    document.getElementById("s-sum").textContent =
+      "Totais D " + money(t.debito) + " · C " + money(t.credito) +
+      " · saldo " + money(t.saldo_abs) + " " + (t.natureza || "");
+    const tb = document.getElementById("s-rows");
+    const rows = data.saldos || [];
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Sem movimentos postados</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((r) => `
+      <tr>
+        <td><span class="clickable" data-conta="${r.conta}">${r.conta}</span></td>
+        <td>${r.conta_nome || ""}</td>
+        <td class="num">${money(r.debito)}</td>
+        <td class="num">${money(r.credito)}</td>
+        <td class="num">${money(r.saldo_abs)}</td>
+        <td>${r.natureza || ""}</td>
+      </tr>`).join("");
+    tb.querySelectorAll("[data-conta]").forEach((el) => {
+      el.onclick = () => {
+        document.getElementById("r-conta").value = el.dataset.conta;
+        document.querySelector('[data-tab="razao"]').click();
+        loadRazao();
+      };
+    });
+  }
+
+  async function loadRazao() {
+    msg("");
+    const conta = document.getElementById("r-conta").value.trim();
+    if (!conta) return msg("Informe a conta", false);
+    const qs = new URLSearchParams({ conta, limit: "2000" });
+    const de = document.getElementById("r-de").value;
+    const ate = document.getElementById("r-ate").value;
+    if (de) qs.set("data_de", de);
+    if (ate) qs.set("data_ate", ate);
+    const data = await AuthService.api("/api/razao?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha", false);
+    const c = data.conta || {};
+    const a = data.abertura || {};
+    const f = data.final || {};
+    document.getElementById("r-sum").textContent =
+      (c.classificacao || "") + " · " + (c.nome || "") +
+      " · abertura " + money(a.saldo_abs) + " " + (a.natureza || "D") +
+      " · final " + money(f.saldo_abs) + " " + (f.natureza || "");
+    const tb = document.getElementById("r-rows");
+    const movs = data.movimentos || [];
+    const openRow = `<tr style="opacity:.75">
+      <td colspan="3">Saldo anterior</td>
+      <td class="num">${money(a.debito)}</td>
+      <td class="num">${money(a.credito)}</td>
+      <td class="num">${money(a.saldo_abs)}</td>
+      <td>${a.natureza || ""}</td>
+    </tr>`;
+    if (!movs.length) {
+      tb.innerHTML = openRow + '<tr><td colspan="7" style="opacity:.6;padding:16px;text-align:center">Sem movimentos no período</td></tr>';
+      return;
+    }
+    tb.innerHTML = openRow + movs.map((m) => `
+      <tr>
+        <td>${m.data || ""}</td>
+        <td>${m.numero || ""}</td>
+        <td>${m.historico || ""}</td>
+        <td class="num">${money(m.debito)}</td>
+        <td class="num">${money(m.credito)}</td>
+        <td class="num">${money(m.saldo_abs)}</td>
+        <td>${m.natureza || ""}</td>
+      </tr>`).join("");
+  }
+
+  document.getElementById("btn-saldos").onclick = loadSaldos;
+  document.getElementById("btn-razao").onclick = loadRazao;
+  document.getElementById("s-q").addEventListener("keydown", (e) => { if (e.key === "Enter") loadSaldos(); });
+  document.getElementById("r-conta").addEventListener("keydown", (e) => { if (e.key === "Enter") loadRazao(); });
+
+  loadSugestao().then(loadSaldos);
+})();
+</script>
+</body>
+</html>

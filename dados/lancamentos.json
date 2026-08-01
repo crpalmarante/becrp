@@ -1,5 +1,114 @@
 {
-  "atualizado_em": null,
-  "lancamentos": [],
-  "total": 0
+  "atualizado_em": "2026-07-31T22:47:18",
+  "lancamentos": [
+    {
+      "id": "b977e316-1d53-4daf-9744-715b74352d12",
+      "numero": "CXA-000001",
+      "diario": "CXA",
+      "data": "2026-07-01",
+      "referencia": "",
+      "historico": "Abertura smoke",
+      "status": "posted",
+      "linhas": [
+        {
+          "conta": "1.01.01.01.01",
+          "conta_codigo": "5",
+          "conta_nome": "Caixa Matriz",
+          "debito": 200.0,
+          "credito": 0.0,
+          "historico": ""
+        },
+        {
+          "conta": "1.01.01.02.01",
+          "conta_codigo": "8",
+          "conta_nome": "Bancos Conta Movimento - No País",
+          "debito": 0.0,
+          "credito": 200.0,
+          "historico": ""
+        }
+      ],
+      "total_debito": 200.0,
+      "total_credito": 200.0,
+      "origem": "manual",
+      "origem_ref": "",
+      "estorna_id": null,
+      "estornado_por": null,
+      "criado_em": "2026-07-31T22:47:18",
+      "atualizado_em": "2026-07-31T22:47:18",
+      "posted_em": "2026-07-31T22:47:18"
+    },
+    {
+      "id": "a3b7134a-7670-4ca6-a100-011cd6bc7840",
+      "numero": "CXA-000002",
+      "diario": "CXA",
+      "data": "2026-07-15",
+      "referencia": "",
+      "historico": "Saque smoke",
+      "status": "cancelled",
+      "linhas": [
+        {
+          "conta": "1.01.01.02.01",
+          "conta_codigo": "8",
+          "conta_nome": "Bancos Conta Movimento - No País",
+          "debito": 50.0,
+          "credito": 0.0,
+          "historico": ""
+        },
+        {
+          "conta": "1.01.01.01.01",
+          "conta_codigo": "5",
+          "conta_nome": "Caixa Matriz",
+          "debito": 0.0,
+          "credito": 50.0,
+          "historico": ""
+        }
+      ],
+      "total_debito": 50.0,
+      "total_credito": 50.0,
+      "origem": "manual",
+      "origem_ref": "",
+      "estorna_id": null,
+      "estornado_por": "ba90241c-59f0-4aaa-b193-1c46cbd915ea",
+      "criado_em": "2026-07-31T22:47:18",
+      "atualizado_em": "2026-07-31T22:47:18",
+      "posted_em": "2026-07-31T22:47:18"
+    },
+    {
+      "id": "ba90241c-59f0-4aaa-b193-1c46cbd915ea",
+      "numero": "CXA-000003",
+      "diario": "CXA",
+      "data": "2026-07-20",
+      "referencia": "",
+      "historico": "Estorno de CXA-000002",
+      "status": "posted",
+      "linhas": [
+        {
+          "conta": "1.01.01.02.01",
+          "conta_codigo": "8",
+          "conta_nome": "Bancos Conta Movimento - No País",
+          "debito": 0.0,
+          "credito": 50.0,
+          "historico": "Estorno CXA-000002"
+        },
+        {
+          "conta": "1.01.01.01.01",
+          "conta_codigo": "5",
+          "conta_nome": "Caixa Matriz",
+          "debito": 50.0,
+          "credito": 0.0,
+          "historico": "Estorno CXA-000002"
+        }
+      ],
+      "total_debito": 50.0,
+      "total_credito": 50.0,
+      "origem": "estorno",
+      "origem_ref": "CXA-000002",
+      "estorna_id": "a3b7134a-7670-4ca6-a100-011cd6bc7840",
+      "estornado_por": null,
+      "criado_em": "2026-07-31T22:47:18",
+      "atualizado_em": "2026-07-31T22:47:18",
+      "posted_em": "2026-07-31T22:47:18"
+    }
+  ],
+  "total": 3
 }

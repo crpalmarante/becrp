@@ -59,9 +59,10 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ✅ **Diários (RFC-8002 MVP):** `journals.py` · `dados/diarios.json` · seed VEN/COM/CXA/BCO/EST/GER · `conta_padrao` no plano · `/api/diarios` · UI `pages/diarios.html`
   - CRUD + mesmas permissões do plano; exclusão bloqueada se `usos > 0`
 - ✅ **Lançamentos (RFC-8003 MVP):** `journal_entries.py` · `dados/lancamentos.json` · partida dobrada · draft→post→estorno · `/api/lancamentos` · UI `pages/lancamentos.html`
+- ✅ **Razão / saldos (RFC-8005 MVP):** `ledger.py` · derivado de postados · `/api/razao` · `/api/saldos` · UI `pages/razao.html`
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
-**Próximo ataque interno (ordem contábil):** (1) ~~plano~~ ✅ → (2) ~~diários~~ ✅ → (3) ~~lançamentos~~ ✅ → (4) razão/saldos (RFC-8005) ou posting rules (8004)
+**Próximo ataque interno (ordem contábil):** (1) ~~plano~~ ✅ → (2) ~~diários~~ ✅ → (3) ~~lançamentos~~ ✅ → (4) ~~razão~~ ✅ → (5) períodos (8006) ou posting (8004)
 
 ---
 
@@ -150,6 +151,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 19. ~~Plano de contas sistema~~ ✅ (`planocontas.py` · `/api/planocontas` · `pages/plano-contas.html`)  
 20. ~~Diários contábeis~~ ✅ (`journals.py` · `/api/diarios` · `pages/diarios.html`)  
 21. ~~Lançamentos~~ ✅ (`journal_entries.py` · `/api/lancamentos` · `pages/lancamentos.html`)  
+22. ~~Razão / saldos~~ ✅ (`ledger.py` · `/api/razao` · `/api/saldos` · `pages/razao.html`)  
 
 ---
 

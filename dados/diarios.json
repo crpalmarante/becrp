@@ -1,5 +1,5 @@
 {
-  "atualizado_em": "2026-07-31T22:43:11",
+  "atualizado_em": "2026-07-31T22:47:18",
   "diarios": [
     {
       "codigo": "VEN",
@@ -30,12 +30,12 @@
       "nome": "Diário de Caixa",
       "tipo": "cash",
       "prefixo": "CXA",
-      "proximo": 1,
+      "proximo": 4,
       "conta_padrao": "1.01.01.01.01",
       "ativo": true,
-      "usos": 0,
+      "usos": 3,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:43:11"
+      "atualizado_em": "2026-07-31T22:47:18"
     },
     {
       "codigo": "BCO",
