@@ -135,6 +135,7 @@
         "href": "pages/configuracoes.html",
         "apps": [
             { "id": "sistema", "label": "Sistema", "icon": "icon-settings", "href": "?mod=sistema" },
+            { "id": "plano-contas", "label": "Plano de Contas", "icon": "icon-dollar", "href": "pages/plano-contas.html" },
             { "id": "usuarios", "label": "Usuários", "icon": "icon-users", "href": "?mod=usuarios" },
             { "id": "permissoes", "label": "Permissões", "icon": "icon-lock", "href": "?mod=permissoes" },
             { "id": "auditoria", "label": "Auditoria", "icon": "icon-file-text", "href": "?mod=auditoria" },

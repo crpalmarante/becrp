@@ -53,6 +53,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 - ✅ **Listas de preço (MVP Odoo-like):** `price_lists.py` · preço fixo por item · `default_price_list_id` no estabelecimento · POS resolve lista→base · UI `pages/listas-preco.html`
 - ✅ **Troca/devolução + gerente:** `POST /api/pos/autorizar-gerente` · carimbo na fila/venda · UI senha no Smart Panel · treino auto-autoriza
 - ✅ **Campanhas:** `campaigns.py` · categoria + vigência + forma pgto opcional · UI `pages/campanhas.html` · PDV hint / caixa aplica (ex. Alimentação −20% no PIX)
+- ✅ **Plano de contas (sistema):** `planocontas.py` · `dados/planocontas.json` (1069) · import local `Plano Referencial.xls` (não versionar) · `/api/planocontas` · UI `pages/plano-contas.html`
 - NFC-e SEFAZ / balança física — força externa (não agora)
 
 **Próximo ataque interno (ordem):** (1) ~~caixa~~ ✅ → (2) ~~preço/listas~~ ✅ → (3) ~~troca + gerente~~ ✅ → (4) ~~campanhas~~ ✅
@@ -141,6 +142,7 @@ Próximos ganhos possíveis (escolher por dor, não por RFC):
 16. ~~Listas de preço~~ ✅ (`price_lists.py` · `/api/admin/price-lists` · `pages/listas-preco.html` · POS `/api/pos/produtos`)  
 17. ~~Troca/devolução com gerente~~ ✅ (`/api/pos/autorizar-gerente` · `troca_aprovacao` na fila)  
 18. ~~Campanhas~~ ✅ (`campaigns.py` · `/api/admin/campaigns` · POS/caixa)  
+19. ~~Plano de contas sistema~~ ✅ (`planocontas.py` · `/api/planocontas` · `pages/plano-contas.html`)  
 
 ---
 

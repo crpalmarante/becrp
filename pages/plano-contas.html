@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Plano de Contas</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:140px; }
+    .pc-toolbar .grow { flex:1; min-width:200px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .pc-table tr.sintetica td { opacity:.85; }
+    .pc-table tr.analitica td { font-weight:500; }
+    .badge-sa { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="plano-contas.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="menu-label">Plano de Contas</span>
+      </a>
+      <a class="menu-item" href="contabilidade.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Contabilidade</span>
+      </a>
+      <a class="menu-item" href="configuracoes.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="menu-label">Configurações</span>
+      </a>
+      <a class="menu-item" href="../index4.html">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Dashboard</span>
+      </a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="topbar-title">Plano de Contas</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <button class="dialog-btn dialog-btn-secondary" id="btn-import" title="Reimportar Plano Referencial.xls local">Reimportar XLS</button>
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Contabilidade / Plano de Contas</div>
+          <h2 class="workspace-title">Plano do sistema (referencial)</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <div id="msg" class="pc-msg"></div>
+          <div class="pc-toolbar">
+            <div class="field grow">
+              <label>Buscar</label>
+              <input class="form-input" id="q" placeholder="código, classificação ou nome">
+            </div>
+            <div class="field">
+              <label>Tipo</label>
+              <select class="form-input" id="tipo">
+                <option value="">Todos</option>
+                <option value="A">Analíticas</option>
+                <option value="S">Sintéticas</option>
+              </select>
+            </div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-search">Filtrar</button>
+          </div>
+          <div style="overflow:auto; max-height:calc(100vh - 260px)">
+            <table class="pc-table">
+              <thead>
+                <tr>
+                  <th>Cód.</th>
+                  <th>Classificação</th>
+                  <th>Nome</th>
+                  <th>Nível</th>
+                  <th>S/A</th>
+                </tr>
+              </thead>
+              <tbody id="rows"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  async function load() {
+    msg("");
+    const q = document.getElementById("q").value.trim();
+    const tipo = document.getElementById("tipo").value;
+    const qs = new URLSearchParams({ limit: "2000" });
+    if (q) qs.set("q", q);
+    if (tipo) qs.set("tipo", tipo);
+    const data = await AuthService.api("/api/planocontas?" + qs.toString());
+    if (data.status !== "ok") {
+      msg(data.message || "Falha ao carregar", false);
+      return;
+    }
+    const m = data.meta || {};
+    document.getElementById("meta").textContent =
+      (data.total || 0) +
+      " contas · fonte " +
+      (m.fonte || data.fonte || "—") +
+      (m.importado_em || data.importado_em ? " · importado " + (m.importado_em || data.importado_em) : "") +
+      (data.filtrado != null ? " · exibindo " + data.filtrado : "");
+    const tb = document.getElementById("rows");
+    const rows = data.contas || [];
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="5" style="opacity:.6;padding:24px;text-align:center">Nenhuma conta</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows
+      .map((c) => {
+        const sa = (c.tipo || "").toUpperCase() === "A" ? "A" : "S";
+        const cls = sa === "A" ? "analitica" : "sintetica";
+        const pad = "&nbsp;".repeat(Math.max(0, (c.nivel || 1) - 1) * 2);
+        return `<tr class="${cls}">
+          <td>${c.codigo || ""}</td>
+          <td>${c.classificacao || ""}</td>
+          <td>${pad}${c.nome || c.descricao || ""}</td>
+          <td>${c.nivel || ""}</td>
+          <td><span class="badge-sa">${sa === "A" ? "Analítica" : "Sintética"}</span></td>
+        </tr>`;
+      })
+      .join("");
+  }
+
+  document.getElementById("btn-search").onclick = load;
+  document.getElementById("q").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") load();
+  });
+  document.getElementById("tipo").onchange = load;
+
+  document.getElementById("btn-import").onclick = async () => {
+    if (!confirm("Reimportar do Plano Referencial.xls local? Isso substitui o JSON do sistema.")) return;
+    const res = await AuthService.api("/api/admin/planocontas/import", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha na importação", false);
+    msg(res.message || "Importado", true);
+    load();
+  };
+
+  load();
+})();
+</script>
+</body>
+</html>

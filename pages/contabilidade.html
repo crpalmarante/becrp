@@ -71,32 +71,17 @@ tr:hover td{background:#f5f5f5}
 </div>
 
 <div id="aba-planocontas" class="tab-content active">
-<h2>Plano de Contas</h2>
-<div style="overflow-x:auto;">
+<h2>Plano de Contas (sistema)</h2>
+<p style="font-size:.85rem;color:#666;margin-bottom:12px;">
+Fonte: referencial importado em <code>dados/planocontas.json</code>.
+<a href="plano-contas.html" style="color:#1a237e;font-weight:600">Abrir consulta completa / reimportar XLS →</a>
+</p>
+<div class="form-row"><label>Buscar:</label><input type="text" id="pc-busca" placeholder="código ou nome" oninput="filtrarPlanocontas()"><button class="btn btn-sm btn-primary" onclick="carregarPlanocontas()">Atualizar</button></div>
+<div style="overflow-x:auto;max-height:480px;">
 <table>
-<thead><tr><th>Código</th><th>Nome</th><th>Tipo</th><th>Ações</th></tr></thead>
+<thead><tr><th>Código</th><th>Classificação</th><th>Nome</th><th>S/A</th></tr></thead>
 <tbody id="tabela-planocontas"></tbody>
 </table>
-</div>
-
-<h3 style="font-size:.9rem;color:#1a237e;margin:16px 0 8px;" id="titulo-form-conta">Nova Conta</h3>
-<input type="hidden" id="pc-codigo-original">
-<div class="grid-2">
-<div class="form-row"><label>Código:</label><input type="text" id="pc-codigo" placeholder="Ex: 3.1.1.001"></div>
-<div class="form-row"><label>Nome:</label><input type="text" id="pc-nome" placeholder="Nome da conta"></div>
-<div class="form-row"><label>Tipo:</label>
-<select id="pc-tipo">
-<option value="Ativo">Ativo</option>
-<option value="Passivo">Passivo</option>
-<option value="Receita">Receita</option>
-<option value="Despesa">Despesa</option>
-<option value="Outro">Outro</option>
-</select></div>
-</div>
-<div style="display:flex;gap:8px;margin-top:8px;">
-<button class="btn btn-success" onclick="adicionarConta()">Adicionar</button>
-<button class="btn btn-primary" onclick="salvarConta()" id="btn-salvar-conta" style="display:none">Salvar</button>
-<button class="btn btn-sm btn-warning" onclick="cancelarEdicaoConta()" id="btn-cancelar-edicao" style="display:none">Cancelar</button>
 </div>
 </div>
 
@@ -187,31 +172,44 @@ if(id==='aba-funcionarios'){carregarConfigFuncionarios()}
 if(id==='aba-holerites'){carregarHoleritesContabil()}
 }
 
-// ---- Plano de Contas ----
+// ---- Plano de Contas (sistema / referencial) ----
 let planocontas=[];
 let planocontasSelect=[];
+let planocontasAll=[];
 
 async function carregarPlanocontas(){
 try{
-const r=await fetch('/api/contabilidade/rules');const data=await r.json();
-planocontas=data.planocontas||[];
-planocontasSelect=planocontas.map(c=>'<option value="'+c.codigo+'">'+c.codigo+' - '+c.nome+'</option>').join('');
+const token = localStorage.getItem('auth_token') || localStorage.getItem('authToken') || '';
+const r=await fetch('/api/planocontas?limit=2000&analiticas=1',{headers: token?{'X-Auth-Token':token}:{}});
+const data=await r.json();
+planocontasAll=data.contas||[];
+planocontas=planocontasAll.slice();
+planocontasSelect=planocontas.map(c=>'<option value="'+(c.classificacao||c.codigo)+'">'+(c.classificacao||c.codigo)+' - '+(c.nome||'')+'</option>').join('');
+filtrarPlanocontas();
+}catch(e){mostrarToast('Erro ao carregar plano de contas','error');}
+}
+
+function filtrarPlanocontas(){
+const q=(document.getElementById('pc-busca')&&document.getElementById('pc-busca').value||'').toLowerCase().trim();
+const list=!q?planocontasAll:planocontasAll.filter(c=>
+  String(c.codigo||'').toLowerCase().includes(q)||
+  String(c.classificacao||'').toLowerCase().includes(q)||
+  String(c.nome||'').toLowerCase().includes(q)
+);
+planocontas=list;
 const tbody=document.getElementById('tabela-planocontas');
-if(planocontas.length===0){
-tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#888;padding:30px;">Nenhuma conta cadastrada</td></tr>';
-}else{
-tbody.innerHTML=planocontas.map(c=>
+if(!list.length){
+tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:#888;padding:30px;">Nenhuma conta</td></tr>';
+return;
+}
+tbody.innerHTML=list.slice(0,300).map(c=>
 '<tr>'+
 '<td>'+c.codigo+'</td>'+
-'<td>'+c.nome+'</td>'+
-'<td>'+c.tipo+'</td>'+
-'<td style="white-space:nowrap;">'+
-'<button class="btn btn-sm btn-warning" onclick="editarConta(\''+c.codigo+'\')">Editar</button> '+
-'<button class="btn btn-sm btn-danger" onclick="excluirConta(\''+c.codigo+'\')">Excluir</button>'+
-'</td></tr>'
-).join('');
-}
-}catch(e){mostrarToast('Erro ao carregar plano de contas','error');}
+'<td>'+(c.classificacao||'')+'</td>'+
+'<td>'+(c.nome||c.descricao||'')+'</td>'+
+'<td>'+(c.tipo==='A'?'Analítica':'Sintética')+'</td>'+
+'</tr>'
+).join('')+(list.length>300?'<tr><td colspan="4" style="color:#888">… +'+(list.length-300)+' (use a busca ou a consulta completa)</td></tr>':'');
 }
 
 function adicionarConta(){

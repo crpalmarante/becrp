@@ -20,6 +20,7 @@ import partner_lookup
 import pos_caixa
 import price_lists
 import campaigns
+import planocontas
 import org_store
 from modules.certificate import cert_service
 from modules.sefaz import sefaz_service
@@ -1131,6 +1132,42 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "campaigns": campaigns.active_campaigns(),
                 "all": campaigns.list_all(),
             })
+
+        # ── Plano de contas (sistema) ──
+        if parsed.path == "/api/planocontas":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            analiticas = None
+            a_raw = (qs.get("analiticas") or [""])[0].strip().lower()
+            if a_raw in ("1", "true", "yes", "a"):
+                analiticas = True
+            elif a_raw in ("0", "false", "no", "s"):
+                analiticas = False
+            try:
+                limit = int((qs.get("limit") or ["500"])[0] or 500)
+            except (TypeError, ValueError):
+                limit = 500
+            out = planocontas.list_contas(
+                q=(qs.get("q") or [""])[0],
+                tipo=(qs.get("tipo") or [""])[0] or None,
+                analiticas=analiticas,
+                limit=limit,
+            )
+            return self._json({"status": "ok", **out, "meta": planocontas.meta()})
+
+        if parsed.path.startswith("/api/planocontas/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            key = parsed.path.rstrip("/").split("/")[-1]
+            if key == "meta":
+                return self._json({"status": "ok", **planocontas.meta()})
+            conta = planocontas.get_conta(urllib.parse.unquote(key))
+            if not conta:
+                return self._json({"status": "error", "message": "Conta não encontrada"}, 404)
+            return self._json({"status": "ok", "conta": conta})
 
         # ── Listas de preço ──
         if parsed.path == "/api/admin/price-lists":
@@ -2399,6 +2436,18 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             return self._json({"status": "ok", "terminal": t, "message": "Terminal atualizado"})
 
         crud_token = self.headers.get("X-Auth-Token", "")
+
+        # ── Plano de contas: reimportar do XLS local ──
+        if parsed.path == "/api/admin/planocontas/import":
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                meta = planocontas.import_from_xls((body or {}).get("path") if isinstance(body, dict) else None)
+                return self._json({"status": "ok", **meta, "message": f"{meta.get('total', 0)} contas importadas"})
+            except FileNotFoundError as e:
+                return self._json({"status": "error", "message": str(e)}, 404)
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
 
         # ── Campanhas (POST) ──
         if parsed.path == "/api/admin/campaigns":

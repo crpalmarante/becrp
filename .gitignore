@@ -32,3 +32,9 @@ dados/certificados/
 dados/auth.db
 *.log
 .cursor/
+
+# Plano referencial RFB — uso local (não versionar a planilha)
+Plano Referencial.xls
+Plano Referencial.xlsx
+**/Plano Referencial.xls
+**/Plano Referencial.xlsx
