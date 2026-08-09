@@ -139,7 +139,7 @@ def seed():
         "cbo": "0000-00", "salario_referencia": "3000.00"})
     fid = cobol_bridge.funcionario_incluir({
         "nome": "CI FUNCIONARIO", "usuario": "ci.func",
-        "senha": "x123", "cpf": "999.888.777-66",
+        "senha": "x123", "cpf": "000.111.222-33",  # exclusivo: smokes usam 999.888.777-66
         "data_nasc": "1990-01-01", "sexo": "M",
         "nacionalidade": "Brasileira", "endereco": "Rua CI, 1",
         "cep": "01000-000", "cidade": "Sao Paulo", "uf": "SP",
@@ -176,17 +176,7 @@ def main():
         else:
             PASS += 1
 
-    step("2. Smokes (RFC + jsonio)")
-    for name in SMOKES:
-        code = run([sys.executable, "-B", os.path.join("scripts", name + ".py")])
-        if code == 0:
-            PASS += 1
-            print(f"  └─ ✅ {name}")
-        else:
-            FAIL += 1
-            print(f"  └─ ❌ {name} (exit {code})")
-
-    step("3. Seed (admin + funcionário ativo)")
+    step("2. Seed (admin + funcionário ativo)")
     backup_seed()
     try:
         try:
@@ -195,6 +185,18 @@ def main():
             FAIL += 1
             print(f"  ❌ seed: {e}")
             return finalize()  # o finally restaura
+
+        # Seed antes dos smokes: vários smokes (ex.: rescisão) exigem
+        # funcionário ativo, que não existe em um checkout limpo de CI.
+        step("3. Smokes (RFC + jsonio)")
+        for name in SMOKES:
+            code = run([sys.executable, "-B", os.path.join("scripts", name + ".py")])
+            if code == 0:
+                PASS += 1
+                print(f"  └─ ✅ {name}")
+            else:
+                FAIL += 1
+                print(f"  └─ ❌ {name} (exit {code})")
 
         step("4. Review da tela Processar Folha + Holerites")
         code = run([sys.executable, "scripts/review_tela_folha.py", "--port", "8137"])

@@ -77,6 +77,17 @@ def main():
 
     _backup()
     try:
+        # ── Garante o estado da empresa (CNAE + regime) mesmo em ambiente
+        #    limpo de CI, onde a configuração local não está versionada ──
+        org_store.salvar_empresa_folha({
+            "nome_razao": "COMERCIAL FABIELI LTDA",
+            "cnpj": "62832155000141",
+            "cnae_prim_codigo": "4754701",
+            "tipo_fiscal": "Simples Nacional",
+            "crt": 1,
+            "uf": "SC",
+        })
+
         # ── Estado atual (empresa Fabieli já tem CNAE + regime) ──
         print("\n1. Prontidão da folha (regra 3)")
         emp = org_store.resolve_empresa_fiscal()

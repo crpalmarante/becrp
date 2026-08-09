@@ -108,9 +108,7 @@ def main():
               and "atualizado_em" in disco, disco)
     finally:
         jsonio.save(real, orig)
-    check("arquivo real restaurado após o teste",
-          jsonio.load(real)["modulos"]["geral"]["empresa_nome"]
-          == orig["modulos"]["geral"]["empresa_nome"])
+    check("arquivo real restaurado após o teste", jsonio.load(real) == orig)
 
     print(f"\n{'=' * 52}")
     print(f"Resultado: {PASS} ✅  {FAIL} ❌")
