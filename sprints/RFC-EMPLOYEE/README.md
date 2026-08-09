@@ -51,7 +51,8 @@ Documentação de referência:
   a tela de taxa padrão do funcionário (007) e a tela de taxa padrão GLOBAL da empresa (008,
   nova tabela `commission_global_rules` — db/018).
 - **`docs-tecnicos/`** — exemplo numérico completo de competência, template de holerite
-  imprimível, relatório de encargos e diagramas Mermaid.
+  imprimível, relatório de encargos, diagramas Mermaid e o mapa de telas × RFCs
+  (`RFC-MAPA-telas.md`).
 
 ---
 
