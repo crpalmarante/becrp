@@ -12,7 +12,7 @@
 
 | Página | Título da tela | RFC(s) atendidas | Estado |
 |---|---|---|---|
-| `funcionarios.html` | Funcionários (cadastro/edição, filiais, dependentes, desligar/reativar) | **RFC-002** (cadastro), **RFC-003** (admissão/desligamento), **RFC-016** (movimentações: cargo/depto/salário/jornada) | ✅ telas e campos com máscaras (CPF/CNPJ, moeda) |
+| `funcionarios.html` | Funcionários (cadastro/edição, filiais, dependentes, desligar/reativar) | **RFC-002** (cadastro), **RFC-003** (admissão/desligamento), **RFC-016** (movimentações: cargo/depto/salário/jornada) | ✅ telas e campos com máscaras (CPF/CNPJ/PIS/CBO, telefone, moeda); validação de CPF (dígito verificador) e obrigatórios da RFC-002 §3.2 |
 | `folha.html` | Folha de Pagamento (abas: Processar, Holerites, Férias, 13º, Rescisão, Contábil, Config) | **RFC-006** (processamento), **RFC-007** (holerite), **RFC-010** (férias), **RFC-011** (13º), **RFC-003** (rescisão), **RFC-005** (tabelas INSS/IRRF na Config), **RFC-014** (FGTS/encargos) | ✅ máscaras de moeda nos campos da Config (tetos/deduções INSS+IRRF) e no processamento |
 | `eventos.html` | Eventos da Folha | **RFC-004** (eventos/proventos/descontos) | ✅ máscara de moeda em `ev-teto` |
 | `departamentos-cargos.html` | Departamentos e Cargos | **RFC-008** (empresa/departamentos/cargos) | ✅ máscara de moeda em `car-salario-ref` |
@@ -49,7 +49,7 @@ Todas as telas do módulo que têm campos monetários usam `data-mask="moeda"` +
 
 | Página | Campos mascarados |
 |---|---|
-| `funcionarios.html` | CPF (f-cpf, dp-cpf), CEP, telefones (f-celular, f-tel-comercial, f-contato-emerg-tel), moedas (f-salario, f-vt-desconto, f-vr, f-plano-saude-valor) |
+| `funcionarios.html` | CPF (f-cpf, dp-cpf), PIS, CBO, CEP, telefones (f-celular, f-tel-comercial, f-contato-emerg-tel), moedas (f-salario, f-vt-desconto, f-vr, f-plano-saude-valor, f-pensao-valor em modo valor fixo) |
 | `folha.html` | `c-salario-minimo`, tetos e deduções INSS (f1–f4) e IRRF (f1–f5), `irrf-ded-dep` |
 | `eventos.html` | `ev-teto` |
 | `departamentos-cargos.html` | `car-salario-ref` |

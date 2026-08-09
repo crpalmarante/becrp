@@ -51,6 +51,27 @@
     return d.length > 5 ? d.slice(0, 5) + "-" + d.slice(5) : d;
   }
 
+  /* PIS/PASEP: 11 dígitos no formato "000.00000.00-0". */
+  function fmtPIS(v) {
+    var d = soDigitos(v).slice(0, 11);
+    if (d.length > 9) {
+      return d.slice(0, 3) + "." + d.slice(3, 8) + "." + d.slice(8, 10) + "-" + d.slice(10);
+    }
+    if (d.length > 7) {
+      return d.slice(0, 3) + "." + d.slice(3, 8) + "." + d.slice(8);
+    }
+    if (d.length > 3) {
+      return d.slice(0, 3) + "." + d.slice(3);
+    }
+    return d;
+  }
+
+  /* CBO (Classificação Brasileira de Ocupações): 6 dígitos "0000-00". */
+  function fmtCBO(v) {
+    var d = soDigitos(v).slice(0, 6);
+    return d.length > 4 ? d.slice(0, 4) + "-" + d.slice(4) : d;
+  }
+
   function fmtTel(v) {
     var d = soDigitos(v).slice(0, 11);
     if (d.length === 11) {
@@ -133,8 +154,8 @@
     return null;
   }
 
-  var MASCARA = { cpf: fmtCPF, cnpj: fmtCNPJ, cep: fmtCEP, tel: fmtTel, doc: fmtDoc, moeda: fmtMoeda };
-  var MAXLEN = { cpf: 14, cnpj: 18, cep: 9, tel: 15, doc: 18 };
+  var MASCARA = { cpf: fmtCPF, cnpj: fmtCNPJ, cep: fmtCEP, tel: fmtTel, doc: fmtDoc, moeda: fmtMoeda, pis: fmtPIS, cbo: fmtCBO };
+  var MAXLEN = { cpf: 14, cnpj: 18, cep: 9, tel: 15, doc: 18, pis: 14, cbo: 7 };
   /* moeda: sem maxlength (o limite de 12 dígitos já está no fmtMoeda;
      o valor formatado "R$ 9.999.999.999,99" tem 19 caracteres). */
 
@@ -163,6 +184,8 @@
         k.indexOf("desconto") !== -1 || k.indexOf("plano-saude") !== -1) return "moeda";
     if (k.indexOf("cnpj") !== -1) return "cnpj";
     if (k.indexOf("cpf") !== -1) return "cpf";
+    if (k.indexOf("pis") !== -1) return "pis";
+    if (k.indexOf("cbo") !== -1) return "cbo";
     if (k.indexOf("cep") !== -1) return "cep";
     if (k.indexOf("telefone") !== -1 || k.indexOf("celular") !== -1 ||
         k.indexOf("fone") !== -1 || k.indexOf("tel") !== -1) return "tel";
@@ -252,6 +275,8 @@
     fmtCEP: fmtCEP,
     fmtTel: fmtTel,
     fmtDoc: fmtDoc,
+    fmtPIS: fmtPIS,
+    fmtCBO: fmtCBO,
     fmtMoeda: fmtMoeda,
     limparMoeda: limparMoeda,
     validarCPF: validarCPF,

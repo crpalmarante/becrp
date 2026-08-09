@@ -139,7 +139,7 @@ tr:hover td { background:#f5f5f5; }
 <!-- Aba 2: Documentos -->
 <div id="tab-documentos" class="tab-content">
 <div class="form-grid">
-<div class="form-row"><label>PIS/NIS:</label><input type="text" id="f-pis" placeholder="000.00000.00-0"></div>
+<div class="form-row"><label>PIS/NIS:</label><input type="text" id="f-pis" data-mask="pis" placeholder="000.00000.00-0"></div>
 <div class="form-row"><label>CTPS:</label><input type="text" id="f-ctps" placeholder="Numero"></div>
 <div class="form-row" style="grid-column:1/-1;display:flex;gap:10px;">
 <label style="min-width:auto;">CTPS Serie:</label><input type="text" id="f-ctps-serie" style="flex:none;width:120px;">
@@ -158,7 +158,7 @@ tr:hover td { background:#f5f5f5; }
 </div>
 <div class="form-row"><label>Data Posse Cargo:</label><input type="date" id="f-data-posse-cargo"></div>
 <div class="form-row"><label>Exame Adm. Venc.:</label><input type="date" id="f-exame-adm-venc"></div>
-<div class="form-row"><label>CBO:</label><input type="text" id="f-cbo" maxlength="6" placeholder="0000-00"></div>
+<div class="form-row"><label>CBO:</label><input type="text" id="f-cbo" data-mask="cbo" maxlength="7" placeholder="0000-00"></div>
 <div class="form-row"><label>Grau Instrucao:</label>
 <select id="f-grau-instrucao"><option value="">Selecionar...</option>
 <option value="Analfabeto">Analfabeto</option><option value="Fundamental">Fundamental</option>
@@ -219,7 +219,7 @@ tr:hover td { background:#f5f5f5; }
 <div class="form-row"><label>Plano Saude (R$):</label><input type="text" id="f-plano-saude-valor" data-mask="moeda" inputmode="decimal" value="0" placeholder="R$ 0,00"></div>
 <h3 style="font-size:.9rem;color:#1a237e;margin:6px 0;grid-column:1/-1;">Pensao Alimenticia</h3>
 <div class="form-row"><label>Tipo:</label>
-<select id="f-pensao-tipo"><option value="">Nenhuma</option>
+<select id="f-pensao-tipo" onchange="togglePensaoMask()"><option value="">Nenhuma</option>
 <option value="P">Percentual do salario</option><option value="V">Valor fixo</option>
 </select></div>
 <div class="form-row"><label>Pensao (R$ ou %):</label><input type="number" id="f-pensao-valor" step="0.01" min="0" value="0" placeholder="0.00"></div>
@@ -391,6 +391,21 @@ const trabDom = document.getElementById('f-trab-dom').checked;
 
 function getTime(id) { return document.getElementById(id).value || ''; }
 
+function togglePensaoMask() {
+const tipo = document.getElementById('f-pensao-tipo').value;
+const el = document.getElementById('f-pensao-valor');
+if (tipo === 'V') {
+el.type = 'text';
+el.setAttribute('data-mask', 'moeda');
+el.value = (el.value && Number(el.value) > 0) ? Mascaras.fmtMoeda(String(Math.round(Number(el.value) * 100))) : 'R$ 0,00';
+Mascaras.aplicar('f-pensao-valor');
+} else {
+el.removeAttribute('data-mask');
+el.type = 'number';
+el.value = (el.value && Mascaras.limparMoeda(el.value)) ? Mascaras.limparMoeda(el.value) : '0';
+}
+}
+
 async function uploadFoto(input) {
 const file = input.files[0];
 if (!file) return;
@@ -463,6 +478,7 @@ document.getElementById('f-trab-dom').checked = false;
 ['f-sab-sai','f-dom-sai'].forEach(id => document.getElementById(id).value = '12:00');
 document.getElementById('form-titulo').textContent = 'Cadastrar Funcionario';
 toggleFimDeSemana();
+togglePensaoMask();
 }
 
 async function carregarFiliais() {
@@ -664,6 +680,22 @@ if (!nome) { mostrarToast('Nome obrigatorio', 'error'); return; }
 if (!usuario) { mostrarToast('Usuario obrigatorio', 'error'); return; }
 if (!cargo) { mostrarToast('Selecione um cargo', 'error'); return; }
 if (!isEdit && !senha) { mostrarToast('Senha obrigatoria para novo funcionario', 'error'); return; }
+const cpfVal = document.getElementById('f-cpf').value.trim();
+if (cpfVal) {
+const cpfOk = Mascaras.validarCPF(cpfVal);
+if (cpfOk === false) { mostrarToast('CPF invalido', 'error'); return; }
+}
+const obrigatorios = {
+'f-data-nasc': 'Data de nascimento', 'f-sexo': 'Sexo', 'f-nacionalidade': 'Nacionalidade',
+'f-endereco': 'Endereco', 'f-cep': 'CEP', 'f-cidade': 'Cidade', 'f-uf': 'UF',
+'f-ctps': 'Numero CTPS', 'f-data-adm': 'Data de admissao',
+'f-departamento-id': 'Departamento', 'f-cargo-id': 'Cargo',
+'f-forma-pagamento': 'Forma de pagamento', 'f-salario': 'Salario'
+};
+for (const [id, label] of Object.entries(obrigatorios)) {
+const el = document.getElementById(id);
+if (!el.value) { mostrarToast(label + ' e obrigatorio', 'error'); return; }
+}
 
 const params = new URLSearchParams();
 params.set('nome', nome);
@@ -727,7 +759,8 @@ params.set('carga_horaria', document.getElementById('f-carga-horaria').value || 
 params.set('exame_adm_venc', document.getElementById('f-exame-adm-venc').value);
 params.set('observacoes', document.getElementById('f-observacoes').value.trim());
 params.set('pensao_tipo', document.getElementById('f-pensao-tipo').value);
-params.set('pensao_valor', document.getElementById('f-pensao-valor').value || '0');
+const pvEl = document.getElementById('f-pensao-valor');
+params.set('pensao_valor', pvEl.getAttribute('data-mask') === 'moeda' ? Mascaras.limparMoeda(pvEl.value) : (pvEl.value || '0'));
 params.set('vt_optante', document.getElementById('f-vt-optante').value);
 ['seg','ter','qua','qui','sex'].forEach(d => {
 params.set(d + '_ent', getTime('f-' + d + '-ent'));
@@ -829,7 +862,8 @@ document.getElementById('f-carga-horaria').value = func.carga_horaria || '';
 document.getElementById('f-exame-adm-venc').value = func.exame_adm_venc || '';
 document.getElementById('f-observacoes').value = func.observacoes || '';
 document.getElementById('f-pensao-tipo').value = func.pensao_tipo || '';
-document.getElementById('f-pensao-valor').value = func.pensao_valor || '';
+document.getElementById('f-pensao-valor').value = func.pensao_valor || '0';
+togglePensaoMask();
 document.getElementById('foto-preview').src = func.foto ? '/uploads/funcionarios/' + func.foto : '/img/sem-foto.png';
 document.getElementById('curriculo-nome').textContent = func.curriculo ? 'Curriculo anexado' : '';
 document.getElementById('f-trab-sab').checked = func.trab_sab === 'S';
