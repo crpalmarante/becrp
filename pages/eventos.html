@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eventos da Folha - Palmarante Loja</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#333; }
+header { background:#1a237e; color:#fff; padding:16px 24px; display:flex; justify-content:space-between; align-items:center; }
+header h1 { font-size:1.4rem; }
+header a { color:#ffd54f; text-decoration:none; font-size:.9rem; }
+main { padding:24px; max-width:1400px; margin:0 auto; }
+.card { background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); padding:20px; margin-bottom:20px; }
+.card h2 { font-size:1.1rem; margin-bottom:16px; color:#1a237e; }
+table { width:100%; border-collapse:collapse; font-size:.85rem; }
+th { background:#e8eaf6; text-align:left; padding:8px 10px; font-weight:600; border-bottom:2px solid #c5cae9; white-space:nowrap; }
+td { padding:6px 10px; border-bottom:1px solid #eee; vertical-align:top; }
+tr:hover td { background:#f5f5f5; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+@media(max-width:900px){.form-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+.form-row { display:flex; flex-direction:column; gap:4px; }
+.form-row label { font-weight:500; font-size:.85rem; color:#444; }
+.form-row input, .form-row select { padding:9px 12px; border:1px solid #ccc; border-radius:6px; font-size:.9rem; }
+.form-row input:focus, .form-row select:focus { border-color:#1a237e; outline:none; }
+.form-row.full { grid-column:1 / -1; }
+.incidencias { display:flex; gap:16px; align-items:center; padding:8px 0; }
+.incidencias label { display:flex; align-items:center; gap:6px; font-size:.85rem; font-weight:500; }
+.btn { padding:8px 20px; border:none; border-radius:4px; cursor:pointer; font-size:.9rem; font-weight:500; }
+.btn-primary { background:#1a237e; color:#fff; }
+.btn-primary:hover { background:#283593; }
+.btn-success { background:#2e7d32; color:#fff; }
+.btn-success:hover { background:#388e3c; }
+.btn-danger { background:#c62828; color:#fff; }
+.btn-danger:hover { background:#d32f2f; }
+.btn-warning { background:#f9a825; color:#333; }
+.btn-sm { padding:4px 10px; font-size:.8rem; }
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.68rem; font-weight:600; margin:1px 2px; }
+.badge.provento { background:#e8f5e9; color:#2e7d32; }
+.badge.desconto { background:#fce4ec; color:#c62828; }
+.badge.informativo { background:#e3f2fd; color:#1565c0; }
+.badge.ativo { background:#e8f5e9; color:#2e7d32; }
+.badge.inativo { background:#fafafa; color:#999; border:1px solid #eee; }
+.badge.incide { background:#fff3e0; color:#e65100; }
+.toast { position:fixed; bottom:20px; right:20px; padding:12px 24px; border-radius:6px; color:#fff; font-weight:500; display:none; z-index:999; }
+.toast.success { background:#2e7d32; }
+.toast.error { background:#c62828; }
+.note { font-size:.75rem; color:#888; margin-bottom:10px; }
+.banner { border-radius:8px; padding:14px 18px; margin-bottom:20px; font-size:.9rem; }
+.banner.pendente { background:#fff3e0; border:1px solid #ffcc80; color:#e65100; }
+.banner.ready { background:#e8f5e9; border:1px solid #a5d6a7; color:#2e7d32; }
+.banner b { display:block; margin-bottom:2px; }
+</style>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header>
+<h1>Eventos da Folha (RFC-004)</h1>
+<a href="/pages/folha.html">&larr; Folha de Pagamento</a>
+</header>
+
+<main>
+
+<div id="banner" class="banner" style="display:none;"></div>
+
+<div class="card">
+<h2>Cadastro de Evento</h2>
+<p class="note">Evento é a menor unidade de crédito (provento) ou débito (desconto) que entra na folha. O catálogo inicial (RFC-004 §3) é carregado automaticamente. Teto: limite do desconto (ex.: VT 6%); 0 = sem teto.</p>
+<div class="form-grid">
+<div class="form-row"><label>Codigo:</label><input type="number" id="ev-codigo" min="1" max="999" placeholder="Ex: 30"></div>
+<div class="form-row"><label>Descricao:</label><input type="text" id="ev-descricao" maxlength="40" placeholder="Ex: Bonus de Producao"></div>
+<div class="form-row"><label>Tipo:</label>
+<select id="ev-tipo">
+<option value="">Selecionar...</option>
+<option value="provento">Provento</option>
+<option value="desconto">Desconto</option>
+<option value="informativo">Informativo</option>
+</select></div>
+<div class="form-row"><label>Categoria:</label>
+<select id="ev-categoria">
+<option value="">Selecionar...</option>
+<option value="remuneracao">Remuneracao</option>
+<option value="beneficio">Beneficio</option>
+<option value="encargo">Encargo</option>
+<option value="verba-rescisoria">Verba rescisoria</option>
+<option value="outro">Outro</option>
+</select></div>
+<div class="form-row"><label>Referencia:</label>
+<select id="ev-referencia">
+<option value="">Selecionar...</option>
+<option value="valor">Valor</option>
+<option value="horas">Horas</option>
+<option value="percentual">Percentual</option>
+<option value="dias">Dias</option>
+<option value="cotas">Cotas</option>
+<option value="periodo">Periodo</option>
+<option value="automatica">Automatica</option>
+</select></div>
+<div class="form-row"><label>Ordem de calculo:</label><input type="number" id="ev-ordem" min="1" max="999" placeholder="Ex: 30"></div>
+<div class="form-row"><label>Uso:</label>
+<select id="ev-uso">
+<option value="">Selecionar...</option>
+<option value="mensal">Mensal</option>
+<option value="rescisao">Rescisao</option>
+<option value="13">13o salario</option>
+<option value="ferias">Ferias</option>
+<option value="todos">Todos</option>
+</select></div>
+<div class="form-row"><label>Teto (R$):</label><input type="number" id="ev-teto" step="0.01" min="0" value="0" placeholder="0 = sem teto"></div>
+<div class="form-row full"><label>Formula / regra de calculo:</label><input type="text" id="ev-formula" maxlength="60" placeholder="Ex: Valor da hora normal x quantidade x 1,50"></div>
+<div class="form-row full">
+<label>Incidencia (compoe base de):</label>
+<div class="incidencias">
+<label><input type="checkbox" id="ev-incide-inss"> INSS</label>
+<label><input type="checkbox" id="ev-incide-irrf"> IRRF</label>
+<label><input type="checkbox" id="ev-incide-fgts"> FGTS</label>
+</div>
+</div>
+</div>
+<div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
+<input type="hidden" id="ev-id" value="">
+<button class="btn btn-success" onclick="salvarEvento()">Salvar Evento</button>
+<button class="btn btn-warning btn-sm" onclick="limparForm()" style="display:none;" id="ev-cancelar">Cancelar</button>
+<button class="btn btn-warning" onclick="restaurarCatalogo()">Restaurar Catalogo Inicial</button>
+</div>
+</div>
+
+<div class="card">
+<h2>Catalogo de Eventos</h2>
+<div style="overflow-x:auto;">
+<table>
+<thead><tr>
+<th>Cod.</th><th>Descricao</th><th>Tipo</th><th>Categoria</th><th>Referencia</th>
+<th>Incidencia</th><th>Ordem</th><th>Uso</th><th>Teto</th><th>Status</th><th>Acoes</th>
+</tr></thead>
+<tbody id="tabela-eventos"></tbody>
+</table>
+</div>
+</div>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+function mostrarToast(msg, tipo) {
+const t = document.getElementById('toast');
+t.textContent = msg;
+t.className = 'toast ' + tipo;
+t.style.display = 'block';
+setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function getToken() {
+return localStorage.getItem('auth_token') || '';
+}
+
+function mostrarRestrito() {
+const b = document.getElementById('banner');
+b.className = 'banner pendente';
+b.style.display = 'block';
+b.innerHTML = '<b>🔒 Acesso restrito</b>Faca login como administrador/instrutor para gerenciar os eventos da folha.';
+}
+
+const TIPO_LABEL = { provento: 'Provento', desconto: 'Desconto', informativo: 'Informativo' };
+const REF_LABEL = { valor: 'Valor', horas: 'Horas', percentual: 'Percentual', dias: 'Dias', cotas: 'Cotas', periodo: 'Periodo', automatica: 'Automatica' };
+const USO_LABEL = { mensal: 'Mensal', rescisao: 'Rescisao', '13': '13o', ferias: 'Ferias', todos: 'Todos' };
+
+async function carregarEventos() {
+try {
+const r = await fetch('/api/eventos', { headers: { 'X-Auth-Token': getToken() } });
+if (r.status === 401 || r.status === 403) { mostrarRestrito(); return; }
+const data = await r.json();
+const tbody = document.getElementById('tabela-eventos');
+const evs = data.eventos || [];
+if (evs.length === 0) {
+tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#888;padding:24px;">Nenhum evento cadastrado</td></tr>';
+return;
+}
+tbody.innerHTML = evs.map(e => {
+const incs = [];
+if (e.incide_inss === 'S') incs.push('<span class="badge incide">INSS</span>');
+if (e.incide_irrf === 'S') incs.push('<span class="badge incide">IRRF</span>');
+if (e.incide_fgts === 'S') incs.push('<span class="badge incide">FGTS</span>');
+const inativo = e.status === 'inativo';
+return '<tr>' +
+'<td>' + e.codigo + '</td>' +
+'<td>' + (e.descricao || '') + (inativo ? ' <span class="badge inativo">inativo</span>' : '') + '</td>' +
+'<td><span class="badge ' + (e.tipo || '') + '">' + (TIPO_LABEL[e.tipo] || e.tipo || '-') + '</span></td>' +
+'<td>' + (e.categoria || '-') + '</td>' +
+'<td>' + (REF_LABEL[e.referencia] || e.referencia || '-') + '</td>' +
+'<td>' + (incs.join('') || '-') + '</td>' +
+'<td>' + (e.ordem || '-') + '</td>' +
+'<td>' + (USO_LABEL[e.uso] || e.uso || '-') + '</td>' +
+'<td>' + (e.teto ? 'R$ ' + parseFloat(e.teto).toFixed(2) : '-') + '</td>' +
+'<td><span class="badge ' + (inativo ? 'inativo' : 'ativo') + '">' + (e.status || 'ativo') + '</span></td>' +
+'<td style="white-space:nowrap;">' +
+(!inativo ? '<button class="btn btn-sm btn-primary" onclick="editarEvento(' + e.id + ')">Editar</button> <button class="btn btn-sm btn-danger" onclick="inativarEvento(' + e.id + ')">Inativar</button>' : '<span style="color:#999;font-size:.75rem;">inativo</span>') +
+'</td></tr>';
+}).join('');
+} catch(e) { mostrarToast('Erro ao carregar eventos', 'error'); }
+}
+
+function limparForm() {
+document.getElementById('ev-id').value = '';
+document.getElementById('ev-codigo').value = '';
+document.getElementById('ev-descricao').value = '';
+document.getElementById('ev-tipo').value = '';
+document.getElementById('ev-categoria').value = '';
+document.getElementById('ev-referencia').value = '';
+document.getElementById('ev-formula').value = '';
+document.getElementById('ev-ordem').value = '';
+document.getElementById('ev-uso').value = '';
+document.getElementById('ev-teto').value = '0';
+document.getElementById('ev-incide-inss').checked = false;
+document.getElementById('ev-incide-irrf').checked = false;
+document.getElementById('ev-incide-fgts').checked = false;
+document.getElementById('ev-cancelar').style.display = 'none';
+}
+
+async function salvarEvento() {
+const id = document.getElementById('ev-id').value;
+const isEdit = id !== '';
+const codigo = document.getElementById('ev-codigo').value;
+const descricao = document.getElementById('ev-descricao').value.trim();
+const tipo = document.getElementById('ev-tipo').value;
+if (!codigo) { mostrarToast('Codigo obrigatorio', 'error'); return; }
+if (!descricao) { mostrarToast('Descricao obrigatoria', 'error'); return; }
+if (!tipo) { mostrarToast('Selecione o tipo', 'error'); return; }
+const params = new URLSearchParams();
+params.set('codigo', codigo);
+params.set('descricao', descricao);
+params.set('tipo', tipo);
+params.set('categoria', document.getElementById('ev-categoria').value);
+params.set('referencia', document.getElementById('ev-referencia').value);
+params.set('formula', document.getElementById('ev-formula').value.trim());
+params.set('ordem', document.getElementById('ev-ordem').value || '0');
+params.set('uso', document.getElementById('ev-uso').value);
+params.set('teto', document.getElementById('ev-teto').value || '0');
+params.set('incide_inss', document.getElementById('ev-incide-inss').checked ? 'S' : 'N');
+params.set('incide_irrf', document.getElementById('ev-incide-irrf').checked ? 'S' : 'N');
+params.set('incide_fgts', document.getElementById('ev-incide-fgts').checked ? 'S' : 'N');
+if (isEdit) params.set('id', id);
+const endpoint = isEdit ? '/api/evento/alterar' : '/api/evento/incluir';
+try {
+const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Auth-Token': getToken() }, body: params });
+const data = await r.json();
+if (data.status === 'ok' || data.id) { mostrarToast('Evento salvo!', 'success'); limparForm(); carregarEventos(); }
+else mostrarToast(data.message || data.mensagem || 'Erro', 'error');
+} catch(e) { mostrarToast('Erro ao salvar evento', 'error'); }
+}
+
+function editarEvento(id) {
+fetch('/api/eventos', { headers: { 'X-Auth-Token': getToken() } }).then(r => r.json()).then(data => {
+const ev = (data.eventos || []).find(e => e.id === id);
+if (!ev) { mostrarToast('Evento nao encontrado', 'error'); return; }
+document.getElementById('ev-id').value = ev.id;
+document.getElementById('ev-codigo').value = ev.codigo;
+document.getElementById('ev-descricao').value = ev.descricao || '';
+document.getElementById('ev-tipo').value = ev.tipo || '';
+document.getElementById('ev-categoria').value = ev.categoria || '';
+document.getElementById('ev-referencia').value = ev.referencia || '';
+document.getElementById('ev-formula').value = ev.formula || '';
+document.getElementById('ev-ordem').value = ev.ordem || '';
+document.getElementById('ev-uso').value = ev.uso || '';
+document.getElementById('ev-teto').value = ev.teto ? String(ev.teto) : '0';
+document.getElementById('ev-incide-inss').checked = ev.incide_inss === 'S';
+document.getElementById('ev-incide-irrf').checked = ev.incide_irrf === 'S';
+document.getElementById('ev-incide-fgts').checked = ev.incide_fgts === 'S';
+document.getElementById('ev-cancelar').style.display = 'inline-block';
+document.getElementById('ev-codigo').scrollIntoView({ behavior: 'smooth' });
+}).catch(() => mostrarToast('Erro ao carregar evento', 'error'));
+}
+
+async function inativarEvento(id) {
+if (!confirm('Inativar evento #' + id + '?')) return;
+try {
+const params = new URLSearchParams(); params.set('id', id);
+const r = await fetch('/api/evento/excluir', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-Auth-Token': getToken() }, body: params });
+const data = await r.json();
+if (data.status === 'ok') { mostrarToast('Evento inativado', 'success'); carregarEventos(); }
+else mostrarToast(data.message || 'Erro', 'error');
+} catch(e) { mostrarToast('Erro', 'error'); }
+}
+
+async function restaurarCatalogo() {
+if (!confirm('Restaurar o catalogo inicial (RFC-004 §3)? Eventos inativos com mesmo codigo serao recriados.')) return;
+try {
+const r = await fetch('/api/eventos/seed', { method: 'POST', headers: { 'X-Auth-Token': getToken() } });
+const data = await r.json();
+if (data.status === 'ok') { mostrarToast(data.message || 'Catalogo restaurado!', 'success'); carregarEventos(); }
+else mostrarToast(data.message || 'Erro', 'error');
+} catch(e) { mostrarToast('Erro', 'error'); }
+}
+
+carregarEventos();
+</script>
+<footer style="text-align:center;padding:16px 0;margin-top:32px;font-size:.8rem;color:#999;border-top:1px solid #e0e0e0">Powered by <strong>COBOL</strong> &mdash; Palmarante Loja</footer>
+</body>
+</html>

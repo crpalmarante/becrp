@@ -104,6 +104,20 @@ body{
   color:var(--hub-muted);
   font-size:.95rem;
 }
+.hub-back{
+  display:none;
+  margin:0 auto 18px;
+  border:1px solid var(--hub-border);
+  background:var(--hub-surface);
+  color:var(--hub-text);
+  border-radius:999px;
+  padding:8px 16px;
+  font-size:.82rem;
+  font-weight:600;
+  cursor:pointer;
+}
+.hub-back:hover{background:var(--hub-surface-hover);border-color:rgba(20,184,166,.45)}
+.hub-back.visible{display:inline-flex;align-items:center;gap:8px}
 
 .cards{
   display:grid;
@@ -115,6 +129,8 @@ body{
 
 .card{
   appearance:none;
+  -webkit-appearance:none;
+  font:inherit;
   text-decoration:none;
   color:inherit;
   display:flex;
@@ -122,6 +138,7 @@ body{
   align-items:center;
   justify-content:center;
   gap:12px;
+  width:100%;
   min-height:148px;
   padding:22px 14px;
   border-radius:var(--hub-radius);
@@ -132,6 +149,7 @@ body{
   transition:transform .18s ease, background .18s ease, border-color .18s ease, box-shadow .18s ease;
   cursor:pointer;
 }
+.card:disabled{pointer-events:none}
 .card:hover,.card:focus-visible{
   transform:translateY(-4px);
   background:var(--hub-surface-hover);
@@ -201,7 +219,8 @@ body{
 
   <section class="hub-center">
     <h2 class="greeting" id="greeting">Olá</h2>
-    <p class="subtitle">Escolha um módulo para continuar</p>
+    <p class="subtitle" id="subtitle">Escolha um módulo para continuar</p>
+    <button type="button" class="hub-back" id="hub-back">← Voltar aos módulos</button>
     <div class="cards" id="cards">
       <div class="loading">Carregando módulos...</div>
     </div>
@@ -222,6 +241,10 @@ body{
   let user;
   try { user = JSON.parse(raw); } catch { location.href = "index.html"; return; }
 
+  // RFC: vendedor→PDV, caixa→caixa da loja (mesma regra do login).
+  if (user.pos === "pdv") { location.href = "pages/pos.html?mode=pdv"; return; }
+  if (user.pos === "caixa") { location.href = "pages/pos.html?mode=caixa"; return; }
+
   const PAGE_MAP = {
     nfe: "pages/nfe.html",
     nfce: "pages/nfce.html",
@@ -230,38 +253,99 @@ body{
     mdfe: "pages/mdfe.html",
     sped: "pages/sped.html",
     produtos: "pages/produtos.html",
+    "produtos-vendas": "pages/produtos.html",
     categorias: "pages/categorias.html",
-    fornecedores: "pages/fornecedores.html",
+    fornecedores: "pages/parceiros.html?role=SUPPLIER",
+    parceiros: "pages/parceiros.html",
     contatos: "pages/contatos.html",
+    "contatos-vendas": "pages/parceiros.html?role=CUSTOMER",
     certificados: "pages/certificados.html",
+    "config-certificados": "pages/certificados.html",
     empresas: "pages/empresas.html",
+    "config-empresas": "pages/empresas.html",
+    "cfg-multiempresa": "pages/empresas.html",
     usuarios: "pages/usuarios.html",
     permissoes: "pages/permissoes.html",
+    sistema: "pages/configuracoes.html",
     configuracoes: "pages/configuracoes.html",
+    apps: "pages/apps.html",
+    "apps-cfg": "pages/apps.html",
+    "setup-wizard": "pages/setup-wizard.html",
     faturamento: "pages/faturamento.html",
+    faturas: "pages/faturamento.html",
+    "notas-fiscais": "pages/nfe.html",
     funcionarios: "pages/funcionarios.html",
+    cadastro: "pages/funcionarios.html",
     folha: "pages/folha.html",
     ponto: "pages/ponto.html",
+    "relatorios-rh": "pages/relatorios_rh.html",
+    "rh-dashboard": "pages/rh_dashboard.html",
     pos: "pages/pos.html",
     pdv: "pages/pos.html",
+    caixa: "pages/pos.html",
+    suporte: "pages/pos.html",
     recebimento: "pages/recebimento.html",
     estoque: "pages/estoque.html",
     inventario: "pages/estoque.html",
+    wms: "pages/wms-workspace.html",
+    "wms-workspace": "pages/wms-workspace.html",
+    "wms-analytics": "pages/wms-analytics.html",
+    "wms-armazens": "pages/wms-armazens.html",
+    "wms-localizacoes": "pages/wms-localizacoes.html",
+    "wms-tipos-operacao": "pages/wms-tipos-operacao.html",
+    "wms-operacoes": "pages/wms-operacoes.html",
+    "wms-tarefas": "pages/wms-tarefas.html",
+    "wms-picking": "pages/wms-picking.html",
+    "wms-recebimento": "pages/wms-recebimento.html",
+    "recebimento-wms": "pages/wms-recebimento.html",
+    "wms-expedicao": "pages/wms-expedicao.html",
+    delivery: "pages/entregas-workspace.html",
+    entregas: "pages/entregas.html",
+    "entregas-workspace": "pages/entregas-workspace.html",
+    "entregas-dashboard": "pages/entregas-dashboard.html",
+    "entregas-fila": "pages/entregas-fila.html",
+    "entregas-planejamento": "pages/entregas-planejamento.html",
+    "entregas-calendario": "pages/entregas-calendario.html",
+    "entregas-manifesto": "pages/entregas-manifesto.html",
+    "entregas-viagem": "pages/entregas-viagem.html",
+    "entregas-motorista": "pages/entregas-motorista.html",
+    "entregas-paradas": "pages/entregas-paradas.html",
+    "estoque-wms": "pages/estoque.html",
+    "recebimento-wms": "pages/recebimento.html",
     vendas: "pages/vendas.html#dashboard",
     "pedidos-venda": "pages/vendas.html#pedidos",
+    cotacoes: "pages/vendas.html#cotacoes",
     orcamentos: "pages/vendas.html#orcamentos",
     contratos: "pages/vendas.html#contratos",
+    "lista-precos": "pages/listas-preco.html",
+    campanhas: "pages/campanhas.html",
+    "plano-contas": "pages/plano-contas.html",
+    diarios: "pages/diarios.html",
+    lancamentos: "pages/lancamentos.html",
+    razao: "pages/razao.html",
+    posting: "pages/posting.html",
+    periodos: "pages/periodos.html",
+    "relatorios-contabeis": "pages/relatorios-contabeis.html",
+    "integracao-contabil": "pages/integracao-contabil.html",
+    "analytics-contabil": "pages/analytics-contabil.html",
+    contabilidade: "pages/contabilidade.html",
+    clientes: "pages/parceiros.html?role=CUSTOMER",
     dashboard: "index4.html"
   };
 
+  let menuData = [];
+  let currentModule = null;
+
   function resolveHref(item) {
-    if (item.href && item.href !== "#" && !item.href.startsWith("?")) return item.href;
+    if (!item) return null;
+    const href = (item.href || "").trim();
+    if (href && href !== "#" && !href.startsWith("?")) return href;
     if (PAGE_MAP[item.id]) return PAGE_MAP[item.id];
-    const first = (item.apps || []).find(a => a.href && a.href !== "#" && !a.href.startsWith("?"));
-    if (first) return first.href;
-    const mapped = (item.apps || []).find(a => PAGE_MAP[a.id]);
-    if (mapped) return PAGE_MAP[mapped.id];
     return null;
+  }
+
+  function moduleApps(mod) {
+    return (mod.apps || []).filter(a => a && !a.section && a.id);
   }
 
   function greet(nome) {
@@ -287,28 +371,104 @@ body{
     }
   }
 
-  function renderCards(menu) {
+  function cardHtml(item, { href, hint, openModule }) {
+    const clickable = !!(href || openModule);
+    const style = clickable ? "" : ' style="opacity:.45;cursor:default" title="Em breve"';
+    const data = openModule ? ` data-module="${openModule}"` : "";
+    const tag = href ? "a" : "button";
+    const attrs = href
+      ? `href="${href}" class="card"${data}`
+      : `type="button" class="card"${data}${style}${clickable ? "" : " disabled"}`;
+    return `<${tag} ${attrs}>
+      <span class="card-icon"><svg class="icon"><use href="#${item.icon || "icon-file-text"}"/></svg></span>
+      <span class="card-label">${item.label}</span>
+      <span class="card-hint">${hint}</span>
+    </${tag}>`;
+  }
+
+  function setLevel(mod) {
+    currentModule = mod || null;
+    const back = document.getElementById("hub-back");
+    const subtitle = document.getElementById("subtitle");
+    if (currentModule) {
+      back.classList.add("visible");
+      subtitle.textContent = currentModule.label + " — escolha a página";
+      history.replaceState(null, "", "#mod=" + encodeURIComponent(currentModule.id));
+    } else {
+      back.classList.remove("visible");
+      subtitle.textContent = "Escolha um módulo para continuar";
+      history.replaceState(null, "", location.pathname);
+    }
+  }
+
+  function renderModules() {
+    setLevel(null);
     const el = document.getElementById("cards");
-    const items = (menu || []).filter(m => !m.section && m.id !== "dashboard");
+    const items = menuData.filter(m => !m.section && m.id !== "dashboard");
     if (!items.length) {
       el.innerHTML = '<div class="error">Nenhum módulo disponível</div>';
       return;
     }
     el.innerHTML = items.map(m => {
+      const apps = moduleApps(m);
       const href = resolveHref(m);
-      const apps = (m.apps || []).filter(a => !a.section).length;
-      const hint = apps > 1 ? apps + " opções" : (href ? "Abrir" : "Em breve");
-      const tag = href ? "a" : "div";
-      const attrs = href
-        ? `href="${href}" class="card"`
-        : `class="card" style="opacity:.45;cursor:default" title="Em breve"`;
-      return `<${tag} ${attrs}>
-        <span class="card-icon"><svg class="icon"><use href="#${m.icon || "icon-file-text"}"/></svg></span>
-        <span class="card-label">${m.label}</span>
-        <span class="card-hint">${hint}</span>
-      </${tag}>`;
+      if (apps.length > 1) {
+        return cardHtml(m, {
+          hint: apps.length + " páginas",
+          openModule: m.id
+        });
+      }
+      const only = apps[0];
+      const target = (only && resolveHref(only)) || href;
+      return cardHtml(m, {
+        href: target,
+        hint: target ? "Abrir" : "Em breve"
+      });
     }).join("");
   }
+
+  function renderApps(mod) {
+    setLevel(mod);
+    const el = document.getElementById("cards");
+    const apps = moduleApps(mod);
+    if (!apps.length) {
+      const href = resolveHref(mod);
+      if (href) {
+        location.href = href;
+        return;
+      }
+      el.innerHTML = '<div class="error">Nenhuma página neste módulo</div>';
+      return;
+    }
+    el.innerHTML = apps.map(a => {
+      const href = resolveHref(a);
+      return cardHtml(a, {
+        href,
+        hint: href ? "Abrir" : "Em breve"
+      });
+    }).join("");
+  }
+
+  function openModuleById(id) {
+    const mod = menuData.find(m => m.id === id);
+    if (!mod) return renderModules();
+    const apps = moduleApps(mod);
+    if (apps.length > 1) renderApps(mod);
+    else {
+      const href = resolveHref(apps[0]) || resolveHref(mod);
+      if (href) location.href = href;
+      else renderModules();
+    }
+  }
+
+  document.getElementById("cards").addEventListener("click", (e) => {
+    const card = e.target.closest("[data-module]");
+    if (!card) return;
+    e.preventDefault();
+    openModuleById(card.getAttribute("data-module"));
+  });
+
+  document.getElementById("hub-back").addEventListener("click", () => renderModules());
 
   document.getElementById("btn-logout").addEventListener("click", () => {
     fetch("/api/auth/logout", { method: "POST", headers: { "X-Auth-Token": token } }).catch(() => {});
@@ -324,7 +484,6 @@ body{
     document.getElementById("user-role").textContent = user.role || "operador";
     greet(user.nome || user.usuario);
 
-    // carrega sprite de ícones
     try {
       const svg = await (await fetch("img/icons.svg")).text();
       const wrap = document.createElement("div");
@@ -334,8 +493,11 @@ body{
     } catch (_) {}
 
     try {
-      const menu = await (await fetch("assets/data/menu.json")).json();
-      renderCards(menu);
+      menuData = await (await fetch("assets/data/menu.json")).json();
+      const hash = (location.hash || "").replace(/^#/, "");
+      const modId = hash.startsWith("mod=") ? decodeURIComponent(hash.slice(4)) : "";
+      if (modId) openModuleById(modId);
+      else renderModules();
     } catch (e) {
       document.getElementById("cards").innerHTML = '<div class="error">Falha ao carregar o menu</div>';
     }

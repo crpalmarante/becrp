@@ -9,23 +9,34 @@ class Sidebar{
         for(const mod of modules){
             const hasApps=mod.apps&&mod.apps.length>0;
             const href=mod.href||"#";
+            const badge=this._setupBadge(mod.setup);
             if(hasApps){
                 html+=`<div class="menu-item has-children" data-id="${mod.id}" title="${mod.label}" onclick="sidebar.toggleSubmenu('${mod.id}')">
                     <svg class="icon"><use href="#${mod.icon}"/></svg>
                     <span class="menu-label">${mod.label}</span>
+                    ${badge}
                     <svg class="icon icon-16 menu-arrow"><use href="#icon-chevron-down"/></svg>
                 </div>`;
                 html+=`<div class="menu-submenu" id="sub-${mod.id}">`;
                 html+=this.renderApps(mod.apps);
                 html+=`</div>`;
             }else{
-                html+=`<a class="menu-item" href="${href}" data-id="${mod.id}" title="${mod.label}">
-                    <svg class="icon"><use href="#${mod.icon}"/></svg>
-                    <span class="menu-label">${mod.label}</span>
-                </a>`;
+                html+=`<div class="menu-item-simple">
+                    <a class="menu-item" href="${href}" data-id="${mod.id}" title="${mod.label}">
+                        <svg class="icon"><use href="#${mod.icon}"/></svg>
+                        <span class="menu-label">${mod.label}</span>
+                    </a>
+                    ${badge}
+                </div>`;
             }
         }
         return html;
+    }
+
+    _setupBadge(setup){
+        if(!setup) return "";
+        const req=setup.required?" required":"";
+        return `<a class="menu-setup-badge${req}" href="${setup.url||"#"}" title="Setup: ${setup.label||"configurar"}" onclick="event.stopPropagation()">Configurar</a>`;
     }
 
     renderApps(apps){

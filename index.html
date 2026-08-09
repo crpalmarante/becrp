@@ -22,58 +22,25 @@
         <p id="login-subtitle">Faça login para continuar</p>
       </div>
 
-      <div class="forms-wrapper">
-        <!-- Login -->
-        <div class="form-panel sign-in-form" id="login-form-panel" style="position:relative">
-          <form class="form" id="login-form" autocomplete="off">
-            <div class="field">
-              <label for="login-user">Usuário</label>
-              <input type="text" id="login-user" placeholder="Seu usuário" required autocomplete="username">
-            </div>
-            <div class="field">
-              <label for="login-pass">Senha</label>
-              <input type="password" id="login-pass" placeholder="Sua senha" required autocomplete="current-password">
-            </div>
-            <div class="form-error" id="login-error"></div>
-            <button type="submit" class="form-btn" id="login-btn">Entrar</button>
-            <div class="form-loading" id="login-loading">
-              <div class="spinner"></div>
-              <span>Autenticando...</span>
-            </div>
-          </form>
-        </div>
+      <div id="install-banner" class="form-error" style="display:none;color:#4ade80;border-color:rgba(74,222,128,.35)"></div>
 
-        <!-- Setup (primeiro admin) -->
-        <div class="form-panel sign-up-form" id="setup-form-panel" style="display:none;position:relative">
-          <form class="form" id="setup-form" autocomplete="off">
-            <div class="field">
-              <label for="setup-name">Nome completo</label>
-              <input type="text" id="setup-name" placeholder="Administrador" required>
-            </div>
-            <div class="field">
-              <label for="setup-user">Usuário</label>
-              <input type="text" id="setup-user" placeholder="admin" required autocomplete="username">
-            </div>
-            <div class="field">
-              <label for="setup-email">E-mail</label>
-              <input type="email" id="setup-email" placeholder="admin@empresa.com" autocomplete="email">
-            </div>
-            <div class="field">
-              <label for="setup-pass">Senha</label>
-              <input type="password" id="setup-pass" placeholder="Mínimo 4 caracteres" required autocomplete="new-password">
-            </div>
-            <div class="field">
-              <label for="setup-pass2">Confirmar senha</label>
-              <input type="password" id="setup-pass2" placeholder="Repita a senha" required autocomplete="new-password">
-            </div>
-            <div class="form-error" id="setup-error"></div>
-            <button type="submit" class="form-btn" id="setup-btn">Criar administrador</button>
-            <div class="form-loading" id="setup-loading">
-              <div class="spinner"></div>
-              <span>Configurando...</span>
-            </div>
-          </form>
-        </div>
+      <div class="form-panel sign-in-form" id="login-form-panel" style="position:relative">
+        <form class="form" id="login-form" autocomplete="off">
+          <div class="field">
+            <label for="login-user">Usuário</label>
+            <input type="text" id="login-user" placeholder="Seu usuário" required autocomplete="username">
+          </div>
+          <div class="field">
+            <label for="login-pass">Senha</label>
+            <input type="password" id="login-pass" placeholder="Sua senha" required autocomplete="current-password">
+          </div>
+          <div class="form-error" id="login-error"></div>
+          <button type="submit" class="form-btn" id="login-btn">Entrar</button>
+          <div class="form-loading" id="login-loading">
+            <div class="spinner"></div>
+            <span>Autenticando...</span>
+          </div>
+        </form>
       </div>
 
       <div class="login-footer" style="text-align:center;margin-top:24px;font-size:12px;color:var(--text-secondary)">

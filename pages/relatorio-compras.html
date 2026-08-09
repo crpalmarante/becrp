@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Relatório de Compras</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:block}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel);margin-bottom:16px}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(20,184,166,.15);color:#5eead4}
+.money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.kpi-card{padding:12px;border:1px solid var(--border-color);border-radius:8px;background:var(--surface-panel)}
+.kpi-value{font-size:20px;font-weight:700}
+@media print{
+  .no-print{display:none!important}
+  body{background:#fff;color:#000}
+  .table-wrap{border:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar" class="no-print">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
+      <a class="menu-item active" href="relatorio-compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Relatório</span></a>
+      <a class="menu-item" href="vendas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Vendas</span></a>
+      <a class="menu-item" href="parceiros.html?role=SUPPLIER"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar no-print"><div class="topbar-brand"><span class="topbar-title">Relatório de Compras</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="workspace-header no-print">
+        <div class="workspace-breadcrumb">BECRP / Compras / Relatório</div>
+        <h2 class="workspace-title">Relatório de Compras</h2>
+      </div>
+      <div class="toolbar no-print">
+        <label style="font-size:12px;color:var(--text-muted)">De<input class="form-input" id="f-de" type="date"></label>
+        <label style="font-size:12px;color:var(--text-muted)">Até<input class="form-input" id="f-ate" type="date"></label>
+        <input class="form-input" id="f-forn" placeholder="Fornecedor" style="max-width:180px">
+        <select class="form-input" id="f-status" style="max-width:150px">
+          <option value="">Todos status</option>
+          <option value="rascunho">Rascunho</option>
+          <option value="pendente">Pendente</option>
+          <option value="aprovado">Aprovado</option>
+          <option value="enviado">Enviado</option>
+          <option value="recebido">Recebido</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+        <input class="form-input" id="f-prod" placeholder="Produto" style="max-width:180px">
+        <button type="button" class="so-btn primary" id="btn-gerar">Gerar</button>
+        <button type="button" class="so-btn" id="btn-limpar">Limpar</button>
+        <button type="button" class="so-btn" id="btn-imprimir">Imprimir</button>
+      </div>
+      <div id="resultado">
+        <p class="empty">Clique em Gerar para visualizar o relatório.</p>
+      </div>
+    </div>
+    <div class="status-bar no-print" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+      <div class="status-bar-left"><span id="status-user-info">Usuário: —</span></div>
+      <div class="status-bar-right"><span>Relatório de Compras · BECRP v1.0</span></div>
+    </div>
+  </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+(function(){
+  const API = "/api/compras/relatorio";
+  const money = n => (Number(n)||0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+  const escapeHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  const STATUS_LABEL = {rascunho:"Rascunho", pendente:"Pendente", aprovado:"Aprovado", enviado:"Enviado", recebido:"Recebido", cancelado:"Cancelado"};
+
+  async function api(path, opts={}){
+    const token = AuthService.getToken();
+    const res = await fetch(path, {method: opts.method||"GET", headers: Object.assign({"X-Auth-Token": token, "Content-Type": "application/json"}, opts.headers||{}), body: opts.body});
+    return res.json();
+  }
+
+  async function gerar(){
+    const qs = new URLSearchParams();
+    const de = document.getElementById("f-de").value; if(de) qs.set("de", de);
+    const ate = document.getElementById("f-ate").value; if(ate) qs.set("ate", ate);
+    const forn = document.getElementById("f-forn").value.trim(); if(forn) qs.set("fornecedor", forn);
+    const st = document.getElementById("f-status").value; if(st) qs.set("status", st);
+    const prod = document.getElementById("f-prod").value.trim(); if(prod) qs.set("produto", prod);
+    const res = await api(API + "?" + qs.toString());
+    const box = document.getElementById("resultado");
+    if(res.status !== "ok"){ box.innerHTML = `<p class="empty">${escapeHtml(res.message || "Erro")}</p>`; return; }
+    const r = res.relatorio;
+    const filtros = [];
+    if(de) filtros.push("De: " + de); if(ate) filtros.push("Até: " + ate); if(forn) filtros.push("Fornecedor: " + forn); if(st) filtros.push("Status: " + STATUS_LABEL[st]); if(prod) filtros.push("Produto: " + prod);
+
+    box.innerHTML = `
+      <div class="kpi">
+        <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Pedidos</div><div class="kpi-value">${r.count}</div></div>
+        <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Total</div><div class="kpi-value money">${money(r.total)}</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Filtros: ${filtros.length ? filtros.join(" · ") : "nenhum"}</p>
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Pedido</th><th>Data</th><th>Fornecedor</th><th>Status</th><th>Itens</th><th class="money">Total</th></tr></thead>
+          <tbody>${r.rows.map(row=>`
+            <tr>
+              <td><span class="badge">${escapeHtml(row.numero||"#"+row.pedido_id)}</span></td>
+              <td>${escapeHtml(row.data||"—")}</td>
+              <td>${escapeHtml(row.fornecedor||"—")}</td>
+              <td><span class="badge">${escapeHtml(STATUS_LABEL[row.status]||row.status)}</span></td>
+              <td>${row.itens.length}</td>
+              <td class="money">${money(row.total)}</td>
+            </tr>
+          `).join("")}</tbody>
+        </table>
+      </div>
+      <h3 style="font-size:14px;margin:16px 0 8px">Totais por status</h3>
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Status</th><th class="money">Total</th></tr></thead>
+          <tbody>${Object.entries(r.por_status).map(([k,v])=>`<tr><td>${escapeHtml(STATUS_LABEL[k]||k)}</td><td class="money">${money(v)}</td></tr>`).join("")}</tbody>
+        </table>
+      </div>
+      <h3 style="font-size:14px;margin:16px 0 8px">Totais por fornecedor</h3>
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Fornecedor</th><th class="money">Total</th></tr></thead>
+          <tbody>${r.por_fornecedor.map(f=>`<tr><td>${escapeHtml(f.fornecedor)}</td><td class="money">${money(f.total)}</td></tr>`).join("")}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function limpar(){
+    document.getElementById("f-de").value="";
+    document.getElementById("f-ate").value="";
+    document.getElementById("f-forn").value="";
+    document.getElementById("f-status").value="";
+    document.getElementById("f-prod").value="";
+    document.getElementById("resultado").innerHTML = '<p class="empty">Clique em Gerar para visualizar o relatório.</p>';
+  }
+
+  document.getElementById("btn-gerar").onclick = gerar;
+  document.getElementById("btn-limpar").onclick = limpar;
+  document.getElementById("btn-imprimir").onclick = ()=>window.print();
+})();
+</script>
+</body>
+</html>

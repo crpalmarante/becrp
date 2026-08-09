@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Planejamento de Entregas</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .chip {
+      padding:6px 10px; border:1px solid rgba(255,255,255,.15); border-radius:6px;
+      font-size:12px; color:inherit; text-decoration:none; background:transparent; cursor:pointer;
+    }
+    .chip.active { border-color:rgba(20,184,166,.5); background:rgba(20,184,166,.15); font-weight:600; }
+    .board {
+      display:flex; gap:12px; overflow-x:auto; padding-bottom:12px; align-items:flex-start;
+    }
+    .col {
+      min-width:220px; max-width:260px; flex:0 0 220px;
+      border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:10px;
+      background:rgba(0,0,0,.15);
+    }
+    .col.overload { border-color:rgba(251,191,36,.5); }
+    .col h3 { margin:0 0 4px; font-size:13px; }
+    .col .cap { font-size:11px; opacity:.7; margin-bottom:8px; }
+    .card {
+      padding:8px; margin-bottom:8px; border:1px solid rgba(255,255,255,.12);
+      border-radius:6px; font-size:12px; cursor:grab;
+    }
+    .card:active { cursor:grabbing; }
+    .card.hi { border-color:rgba(251,191,36,.45); }
+    .card strong { font-size:12px; }
+    .sub { font-size:11px; opacity:.7; }
+    .badge { font-size:10px; padding:1px 5px; border:1px solid rgba(255,255,255,.2); border-radius:3px; }
+    .drop-hint { font-size:11px; opacity:.5; padding:8px; text-align:center; border:1px dashed rgba(255,255,255,.15); border-radius:6px; }
+    .btn-xs {
+      margin-top:4px; padding:2px 6px; font-size:10px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.25); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="entregas-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="entregas-dashboard.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Dashboard</span></a>
+      <a class="menu-item" href="entregas-fila.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Fila</span></a>
+      <a class="menu-item active" href="entregas-planejamento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Planejamento</span></a>
+      <a class="menu-item" href="entregas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Pedidos</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Home</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="topbar-title">Entregas — Planejamento</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Delivery / Planning Board</div>
+          <h2 class="workspace-title">Balancear a operação do dia</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">RFC-18103 — arraste DO para a coluna (ou use Atribuir). Planning precede execução. Sem baixa de estoque.</p>
+          <div id="msg" class="pc-msg"></div>
+          <div class="pc-toolbar">
+            <div class="field"><label>Data</label><input class="form-input" id="filtro-data" type="date"></div>
+            <div class="field"><label>Fonte</label><select class="form-input" id="filtro-fonte"><option value="">Todas</option></select></div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+          </div>
+          <div class="chips" id="modes"></div>
+          <div class="board" id="board"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let mode = "driver";
+  let perms = { pode_escrever: false };
+  let boardData = null;
+  let dragId = null;
+
+  if (!document.getElementById("filtro-data").value) {
+    document.getElementById("filtro-data").value = new Date().toISOString().slice(0, 10);
+  }
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function cardHtml(r) {
+    const hi = (r.prioridade === "high" || r.prioridade === "emergency") ? " hi" : "";
+    return `<div class="card${hi}" draggable="${perms.pode_escrever ? "true" : "false"}" data-id="${r.id}">
+      <strong>${r.id}</strong>
+      <span class="badge">${r.prioridade_label || r.prioridade}</span>
+      <div>${r.parceiro || "—"}</div>
+      <div class="sub">${r.destino || r.zona || ""} · ${r.janela || "—"}</div>
+      <div class="sub">${r.status_label || r.status} · ${r.motorista || "sem motorista"}</div>
+      ${perms.pode_escrever ? `<button type="button" class="btn-xs" data-un="${r.id}">Desatribuir</button>` : ""}
+    </div>`;
+  }
+
+  function bindDnD(root) {
+    root.querySelectorAll(".card[draggable=true]").forEach((el) => {
+      el.ondragstart = () => { dragId = el.dataset.id; };
+      el.ondragend = () => { dragId = null; };
+    });
+    root.querySelectorAll("[data-drop]").forEach((col) => {
+      col.ondragover = (e) => { e.preventDefault(); };
+      col.ondrop = async (e) => {
+        e.preventDefault();
+        if (!dragId || !perms.pode_escrever) return;
+        await moveTo(dragId, col.dataset.drop);
+      };
+    });
+    root.querySelectorAll("[data-un]").forEach((btn) => {
+      btn.onclick = () => moveTo(btn.dataset.un, "unassigned");
+    });
+  }
+
+  async function moveTo(entregaId, targetId) {
+    const res = await AuthService.api("/api/admin/delivery/planning/move", {
+      method: "POST",
+      body: JSON.stringify({
+        entrega_id: entregaId,
+        mode: mode,
+        target_id: targetId,
+      }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg((res.action || "ok") + " · " + entregaId, true);
+    load();
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    qs.set("mode", mode);
+    const data = document.getElementById("filtro-data").value;
+    const fonte = document.getElementById("filtro-fonte").value;
+    if (data) qs.set("data", data);
+    if (fonte) qs.set("fonte", fonte);
+
+    const res = await AuthService.api("/api/delivery/planning?" + qs.toString());
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    boardData = res;
+    perms = res.permissoes || perms;
+
+    const r = res.resumo || {};
+    document.getElementById("meta").textContent =
+      (res.mode_label || mode) + " · " + (res.data || "") + " · " + (res.fonte || "") +
+      " · não atrib. " + (r.nao_atribuidas || 0) +
+      " · " + (r.balanceado ? "balanceado" : "sobrecarga: " + (r.sobrecargas || []).join(", ")) +
+      " · " + (res.gerado_em || "").replace("T", " ");
+
+    const fontes = res.fontes || [];
+    const sel = document.getElementById("filtro-fonte");
+    const cur = fonte;
+    sel.innerHTML = '<option value="">Todas</option>' +
+      fontes.map((f) => `<option value="${f}">${f}</option>`).join("");
+    sel.value = cur;
+
+    const modes = (res.meta && res.meta.modes) || [
+      { id: "driver", label: "Motoristas" },
+      { id: "vehicle", label: "Veículos" },
+      { id: "dispatch", label: "Despachos" },
+      { id: "window", label: "Janelas" },
+      { id: "zone", label: "Zonas" },
+    ];
+    document.getElementById("modes").innerHTML = modes.map((m) =>
+      `<button type="button" class="chip ${m.id === mode ? "active" : ""}" data-mode="${m.id}">${m.label}</button>`
+    ).join("");
+    document.querySelectorAll("[data-mode]").forEach((btn) => {
+      btn.onclick = () => { mode = btn.dataset.mode; load(); };
+    });
+
+    let html = `<div class="col" data-drop="unassigned">
+      <h3>Não atribuídas</h3>
+      <div class="cap">${(res.unassigned || []).length} entrega(s)</div>
+      ${(res.unassigned || []).map(cardHtml).join("") || '<div class="drop-hint">Solte aqui para desatribuir</div>'}
+    </div>`;
+
+    (res.columns || []).forEach((c) => {
+      const ov = c.sobrecarga ? " overload" : "";
+      html += `<div class="col${ov}" data-drop="${c.id}">
+        <h3>${c.titulo}</h3>
+        <div class="cap">${c.subtitulo || ""} · ${c.carga}/${c.capacidade}
+          ${c.utilizacao_pct != null ? " · " + c.utilizacao_pct + "%" : ""}
+          ${c.sobrecarga ? " · SOBRECARGA" : ""}</div>
+        ${(c.items || []).map(cardHtml).join("") || '<div class="drop-hint">Arraste uma DO</div>'}
+      </div>`;
+    });
+
+    const board = document.getElementById("board");
+    board.innerHTML = html;
+    bindDnD(board);
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("filtro-data").onchange = load;
+  document.getElementById("filtro-fonte").onchange = load;
+  load();
+})();
+</script>
+</body>
+</html>

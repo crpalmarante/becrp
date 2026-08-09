@@ -40,7 +40,19 @@ table.data tr{cursor:pointer}
 .badge-pendente{background:rgba(234,179,8,.15);color:#fde68a}
 .badge-aprovado{background:rgba(59,130,246,.15);color:#93c5fd}
 .badge-faturado{background:rgba(34,197,94,.15);color:#86efac}
+.badge-cancelado{background:rgba(239,68,68,.15);color:#fca5a5}
+.badge-bloqueado{background:rgba(148,163,184,.15);color:#cbd5e1}
 .badge-rascunho{background:rgba(148,163,184,.15);color:#cbd5e1}
+.badge-convertida{background:rgba(168,85,247,.15);color:#d8b4fe}
+.badge-ativo{background:rgba(34,197,94,.15);color:#86efac}
+.badge-suspenso{background:rgba(234,179,8,.15);color:#fde68a}
+.badge-encerrado{background:rgba(148,163,184,.15);color:#cbd5e1}
+.ct-detail{margin-top:16px;padding:16px;border:1px solid var(--border-color);border-radius:var(--radius-panel);background:var(--surface-panel)}
+.ct-detail h3{margin:0 0 8px;font-size:1.05rem}
+.ct-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.ct-form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin:12px 0}
+.ct-form-grid label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--text-muted)}
+.ct-form-grid input,.ct-form-grid select,.ct-form-grid textarea{font-size:13px}
 .money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
 .cnpj{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace;font-size:12px;color:var(--text-muted)}
 .empresa-cell{display:flex;flex-direction:column;gap:2px}
@@ -65,12 +77,26 @@ table.data tr{cursor:pointer}
 .dash-header h2{margin:0;font-size:1.4rem;letter-spacing:-.02em}
 .dash-header p{margin:6px 0 0;color:var(--text-muted);font-size:var(--font-sm)}
 .menu-submenu.open{max-height:640px}
-.menu-item.has-children .menu-arrow{margin-left:auto;transition:transform .2s}
-.menu-item.has-children.open .menu-arrow{transform:rotate(180deg)}
+.menu-item.has-children .menu-arrow{margin-left:auto;transition:transform .2s}.menu-item.has-children.open .menu-arrow{transform:rotate(180deg)}
 .menu-item.soon .menu-label{opacity:.75}
 .menu-item .soon-tag{
   margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:.04em;
   color:var(--text-muted);opacity:.8;
+}
+
+/* Relatórios: tela = filtros + resultado; impressão só via botão */
+.rpt-print-only{display:none}
+@media print{
+  .app-shell > .sidebar,
+  .topbar,
+  .no-print,
+  #vendas-nav{display:none!important}
+  .main-content,.workspace-content,.view.active{display:block!important;padding:0!important;margin:0!important}
+  .rpt-print-only{display:block;margin-bottom:12px;font-size:14px}
+  body{background:#fff!important;color:#111!important}
+  .so-card,.dashboard-widget,.kpi-card,.table-wrap{break-inside:avoid;border-color:#ccc!important;background:#fff!important;color:#111!important}
+  .kpi-value,.widget-title,.kpi-label{color:#111!important}
+  table.data th,table.data td{border-color:#ccc!important;color:#111!important}
 }
 
 /* Formulário Cotação / Pedido */
@@ -128,6 +154,64 @@ table.data tr{cursor:pointer}
 .so-totals .row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
 .so-totals .row.total{font-weight:700;font-size:1.05rem;border-top:1px solid var(--border-color);margin-top:6px;padding-top:10px;color:#5eead4}
 .so-back{margin-bottom:12px}
+
+/* ── Kanban ── */
+.kanban-board{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:8px}
+.kanban-col{
+  flex:1 1 0;min-width:230px;max-width:260px;
+  background:rgba(255,255,255,.03);border:1px solid var(--border-color);
+  border-radius:14px;display:flex;flex-direction:column;max-height:calc(100vh - 240px);
+}
+.kanban-col.kanban-drop{box-shadow:0 0 0 2px rgba(20,184,166,.6)}
+.kanban-head{
+  display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border-color);
+  font-weight:700;font-size:13px;position:sticky;top:0;
+}
+.kanban-dot{width:8px;height:8px;border-radius:50%}
+.kanban-count{margin-left:auto;background:rgba(255,255,255,.08);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:600}
+.kanban-body{padding:8px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;min-height:80px}
+.kanban-card{
+  background:var(--surface-panel);border:1px solid var(--border-color);border-radius:10px;
+  padding:10px 12px;cursor:pointer;user-select:none;
+}
+.kanban-card:hover{border-color:rgba(20,184,166,.5)}
+.kanban-card[draggable=true]{cursor:grab}
+.kanban-card[draggable=true]:active{cursor:grabbing}
+.kanban-card.kanban-dragging{opacity:.5}
+.kcard-top{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);margin-bottom:6px}
+.kcard-top strong{color:var(--text-primary)}
+.kcard-nome{font-size:13px;font-weight:600;margin-bottom:4px;word-break:break-word}
+.kcard-sub{font-size:12px;color:var(--text-muted)}
+.kcard-total{margin-top:8px;font-weight:700;font-variant-numeric:tabular-nums;color:#5eead4}
+
+/* ── Calendário ── */
+.cal-grid{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:12px;
+  border:1px solid var(--border-color);border-radius:14px;padding:10px;background:rgba(255,255,255,.02);
+}
+.cal-dow{text-align:center;font-size:11px;font-weight:700;color:var(--text-muted);padding:6px 0;text-transform:uppercase;letter-spacing:.04em}
+.cal-cell{
+  min-height:96px;border:1px solid var(--border-color);border-radius:10px;padding:6px;
+  background:var(--surface-panel);display:flex;flex-direction:column;gap:4px;
+}
+.cal-cell.cal-out{opacity:.4}
+.cal-cell.cal-hoje{border-color:rgba(20,184,166,.7);box-shadow:0 0 0 1px rgba(20,184,166,.4)}
+.cal-num{font-size:11px;font-weight:700;color:var(--text-muted)}
+.cal-chips{display:flex;flex-direction:column;gap:3px;overflow:hidden}
+.cal-chip{
+  display:block;font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;cursor:pointer;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cal-chip:hover{filter:brightness(1.2)}
+
+/* ── Pivot ── */
+.pivot-wrap{overflow:auto;margin-top:12px;border:1px solid var(--border-color);border-radius:14px}
+table.pivot{border-collapse:collapse;width:100%;font-size:12px}
+table.pivot th,table.pivot td{padding:8px 12px;border:1px solid rgba(255,255,255,.07);text-align:right;white-space:nowrap}
+table.pivot th{background:rgba(255,255,255,.05);font-weight:700;color:var(--text-primary)}
+table.pivot td.row-head,table.pivot th.corner{text-align:left;position:sticky;left:0;background:var(--surface-panel)}
+table.pivot tr.totais td{background:rgba(20,184,166,.08);font-weight:700}
+table.pivot td.col-total{font-weight:600;background:rgba(255,255,255,.03)}
 
 </style>
 </head>
@@ -232,6 +316,159 @@ table.data tr{cursor:pointer}
           </div>
         </div>
 
+        <div class="view" id="view-contratos">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Contratos</div>
+            <h2 class="workspace-title">Contratos B2B</h2>
+            <p class="workspace-sub" style="margin:6px 0 0;color:var(--text-muted);font-size:13px">
+              Acordo comercial → ativa → gera pedidos de venda
+            </p>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <input type="search" id="ct-q" class="form-input" placeholder="Buscar número, cliente, CNPJ…" style="max-width:260px">
+              <select id="ct-status" class="form-input" style="max-width:140px">
+                <option value="">Todos</option>
+                <option value="rascunho">Rascunho</option>
+                <option value="ativo">Ativo</option>
+                <option value="suspenso">Suspenso</option>
+                <option value="encerrado">Encerrado</option>
+                <option value="cancelado">Cancelado</option>
+              </select>
+              <button type="button" class="tab-btn" id="btn-refresh-contratos">Atualizar</button>
+              <button type="button" class="so-btn primary" id="btn-novo-contrato">+ Novo Contrato</button>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Número</th>
+                    <th>Título</th>
+                    <th>Cliente</th>
+                    <th>Vigência</th>
+                    <th>Ciclo</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="contratos-tbody">
+                  <tr><td colspan="7" class="empty">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="ct-panel" class="ct-detail" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="view" id="view-faturas">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Faturas de Venda</div>
+            <h2 class="workspace-title">Faturas de Venda (CNPJ → CNPJ)</h2>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar">
+              <button type="button" class="tab-btn" id="btn-refresh-faturas">Atualizar</button>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Fatura</th>
+                    <th>Pedido</th>
+                    <th>Data</th>
+                    <th>Vencimento</th>
+                    <th>Cliente (CNPJ)</th>
+                    <th>Itens</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="faturas-tbody">
+                  <tr><td colspan="8" class="empty">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="view" id="view-receber">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Contas a Receber</div>
+            <h2 class="workspace-title">Contas a Receber</h2>
+            <p class="workspace-sub" id="ar-summary" style="margin:6px 0 0;color:var(--text-muted);font-size:13px">—</p>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <input type="search" id="ar-q" class="form-input" placeholder="Buscar cliente, fatura, pedido…" style="max-width:260px">
+              <select id="ar-status" class="form-input" style="max-width:140px">
+                <option value="">Todos</option>
+                <option value="aberto">Aberto</option>
+                <option value="parcial">Parcial</option>
+                <option value="pago">Pago</option>
+              </select>
+              <button type="button" class="tab-btn" id="btn-refresh-ar">Atualizar</button>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Título</th>
+                    <th>Cliente</th>
+                    <th>Pedido / Fatura</th>
+                    <th>Parcela</th>
+                    <th>Vencimento</th>
+                    <th>Valor</th>
+                    <th>Saldo</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="ar-tbody">
+                  <tr><td colspan="9" class="empty">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="view" id="view-catalogo">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Catálogo de Produtos</div>
+            <h2 class="workspace-title">Catálogo de Produtos</h2>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar">
+              <input class="form-input" id="cat-busca" placeholder="Buscar por nome, código de barras, NCM...">
+              <div class="so-field" style="min-width:170px"><label>Categoria</label>
+                <select id="cat-categoria"><option value="">Todas</option></select></div>
+              <div class="so-field" style="min-width:190px"><label>Lista de preços</label>
+                <select id="cat-lista"><option value="">Preço base</option></select></div>
+              <button type="button" class="tab-btn" id="btn-refresh-catalogo">Atualizar</button>
+              <a class="so-btn primary" href="produtos.html?novo=1&retorno=/pages/vendas.html%23catalogo">+ Novo Produto</a>
+            </div>
+            <div class="table-wrap">
+              <table class="data">
+                <thead>
+                  <tr>
+                    <th>Código</th>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Un.</th>
+                    <th>Estoque</th>
+                    <th>Preço base</th>
+                    <th>Preço na lista</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="cat-tbody">
+                  <tr><td colspan="8" class="empty">Carregando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="status-note" id="cat-note" style="margin-top:10px;font-size:12px;color:var(--text-muted)"></div>
+          </div>
+        </div>
+
         <!-- Formulário Cotação / Pedido -->
         <div class="view" id="view-form">
           <div class="workspace-content">
@@ -243,6 +480,7 @@ table.data tr{cursor:pointer}
 
             <div class="so-card">
               <div class="so-grid" id="so-header"></div>
+              <datalist id="clientes-dl"></datalist>
             </div>
 
             <div class="so-tabs" role="tablist">
@@ -264,10 +502,16 @@ table.data tr{cursor:pointer}
                       <th>Desc. %</th>
                       <th>Impostos %</th>
                       <th>Subtotal</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody id="so-lines-body"></tbody>
                 </table>
+                <datalist id="produtos-dl"></datalist>
+              </div>
+              <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+                <button type="button" class="so-btn" id="btn-add-line">+ Adicionar linha</button>
+                <button type="button" class="so-btn" id="btn-aplicar-precos">Aplicar preços da lista</button>
               </div>
               <div class="so-totals" id="so-totals"></div>
             </div>
@@ -278,6 +522,125 @@ table.data tr{cursor:pointer}
             <div class="so-pane" id="pane-notas">
               <div class="so-card"><div class="so-field"><label>Notas</label><div class="val" id="so-notas" style="min-height:90px;align-items:flex-start">—</div></div></div>
             </div>
+          </div>
+        </div>
+
+        <div class="view" id="view-relatorio">
+          <div class="workspace-header no-print">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Relatórios</div>
+            <h2 class="workspace-title">Análise de Vendas (B2B)</h2>
+            <p class="muted" style="margin:6px 0 0;font-size:13px">Consulte na tela com filtros. Impressão só se pedir pelo botão.</p>
+          </div>
+          <div class="workspace-content">
+            <div class="rpt-print-only">
+              <strong>Análise de Vendas (B2B)</strong>
+              <div id="rpt-print-meta" class="muted"></div>
+            </div>
+            <div class="so-card no-print" style="padding:16px" id="rpt-filtros">
+              <div class="so-grid">
+                <div class="so-field"><label>De (data)</label><input type="date" id="rpt-de"></div>
+                <div class="so-field"><label>Até (data)</label><input type="date" id="rpt-ate"></div>
+                <div class="so-field"><label>Tipo</label>
+                  <select id="rpt-tipo">
+                    <option value="">Todos</option>
+                    <option value="pedido">Pedido</option>
+                    <option value="cotacao">Cotação</option>
+                  </select></div>
+                <div class="so-field"><label>Status</label>
+                  <select id="rpt-status">
+                    <option value="">Todos</option>
+                    <option value="rascunho">Rascunho</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="aprovado">Aprovado</option>
+                    <option value="faturado">Faturado</option>
+                    <option value="cancelado">Cancelado</option>
+                    <option value="bloqueado">Bloqueado</option>
+                  </select></div>
+                <div class="so-field"><label>Vendedor</label><select id="rpt-vendedor"><option value="">Todos</option></select></div>
+                <div class="so-field"><label>UF</label><select id="rpt-uf"><option value="">Todas</option></select></div>
+              </div>
+              <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+                <button type="button" class="so-btn primary" id="btn-rpt-filtrar">Filtrar</button>
+                <button type="button" class="so-btn" id="btn-rpt-limpar">Limpar filtros</button>
+                <button type="button" class="so-btn" id="btn-rpt-imprimir" title="Imprime o resultado filtrado na tela">Imprimir</button>
+              </div>
+            </div>
+            <div id="rpt-resultados"></div>
+          </div>
+        </div>
+
+        <div class="view" id="view-kanban">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Visualizações / Kanban</div>
+            <h2 class="workspace-title">Kanban (Pipeline B2B)</h2>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar">
+              <button type="button" class="tab-btn" id="btn-refresh-kanban">Atualizar</button>
+              <div class="so-field" style="min-width:180px"><label>Tipo</label>
+                <select id="kanban-tipo">
+                  <option value="">Todos</option>
+                  <option value="pedido">Pedidos</option>
+                  <option value="cotacao">Cotações</option>
+                </select></div>
+              <span class="muted" style="font-size:12px">Arraste um cartão para outra coluna para alterar o status (respeita o workflow).</span>
+            </div>
+            <div id="kanban-board"></div>
+          </div>
+        </div>
+
+        <div class="view" id="view-calendario">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Visualizações / Calendário</div>
+            <h2 class="workspace-title">Calendário de Pedidos</h2>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar">
+              <button type="button" class="tab-btn" id="cal-prev">←</button>
+              <button type="button" class="tab-btn" id="cal-hoje">Hoje</button>
+              <button type="button" class="tab-btn" id="cal-next">→</button>
+              <strong id="cal-titulo" style="min-width:180px;text-align:center">—</strong>
+              <div class="so-field" style="min-width:180px"><label>Tipo</label>
+                <select id="cal-tipo">
+                  <option value="">Todos</option>
+                  <option value="pedido">Pedidos</option>
+                  <option value="cotacao">Cotações</option>
+                </select></div>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+          </div>
+        </div>
+
+        <div class="view" id="view-pivot">
+          <div class="workspace-header">
+            <div class="workspace-breadcrumb">BECRP / Vendas / Visualizações / Pivot</div>
+            <h2 class="workspace-title">Pivot de Vendas</h2>
+          </div>
+          <div class="workspace-content">
+            <div class="toolbar">
+              <div class="so-field" style="min-width:180px"><label>Linhas</label>
+                <select id="pv-linha">
+                  <option value="vendedor">Vendedor</option>
+                  <option value="cliente">Cliente</option>
+                  <option value="uf">UF</option>
+                  <option value="tipo">Tipo</option>
+                </select></div>
+              <div class="so-field" style="min-width:180px"><label>Colunas</label>
+                <select id="pv-coluna">
+                  <option value="status">Status</option>
+                  <option value="mes">Mês</option>
+                  <option value="tipo">Tipo</option>
+                </select></div>
+              <div class="so-field" style="min-width:180px"><label>Valor</label>
+                <select id="pv-valor">
+                  <option value="total">Total (R$)</option>
+                  <option value="qtd">Quantidade de itens</option>
+                  <option value="count">Nº de documentos</option>
+                </select></div>
+              <button type="button" class="so-btn primary" id="btn-pv-aplicar">Aplicar</button>
+              <span class="muted" style="font-size:12px">Calculado em tela sobre os pedidos carregados.</span>
+            </div>
+            <div id="pv-out"></div>
           </div>
         </div>
 
@@ -305,6 +668,7 @@ table.data tr{cursor:pointer}
 
 <script src="../js/services/AuthService.js"></script>
 <script src="../js/auth/page-boot.js"></script>
+<script src="../js/masks.js"></script>
 <script>
 (function () {
   let pedidos = [];
@@ -319,16 +683,28 @@ table.data tr{cursor:pointer}
       items: [
         { id: "cotacoes", label: "Cotações", icon: "icon-file-text", type: "view", section: "Pedidos" },
         { id: "pedidos", label: "Pedidos de Venda", icon: "icon-dollar", type: "view", section: "Pedidos" },
-        { id: "clientes", label: "Clientes", icon: "icon-users", type: "link", href: "contatos.html", section: "Pedidos" },
+        { id: "contratos", label: "Contratos", icon: "icon-file-text", type: "view", section: "Pedidos" },
+        { id: "faturas", label: "Faturas de Venda", icon: "icon-file-text", type: "view", section: "Pedidos" },
+        { id: "receber", label: "Contas a Receber", icon: "icon-dollar", type: "view", section: "Pedidos" },
+        { id: "clientes", label: "Clientes", icon: "icon-users", type: "link", href: "parceiros.html?role=CUSTOMER", section: "Pedidos" },
         { id: "produtos-atalho", label: "Produtos", icon: "icon-box", type: "link", href: "produtos.html", section: "Pedidos" },
+      ]
+    },
+    {
+      id: "grp-visualizacoes", label: "Visualizações", icon: "icon-grid", type: "group", open: false,
+      items: [
+        { id: "kanban", label: "Kanban", icon: "icon-file-text", type: "view", section: "Visualizações" },
+        { id: "calendario", label: "Calendário", icon: "icon-calendar", type: "view", section: "Visualizações" },
+        { id: "pivot", label: "Pivot", icon: "icon-grid", type: "view", section: "Visualizações" },
       ]
     },
     {
       id: "grp-produtos", label: "Produtos", icon: "icon-box", type: "group",
       items: [
         { id: "produtos", label: "Produtos", icon: "icon-box", type: "link", href: "produtos.html", section: "Produtos" },
+        { id: "catalogo", label: "Catálogo de Produtos", icon: "icon-box", type: "view", section: "Produtos" },
         { id: "variantes", label: "Variantes", icon: "icon-filter", type: "soon", section: "Produtos" },
-        { id: "lista-precos", label: "Lista de Preços", icon: "icon-dollar", type: "soon", section: "Produtos" },
+        { id: "lista-precos", label: "Lista de Preços", icon: "icon-dollar", type: "link", href: "listas-preco.html", section: "Produtos" },
         { id: "descontos", label: "Descontos", icon: "icon-percent", type: "soon", section: "Produtos",
           fallbackIcon: "icon-dollar" },
         { id: "uom", label: "Unidades de Medida", icon: "icon-box", type: "soon", section: "Produtos" },
@@ -341,8 +717,9 @@ table.data tr{cursor:pointer}
     {
       id: "grp-clientes", label: "Clientes", icon: "icon-users", type: "group",
       items: [
-        { id: "clientes-pj", label: "Clientes", icon: "icon-users", type: "link", href: "contatos.html", section: "Clientes" },
-        { id: "contatos", label: "Contatos", icon: "icon-users", type: "link", href: "contatos.html", section: "Clientes" },
+        { id: "clientes-pj", label: "Clientes", icon: "icon-users", type: "link", href: "parceiros.html?role=CUSTOMER", section: "Clientes" },
+        { id: "parceiros", label: "Parceiros", icon: "icon-users", type: "link", href: "parceiros.html", section: "Clientes" },
+        { id: "contatos", label: "Contatos (legado)", icon: "icon-users", type: "link", href: "contatos.html", section: "Clientes" },
         { id: "enderecos", label: "Endereços de entrega", icon: "icon-truck", type: "soon", section: "Clientes" },
         { id: "historico", label: "Histórico de compras", icon: "icon-clock", type: "soon", section: "Clientes" },
       ]
@@ -350,7 +727,7 @@ table.data tr{cursor:pointer}
     {
       id: "grp-relatorios", label: "Relatórios", icon: "icon-file-text", type: "group",
       items: [
-        { id: "rel-analise", label: "Análise de Vendas", icon: "icon-file-text", type: "soon", section: "Relatórios" },
+        { id: "relatorio", label: "Análise de Vendas", icon: "icon-file-text", type: "view", section: "Relatórios" },
         { id: "rel-receita", label: "Receita", icon: "icon-dollar", type: "soon", section: "Relatórios" },
         { id: "rel-margem", label: "Margem", icon: "icon-dollar", type: "soon", section: "Relatórios" },
         { id: "rel-produtos", label: "Produtos vendidos", icon: "icon-box", type: "soon", section: "Relatórios" },
@@ -364,7 +741,7 @@ table.data tr{cursor:pointer}
       items: [
         { id: "cfg-equipes", label: "Equipes de Venda", icon: "icon-users", type: "soon", section: "Configurações" },
         { id: "cfg-faturamento", label: "Métodos de Faturamento", icon: "icon-dollar", type: "soon", section: "Configurações" },
-        { id: "cfg-precos", label: "Lista de Preços", icon: "icon-dollar", type: "soon", section: "Configurações" },
+        { id: "cfg-precos", label: "Lista de Preços", icon: "icon-dollar", type: "link", href: "listas-preco.html", section: "Configurações" },
         { id: "cfg-pagamento", label: "Termos de Pagamento", icon: "icon-file-text", type: "soon", section: "Configurações" },
         { id: "cfg-entrega", label: "Métodos de Entrega", icon: "icon-truck", type: "soon", section: "Configurações" },
         { id: "cfg-incoterms", label: "Incoterms", icon: "icon-globe", type: "soon", section: "Configurações",
@@ -385,7 +762,14 @@ table.data tr{cursor:pointer}
     aprovado: "Aprovado",
     faturado: "Faturado",
     rascunho: "Rascunho",
+    cancelado: "Cancelado",
+    bloqueado: "Bloqueado",
+    convertida: "Convertida",
+    ativo: "Ativo",
+    suspenso: "Suspenso",
+    encerrado: "Encerrado",
   };
+  const CICLO_LABEL = { mensal: "Mensal", trimestral: "Trimestral", anual: "Anual", unico: "Único" };
   function onlyDigits(s) { return String(s || "").replace(/\D/g, ""); }
   function isCnpj(doc) { return onlyDigits(doc).length === 14; }
   function escapeHtml(s) {
@@ -480,6 +864,30 @@ table.data tr{cursor:pointer}
       listReturn = "cotacoes";
       document.getElementById("view-cotacoes").classList.add("active");
       renderCotacoes();
+    } else if (target === "contratos") {
+      document.getElementById("view-contratos").classList.add("active");
+      renderContratos();
+    } else if (target === "faturas") {
+      document.getElementById("view-faturas").classList.add("active");
+      renderFaturas();
+    } else if (target === "receber") {
+      document.getElementById("view-receber").classList.add("active");
+      renderReceber();
+    } else if (target === "relatorio") {
+      document.getElementById("view-relatorio").classList.add("active");
+      renderRelatorio();
+    } else if (target === "kanban") {
+      document.getElementById("view-kanban").classList.add("active");
+      renderKanban();
+    } else if (target === "calendario") {
+      document.getElementById("view-calendario").classList.add("active");
+      renderCalendario();
+    } else if (target === "pivot") {
+      document.getElementById("view-pivot").classList.add("active");
+      renderPivot();
+    } else if (target === "catalogo") {
+      document.getElementById("view-catalogo").classList.add("active");
+      renderCatalogo();
     } else if (target === "form" || target.startsWith("doc-")) {
       document.getElementById("view-form").classList.add("active");
     } else {
@@ -538,25 +946,11 @@ table.data tr{cursor:pointer}
     return { subtotal, impostos, total: subtotal + impostos };
   }
 
-  function nextId() {
-    return pedidos.reduce((m, p) => Math.max(m, Number(p.id) || 0), 1000) + 1;
-  }
-
-  function nextNumero(tipo) {
-    const prefix = tipo === "cotacao" ? "S" : "PV";
-    const same = pedidos.filter((p) => p.tipo === tipo || (!p.tipo && tipo === "pedido"));
-    const n = same.length + 1;
-    return prefix + String(n).padStart(5, "0");
-  }
-
-  function createNew(tipo) {
+  function createNew(tipo, prefill = {}) {
     const hoje = new Date();
     const ymd = hoje.toISOString().slice(0, 10);
     const validade = new Date(hoje.getTime() + 15 * 86400000).toISOString().slice(0, 10);
-    const id = nextId();
-    const doc = {
-      id,
-      numero: nextNumero(tipo),
+    const doc = Object.assign({
       tipo,
       data: ymd,
       hora: hoje.toTimeString().slice(0, 8),
@@ -568,7 +962,8 @@ table.data tr{cursor:pointer}
       uf: "",
       endereco_cobranca: "",
       endereco_entrega: "",
-      lista_precos: "Lista padrão B2B",
+      lista_precos: "",
+      lista_precos_id: "",
       vendedor: (JSON.parse(localStorage.getItem("user_data") || "{}").nome) || "Admin",
       equipe: "",
       ref_cliente: "",
@@ -580,10 +975,264 @@ table.data tr{cursor:pointer}
       info_extra: "",
       smart: { entregas: 0, faturas: 0, compras: 0, assinaturas: 0, projetos: 0, tarefas: 0 },
       itens: [],
-    };
-    pedidos.unshift(doc);
-    STATUS_LABEL.rascunho = STATUS_LABEL.rascunho || "Rascunho";
-    openForm(id);
+    }, prefill);
+    saveDoc(doc, "create").then((res) => {
+      if (res.status !== "ok") return alert(res.message || "Erro ao criar documento");
+      doc.id = res.id;
+      doc.numero = res.numero;
+      pedidos.unshift(doc);
+      openForm(doc.id);
+    });
+  }
+
+  async function saveDoc(doc, action) {
+    try {
+      return await window.api("/api/vendas/b2b", {
+        method: "POST",
+        body: JSON.stringify(Object.assign({ action }, doc)),
+      });
+    } catch (e) {
+      return { status: "error", message: String(e) };
+    }
+  }
+
+  async function refreshFromServer() {
+    try {
+      const data = await window.api("/api/vendas/b2b");
+      const remote = (data.pedidos || []).filter((p) => isCnpj(p.cnpj) || p.tipo === "cotacao" || p.status === "rascunho");
+      pedidos = remote;
+      renderDashboard();
+      applyFilter();
+      if (listReturn === "cotacoes") renderCotacoes();
+      const ativos = ["kanban", "calendario", "pivot", "relatorio"];
+      ativos.forEach((v) => {
+        const el = document.getElementById("view-" + v);
+        if (el && el.classList.contains("active")) {
+          if (v === "kanban") renderKanban();
+          else if (v === "calendario") renderCalendario();
+          else if (v === "pivot") renderPivot();
+          else renderRelatorio();
+        }
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  const READONLY_FIELDS = [
+    ["numero", "Número"],
+    ["data", "Data"],
+    ["validade", "Validade"],
+    ["vendedor", "Vendedor"],
+    ["equipe", "Equipe"],
+    ["empresa", "Empresa"],
+  ];
+  const EDITABLE_FIELDS = [
+    ["razao_social", "Razão social", "text"],
+    ["cnpj", "CNPJ", "text"],
+    ["ie", "Inscrição estadual", "text"],
+    ["cidade", "Cidade", "text"],
+    ["uf", "UF", "text"],
+    ["endereco_cobranca", "Endereço de cobrança", "textarea"],
+    ["endereco_entrega", "Endereço de entrega", "textarea"],
+    ["condicao_pg", "Condição de pagamento", "text"],
+    ["forma_pg", "Forma de pagamento", "text"],
+    ["ref_cliente", "Referência do cliente", "text"],
+  ];
+
+  let produtosDl = [];
+  let priceLists = [];
+  let catalogProdutos = [];
+  let clientesB2b = [];
+  async function loadProdutos() {
+    try {
+      const data = await window.api("/api/admin/produtos");
+      if (data.status === "ok") produtosDl = data.produtos || [];
+    } catch (e) { produtosDl = []; }
+    const dl = document.getElementById("produtos-dl");
+    if (dl) dl.innerHTML = produtosDl.map((p) =>
+      `<option value="${escapeHtml(p.nome || p.id)}" data-id="${escapeHtml(p.id)}"></option>`).join("");
+  }
+  async function loadClientes() {
+    try {
+      const data = await window.api("/api/vendas/b2b/clientes");
+      clientesB2b = data.status === "ok" ? (data.clientes || []) : [];
+    } catch (e) { clientesB2b = []; }
+    const dl = document.getElementById("clientes-dl");
+    if (dl) dl.innerHTML = clientesB2b.map((c) =>
+      `<option value="${escapeHtml(c.razao_social)}" data-cnpj="${escapeHtml(c.cnpj)}" data-id="${escapeHtml(c.id)}"></option>`).join("");
+  }
+  function setField(key, val) {
+    const el = document.querySelector(`[data-field="${key}"]`);
+    if (el) el.value = val || "";
+    currentDoc[key] = val || "";
+  }
+  async function loadCatalogo() {
+    try {
+      const data = await window.api("/api/vendas/b2b/catalog");
+      if (data.status === "ok") {
+        priceLists = data.price_lists || [];
+        catalogProdutos = data.produtos || [];
+      }
+    } catch (e) { priceLists = []; catalogProdutos = []; }
+    const catView = document.getElementById("view-catalogo");
+    if (catView && catView.classList.contains("active")) renderCatalogo();
+  }
+  function produtoIdForName(nome) {
+    const found = produtosDl.find((p) => String(p.nome) === String(nome));
+    return found ? found.id : "";
+  }
+  function resolveLinePrice(produtoNome, prodId, listaId) {
+    if (!produtoNome) return 0;
+    const p = catalogProdutos.find((x) =>
+      String(x.nome) === String(produtoNome) || (prodId && String(x.id) === String(prodId)));
+    if (!p) return 0;
+    const pl = priceLists.find((l) => String(l.id) === String(listaId));
+    if (pl && pl.items && String(p.id) in pl.items) return Number(pl.items[String(p.id)]) || 0;
+    return Number(p.preco) || 0;
+  }
+  function renderListaSelect(v, locked = false) {
+    const atual = v.lista_precos_id || priceLists.find((l) => String(l.name) === String(v.lista_precos))?.id || "";
+    if (!priceLists.length) {
+      return `<div class="so-field"><label>Lista de preços</label>
+        <input type="text" data-field="lista_precos" value="${escapeHtml(v.lista_precos || "")}" ${locked ? "disabled" : ""}></div>`;
+    }
+    return `<div class="so-field"><label>Lista de preços</label>
+      <select data-field="lista_precos" ${locked ? "disabled" : ""}>
+        <option value="">Preço base (sem lista)</option>
+        ${priceLists.map((l) => `<option value="${escapeHtml(l.id)}" ${String(l.id) === String(atual) ? "selected" : ""}>${escapeHtml(l.name)}</option>`).join("")}
+      </select></div>`;
+  }
+
+  function isLocked(v) {
+    return ["faturado", "cancelado", "bloqueado", "convertida"].includes(v.status);
+  }
+  function renderHeaderEditable(v) {
+    const locked = isLocked(v);
+    const ro = READONLY_FIELDS.map(([key, label]) => {
+      const val = key === "data" ? `${v.data || "—"} ${v.hora || ""}` : (v[key] != null ? v[key] : "—");
+      return `<div class="so-field"><label>${label}</label><div class="val">${escapeHtml(String(val))}</div></div>`;
+    }).join("");
+    const ed = EDITABLE_FIELDS.map(([key, label, type]) => {
+      const val = v[key] != null ? String(v[key]) : "";
+      if (key === "razao_social") {
+        return `<div class="so-field"><label>${label}</label>
+          <input type="text" data-field="razao_social" list="clientes-dl" value="${escapeHtml(val)}" ${locked ? "disabled" : ""}></div>`;
+      }
+      const input = type === "textarea"
+        ? `<textarea data-field="${key}" ${locked ? "disabled" : ""}>${escapeHtml(val)}</textarea>`
+        : `<input type="text" data-field="${key}" value="${escapeHtml(val)}" ${locked ? "disabled" : ""}>`;
+      return `<div class="so-field"><label>${label}</label>${input}</div>`;
+    }).join("");
+    return ro + renderListaSelect(v, locked) + ed;
+  }
+
+  function renderLinesEditable(v) {
+    const locked = isLocked(v);
+    const body = document.getElementById("so-lines-body");
+    const itens = v.itens || [];
+    if (!itens.length) {
+      body.innerHTML = `<tr><td colspan="9" class="empty">Sem linhas ${locked ? "" : "— adicione abaixo"}</td></tr>`;
+      return;
+    }
+    body.innerHTML = itens.map((i, idx) => `
+      <tr data-idx="${idx}">
+        <td><input type="text" class="ln-produto" value="${escapeHtml(i.produto || "")}" list="produtos-dl" ${locked ? "disabled" : ""}></td>
+        <td><input type="text" class="ln-descricao" value="${escapeHtml(i.descricao || "")}" ${locked ? "disabled" : ""}></td>
+        <td><input type="number" class="ln-qtd" value="${i.qtd}" ${locked ? "disabled" : ""}></td>
+        <td><input type="text" class="ln-uom" value="${escapeHtml(i.uom || "UN")}" ${locked ? "disabled" : ""}></td>
+        <td><input type="number" class="ln-preco" step="0.01" value="${i.preco}" ${locked ? "disabled" : ""}></td>
+        <td><input type="number" class="ln-desconto" value="${Number(i.desconto) || 0}" ${locked ? "disabled" : ""}></td>
+        <td><input type="number" class="ln-imposto" value="${Number(i.imposto) || 0}" ${locked ? "disabled" : ""}></td>
+        <td class="money ln-subtotal">${money(calcLine(i))}</td>
+        <td>${locked ? "" : '<button type="button" class="so-btn danger ln-remove" title="Remover linha">×</button>'}</td>
+      </tr>`).join("");
+    body.querySelectorAll("input").forEach((el) => el.addEventListener("input", syncLines));
+    body.querySelectorAll(".ln-produto").forEach((el) => el.addEventListener("change", () => {
+      const nome = el.value.trim();
+      const p = catalogProdutos.find((x) => String(x.nome) === String(nome));
+      if (p) {
+        el.closest("tr").querySelector(".ln-preco").value =
+          resolveLinePrice(nome, p.id, currentDoc.lista_precos_id || "");
+      }
+      syncLines();
+    }));
+    body.querySelectorAll(".ln-remove").forEach((btn) => btn.addEventListener("click", (e) => {
+      const row = e.target.closest("tr");
+      currentDoc.itens.splice(Number(row.dataset.idx), 1);
+      renderLinesEditable(currentDoc);
+      recalcTotals();
+    }));
+  }
+
+  function collectLines() {
+    const rows = document.querySelectorAll("#so-lines-body tr[data-idx]");
+    const itens = [];
+    rows.forEach((row) => {
+      const produto = row.querySelector(".ln-produto").value.trim();
+      const qtd = Number(row.querySelector(".ln-qtd").value) || 0;
+      if (!produto && qtd === 0) return;
+      const preco = Number(row.querySelector(".ln-preco").value) || 0;
+      itens.push({
+        prod_id: produtoIdForName(produto) || currentDoc.itens[Number(row.dataset.idx)]?.prod_id || "",
+        produto,
+        descricao: row.querySelector(".ln-descricao").value.trim(),
+        qtd,
+        uom: row.querySelector(".ln-uom").value.trim() || "UN",
+        preco,
+        desconto: Number(row.querySelector(".ln-desconto").value) || 0,
+        imposto: Number(row.querySelector(".ln-imposto").value) || 0,
+      });
+    });
+    return itens;
+  }
+
+  function syncLines() {
+    currentDoc.itens = collectLines();
+    recalcTotals();
+  }
+
+  function recalcTotals() {
+    const totals = calcTotals(currentDoc);
+    document.getElementById("so-totals").innerHTML = `
+      <div class="row"><span>Subtotal</span><span class="money">${money(totals.subtotal)}</span></div>
+      <div class="row"><span>Impostos</span><span class="money">${money(totals.impostos)}</span></div>
+      <div class="row total"><span>Total</span><span class="money">${money(totals.total)}</span></div>
+    `;
+    document.querySelectorAll("#so-lines-body tr[data-idx]").forEach((row) => {
+      const idx = Number(row.dataset.idx);
+      row.querySelector(".ln-subtotal").textContent = money(calcLine(currentDoc.itens[idx] || {}));
+    });
+  }
+
+  function collectDoc() {
+    EDITABLE_FIELDS.forEach(([key]) => {
+      const el = document.querySelector(`[data-field="${key}"]`);
+      if (el) currentDoc[key] = el.value.trim();
+    });
+    const lsel = document.querySelector('[data-field="lista_precos"]');
+    if (lsel) {
+      const lid = lsel.value;
+      const pl = priceLists.find((l) => String(l.id) === String(lid));
+      currentDoc.lista_precos_id = lid || "";
+      currentDoc.lista_precos = lid ? (pl ? pl.name : lid) : "";
+    }
+    const notas = document.querySelector("#so-notas-input");
+    if (notas) currentDoc.notas = notas.value;
+    const extra = document.querySelector("#so-extras-input");
+    if (extra) currentDoc.info_extra = extra.value;
+    currentDoc.itens = collectLines();
+    return currentDoc;
+  }
+
+  async function saveNow() {
+    const doc = collectDoc();
+    const res = await saveDoc(doc, "update");
+    if (res.status !== "ok") { alert(res.message || "Falha ao salvar"); return false; }
+    await refreshFromServer();
+    currentDoc = pedidos.find((p) => String(p.id) === String(doc.id)) || currentDoc;
+    return true;
   }
 
   function openForm(id) {
@@ -591,9 +1240,9 @@ table.data tr{cursor:pointer}
     if (!v) return;
     currentDoc = v;
     listReturn = v.tipo === "cotacao" ? "cotacoes" : "pedidos";
-    const totals = calcTotals(v);
     const tipoLabel = v.tipo === "cotacao" ? "Cotação" : "Pedido de Venda";
     const st = v.status || "pendente";
+    const locked = isLocked(v);
     const smart = v.smart || {};
 
     document.getElementById("so-smart").innerHTML = [
@@ -608,58 +1257,41 @@ table.data tr{cursor:pointer}
         <strong>${n}</strong><span>${label}</span>
       </button>`).join("");
 
-    document.getElementById("so-actions").innerHTML = `
-      <button type="button" class="so-btn primary" data-action="confirmar">Confirmar</button>
-      <button type="button" class="so-btn" data-action="email">Enviar por E-mail</button>
-      <button type="button" class="so-btn" data-action="imprimir">Imprimir</button>
-      <button type="button" class="so-btn" data-action="fatura">Criar Fatura</button>
-      <button type="button" class="so-btn" data-action="duplicar">Duplicar</button>
-      <button type="button" class="so-btn" data-action="bloquear">Bloquear</button>
-      <button type="button" class="so-btn danger" data-action="cancelar">Cancelar</button>
-    `;
+    const btns = [];
+    if (!locked) btns.push('<button type="button" class="so-btn primary" data-action="salvar">Salvar</button>');
+    if (["rascunho", "pendente"].includes(st)) btns.push('<button type="button" class="so-btn primary" data-action="confirmar">Confirmar</button>');
+    if (v.tipo === "cotacao" && !["convertida", "cancelado"].includes(st))
+      btns.push('<button type="button" class="so-btn primary" data-action="converter">Converter em Pedido</button>');
+    if (v.tipo !== "cotacao" && ["rascunho", "pendente"].includes(st)) btns.push('<button type="button" class="so-btn" data-action="aprovar">Aprovar</button>');
+    if (v.tipo !== "cotacao" && st === "aprovado") btns.push('<button type="button" class="so-btn" data-action="fatura">Criar Fatura</button>');
+    if (v.tipo !== "cotacao" && st === "faturado" && v.nfe_numero
+        && String(v.nfe_status || "RASCUNHO").toUpperCase() === "RASCUNHO") {
+      btns.push('<button type="button" class="so-btn primary" data-action="autorizar_nfe">Autorizar NF-e</button>');
+    }
+    if (v.id && !["cancelado"].includes(st)) {
+      btns.push('<button type="button" class="so-btn" data-action="gerar_contrato">Gerar Contrato</button>');
+    }
+    btns.push('<button type="button" class="so-btn" data-action="duplicar">Duplicar</button>');
+    if (!locked && st !== "bloqueado") btns.push('<button type="button" class="so-btn" data-action="bloquear">Bloquear</button>');
+    if (st === "bloqueado") btns.push('<button type="button" class="so-btn" data-action="bloquear">Desbloquear</button>');
+    if (!locked) btns.push('<button type="button" class="so-btn danger" data-action="cancelar">Cancelar</button>');
+    if (st !== "faturado") btns.push('<button type="button" class="so-btn danger" data-action="excluir">Excluir</button>');
+    document.getElementById("so-actions").innerHTML = btns.join("");
 
     document.getElementById("so-status").innerHTML =
       `<div class="so-status badge badge-${escapeHtml(st)}">${tipoLabel} · ${STATUS_LABEL[st] || st}</div>`;
 
-    document.getElementById("so-header").innerHTML = [
-      ["Número", v.numero || ("#" + v.id)],
-      ["Cliente", `${v.razao_social || "—"} · ${v.cnpj || ""}`],
-      ["Endereço de cobrança", v.endereco_cobranca || "—"],
-      ["Endereço de entrega", v.endereco_entrega || "—"],
-      ["Lista de preços", v.lista_precos || "—"],
-      ["Vendedor", v.vendedor || "—"],
-      ["Equipe", v.equipe || "—"],
-      ["Referência do cliente", v.ref_cliente || "—"],
-      ["Data", `${v.data || "—"} ${v.hora || ""}`],
-      ["Validade da cotação", v.validade || "—"],
-      ["Empresa", v.empresa || "—"],
-      ["Condição / Pagamento", `${v.condicao_pg || "—"} · ${v.forma_pg || ""}`],
-    ].map(([label, val]) => `
-      <div class="so-field">
-        <label>${label}</label>
-        <div class="val">${escapeHtml(String(val))}</div>
-      </div>`).join("");
+    document.getElementById("so-header").innerHTML = renderHeaderEditable(v);
+    document.getElementById("so-lines-body").innerHTML = "";
+    renderLinesEditable(v);
+    recalcTotals();
 
-    document.getElementById("so-lines-body").innerHTML = (v.itens || []).map((i) => `
-      <tr>
-        <td>${escapeHtml(i.produto || i.prod_id)}</td>
-        <td class="wrap">${escapeHtml(i.descricao || "—")}</td>
-        <td>${i.qtd}</td>
-        <td>${escapeHtml(i.uom || "UN")}</td>
-        <td class="money">${money(i.preco)}</td>
-        <td>${Number(i.desconto) || 0}%</td>
-        <td>${Number(i.imposto) || 0}%</td>
-        <td class="money">${money(calcLine(i))}</td>
-      </tr>`).join("") || '<tr><td colspan="8" class="empty">Sem linhas</td></tr>';
-
-    document.getElementById("so-totals").innerHTML = `
-      <div class="row"><span>Subtotal</span><span class="money">${money(totals.subtotal)}</span></div>
-      <div class="row"><span>Impostos</span><span class="money">${money(totals.impostos)}</span></div>
-      <div class="row total"><span>Total</span><span class="money">${money(totals.total)}</span></div>
-    `;
-
-    document.getElementById("so-extras").textContent = v.info_extra || "—";
-    document.getElementById("so-notas").textContent = v.notas || "—";
+    const notasVal = v.notas || "";
+    const extrasVal = v.info_extra || "";
+    document.getElementById("so-extras").innerHTML =
+      `<textarea id="so-extras-input" style="width:100%;min-height:90px;background:rgba(0,0,0,.2);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);padding:8px 10px;font-size:13px">${escapeHtml(extrasVal)}</textarea>`;
+    document.getElementById("so-notas").innerHTML =
+      `<textarea id="so-notas-input" style="width:100%;min-height:90px;background:rgba(0,0,0,.2);border:1px solid var(--border-color);border-radius:8px;color:var(--text-primary);padding:8px 10px;font-size:13px">${escapeHtml(notasVal)}</textarea>`;
 
     document.querySelectorAll(".so-tab").forEach((t) => t.classList.toggle("active", t.dataset.pane === "linhas"));
     document.querySelectorAll(".so-pane").forEach((p) => p.classList.toggle("active", p.id === "pane-linhas"));
@@ -667,17 +1299,861 @@ table.data tr{cursor:pointer}
     showView("form");
     history.replaceState(null, "", "#doc-" + v.id);
 
+    document.getElementById("btn-add-line").onclick = () => {
+      if (isLocked(currentDoc)) return;
+      currentDoc.itens.push({ produto: "", qtd: 1, uom: "UN", preco: 0, desconto: 0, imposto: 0 });
+      renderLinesEditable(currentDoc);
+      recalcTotals();
+    };
+    document.getElementById("btn-add-line").disabled = locked;
+    document.getElementById("btn-aplicar-precos").disabled = locked;
+
+    const lsel = document.querySelector('[data-field="lista_precos"]');
+    if (lsel) {
+      lsel.onchange = () => {
+        const lid = lsel.value;
+        const pl = priceLists.find((l) => String(l.id) === String(lid));
+        currentDoc.lista_precos_id = lid || "";
+        currentDoc.lista_precos = lid ? (pl ? pl.name : lid) : "";
+      };
+    }
+
+    const razaoInput = document.querySelector('[data-field="razao_social"]');
+    if (razaoInput) {
+      razaoInput.onchange = () => {
+        const nome = razaoInput.value.trim();
+        const cli = clientesB2b.find((c) => String(c.razao_social) === String(nome));
+        if (!cli) return;
+        setField("cnpj", cli.cnpj);
+        setField("ie", cli.ie);
+        setField("cidade", cli.cidade);
+        setField("uf", cli.uf);
+        setField("endereco_cobranca", cli.endereco_cobranca);
+        if (!currentDoc.endereco_entrega) setField("endereco_entrega", cli.endereco_cobranca);
+        currentDoc.cliente_id = cli.id;
+        currentDoc.cliente_nome = cli.razao_social;
+        currentDoc.payment_terms = cli.payment_terms || "30";
+        // Lista padrão do parceiro → pedido
+        if (cli.default_price_list_id) {
+          const pl = priceLists.find((l) => String(l.id) === String(cli.default_price_list_id));
+          currentDoc.lista_precos_id = cli.default_price_list_id;
+          currentDoc.lista_precos = pl ? pl.name : cli.default_price_list_id;
+          const lsel = document.querySelector('[data-field="lista_precos"]');
+          if (lsel) lsel.value = cli.default_price_list_id;
+        }
+      };
+    }
+
+    document.getElementById("btn-aplicar-precos").onclick = () => {
+      if (isLocked(currentDoc)) return;
+      const lid = currentDoc.lista_precos_id || "";
+      currentDoc.itens = collectLines().map((i) => {
+        i.preco = resolveLinePrice(i.produto, i.prod_id, lid);
+        return i;
+      });
+      renderLinesEditable(currentDoc);
+      recalcTotals();
+    };
+
     document.querySelectorAll("#so-actions [data-action]").forEach((btn) => {
-      btn.onclick = () => {
+      btn.onclick = async () => {
         const a = btn.dataset.action;
+        const doc = currentDoc;
+        if (a === "salvar") { if (await saveNow()) openForm(doc.id); return; }
+        if (a === "confirmar") {
+          if (!(await saveNow())) return;
+          const res = await saveDoc({ id: doc.id, status: "pendente" }, "status");
+          if (res.status === "ok") { await refreshFromServer(); openForm(doc.id); }
+          else alert(res.message || "Falha ao confirmar");
+          return;
+        }
+        if (a === "aprovar") {
+          if (!(await saveNow())) return;
+          let payload = { id: doc.id };
+          let res = await saveDoc(payload, "aprovar");
+          if (res.status !== "ok" && res.code === "reserva_parcial") {
+            const okPartial = confirm(
+              (res.message || "Estoque insuficiente.") +
+              "\n\nConfirmar pedido parcial (reservar só o disponível)?"
+            );
+            if (!okPartial) return;
+            payload = { id: doc.id, allow_partial: true };
+            res = await saveDoc(payload, "aprovar");
+          }
+          if (res.status === "ok") {
+            const parts = ["Pedido aprovado"];
+            if (res.entrega && res.entrega.id) parts.push("Entrega " + res.entrega.id);
+            if (res.credit && res.credit.message) parts.push(res.credit.message);
+            if (res.reserva && res.reserva.parcial) parts.push("Reserva parcial");
+            if ((res.reserva_warnings || (res.reserva && res.reserva.warnings) || []).length)
+              parts.push("Avisos de reserva");
+            alert(parts.join(" · "));
+            await refreshFromServer(); openForm(doc.id);
+          } else alert(res.message || "Falha ao aprovar");
+          return;
+        }
+        if (a === "converter") {
+          if (!(await saveNow())) return;
+          if (!confirm("Converter esta cotação em Pedido de Venda?")) return;
+          const res = await saveDoc({ id: doc.id }, "converter");
+          if (res.status === "ok") {
+            alert(res.message || ("Pedido " + (res.pedido_numero || "") + " criado"));
+            await refreshFromServer();
+            if (res.pedido_id) openForm(res.pedido_id);
+            else openForm(doc.id);
+          } else alert(res.message || "Falha ao converter");
+          return;
+        }
+        if (a === "fatura") {
+          if (!(await saveNow())) return;
+          const res = await saveDoc({ id: doc.id }, "faturar");
+          if (res.status === "ok") {
+            const parts = ["Fatura " + (res.fatura_numero || "")];
+            if (res.ar && res.ar.titulos) parts.push(res.ar.titulos.length + " título(s) AR");
+            if (res.nfe && res.nfe.numero) parts.push("NF-e " + res.nfe.numero + " (rascunho)");
+            if (res.entrega_id) parts.push("Entrega " + res.entrega_id);
+            if (res.estoque === "na_entrega") parts.push("Estoque na saída da entrega");
+            alert(parts.join(" · "));
+            await refreshFromServer(); openForm(doc.id);
+          } else alert(res.message || "Falha ao faturar");
+          return;
+        }
+        if (a === "autorizar_nfe") {
+          const simular = confirm(
+            "Autorizar NF-e " + (doc.nfe_numero || "") + "?\n\n" +
+            "OK = simular homologação (sem certificado)\n" +
+            "Cancelar = abortar\n\n" +
+            "Para SEFAZ real use Fiscal → NF-e com certificado."
+          );
+          if (!simular) return;
+          const res = await saveDoc({ id: doc.id, simular: true }, "autorizar_nfe");
+          if (res.status === "ok") {
+            const n = res.nfe || {};
+            alert("NF-e " + (n.numero || "") + " · " + (n.status || "") +
+              (n.protocolo ? " · prot. " + n.protocolo : ""));
+            await refreshFromServer(); openForm(doc.id);
+          } else alert(res.message || "Falha ao autorizar NF-e");
+          return;
+        }
+        if (a === "cancelar") {
+          if (!(await saveNow())) return;
+          const res = await saveDoc({ id: doc.id, status: "cancelado" }, "status");
+          if (res.status === "ok") { await refreshFromServer(); openForm(doc.id); }
+          else alert(res.message || "Falha ao cancelar");
+          return;
+        }
+        if (a === "bloquear") {
+          const novo = doc.status === "bloqueado" ? "pendente" : "bloqueado";
+          if (novo === "bloqueado" && !(await saveNow())) return;
+          const res = await saveDoc({ id: doc.id, status: novo }, "status");
+          if (res.status === "ok") { await refreshFromServer(); openForm(doc.id); }
+          else alert(res.message || "Falha ao bloquear");
+          return;
+        }
+        if (a === "gerar_contrato") {
+          if (!doc.id) return alert("Salve o documento antes de gerar contrato");
+          if (!confirm("Gerar contrato a partir deste " + tipoLabel + "?")) return;
+          const res = await window.api("/api/vendas/b2b/contratos", {
+            method: "POST",
+            body: JSON.stringify({ action: "from_pedido", pedido_id: doc.id }),
+          });
+          if (res.status === "ok") {
+            alert("Contrato " + (res.contrato && res.contrato.numero) + " criado");
+            showView("contratos");
+            openContrato(res.contrato.id);
+          } else alert(res.message || "Falha ao gerar contrato");
+          return;
+        }
+        if (a === "duplicar") {
+          const clone = Object.assign({}, collectDoc());
+          delete clone.id; delete clone.numero;
+          delete clone.data; delete clone.hora; delete clone.validade;
+          clone.status = "rascunho";
+          clone.itens = (currentDoc.itens || []).map((i) => Object.assign({}, i));
+          createNew(clone.tipo === "cotacao" ? "cotacao" : "pedido", clone);          return;
+        }
+        if (a === "excluir") {
+          if (!confirm(`Excluir ${tipoLabel} ${doc.numero || doc.id}? Esta ação não pode ser desfeita.`)) return;
+          const res = await saveDoc({ id: doc.id }, "delete");
+          if (res.status === "ok") {
+            await refreshFromServer();
+            showView("list");
+            history.replaceState(null, "", "#vendas");
+          } else alert(res.message || "Falha ao excluir");
+          return;
+        }
         alert(`Ação "${a}" no ${tipoLabel} ${v.numero || v.id} — em breve (workflow B2B).`);
       };
     });
     document.querySelectorAll("#so-smart [data-smart]").forEach((btn) => {
       btn.onclick = () => {
-        alert(`Smart button "${btn.dataset.smart}" — em breve.`);
+        const label = btn.dataset.smart;
+        if (label === "Entregas" && currentDoc && currentDoc.entrega_id) {
+          alert("Delivery Order: " + currentDoc.entrega_id +
+            "\nAbra Operações → Entregas para acompanhar.\nEstoque baixa na saída (depart).");
+          return;
+        }
+        if (label === "Faturas" && currentDoc && currentDoc.fatura_numero) {
+          alert("Fatura " + currentDoc.fatura_numero +
+            (currentDoc.nfe_numero ? " · NF-e " + currentDoc.nfe_numero : ""));
+          return;
+        }
+        alert(`Smart button "${label}" — em breve.`);
       };
     });
+  }
+
+  let contratosCache = [];
+  let currentContratoId = null;
+
+  async function renderContratos() {
+    const tbody = document.getElementById("contratos-tbody");
+    const q = (document.getElementById("ct-q")?.value || "").trim();
+    const st = (document.getElementById("ct-status")?.value || "").trim();
+    const qs = new URLSearchParams();
+    if (q) qs.set("q", q);
+    if (st) qs.set("status", st);
+    try {
+      const data = await window.api("/api/vendas/b2b/contratos" + (qs.toString() ? "?" + qs : ""));
+      contratosCache = data.contratos || [];
+      if (!contratosCache.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">Nenhum contrato</td></tr>';
+        return;
+      }
+      tbody.innerHTML = contratosCache.map((c) => `
+        <tr data-ct-id="${c.id}">
+          <td><span class="badge">${escapeHtml(c.numero || ("#" + c.id))}</span></td>
+          <td>${escapeHtml(c.titulo || "—")}</td>
+          <td><div class="empresa-cell"><strong>${escapeHtml(c.razao_social || "—")}</strong>
+            <span class="cnpj">${escapeHtml(c.cnpj || "—")}</span></div></td>
+          <td>${escapeHtml((c.inicio || "—") + " → " + (c.fim || "—"))}</td>
+          <td>${escapeHtml(CICLO_LABEL[c.ciclo] || c.ciclo || "—")}</td>
+          <td class="money">${money(c.valor)}</td>
+          <td><span class="badge badge-${escapeHtml(c.status || "rascunho")}">${escapeHtml(STATUS_LABEL[c.status] || c.status)}</span></td>
+        </tr>`).join("");
+      tbody.querySelectorAll("tr[data-ct-id]").forEach((tr) => {
+        tr.onclick = () => openContrato(tr.dataset.ctId);
+      });
+      if (currentContratoId) openContrato(currentContratoId);
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="7" class="empty">Erro ao carregar contratos</td></tr>';
+    }
+  }
+
+  function openContrato(id) {
+    const c = contratosCache.find((x) => String(x.id) === String(id));
+    const panel = document.getElementById("ct-panel");
+    if (!c) { panel.style.display = "none"; return; }
+    currentContratoId = c.id;
+    const st = c.status || "rascunho";
+    const gens = (c.pedidos_gerados || []).map((g) =>
+      `<li>Pedido ${escapeHtml(g.numero || g.pedido_id)} · ${escapeHtml(g.em || "")}</li>`
+    ).join("") || "<li class='muted'>Nenhum pedido gerado</li>";
+    const itens = (c.itens || []).map((it) =>
+      `<tr><td>${escapeHtml(it.produto || it.prod_id || "—")}</td>
+       <td>${it.qtd}</td><td class="money">${money(it.preco)}</td>
+       <td class="money">${money(it.subtotal)}</td></tr>`
+    ).join("") || '<tr><td colspan="4" class="muted">Sem itens</td></tr>';
+
+    const actions = [];
+    if (st === "rascunho") {
+      actions.push('<button type="button" class="so-btn primary" data-ct="ativar">Ativar</button>');
+      actions.push('<button type="button" class="so-btn danger" data-ct="cancelar">Cancelar</button>');
+    }
+    if (st === "ativo") {
+      actions.push('<button type="button" class="so-btn primary" data-ct="gerar_pedido">Gerar Pedido</button>');
+      actions.push('<button type="button" class="so-btn" data-ct="suspender">Suspender</button>');
+      actions.push('<button type="button" class="so-btn" data-ct="encerrar">Encerrar</button>');
+      actions.push('<button type="button" class="so-btn danger" data-ct="cancelar">Cancelar</button>');
+    }
+    if (st === "suspenso") {
+      actions.push('<button type="button" class="so-btn primary" data-ct="ativar">Reativar</button>');
+      actions.push('<button type="button" class="so-btn" data-ct="encerrar">Encerrar</button>');
+    }
+
+    panel.style.display = "block";
+    panel.innerHTML = `
+      <h3>${escapeHtml(c.numero)} · ${escapeHtml(c.titulo || "")}
+        <span class="badge badge-${escapeHtml(st)}" style="margin-left:8px">${escapeHtml(STATUS_LABEL[st] || st)}</span>
+      </h3>
+      <p class="muted">${escapeHtml(c.razao_social || "")} · CNPJ ${escapeHtml(c.cnpj || "—")}
+        · ${escapeHtml(CICLO_LABEL[c.ciclo] || c.ciclo)} · renovação ${escapeHtml(c.renovacao || "manual")}</p>
+      <p>Vigência: <strong>${escapeHtml(c.inicio || "—")}</strong> → <strong>${escapeHtml(c.fim || "—")}</strong>
+        · Valor: <strong class="money">${money(c.valor)}</strong></p>
+      <div class="ct-actions">${actions.join("")}
+        <button type="button" class="so-btn" data-ct="fechar">Fechar</button>
+      </div>
+      <div class="table-wrap"><table class="data">
+        <thead><tr><th>Item</th><th>Qtd</th><th>Preço</th><th>Subtotal</th></tr></thead>
+        <tbody>${itens}</tbody>
+      </table></div>
+      <p style="margin-top:12px"><strong>Pedidos gerados</strong></p>
+      <ul>${gens}</ul>
+      ${c.notas ? `<p class="muted" style="margin-top:8px">${escapeHtml(c.notas)}</p>` : ""}
+    `;
+    panel.querySelectorAll("[data-ct]").forEach((btn) => {
+      btn.onclick = async () => {
+        const act = btn.dataset.ct;
+        if (act === "fechar") { panel.style.display = "none"; currentContratoId = null; return; }
+        if (act === "gerar_pedido" && !confirm("Gerar pedido de venda a partir deste contrato?")) return;
+        if (act === "cancelar" && !confirm("Cancelar contrato?")) return;
+        const res = await window.api("/api/vendas/b2b/contratos", {
+          method: "POST",
+          body: JSON.stringify({ action: act, id: c.id }),
+        });
+        if (res.status !== "ok") return alert(res.message || "Falha");
+        if (act === "gerar_pedido" && res.pedido) {
+          alert("Pedido " + (res.pedido.numero || res.pedido.id) + " criado");
+          await refreshFromServer();
+        }
+        await renderContratos();
+        openContrato(c.id);
+      };
+    });
+  }
+
+  function showNovoContratoForm() {
+    const panel = document.getElementById("ct-panel");
+    currentContratoId = null;
+    panel.style.display = "block";
+    panel.innerHTML = `
+      <h3>Novo Contrato</h3>
+      <div class="ct-form-grid">
+        <label>Título<input class="form-input" id="ct-f-titulo" placeholder="Fornecimento anual"></label>
+        <label>Razão social<input class="form-input" id="ct-f-razao" required></label>
+        <label>CNPJ<input class="form-input" id="ct-f-cnpj" placeholder="14 dígitos"></label>
+        <label>Início<input class="form-input" id="ct-f-inicio" type="date"></label>
+        <label>Fim<input class="form-input" id="ct-f-fim" type="date"></label>
+        <label>Ciclo<select class="form-input" id="ct-f-ciclo">
+          <option value="mensal">Mensal</option>
+          <option value="trimestral">Trimestral</option>
+          <option value="anual">Anual</option>
+          <option value="unico">Único</option>
+        </select></label>
+        <label>Renovação<select class="form-input" id="ct-f-renov">
+          <option value="manual">Manual</option>
+          <option value="automatica">Automática</option>
+          <option value="nao">Não renova</option>
+        </select></label>
+        <label>Valor (R$)<input class="form-input" id="ct-f-valor" type="number" step="0.01" min="0" value="0"></label>
+        <label>Condição<input class="form-input" id="ct-f-terms" value="30"></label>
+        <label>Item (descrição)<input class="form-input" id="ct-f-item" placeholder="Serviço / produto"></label>
+        <label>Qtd item<input class="form-input" id="ct-f-qtd" type="number" step="0.001" min="0" value="1"></label>
+      </div>
+      <label style="display:block;margin:8px 0;font-size:12px;color:var(--text-muted)">Notas
+        <textarea class="form-input" id="ct-f-notas" rows="2" style="width:100%"></textarea>
+      </label>
+      <div class="ct-actions">
+        <button type="button" class="so-btn primary" id="ct-f-salvar">Salvar rascunho</button>
+        <button type="button" class="so-btn" id="ct-f-cancel">Cancelar</button>
+      </div>
+    `;
+    const today = new Date().toISOString().slice(0, 10);
+    document.getElementById("ct-f-inicio").value = today;
+    document.getElementById("ct-f-cancel").onclick = () => { panel.style.display = "none"; };
+    document.getElementById("ct-f-salvar").onclick = async () => {
+      const razao = document.getElementById("ct-f-razao").value.trim();
+      const cnpj = onlyDigits(document.getElementById("ct-f-cnpj").value);
+      if (!razao) return alert("Informe a razão social");
+      if (cnpj && cnpj.length !== 14) return alert("CNPJ deve ter 14 dígitos");
+      const valor = Number(document.getElementById("ct-f-valor").value) || 0;
+      const itemDesc = document.getElementById("ct-f-item").value.trim();
+      const qtd = Number(document.getElementById("ct-f-qtd").value) || 1;
+      const itens = itemDesc ? [{
+        produto: itemDesc, qtd, preco: valor, subtotal: valor,
+      }] : (valor > 0 ? [{ produto: "Contrato", qtd: 1, preco: valor, subtotal: valor }] : []);
+      const res = await window.api("/api/vendas/b2b/contratos", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "create",
+          titulo: document.getElementById("ct-f-titulo").value.trim(),
+          razao_social: razao,
+          cnpj,
+          inicio: document.getElementById("ct-f-inicio").value,
+          fim: document.getElementById("ct-f-fim").value,
+          ciclo: document.getElementById("ct-f-ciclo").value,
+          renovacao: document.getElementById("ct-f-renov").value,
+          valor,
+          payment_terms: document.getElementById("ct-f-terms").value,
+          notas: document.getElementById("ct-f-notas").value,
+          itens,
+        }),
+      });
+      if (res.status !== "ok") return alert(res.message || "Falha ao criar");
+      await renderContratos();
+      openContrato(res.contrato.id);
+    };
+  }
+
+  async function renderFaturas() {
+    const tbody = document.getElementById("faturas-tbody");
+    try {
+      const data = await window.api("/api/vendas/b2b/faturas");
+      const list = (data.faturas || []).filter((f) => f && f.pedido_id != null);
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhuma fatura de venda criada</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map((f) => `
+        <tr>
+          <td><span class="badge">${escapeHtml(f.numero || ("FV" + f.id))}</span></td>
+          <td>${escapeHtml(f.pedido_numero || ("#" + f.pedido_id))}</td>
+          <td>${escapeHtml(f.data_emissao || "—")}</td>
+          <td>${escapeHtml(f.data_vencimento || "—")}</td>
+          <td><div class="empresa-cell"><strong>${escapeHtml(f.cliente || "—")}</strong><span class="cnpj">${escapeHtml(f.cnpj || "—")}</span></div></td>
+          <td>${f.itens_count || 0}</td>
+          <td class="money">${money(f.total)}</td>
+          <td><span class="badge badge-${String(f.status).toLowerCase() === "paga" ? "faturado" : "pendente"}">${escapeHtml(f.status || "PENDENTE")}</span></td>
+        </tr>`).join("");
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">Erro ao carregar faturas</td></tr>';
+    }
+  }
+
+  async function renderReceber() {
+    const tbody = document.getElementById("ar-tbody");
+    const summary = document.getElementById("ar-summary");
+    const q = (document.getElementById("ar-q")?.value || "").trim();
+    const st = (document.getElementById("ar-status")?.value || "").trim();
+    const qs = new URLSearchParams();
+    if (q) qs.set("q", q);
+    if (st) qs.set("status", st);
+    try {
+      const data = await window.api("/api/vendas/b2b/receber?" + qs.toString());
+      const list = data.titulos || [];
+      if (summary) {
+        summary.textContent = list.length
+          ? `${list.length} título(s) · saldo aberto ${money(data.saldo_aberto)}`
+          : "Nenhum título";
+      }
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="empty">Nenhum título a receber</td></tr>';
+        return;
+      }
+      tbody.innerHTML = list.map((t) => {
+        const badge = t.status === "pago" ? "faturado" : (t.status === "parcial" ? "aprovado" : "pendente");
+        const canPay = t.status === "aberto" || t.status === "parcial";
+        return `
+        <tr data-ar="${escapeHtml(t.id)}">
+          <td><span class="badge">${escapeHtml(t.id)}</span></td>
+          <td><div class="empresa-cell"><strong>${escapeHtml(t.cliente || "—")}</strong><span class="cnpj">${escapeHtml(t.cnpj || "")}</span></div></td>
+          <td>${escapeHtml(t.pedido_numero || "—")} / ${escapeHtml(t.fatura_numero || "—")}</td>
+          <td>${t.parcela || 1}/${t.parcelas || 1}</td>
+          <td>${escapeHtml(t.vencimento || "—")}</td>
+          <td class="money">${money(t.valor)}</td>
+          <td class="money">${money(t.saldo)}</td>
+          <td><span class="badge badge-${badge}">${escapeHtml(t.status || "aberto")}</span></td>
+          <td>${canPay ? `<button type="button" class="so-btn ar-baixar" data-id="${escapeHtml(t.id)}" data-saldo="${t.saldo}">Baixar</button>` : "—"}</td>
+        </tr>`;
+      }).join("");
+      tbody.querySelectorAll(".ar-baixar").forEach((btn) => {
+        btn.onclick = async () => {
+          const id = btn.dataset.id;
+          const saldo = btn.dataset.saldo;
+          if (!confirm(`Baixar título ${id} (saldo ${money(saldo)})?`)) return;
+          const res = await window.api("/api/vendas/b2b/receber", {
+            method: "POST",
+            body: JSON.stringify({ id }),
+          });
+          if (res.status === "ok") { alert("Baixa registrada"); renderReceber(); }
+          else alert(res.message || "Falha na baixa");
+        };
+      });
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="9" class="empty">Erro ao carregar contas a receber</td></tr>';
+    }
+  }
+
+  const FLOW = {
+    rascunho: ["pendente", "cancelado", "bloqueado"],
+    pendente: ["aprovado", "cancelado", "bloqueado"],
+    aprovado: ["faturado", "cancelado", "bloqueado"],
+    bloqueado: ["pendente"],
+    faturado: [],
+    cancelado: [],
+  };
+  const KANBAN_STATUS = ["rascunho", "pendente", "aprovado", "faturado", "bloqueado", "cancelado"];
+  const STATUS_DOT = {
+    rascunho: "#94a3b8", pendente: "#eab308", aprovado: "#3b82f6",
+    faturado: "#22c55e", bloqueado: "#94a3b8", cancelado: "#ef4444",
+  };
+  let kanbanDrag = null;
+
+  function kanbanFiltroTipo(list) {
+    const t = document.getElementById("kanban-tipo").value;
+    if (!t) return list;
+    return list.filter((p) => p.tipo === t || (t === "pedido" && !p.tipo));
+  }
+
+  function renderKanban() {
+    const board = document.getElementById("kanban-board");
+    const list = kanbanFiltroTipo(pedidos);
+    const porStatus = {};
+    KANBAN_STATUS.forEach((s) => porStatus[s] = []);
+    list.forEach((p) => { (porStatus[p.status] || porStatus.rascunho).push(p); });
+    board.innerHTML = KANBAN_STATUS.map((s) => {
+      const items = porStatus[s];
+      return `<div class="kanban-col" data-kanban-status="${s}">
+        <div class="kanban-head">
+          <span class="kanban-dot" style="background:${STATUS_DOT[s]}"></span>
+          <span>${STATUS_LABEL[s] || s}</span>
+          <span class="kanban-count">${items.length}</span>
+        </div>
+        <div class="kanban-body">
+          ${items.length ? items.map((p) => {
+            const locked = isLocked(p);
+            return `<div class="kanban-card" data-kanban-id="${p.id}" draggable="${locked ? "false" : "true"}">
+              <div class="kcard-top"><strong>${escapeHtml(p.numero || "#" + p.id)}</strong>
+                <span class="badge badge-${escapeHtml(p.status)}">${STATUS_LABEL[p.status] || p.status}</span></div>
+              <div class="kcard-nome">${escapeHtml(p.razao_social || "—")}</div>
+              <div class="kcard-sub">${escapeHtml(p.cnpj || "")} · ${escapeHtml(p.data || "—")} · ${escapeHtml(p.uf || "")}</div>
+              <div class="kcard-total">${money(calcTotals(p).total)}</div>
+            </div>`;
+          }).join("") : '<div class="empty" style="padding:1rem;font-size:12px">Vazio</div>'}
+        </div>
+      </div>`;
+    }).join("");
+
+    board.querySelectorAll(".kanban-card").forEach((card) => {
+      card.onclick = () => openForm(card.dataset.kanbanId);
+      card.ondragstart = (e) => {
+        const doc = pedidos.find((p) => String(p.id) === String(card.dataset.kanbanId));
+        if (!doc || isLocked(doc)) { e.preventDefault(); return; }
+        kanbanDrag = { id: card.dataset.kanbanId, status: doc.status };
+        card.classList.add("kanban-dragging");
+      };
+      card.ondragend = () => {
+        kanbanDrag = null;
+        card.classList.remove("kanban-dragging");
+        board.querySelectorAll(".kanban-col").forEach((c) => c.classList.remove("kanban-drop"));
+      };
+    });
+
+    board.querySelectorAll(".kanban-col").forEach((col) => {
+      col.ondragover = (e) => { e.preventDefault(); };
+      col.ondragenter = () => {
+        if (kanbanDrag && FLOW[kanbanDrag.status]?.includes(col.dataset.kanbanStatus)) {
+          col.classList.add("kanban-drop");
+        }
+      };
+      col.ondragleave = () => col.classList.remove("kanban-drop");
+      col.ondrop = async (e) => {
+        e.preventDefault();
+        col.classList.remove("kanban-drop");
+        if (!kanbanDrag) return;
+        const destino = col.dataset.kanbanStatus;
+        if (destino === kanbanDrag.status) { kanbanDrag = null; return; }
+        if (!FLOW[kanbanDrag.status]?.includes(destino)) {
+          alert(`Transição inválida: ${STATUS_LABEL[kanbanDrag.status]} → ${STATUS_LABEL[destino]}`);
+          kanbanDrag = null;
+          return;
+        }
+        const res = await saveDoc({ id: kanbanDrag.id, status: destino }, "status");
+        kanbanDrag = null;
+        if (res.status === "ok") { await refreshFromServer(); renderKanban(); }
+        else alert(res.message || "Falha ao mover cartão");
+      };
+    });
+  }
+
+  let calCursor = (() => {
+    const agora = new Date();
+    return { y: agora.getFullYear(), m: agora.getMonth() };
+  })();
+  const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+  const DOW = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
+
+  function calFiltroTipo(list) {
+    const t = document.getElementById("cal-tipo").value;
+    if (!t) return list;
+    return list.filter((p) => p.tipo === t || (t === "pedido" && !p.tipo));
+  }
+
+  function renderCalendario() {
+    document.getElementById("cal-titulo").textContent = `${MESES[calCursor.m]} ${calCursor.y}`;
+    const grid = document.getElementById("cal-grid");
+    const list = calFiltroTipo(pedidos);
+    const porData = {};
+    list.forEach((p) => { (porData[p.data] = porData[p.data] || []).push(p); });
+
+    const primeiro = new Date(calCursor.y, calCursor.m, 1);
+    let offset = (primeiro.getDay() + 6) % 7; // semana começa segunda
+    const hoje = new Date().toISOString().slice(0, 10);
+
+    let html = DOW.map((d) => `<div class="cal-dow">${d}</div>`).join("");
+    const inicia = new Date(calCursor.y, calCursor.m, 1 - offset);
+    for (let i = 0; i < 42; i++) {
+      const dt = new Date(inicia.getFullYear(), inicia.getMonth(), inicia.getDate() + i);
+      const ymd = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+      const fora = dt.getMonth() !== calCursor.m;
+      const docs = porData[ymd] || [];
+      html += `<div class="cal-cell ${fora ? "cal-out" : ""} ${ymd === hoje ? "cal-hoje" : ""}">
+        <div class="cal-num">${dt.getDate()}</div>
+        <div class="cal-chips">${docs.slice(0, 4).map((p) =>
+          `<span class="cal-chip badge badge-${escapeHtml(p.status)}" data-cal-id="${p.id}" title="${escapeHtml(p.numero)} · ${escapeHtml(p.razao_social || "")}">${escapeHtml(p.numero || "#" + p.id)}</span>`).join("")}
+          ${docs.length > 4 ? `<span class="cal-num">+${docs.length - 4} mais</span>` : ""}
+        </div>
+      </div>`;
+    }
+    grid.innerHTML = html;
+    grid.querySelectorAll("[data-cal-id]").forEach((chip) => {
+      chip.onclick = () => openForm(chip.dataset.calId);
+    });
+  }
+
+  function renderPivot() {
+    const out = document.getElementById("pv-out");
+    const linhaKey = document.getElementById("pv-linha").value;
+    const colunaKey = document.getElementById("pv-coluna").value;
+    const valorKey = document.getElementById("pv-valor").value;
+
+    const linhaVal = (p) => ({
+      vendedor: p.vendedor || "—",
+      cliente: p.razao_social || "—",
+      uf: p.uf || "—",
+      tipo: p.tipo === "cotacao" ? "Cotação" : "Pedido",
+    }[linhaKey]);
+    const colunaVal = (p) => ({
+      status: STATUS_LABEL[p.status] || p.status || "Pendente",
+      mes: (p.data || "").slice(0, 7),
+      tipo: p.tipo === "cotacao" ? "Cotação" : "Pedido",
+    }[colunaKey]);
+    const valor = (p) => {
+      if (valorKey === "total") return calcTotals(p).total;
+      if (valorKey === "qtd") return (p.itens || []).reduce((s, i) => s + (Number(i.qtd) || 0), 0);
+      return 1;
+    };
+
+    const linhas = new Map(), colunas = new Map();
+    const cel = (l, c) => ({ n: 0, v: 0 });
+    pedidos.forEach((p) => {
+      const l = linhaVal(p), c = colunaVal(p);
+      if (!linhas.has(l)) linhas.set(l, new Map());
+      if (!colunas.has(c)) colunas.set(c, cel());
+      if (!linhas.get(l).has(c)) linhas.get(l).set(c, cel());
+      const cell = linhas.get(l).get(c);
+      cell.n += 1; cell.v += valor(p);
+      colunas.get(c).n += 1; colunas.get(c).v += valor(p);
+    });
+
+    const fmt = valorKey === "total" ? money : (n) => String(Math.round(n * 100) / 100);
+    const linhaTotais = new Map();
+    linhas.forEach((celMap, l) => {
+      let n = 0, v = 0;
+      celMap.forEach((cell) => { n += cell.n; v += cell.v; });
+      linhaTotais.set(l, { n, v });
+    });
+
+    const cols = [...colunas.keys()].sort();
+    let html = `<div class="pivot-wrap"><table class="pivot">
+      <thead><tr>
+        <th class="corner">${document.getElementById("pv-linha").selectedOptions[0].textContent} \\ ${document.getElementById("pv-coluna").selectedOptions[0].textContent}</th>
+        ${cols.map((c) => `<th>${escapeHtml(c)}</th>`).join("")}
+        <th>Total</th>
+      </tr></thead><tbody>`;
+    const order = [...linhas.keys()].sort((a, b) => linhaTotais.get(b).v - linhaTotais.get(a).v);
+    order.forEach((l) => {
+      const lt = linhaTotais.get(l);
+      html += `<tr>
+        <td class="row-head">${escapeHtml(l)}</td>
+        ${cols.map((c) => {
+          const cell = linhas.get(l).get(c);
+          return `<td>${cell ? fmt(cell.v) : "—"}</td>`;
+        }).join("")}
+        <td class="col-total">${fmt(lt.v)}</td>
+      </tr>`;
+    });
+    let totN = 0, totV = 0;
+    colunas.forEach((c) => { totN += c.n; totV += c.v; });
+    html += `<tr class="totais">
+      <td class="row-head">Total</td>
+      ${cols.map((c) => `<td>${fmt(colunas.get(c).v)}</td>`).join("")}
+      <td>${fmt(totV)}</td>
+    </tr></tbody></table></div>`;
+    out.innerHTML = html || '<div class="empty">Sem dados</div>';
+  }
+
+  function renderCatalogo() {
+    const busca = (document.getElementById("cat-busca").value || "").trim().toLowerCase();
+    const cat = document.getElementById("cat-categoria").value;
+    const listaId = document.getElementById("cat-lista").value;
+    const lista = priceLists.find((l) => String(l.id) === String(listaId)) || null;
+    const produtos = catalogProdutos.length ? catalogProdutos : produtosDl;
+
+    const cats = [...new Set(produtos.map((p) => p.categoria || p.category || "Sem categoria"))].sort();
+    const catSel = document.getElementById("cat-categoria");
+    if (catSel.options.length <= 1) {
+      catSel.innerHTML = '<option value="">Todas</option>' +
+        cats.map((c) => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    }
+    const listaSel = document.getElementById("cat-lista");
+    if (listaSel.options.length <= 1) {
+      listaSel.innerHTML = '<option value="">Preço base</option>' +
+        priceLists.map((l) => `<option value="${escapeHtml(l.id)}">${escapeHtml(l.name)}</option>`).join("");
+    }
+
+    const filtered = produtos.filter((p) => {
+      if (cat && (p.categoria || p.category || "Sem categoria") !== cat) return false;
+      if (!busca) return true;
+      const blob = [p.nome, p.name, p.codigo_barras, p.ncm, String(p.id)].join(" ").toLowerCase();
+      return blob.includes(busca);
+    });
+
+    const tbody = document.getElementById("cat-tbody");
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="8" class="empty">Nenhum produto encontrado</td></tr>';
+      document.getElementById("cat-note").textContent = "";
+      return;
+    }
+    tbody.innerHTML = filtered.map((p) => {
+      const pid = String(p.id);
+      const nome = p.nome || p.name || "#" + pid;
+      const precoBase = Number(p.preco) || 0;
+      const precoLista = (lista && lista.items && pid in lista.items) ? Number(lista.items[pid]) : null;
+      const estoque = p.stock != null ? p.stock : (p.qtd_estoque != null ? p.qtd_estoque : "—");
+      return `<tr data-prod="${pid}">
+        <td><span class="badge">#${escapeHtml(pid)}</span></td>
+        <td><strong>${escapeHtml(nome)}</strong>
+          <span class="cnpj" style="display:block">${escapeHtml(p.codigo_barras || "")}${p.ncm ? " · NCM " + escapeHtml(p.ncm) : ""}</span></td>
+        <td>${escapeHtml(p.categoria || p.category || "—")}</td>
+        <td>${escapeHtml(p.unidade || p.uom || "UN")}</td>
+        <td>${estoque}</td>
+        <td class="money">${money(precoBase)}</td>
+        <td class="money">${precoLista != null ? money(precoLista) : '<span class="muted">= base</span>'}</td>
+        <td><a class="so-btn ghost" style="padding:4px 10px;font-size:12px" href="produtos.html?id=${pid}&retorno=${encodeURIComponent('/pages/vendas.html#catalogo')}">Abrir</a></td>
+      </tr>`;
+    }).join("");
+    tbody.querySelectorAll("tr[data-prod]").forEach((tr) => {
+      tr.style.cursor = "pointer";
+      tr.addEventListener("click", () => location.href = `produtos.html?id=${tr.dataset.prod}&retorno=${encodeURIComponent("/pages/vendas.html#catalogo")}`);
+    });
+    document.getElementById("cat-note").textContent =
+      `${filtered.length} de ${produtos.length} produto(s) · ${lista ? "listando preço por: " + lista.name : "sem lista de preço aplicada"}`;
+  }
+
+  function rptOptions() {
+    const v = document.getElementById("rpt-vendedor");
+    const u = document.getElementById("rpt-uf");
+    if (v.options.length > 1 && u.options.length > 1) return;
+    const vends = new Set(), ufs = new Set();
+    pedidos.forEach((p) => { if (p.vendedor) vends.add(p.vendedor); if (p.uf) ufs.add(p.uf); });
+    const curV = v.value, curU = u.value;
+    v.innerHTML = '<option value="">Todos</option>' +
+      [...vends].sort().map((x) => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
+    u.innerHTML = '<option value="">Todas</option>' +
+      [...ufs].sort().map((x) => `<option value="${escapeHtml(x)}">${escapeHtml(x)}</option>`).join("");
+    v.value = curV; u.value = curU;
+  }
+
+  function rptTable(title, headers, rows, empty) {
+    const head = `<thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead>`;
+    if (!rows.length) {
+      return `<div class="dashboard-widget widget-md"><div class="widget-header"><span class="widget-title">${title}</span></div><div class="empty">${empty}</div></div>`;
+    }
+    return `<div class="dashboard-widget widget-md"><div class="widget-header"><span class="widget-title">${title}</span></div>
+      <div class="table-wrap"><table class="data">${head}<tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div></div>`;
+  }
+
+  function renderRelatorio() {
+    rptOptions();
+    const de = document.getElementById("rpt-de").value;
+    const ate = document.getElementById("rpt-ate").value;
+    const tipo = document.getElementById("rpt-tipo").value;
+    const status = document.getElementById("rpt-status").value;
+    const vendedor = document.getElementById("rpt-vendedor").value;
+    const uf = document.getElementById("rpt-uf").value;
+
+    const base = pedidos.filter((p) => {
+      if (tipo && p.tipo !== tipo && !(tipo === "pedido" && !p.tipo)) return false;
+      if (status && p.status !== status) return false;
+      if (vendedor && p.vendedor !== vendedor) return false;
+      if (uf && p.uf !== uf) return false;
+      if (de && (p.data || "") < de) return false;
+      if (ate && (p.data || "") > ate) return false;
+      return true;
+    });
+
+    const t = (d) => calcTotals(d);
+    const receita = base.reduce((s, p) => s + t(p).total, 0);
+    const impostos = base.reduce((s, p) => s + t(p).impostos, 0);
+    const n = base.length;
+    const ticket = n ? receita / n : 0;
+
+    const porStatus = {}, porVendedor = {}, porUf = {}, prodAgg = {};
+    base.forEach((p) => {
+      const st = p.status || "pendente";
+      porStatus[st] = porStatus[st] || { n: 0, total: 0 };
+      porStatus[st].n += 1; porStatus[st].total += t(p).total;
+      const vd = p.vendedor || "—";
+      porVendedor[vd] = porVendedor[vd] || { n: 0, total: 0 };
+      porVendedor[vd].n += 1; porVendedor[vd].total += t(p).total;
+      const u = p.uf || "—";
+      porUf[u] = porUf[u] || { n: 0, total: 0 };
+      porUf[u].n += 1; porUf[u].total += t(p).total;
+      (p.itens || []).forEach((i) => {
+        const nome = i.produto || i.prod_id || "—";
+        prodAgg[nome] = prodAgg[nome] || { qtd: 0, total: 0 };
+        prodAgg[nome].qtd += Number(i.qtd) || 0;
+        prodAgg[nome].total += calcLine(i);
+      });
+    });
+
+    const porMes = {};
+    base.forEach((p) => {
+      const m = (p.data || "").slice(0, 7) || "—";
+      porMes[m] = (porMes[m] || 0) + t(p).total;
+    });
+    const mesKeys = Object.keys(porMes).sort();
+    const maxMes = Math.max(...mesKeys.map((k) => porMes[k]), 1);
+    const maxSt = Math.max(...Object.entries(porStatus).map(([, v]) => v.total), 1);
+
+    const chart = (title, keys, getVal, max) => `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">${title}</span></div>
+        <div class="chart-bars">
+          ${keys.map((k) => `
+            <div class="chart-bar-col">
+              <div class="chart-bar" style="height:${(getVal(k) / max) * 100}%">
+                <span class="chart-bar-value">${money(getVal(k))}</span>
+              </div>
+              <span class="chart-bar-label">${escapeHtml(String(k))}</span>
+            </div>`).join("")}
+        </div>
+      </div>`;
+
+    const kpi = (label, value, color) => `
+      <div class="kpi-card kpi-${color}">
+        <div class="kpi-header"><span class="kpi-label-ico"></span></div>
+        <div class="kpi-value">${value}</div>
+        <div class="kpi-label">${label}</div>
+      </div>`;
+    const html = `
+      <div class="dashboard-kpis" style="margin-top:16px">
+        ${kpi("Receita (filtro)", money(receita), "primary")}
+        ${kpi("Documentos", String(n), "info")}
+        ${kpi("Ticket médio", money(ticket), "success")}
+        ${kpi("Impostos", money(impostos), "warning")}
+      </div>
+      <div class="dashboard-widgets">
+        ${chart("Receita por status", Object.keys(porStatus), (k) => porStatus[k].total, maxSt)}
+        ${chart("Receita por mês", mesKeys, (k) => porMes[k], maxMes)}
+        ${rptTable("Por status", ["Status", "Nº", "Total"], Object.entries(porStatus).map(([k, v]) => [STATUS_LABEL[k] || k, String(v.n), money(v.total)]), "Sem dados")}
+        ${rptTable("Por vendedor", ["Vendedor", "Nº", "Total"], Object.entries(porVendedor).sort((a, b) => b[1].total - a[1].total).map(([k, v]) => [escapeHtml(k), String(v.n), money(v.total)]), "Sem dados")}
+        ${rptTable("Por UF", ["UF", "Nº", "Total"], Object.entries(porUf).map(([k, v]) => [escapeHtml(k), String(v.n), money(v.total)]), "Sem dados")}
+        ${rptTable("Top produtos", ["Produto", "Qtd", "Total"], Object.entries(prodAgg).sort((a, b) => b[1].total - a[1].total).slice(0, 10).map(([k, v]) => [escapeHtml(k), String(v.qtd), money(v.total)]), "Sem dados")}
+      </div>`;
+    document.getElementById("rpt-resultados").innerHTML = html;
+    const meta = [];
+    if (de) meta.push("De " + de);
+    if (ate) meta.push("Até " + ate);
+    if (tipo) meta.push(tipo === "cotacao" ? "Cotações" : "Pedidos");
+    if (status) meta.push(STATUS_LABEL[status] || status);
+    if (vendedor) meta.push("Vendedor: " + vendedor);
+    if (uf) meta.push("UF: " + uf);
+    meta.push(n + " documento(s)");
+    const metaEl = document.getElementById("rpt-print-meta");
+    if (metaEl) metaEl.textContent = meta.join(" · ");
   }
 
   document.querySelectorAll(".so-tab").forEach((tab) => {
@@ -785,7 +2261,7 @@ table.data tr{cursor:pointer}
         <div class="quick-actions-grid">
           <a class="quick-action-btn" href="#pedidos" data-go="pedidos"><svg class="icon"><use href="${I}#icon-dollar"/></svg><span>Pedidos de Venda</span></a>
           <a class="quick-action-btn" href="#cotacoes" data-go="cotacoes"><svg class="icon"><use href="${I}#icon-file-text"/></svg><span>Cotações</span></a>
-          <a class="quick-action-btn" href="contatos.html"><svg class="icon"><use href="${I}#icon-users"/></svg><span>Clientes</span></a>
+          <a class="quick-action-btn" href="parceiros.html?role=CUSTOMER"><svg class="icon"><use href="${I}#icon-users"/></svg><span>Clientes</span></a>
           <a class="quick-action-btn" href="produtos.html"><svg class="icon"><use href="${I}#icon-box"/></svg><span>Produtos</span></a>
           <a class="quick-action-btn" href="produtos.html?novo=1&retorno=${encodeURIComponent('/pages/vendas.html#dashboard')}"><svg class="icon"><use href="${I}#icon-plus"/></svg><span>Novo produto</span></a>
         </div>
@@ -836,16 +2312,8 @@ table.data tr{cursor:pointer}
   }
 
   async function load() {
-    try {
-      const data = await window.api("/api/vendas/b2b");
-      const drafts = pedidos.filter((p) => p.status === "rascunho");
-      const remote = (data.pedidos || []).filter((p) => isCnpj(p.cnpj));
-      const draftIds = new Set(drafts.map((d) => d.id));
-      pedidos = [...drafts, ...remote.filter((p) => !draftIds.has(p.id))];
-      renderDashboard();
-      applyFilter();
-      if (listReturn === "cotacoes") renderCotacoes();
-    } catch (e) {
+    const ok = await refreshFromServer();
+    if (!ok) {
       document.getElementById("dash-kpis").innerHTML =
         '<div class="empty" style="color:#fca5a5">Erro ao carregar dashboard B2B</div>';
     }
@@ -854,12 +2322,61 @@ table.data tr{cursor:pointer}
   const initial = (location.hash || "#dashboard").slice(1);
   renderNav();
   document.getElementById("search").addEventListener("input", applyFilter);
-  document.getElementById("btn-refresh").addEventListener("click", load);
+  document.getElementById("btn-refresh").addEventListener("click", () => { loadCatalogo(); load(); });
   document.getElementById("btn-refresh-cotacoes").addEventListener("click", () => {
     load().then(() => renderCotacoes());
   });
+  document.getElementById("btn-refresh-faturas").addEventListener("click", renderFaturas);
+  document.getElementById("btn-refresh-contratos").addEventListener("click", renderContratos);
+  document.getElementById("btn-novo-contrato").addEventListener("click", showNovoContratoForm);
+  document.getElementById("ct-q").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") renderContratos();
+  });
+  document.getElementById("ct-status").addEventListener("change", renderContratos);
+  document.getElementById("btn-refresh-ar").addEventListener("click", renderReceber);
+  document.getElementById("ar-q").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") renderReceber();
+  });
+  document.getElementById("ar-status").addEventListener("change", renderReceber);  document.getElementById("btn-rpt-filtrar").addEventListener("click", renderRelatorio);
+  document.getElementById("btn-rpt-imprimir").addEventListener("click", () => {
+    renderRelatorio();
+    window.print();
+  });
+  document.getElementById("btn-rpt-limpar").addEventListener("click", () => {
+    ["rpt-de", "rpt-ate", "rpt-tipo", "rpt-status", "rpt-vendedor", "rpt-uf"].forEach((id) => {
+      document.getElementById(id).value = "";
+    });
+    renderRelatorio();
+  });
   document.getElementById("btn-novo-pedido").addEventListener("click", () => createNew("pedido"));
   document.getElementById("btn-nova-cotacao").addEventListener("click", () => createNew("cotacao"));
+  document.getElementById("btn-refresh-kanban").addEventListener("click", load);
+  document.getElementById("kanban-tipo").addEventListener("change", renderKanban);
+  document.getElementById("cal-prev").addEventListener("click", () => {
+    calCursor.m--; if (calCursor.m < 0) { calCursor.m = 11; calCursor.y--; }
+    renderCalendario();
+  });
+  document.getElementById("cal-next").addEventListener("click", () => {
+    calCursor.m++; if (calCursor.m > 11) { calCursor.m = 0; calCursor.y++; }
+    renderCalendario();
+  });
+  document.getElementById("cal-hoje").addEventListener("click", () => {
+    const a = new Date();
+    calCursor = { y: a.getFullYear(), m: a.getMonth() };
+    renderCalendario();
+  });
+  document.getElementById("cal-tipo").addEventListener("change", renderCalendario);
+  document.getElementById("btn-pv-aplicar").addEventListener("click", renderPivot);
+  ["pv-linha", "pv-coluna", "pv-valor"].forEach((id) => {
+    document.getElementById(id).addEventListener("change", renderPivot);
+  });
+  document.getElementById("btn-refresh-catalogo").addEventListener("click", () => { loadCatalogo(); renderCatalogo(); });
+  document.getElementById("cat-busca").addEventListener("input", renderCatalogo);
+  document.getElementById("cat-categoria").addEventListener("change", renderCatalogo);
+  document.getElementById("cat-lista").addEventListener("change", renderCatalogo);
+  loadProdutos();
+  loadClientes();
+  loadCatalogo();
 
   if (initial.startsWith("doc-")) {
     load().then(() => openForm(initial.replace("doc-", "")));

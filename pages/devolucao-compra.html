@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Devolução de Compra</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:none}.view.active{display:block}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel)}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(20,184,166,.15);color:#5eead4}
+.badge-rascunho{background:rgba(148,163,184,.15);color:#cbd5e1}
+.badge-concluido{background:rgba(34,197,94,.15);color:#86efac}
+.badge-cancelado{background:rgba(239,68,68,.15);color:#fca5a5}
+.money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
+.tab-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-secondary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:var(--font-sm);font-weight:600}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.so-btn.danger{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45);color:#fca5a5}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.line-row{display:grid;grid-template-columns:2fr 80px 90px 30px;gap:8px;align-items:center;margin-bottom:6px}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
+      <a class="menu-item active" href="devolucao-compra.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-rotate-ccw"/></svg><span class="menu-label">Devolução</span></a>
+      <a class="menu-item" href="vendas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Vendas</span></a>
+      <a class="menu-item" href="parceiros.html?role=SUPPLIER"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar"><div class="topbar-brand"><span class="topbar-title">Devolução de Compra</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="tabs">
+        <button class="active" id="tab-list">Devoluções</button>
+        <button id="tab-novo">Nova</button>
+      </div>
+      <div class="view active" id="view-list">
+        <div class="toolbar">
+          <button type="button" class="tab-btn" id="btn-refresh">Atualizar</button>
+          <a class="so-btn" href="compras.html">Pedidos</a>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>#</th><th>Data</th><th>Fornecedor</th><th>Pedido</th><th>Itens</th><th>Qtd Total</th><th>Status</th><th>Motivo</th><th>Autorizado</th></tr></thead>
+            <tbody id="tbody"><tr><td colspan="9" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="view" id="view-form">
+        <h2 id="form-title">Nova Devolução de Compra</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:12px 0">
+          <label style="font-size:12px;color:var(--text-muted)">Estabelecimento<input class="form-input" id="f-estab" value="matriz"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Pedido de Compra (id)<input class="form-input" id="f-pedido" placeholder="id"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Recebimento (id)<input class="form-input" id="f-receb" placeholder="id"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Fornecedor<input class="form-input" id="f-fornecedor"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Data<input class="form-input" id="f-data" type="date"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Autorizado por<input class="form-input" id="f-autorizado" readonly></label>
+        </div>
+        <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:12px">Motivo da devolução
+          <textarea class="form-input" id="f-motivo" rows="2" style="width:100%" placeholder="Avaria, produto errado, insatisfação..."></textarea>
+        </label>
+        <h3 style="font-size:14px;margin:16px 0 8px">Itens a devolver</h3>
+        <div id="lines"></div>
+        <button type="button" class="so-btn" id="btn-add-line" style="margin:8px 0">+ Item</button>
+        <div class="so-actions">
+          <button type="button" class="so-btn primary" id="btn-salvar">Salvar rascunho</button>
+          <button type="button" class="so-btn" id="btn-voltar">Voltar</button>
+        </div>
+        <div id="form-msg" style="margin-top:12px"></div>
+      </div>
+    </div>
+    <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+      <div class="status-bar-left"><span id="status-user-info">Usuário: —</span></div>
+      <div class="status-bar-right"><span>Devolução de Compra · BECRP v1.0</span></div>
+    </div>
+  </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+(function(){
+  const API = "/api/devolucoes-compra";
+  const STATUS_LABEL = {rascunho:"Rascunho", concluido:"Concluído", cancelado:"Cancelado"};
+  const escapeHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  let current = null;
+  let lines = [];
+
+  async function api(path, opts={}){
+    const token = AuthService.getToken();
+    const res = await fetch(path, {method: opts.method||"GET", headers: Object.assign({"X-Auth-Token": token, "Content-Type": "application/json"}, opts.headers||{}), body: opts.body});
+    return res.json();
+  }
+  function showView(id){ document.querySelectorAll(".view").forEach(v=>v.classList.remove("active")); document.getElementById("view-"+id).classList.add("active"); }
+  const money = n => (Number(n)||0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+
+  async function load(){
+    const data = await api(API);
+    const rows = data.devolucoes || [];
+    const tbody = document.getElementById("tbody");
+    if(!rows.length){ tbody.innerHTML = '<tr><td colspan="9" class="empty">Nenhuma devolução</td></tr>'; return; }
+    tbody.innerHTML = rows.map(d=>`
+      <tr data-id="${d.id}">
+        <td><span class="badge">#${d.id}</span></td>
+        <td>${escapeHtml(d.data||"—")}</td>
+        <td>${escapeHtml(d.fornecedor||"—")}</td>
+        <td>${escapeHtml(d.pedido_num||d.pedido_id||"—")}</td>
+        <td>${(d.itens||[]).length}</td>
+        <td>${d.total_qtd}</td>
+        <td><span class="badge badge-${escapeHtml(d.status)}">${escapeHtml(STATUS_LABEL[d.status]||d.status)}</span></td>
+        <td>${escapeHtml(d.motivo||"—")}</td>
+        <td>${escapeHtml(d.autorizado_por||"—")}</td>
+      </tr>`).join("");
+    tbody.querySelectorAll("tr[data-id]").forEach(tr=>{ tr.onclick=()=>openDetail(tr.dataset.id); });
+  }
+
+  function renderLines(){
+    const box = document.getElementById("lines");
+    if(!lines.length) lines.push({produto:"", qtd:1, uom:"UN"});
+    box.innerHTML = lines.map((l,i)=>`
+      <div class="line-row">
+        <input class="form-input" id="ln-prod-${i}" value="${escapeHtml(l.produto||"")}" placeholder="Produto / ID">
+        <input class="form-input" id="ln-qtd-${i}" type="number" step="0.001" value="${l.qtd||""}" placeholder="Qtd">
+        <input class="form-input" id="ln-uom-${i}" value="${escapeHtml(l.uom||"UN")}" placeholder="UN">
+        <button type="button" class="so-btn danger" data-del="${i}" style="padding:4px 8px">×</button>
+      </div>`).join("");
+    box.querySelectorAll("[data-del]").forEach(btn=>{ btn.onclick=()=>{ lines.splice(Number(btn.dataset.del),1); if(!lines.length) lines.push({produto:"",qtd:1,uom:"UN"}); renderLines(); }; });
+  }
+
+  async function openDetail(id){
+    const d = (await api(API + "?devolucao_id=" + id)).devolucoes?.[0];
+    if(!d) return alert("Não encontrado");
+    current = d;
+    document.getElementById("f-estab").value = d.estabelecimento_id || "";
+    document.getElementById("f-pedido").value = d.pedido_id || "";
+    document.getElementById("f-receb").value = d.recebimento_id || "";
+    document.getElementById("f-fornecedor").value = d.fornecedor || "";
+    document.getElementById("f-data").value = d.data || "";
+    document.getElementById("f-autorizado").value = d.autorizado_por || "";
+    document.getElementById("f-motivo").value = d.motivo || "";
+    lines = (d.itens||[]).map(i=>Object.assign({}, i));
+    renderLines();
+    document.getElementById("form-title").textContent = "Devolução #" + d.id;
+    document.getElementById("form-msg").innerHTML = d.status==="rascunho`
+      ? `<button type="button" class="so-btn primary" id="btn-concluir">Concluir devolução</button> <button type="button" class="so-btn danger" id="btn-cancelar">Cancelar</button>`
+      : "";
+    document.getElementById("btn-concluir")?.addEventListener("click", concluir);
+    document.getElementById("btn-cancelar")?.addEventListener("click", cancelar);
+    showView("form");
+  }
+
+  async function salvar(){
+    lines = lines.map((l,i)=>({
+      produto_id: document.getElementById(`ln-prod-${i}`).value,
+      produto_nome: document.getElementById(`ln-prod-${i}`).value,
+      qtd: Number(document.getElementById(`ln-qtd-${i}`).value)||0,
+      uom: document.getElementById(`ln-uom-${i}`).value || "UN",
+    })).filter(l=>l.produto_id.trim() && l.qtd>0);
+    const payload = {
+      action: "create",
+      estabelecimento_id: document.getElementById("f-estab").value,
+      pedido_id: document.getElementById("f-pedido").value || undefined,
+      recebimento_id: document.getElementById("f-receb").value || undefined,
+      fornecedor: document.getElementById("f-fornecedor").value,
+      data: document.getElementById("f-data").value,
+      motivo: document.getElementById("f-motivo").value,
+      autorizado_por: document.getElementById("f-autorizado").value,
+      itens: lines,
+    };
+    const res = await api(API, {method:"POST", body: JSON.stringify(payload)});
+    const msg = document.getElementById("form-msg");
+    if(res.status !== "ok"){ msg.textContent = res.message || "Erro"; msg.style.color = "#fca5a5"; return; }
+    msg.textContent = "Devolução #" + res.devolucao.id + " criada"; msg.style.color = "#86efac";
+    await load();
+    showView("list");
+  }
+
+  async function concluir(){
+    if(!current || !confirm("Concluir devolução e estornar estoque?")) return;
+    const res = await api(API, {method:"POST", body: JSON.stringify({action:"concluir", id: current.id})});
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    await load();
+    openDetail(current.id);
+  }
+
+  async function cancelar(){
+    if(!current || !confirm("Cancelar devolução?")) return;
+    const res = await api(API, {method:"POST", body: JSON.stringify({action:"cancelar", id: current.id})});
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    await load();
+    showView("list");
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("tab-list").onclick = ()=>{ showView("list"); document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active")); document.getElementById("tab-list").classList.add("active"); };
+  document.getElementById("tab-novo").onclick = ()=>{
+    current=null; lines=[{produto:"",qtd:1,uom:"UN"}]; renderLines();
+    document.getElementById("form-title").textContent="Nova Devolução de Compra";
+    document.getElementById("f-pedido").value="";
+    document.getElementById("f-receb").value="";
+    document.getElementById("f-fornecedor").value="";
+    document.getElementById("f-data").value=new Date().toISOString().slice(0,10);
+    document.getElementById("f-autorizado").value=(AuthService.getUser()||{}).nome||"";
+    document.getElementById("f-motivo").value="";
+    document.getElementById("form-msg").textContent="";
+    showView("form");
+    document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active")); document.getElementById("tab-novo").classList.add("active");
+  };
+  document.getElementById("btn-voltar").onclick = ()=>{ showView("list"); document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active")); document.getElementById("tab-list").classList.add("active"); load(); };
+  document.getElementById("btn-salvar").onclick = salvar;
+  document.getElementById("btn-add-line").onclick = ()=>{ lines.push({produto:"",qtd:1,uom:"UN"}); renderLines(); };
+
+  load();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — WMS Analytics</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:120px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:16px; }
+    .kpi { padding:12px; border:1px solid rgba(255,255,255,.12); border-radius:8px; }
+    .kpi .v { font-size:22px; font-weight:700; }
+    .kpi .l { font-size:11px; text-transform:uppercase; opacity:.65; margin-top:4px; }
+    .panels { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+    .panel { padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .panel h3 { margin:0 0 8px; font-size:14px; }
+    .row { display:flex; justify-content:space-between; font-size:13px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+    .sub { font-size:12px; opacity:.7; }
+    .pc-table { width:100%; border-collapse:collapse; margin-top:12px; }
+    .pc-table th, .pc-table td { padding:6px 8px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:12px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item active" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="topbar-title">WMS — Analytics</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / WMS / Analytics</div>
+          <h2 class="workspace-title">Indicadores do armazém</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">RFC-9009 — somente leitura. Agrega operações, tarefas, recebimento, picking e expedição.</p>
+          <div id="msg" class="pc-msg"></div>
+          <div class="pc-toolbar">
+            <div class="field"><label>Armazém</label>
+              <select class="form-input" id="filtro-arm"><option value="">Todos</option></select>
+            </div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+          </div>
+          <div class="kpi-grid" id="kpis"></div>
+          <div class="panels" id="panels"></div>
+          <table class="pc-table">
+            <thead><tr><th>Tipo</th><th>ID</th><th>Nota</th><th>Status</th></tr></thead>
+            <tbody id="exc"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  function msg(t) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg" + (t ? " err" : "");
+  }
+
+  function pct(v) { return v == null ? "—" : v + "%"; }
+
+  function rowsFromMap(m) {
+    return Object.entries(m || {}).map(([k, v]) =>
+      `<div class="row"><span>${k || "—"}</span><strong>${v}</strong></div>`
+    ).join("") || '<div class="sub">sem dados</div>';
+  }
+
+  async function loadArms() {
+    const data = await AuthService.api("/api/wms/armazens");
+    const arms = (data.status === "ok" && data.armazens) || [];
+    document.getElementById("filtro-arm").innerHTML =
+      '<option value="">Todos</option>' +
+      arms.map((a) => `<option value="${a.codigo}">${a.codigo} · ${a.nome || ""}</option>`).join("");
+  }
+
+  async function load() {
+    msg("");
+    const arm = document.getElementById("filtro-arm").value;
+    const qs = arm ? "?armazem=" + encodeURIComponent(arm) : "";
+    const data = await AuthService.api("/api/wms/analytics" + qs);
+    if (data.status !== "ok") return msg(data.message || "Falha");
+    const o = data.overview || {};
+    document.getElementById("meta").textContent =
+      "Gerado " + (data.gerado_em || "—") + (data.armazem ? " · " + data.armazem : " · todos");
+
+    document.getElementById("kpis").innerHTML = [
+      ["Ops pendentes", o.operacoes_pendentes],
+      ["Tarefas pend.", o.tarefas_pendentes],
+      ["Receb. abertos", o.recebimentos_abertos],
+      ["Exp. abertas", o.expedicoes_abertas],
+      ["Picking abertos", o.picking_abertos],
+      ["Inbound qtd", o.inbound_itens],
+      ["Despachados", o.outbound_despachados],
+      ["Utilização", pct(o.utilizacao_pct)],
+      ["Exceções", o.excecoes],
+    ].map(([l, v]) => `<div class="kpi"><div class="v">${v == null ? "—" : v}</div><div class="l">${l}</div></div>`).join("");
+
+    const rec = data.recebimento || {};
+    const pk = data.picking || {};
+    const sh = data.expedicao || {};
+    const op = data.operacoes || {};
+    const tk = data.tarefas || {};
+    const ut = data.utilizacao || {};
+
+    document.getElementById("panels").innerHTML = `
+      <div class="panel"><h3>Recebimento</h3>
+        <div class="row"><span>Acurácia</span><strong>${pct(rec.acuracia_pct)}</strong></div>
+        <div class="row"><span>Esperado / Recebido</span><strong>${rec.qtd_esperada || 0} / ${rec.qtd_recebida || 0}</strong></div>
+        ${rowsFromMap(rec.por_status)}
+      </div>
+      <div class="panel"><h3>Picking</h3>
+        <div class="row"><span>Acurácia linhas</span><strong>${pct(pk.acuracia_pct)}</strong></div>
+        <div class="row"><span>Pendentes</span><strong>${pk.pendentes || 0}</strong></div>
+        ${rowsFromMap(pk.por_status)}
+      </div>
+      <div class="panel"><h3>Expedição</h3>
+        <div class="row"><span>Fulfillment</span><strong>${pct(sh.fulfillment_pct)}</strong></div>
+        <div class="row"><span>Despachadas</span><strong>${sh.despachadas || 0}</strong></div>
+        ${rowsFromMap(sh.por_status)}
+      </div>
+      <div class="panel"><h3>Operações</h3>${rowsFromMap(op.por_status)}</div>
+      <div class="panel"><h3>Tarefas / operador</h3>${rowsFromMap(tk.por_operador)}</div>
+      <div class="panel"><h3>Utilização</h3>
+        <div class="row"><span>Locais</span><strong>${ut.localizacoes || 0}</strong></div>
+        ${rowsFromMap(ut.por_status)}
+      </div>`;
+
+    const exc = data.excecoes || [];
+    document.getElementById("exc").innerHTML = exc.length
+      ? exc.map((e) => `<tr><td>${e.tipo}</td><td>${e.id}</td><td>${e.nota || ""}</td><td>${e.status || ""}</td></tr>`).join("")
+      : '<tr><td colspan="4" style="opacity:.6;padding:16px;text-align:center">Sem exceções</td></tr>';
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("filtro-arm").onchange = load;
+  (async () => { await loadArms(); await load(); })();
+})();
+</script>
+</body>
+</html>

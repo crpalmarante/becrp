@@ -1,461 +1,191 @@
 <!DOCTYPE html>
 <html lang="pt-BR" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BECRP — Configurações</title>
-  <meta name="theme-color" content="#714B67">
-  <link rel="stylesheet" href="../css/fonts.css">
-  <link rel="stylesheet" href="../css/variaveis.css">
-  <link rel="stylesheet" href="../css/reset.css">
-  <link rel="stylesheet" href="../css/layout.css">
-  <link rel="stylesheet" href="../css/icons.css">
-  <link rel="stylesheet" href="../css/grid.css">
-  <link rel="stylesheet" href="../css/forms.css">
-  <link rel="stylesheet" href="../css/motion.css">
-  <link rel="stylesheet" href="../css/responsive.css">
-  <link rel="stylesheet" href="../css/themes.css">
-  <link rel="stylesheet" href="../css/style.css">
-  <link rel="stylesheet" href="../css/configuracoes.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Configurações</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.tabs{display:flex;gap:8px;border-bottom:1px solid var(--border-color);margin-bottom:16px}
+.tabs button{background:transparent;border:none;color:var(--text-muted);padding:10px 16px;cursor:pointer;font-weight:600}
+.tabs button.active{color:#5eead4;border-bottom:2px solid #5eead4}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:4px}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.msg{padding:10px;border-radius:6px;margin-top:12px;font-size:13px}
+.msg.ok{background:rgba(34,197,94,.12);color:#86efac}
+.msg.err{background:rgba(239,68,68,.12);color:#fca5a5}
+</style>
 </head>
 <body>
-
 <div id="app">
-  <aside id="sidebar" class="cfg-hidden-legacy" style="display:none" aria-hidden="true"></aside>
-
-  <div class="main-area" style="margin-left:0;width:100%">
-    <header class="topbar">
-      <div class="topbar-brand">
-        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
-        <span class="topbar-title">Configurações</span>
-      </div>
-      <div class="topbar-user" style="margin-left:auto">
-        <a href="../index4.html" class="topbar-icon-btn" title="Voltar ao menu">
-          <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
-        </a>
-        <span class="topbar-user-info">
-          <span>Administrador</span>
-        </span>
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
+      <a class="menu-item active" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="vendas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Vendas</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar"><div class="topbar-brand"><span class="topbar-title">Configurações</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
       </div>
     </header>
-
-    <div class="workspace">
-      <div id="workspace-view" style="display:flex;flex-direction:column">
-        <div class="workspace-header">
-          <div class="workspace-breadcrumb">BECRP / Configurações / <span id="cfg-crumb">Gerais</span></div>
-          <h2 class="workspace-title" id="cfg-title">Gerais</h2>
-        </div>
-
-        <div class="workspace-content" style="display:flex;flex-direction:column;min-height:0;flex:1">
-          <div class="cfg-layout">
-            <!-- Sidebar: Gerais + módulos -->
-            <nav class="cfg-mod-nav" id="cfg-mod-nav" aria-label="Módulos de configuração">
-              <div class="cfg-mod-nav-label">Transversal</div>
-              <button type="button" class="cfg-mod-btn active" data-panel="gerais">
-                <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
-                Gerais
-              </button>
-              <div class="cfg-mod-nav-label">Módulos</div>
-              <!-- preenchido por js/configuracoes.js -->
-            </nav>
-
-            <!-- Contexto -->
-            <div class="cfg-context">
-              <!-- GERAIS -->
-              <div class="cfg-panel active" id="panel-gerais" data-panel="gerais">
-                <p class="cfg-panel-intro">
-                  Visão geral da organização. Convites, permissões finas, CSC/certificado e PDVs
-                  ficam em Usuários, Permissões ou nos módulos da sidebar — não aqui.
-                </p>
-
-                <!-- Resumo estilo “Definições gerais” (simples) -->
-                <section class="cfg-overview">
-                  <div class="cfg-overview-block">
-                    <div class="cfg-overview-head">
-                      <h3 class="cfg-overview-title">Usuários</h3>
-                      <span class="cfg-overview-count" id="users-count">—</span>
-                    </div>
-                    <p class="cfg-overview-text">
-                      <span id="users-count-label">usuários ativos</span>
-                    </p>
-                    <div class="cfg-overview-actions">
-                      <a class="btn btn-secondary" href="usuarios.html">Gerir usuários</a>
-                      <a class="btn btn-secondary" href="permissoes.html">Permissões</a>
-                    </div>
-                  </div>
-
-                  <div class="cfg-overview-block">
-                    <div class="cfg-overview-head">
-                      <h3 class="cfg-overview-title">Estabelecimentos</h3>
-                      <span class="cfg-overview-count" id="estabs-count">—</span>
-                    </div>
-                    <p class="cfg-overview-text">matriz e filiais</p>
-                    <div class="cfg-company-grid" id="estabs-cards">
-                      <p class="form-help">Carregando…</p>
-                    </div>
-                    <div class="cfg-overview-actions">
-                      <a class="btn btn-secondary" href="empresas.html">Gerir estabelecimentos</a>
-                    </div>
-                  </div>
-                </section>
-
-                <form id="form-gerais" class="form-container" autocomplete="off">
-                  <details class="cfg-more" open>
-                    <summary>Organização e módulos</summary>
-                    <div class="cfg-more-body">
-                      <div class="form-row">
-                        <div class="form-field">
-                          <label class="form-label" for="org-nome">Nome fantasia <span class="required">*</span></label>
-                          <input class="form-input" id="org-nome" name="nome" required>
-                        </div>
-                        <div class="form-field">
-                          <label class="form-label" for="org-razao">Razão social</label>
-                          <input class="form-input" id="org-razao" name="razao">
-                        </div>
-                      </div>
-                      <div class="form-row">
-                        <div class="form-field">
-                          <label class="form-label" for="org-email">E-mail admin</label>
-                          <input class="form-input" type="email" id="org-email" name="email">
-                        </div>
-                        <div class="form-field">
-                          <label class="form-label" for="org-telefone">Telefone</label>
-                          <input class="form-input" id="org-telefone" name="telefone" placeholder="(00) 00000-0000">
-                        </div>
-                        <div class="form-field">
-                          <label class="form-label" for="org-logo">Logo</label>
-                          <input class="form-input" type="file" id="org-logo" accept="image/*">
-                        </div>
-                      </div>
-                      <div class="form-field">
-                        <span class="form-label">Módulos na sidebar</span>
-                        <div class="cfg-modules-grid" id="org-modulos"></div>
-                      </div>
-                    </div>
-                  </details>
-
-                  <details class="cfg-more">
-                    <summary>Preferências e segurança</summary>
-                    <div class="cfg-more-body">
-                      <div class="form-row">
-                        <div class="form-field">
-                          <label class="form-label" for="pref-pais">País</label>
-                          <select class="form-input" id="pref-pais">
-                            <option value="BR" selected>Brasil</option>
-                            <option value="PT">Portugal</option>
-                            <option value="US">Estados Unidos</option>
-                          </select>
-                        </div>
-                        <div class="form-field">
-                          <label class="form-label" for="pref-idioma">Idioma</label>
-                          <select class="form-input" id="pref-idioma">
-                            <option value="pt-BR" selected>Português (Brasil)</option>
-                            <option value="pt-PT">Português (Portugal)</option>
-                            <option value="en">English</option>
-                          </select>
-                        </div>
-                        <div class="form-field">
-                          <label class="form-label" for="pref-fuso">Fuso horário</label>
-                          <select class="form-input" id="pref-fuso">
-                            <option value="America/Sao_Paulo" selected>America/Sao_Paulo</option>
-                            <option value="America/Manaus">America/Manaus</option>
-                            <option value="America/Fortaleza">America/Fortaleza</option>
-                            <option value="America/Belem">America/Belem</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="form-row">
-                        <div class="form-field">
-                          <label class="form-label" for="pref-moeda">Moeda</label>
-                          <select class="form-input" id="pref-moeda">
-                            <option value="BRL" selected>BRL — Real</option>
-                            <option value="USD">USD — Dólar</option>
-                            <option value="EUR">EUR — Euro</option>
-                          </select>
-                        </div>
-                        <div class="form-field">
-                          <label class="form-label" for="pref-tema">Tema padrão</label>
-                          <select class="form-input" id="pref-tema">
-                            <option value="dark" selected>Escuro</option>
-                            <option value="light">Claro</option>
-                          </select>
-                        </div>
-                        <div class="form-field">
-                          <label class="form-label" for="pref-data">Formato de data</label>
-                          <select class="form-input" id="pref-data">
-                            <option value="dd/mm/aaaa" selected>dd/mm/aaaa</option>
-                            <option value="mm/dd/yyyy">mm/dd/yyyy</option>
-                            <option value="yyyy-mm-dd">yyyy-mm-dd</option>
-                          </select>
-                        </div>
-                      </div>
-                      <div class="form-row">
-                        <div class="form-field">
-                          <label class="form-label" for="sec-timeout">Timeout de sessão (min)</label>
-                          <input class="form-input" type="number" id="sec-timeout" min="5" max="480" value="30">
-                        </div>
-                        <div class="form-field">
-                          <label class="form-label" for="sec-senha-min">Tamanho mínimo da senha</label>
-                          <input class="form-input" type="number" id="sec-senha-min" min="6" max="64" value="8">
-                        </div>
-                        <div class="form-field">
-                          <label class="form-label" for="sec-tentativas">Tentativas até bloqueio</label>
-                          <input class="form-input" type="number" id="sec-tentativas" min="3" max="20" value="5">
-                        </div>
-                      </div>
-                      <label class="form-switch">
-                        <input type="checkbox" id="sec-troca-senha">
-                        <span>Exigir troca periódica de senha</span>
-                      </label>
-                      <label class="form-switch" style="margin-top:0.5rem">
-                        <input type="checkbox" id="sec-reauth" checked>
-                        <span>Reautenticar em ações críticas</span>
-                      </label>
-                    </div>
-                  </details>
-
-                  <div class="cfg-actions">
-                    <button type="submit" class="btn btn-primary">Salvar Gerais</button>
-                    <button type="button" class="btn btn-secondary" id="btn-reset-gerais">Restaurar padrões</button>
-                  </div>
-                </form>
-              </div>
-
-              <!-- POS -->
-              <div class="cfg-panel" id="panel-pos" data-panel="pos">
-                <p class="cfg-panel-intro">
-                  Criar PDV ou Caixa já vinculado a pessoa. Vendedor ↔ PDV = <strong>1:1</strong>.
-                  Gerente/Caixa enxerga todos os terminais do estabelecimento. Só Administrador altera.
-                </p>
-                <div class="cfg-overview-actions" style="margin-bottom:1rem">
-                  <button type="button" class="btn btn-primary" id="btn-novo-terminal">+ Novo terminal</button>
-                </div>
-                <div class="cfg-table-wrap">
-                  <table class="cfg-table">
-                    <thead>
-                      <tr>
-                        <th>Código</th>
-                        <th>Tipo</th>
-                        <th>Nome</th>
-                        <th>Estabelecimento</th>
-                        <th>Titular</th>
-                        <th>Status</th>
-                        <th></th>
-                      </tr>
-                    </thead>
-                    <tbody id="terminais-tbody">
-                      <tr><td colspan="7">Carregando…</td></tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- FISCAL -->
-              <div class="cfg-panel" id="panel-fiscal" data-panel="fiscal">
-                <p class="cfg-panel-intro">
-                  CSC, certificado, série/número NFC-e e ambiente — <strong>por estabelecimento</strong>.
-                  O Caixa emite com o emitente da loja do pedido/terminal.
-                </p>
-                <div class="form-field" style="max-width:320px;margin-bottom:1rem">
-                  <label class="form-label" for="fiscal-estab">Estabelecimento</label>
-                  <select class="form-input" id="fiscal-estab"></select>
-                </div>
-                <form id="form-fiscal" class="form-container" autocomplete="off">
-                  <div class="form-row">
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-csc-id">CSC ID (idToken)</label>
-                      <input class="form-input" id="fisc-csc-id" placeholder="1">
-                    </div>
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-csc">CSC</label>
-                      <input class="form-input" id="fisc-csc" placeholder="token CSC SEFAZ">
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-serie">Série NFC-e</label>
-                      <input class="form-input" type="number" id="fisc-serie" min="1" value="1">
-                    </div>
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-numero">Próximo número NFC-e</label>
-                      <input class="form-input" type="number" id="fisc-numero" min="0" value="1">
-                    </div>
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-ambiente">Ambiente</label>
-                      <select class="form-input" id="fisc-ambiente">
-                        <option value="2">Homologação (2)</option>
-                        <option value="1">Produção (1)</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-cert">Arquivo certificado (nome no índice)</label>
-                      <input class="form-input" id="fisc-cert" placeholder="empresa.pfx">
-                    </div>
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-cert-senha">Senha do certificado</label>
-                      <input class="form-input" type="password" id="fisc-cert-senha" autocomplete="new-password">
-                    </div>
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-crt">CRT</label>
-                      <select class="form-input" id="fisc-crt">
-                        <option value="1">1 — Simples Nacional</option>
-                        <option value="2">2 — Simples excesso</option>
-                        <option value="3">3 — Regime Normal</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="form-row">
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-ie">IE</label>
-                      <input class="form-input" id="fisc-ie">
-                    </div>
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-uf">UF (código IBGE ou sigla)</label>
-                      <input class="form-input" id="fisc-uf" placeholder="43 ou RS">
-                    </div>
-                    <div class="form-field">
-                      <label class="form-label" for="fisc-mun-cod">Cód. município</label>
-                      <input class="form-input" id="fisc-mun-cod">
-                    </div>
-                  </div>
-                  <p class="form-help" id="fiscal-hint">Selecione um estabelecimento.</p>
-                  <div class="cfg-actions">
-                    <button type="submit" class="btn btn-primary">Salvar fiscal da loja</button>
-                    <a class="btn btn-secondary" href="certificados.html">Certificados</a>
-                    <a class="btn btn-secondary" href="nfce.html">NFC-e</a>
-                  </div>
-                </form>
-              </div>
-
-              <!-- CONTABILIDADE -->
-              <div class="cfg-panel" id="panel-contabilidade" data-panel="contabilidade">
-                <p class="cfg-panel-intro">Configs genéricas do módulo Contabilidade.</p>
-                <div class="cfg-stub">
-                  <strong>Contabilidade</strong>
-                  Plano de contas, diários e regras de folha.
-                  <div class="cfg-actions" style="border:none;padding-top:0.75rem">
-                    <a class="btn btn-secondary" href="plano-contas.html">Plano de Contas</a>
-                    <a class="btn btn-secondary" href="diarios.html">Diários</a>
-                    <a class="btn btn-secondary" href="lancamentos.html">Lançamentos</a>
-                    <a class="btn btn-secondary" href="razao.html">Razão / Saldos</a>
-                    <a class="btn btn-secondary" href="posting.html">Posting</a>
-                    <a class="btn btn-secondary" href="periodos.html">Períodos</a>
-                    <a class="btn btn-secondary" href="relatorios-contabeis.html">Relatórios</a>
-                    <a class="btn btn-secondary" href="integracao-contabil.html">Integração</a>
-                    <a class="btn btn-secondary" href="analytics-contabil.html">Analytics</a>
-                    <a class="btn btn-secondary" href="contabilidade.html">Regras / Folha</a>
-                  </div>
-                </div>
-              </div>
-
-              <!-- FOLHA -->
-              <div class="cfg-panel" id="panel-folha" data-panel="folha">
-                <p class="cfg-panel-intro">Configs genéricas do módulo Folha / RH.</p>
-                <div class="cfg-stub">
-                  <strong>Folha de Pagamento</strong>
-                  <div class="cfg-actions" style="border:none;padding-top:0.75rem">
-                    <a class="btn btn-secondary" href="folha.html">Abrir Folha</a>
-                    <a class="btn btn-secondary" href="estrutura_salarial.html">Estrutura salarial</a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
-          <div class="status-bar-left">
-            <span>Usuário: Administrador · Hub Configurações</span>
-          </div>
-          <div class="status-bar-right">
-            <span>RFC-ORGANIZATION-ESTABLISHMENT</span>
-          </div>
-        </div>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="tabs" id="tabs"></div>
+      <div id="form-area"></div>
+      <div class="so-actions" style="margin-top:16px">
+        <button type="button" class="so-btn primary" id="btn-salvar">Salvar</button>
+        <button type="button" class="so-btn" id="btn-reset">Restaurar padrão</button>
       </div>
+      <div id="msg"></div>
+    </div>
+    <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+      <div class="status-bar-left"><span id="status-user-info">Usuário: —</span></div>
+      <div class="status-bar-right"><span>Configurações · BECRP v1.0</span></div>
     </div>
   </div>
 </div>
-
-<div class="cfg-toast" id="cfg-toast" role="status"></div>
-
-<div class="dialog-overlay" id="terminal-modal" hidden>
-  <div class="dialog-box cfg-dialog" role="dialog" aria-labelledby="terminal-modal-title">
-    <div class="dialog-header">
-      <h3 class="dialog-title" id="terminal-modal-title">Novo terminal</h3>
-      <button type="button" class="dialog-close" id="terminal-modal-close" aria-label="Fechar">&times;</button>
-    </div>
-    <div class="dialog-body">
-      <form id="form-terminal" class="form-container" autocomplete="off">
-        <input type="hidden" id="term-id" value="">
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label" for="term-tipo">Tipo <span class="required">*</span></label>
-            <select class="form-input" id="term-tipo" required>
-              <option value="pdv">PDV (vendedor)</option>
-              <option value="caixa">Caixa / Gerente</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label" for="term-estab">Estabelecimento <span class="required">*</span></label>
-            <select class="form-input" id="term-estab" required></select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label" for="term-codigo">Código <span class="required">*</span></label>
-            <input class="form-input" id="term-codigo" required placeholder="PDV-01">
-          </div>
-          <div class="form-field">
-            <label class="form-label" for="term-nome">Nome amigável <span class="required">*</span></label>
-            <input class="form-input" id="term-nome" required placeholder="Balcão frente">
-          </div>
-        </div>
-        <div class="form-field">
-          <label class="form-label" for="term-usuario">Usuário titular <span class="required">*</span></label>
-          <select class="form-input" id="term-usuario" required></select>
-          <span class="form-help" id="term-usuario-help">PDV: um vendedor (1:1). Caixa: gerente ou caixa.</span>
-        </div>
-        <div class="form-row">
-          <div class="form-field">
-            <label class="form-label" for="term-impressora">Impressora</label>
-            <input class="form-input" id="term-impressora" placeholder="Opcional">
-          </div>
-          <div class="form-field" id="term-balanca-wrap">
-            <label class="form-label" for="term-balanca">Balança</label>
-            <select class="form-input" id="term-balanca">
-              <option value="nenhuma">Nenhuma</option>
-              <option value="mock" selected>Mock</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label" for="term-timeout">Timeout (min)</label>
-            <input class="form-input" type="number" id="term-timeout" min="5" max="480" value="30">
-          </div>
-        </div>
-        <label class="form-switch">
-          <input type="checkbox" id="term-treino" checked>
-          <span>Permitir modo treino</span>
-        </label>
-        <label class="form-switch" style="margin-top:0.5rem" id="term-nfce-wrap">
-          <input type="checkbox" id="term-nfce">
-          <span>Emite NFC-e (Caixa)</span>
-        </label>
-        <label class="form-switch" style="margin-top:0.5rem">
-          <input type="checkbox" id="term-ativo" checked>
-          <span>Ativo</span>
-        </label>
-        <div class="cfg-actions">
-          <button type="submit" class="btn btn-primary">Salvar terminal</button>
-          <button type="button" class="btn btn-secondary" id="terminal-modal-cancel">Cancelar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
 <script src="../js/services/AuthService.js"></script>
-<script src="../js/configuracoes.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+(function(){
+  const API = "/api/settings";
+  let modulos = [];
+  let settings = {};
+  let current = "geral";
+
+  async function api(path, opts={}){
+    const token = AuthService.getToken();
+    const res = await fetch(path, {method: opts.method||"GET", headers: Object.assign({"X-Auth-Token": token, "Content-Type": "application/json"}, opts.headers||{}), body: opts.body});
+    return res.json();
+  }
+
+  const FIELD_LABELS = {
+    empresa_nome: "Nome da empresa",
+    moeda: "Moeda",
+    idioma: "Idioma",
+    fuso_horario: "Fuso horário",
+    casas_decimais_valor: "Casas decimais de valor",
+    casas_decimais_qtd: "Casas decimais de quantidade",
+    aprovacao_limite_direto: "Limite de aprovação direta (R$)",
+    aprovacao_roles: "Roles permitidas para aprovar",
+    status_inicial_pedido: "Status inicial do pedido",
+    requer_aprovacao: "Requer aprovação",
+    permitir_pedido_sem_aprovacao: "Permitir pedido sem aprovação",
+    bloquear_edicao_pedido_enviado: "Bloquear edição de pedido enviado",
+    bloquear_edicao_pedido_recebido: "Bloquear edição de pedido recebido",
+    comprador_padrao: "Comprador padrão",
+    condicao_pg_padrao: "Condição de pagamento padrão",
+    forma_pg_padrao: "Forma de pagamento padrão",
+    unidade_padrao: "Unidade padrão",
+    dias_previsao_padrao: "Dias de previsão de entrega padrão",
+    email_notificacao_aprovacao: "E-mail para notificação de aprovação",
+    numero_itens_por_pedido: "Limite de itens por pedido (0 = ilimitado)",
+    ambiente_sefaz: "Ambiente SEFAZ",
+    serie_nfe: "Série NF-e",
+    serie_nfce: "Série NFC-e",
+    regime_tributario: "Regime tributário",
+    controle_lote: "Controle de lote",
+    controle_serie: "Controle de série",
+    estoque_negativo: "Permitir estoque negativo",
+    pedido_precisa_aprovacao: "Pedido de venda precisa aprovação",
+    limite_credito_auto: "Limite de crédito automático",
+  };
+
+  function renderTabs(){
+    const box = document.getElementById("tabs");
+    box.innerHTML = modulos.map(m=>`
+      <button class="${m===current?'active':''}" data-mod="${m}">${escapeHtml(m.charAt(0).toUpperCase()+m.slice(1))}</button>
+    `).join("");
+    box.querySelectorAll("button[data-mod]").forEach(b=>{
+      b.onclick = ()=>{ current=b.dataset.mod; renderTabs(); renderForm(); };
+    });
+  }
+
+  function renderForm(){
+    const cfg = settings.modulos[current] || {};
+    const box = document.getElementById("form-area");
+    box.innerHTML = `<div class="form-grid">${Object.entries(cfg).map(([k,v])=>{
+      const id = `cfg-${k}`;
+      if(typeof v === "boolean"){
+        return `<div><label><input type="checkbox" id="${id}" ${v?'checked':''}> ${escapeHtml(FIELD_LABELS[k]||k)}</label></div>`;
+      }
+      if(typeof v === "number"){
+        return `<div><label>${escapeHtml(FIELD_LABELS[k]||k)}<input class="form-input" id="${id}" type="number" step="${String(v).includes('.')?0.01:1}" value="${v}"></label></div>`;
+      }
+      if(Array.isArray(v)){
+        return `<div><label>${escapeHtml(FIELD_LABELS[k]||k)}<input class="form-input" id="${id}" value="${escapeHtml(v.join(", "))}"></label></div>`;
+      }
+      return `<div><label>${escapeHtml(FIELD_LABELS[k]||k)}<input class="form-input" id="${id}" value="${escapeHtml(v||"")}"></label></div>`;
+    }).join("")}</div>`;
+  }
+
+  async function load(){
+    const res = await api(API);
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    modulos = res.modulos || [];
+    settings = res.settings || {modulos:{}};
+    if(!modulos.includes(current)) current = modulos[0] || "geral";
+    renderTabs();
+    renderForm();
+  }
+
+  async function salvar(){
+    const cfg = settings.modulos[current] || {};
+    const valores = {};
+    for(const k of Object.keys(cfg)){
+      const el = document.getElementById(`cfg-${k}`);
+      if(!el) continue;
+      const original = cfg[k];
+      if(typeof original === "boolean"){
+        valores[k] = el.checked;
+      } else if(typeof original === "number"){
+        valores[k] = Number(el.value);
+      } else if(Array.isArray(original)){
+        valores[k] = el.value.split(",").map(s=>s.trim()).filter(Boolean);
+      } else {
+        valores[k] = el.value;
+      }
+    }
+    const res = await api(API, {method:"POST", body: JSON.stringify({modulo: current, valores})});
+    const msg = document.getElementById("msg");
+    if(res.status !== "ok"){ msg.textContent = res.message || "Erro"; msg.className = "msg err"; return; }
+    msg.textContent = "Configurações salvas"; msg.className = "msg ok";
+    await load();
+  }
+
+  async function resetar(){
+    if(!confirm("Restaurar padrões do módulo " + current + "?")) return;
+    const res = await api(API + "/" + current, {method:"DELETE"});
+    const msg = document.getElementById("msg");
+    if(res.status !== "ok"){ msg.textContent = res.message || "Erro"; msg.className = "msg err"; return; }
+    msg.textContent = "Padrão restaurado"; msg.className = "msg ok";
+    await load();
+  }
+
+  document.getElementById("btn-salvar").onclick = salvar;
+  document.getElementById("btn-reset").onclick = resetar;
+
+  load();
+})();
+</script>
 </body>
 </html>

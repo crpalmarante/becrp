@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BECRP — Workspace Motorista</title>
+  <meta name="theme-color" content="#0f172a">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    body { background:#0b1220; }
+    .dw { max-width:480px; margin:0 auto; padding:12px 12px 96px; }
+    .dw-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .dw-top a { color:inherit; opacity:.7; font-size:13px; text-decoration:none; }
+    .dw-msg { font-size:13px; margin:6px 0 10px; min-height:1.2em; }
+    .dw-msg.err { color:#f87171; }
+    .dw-msg.ok { color:#4ade80; }
+    .card {
+      border:1px solid rgba(255,255,255,.14); border-radius:12px;
+      padding:14px; margin-bottom:12px; background:rgba(15,23,42,.85);
+    }
+    .card h2 { margin:0 0 6px; font-size:15px; font-weight:600; }
+    .card .sub { font-size:12px; opacity:.7; margin-top:2px; }
+    .badge {
+      display:inline-block; font-size:10px; padding:2px 6px;
+      border:1px solid rgba(255,255,255,.25); border-radius:4px; margin-left:4px;
+    }
+    .addr { font-size:16px; font-weight:600; margin:8px 0 4px; line-height:1.3; }
+    .prog-bar {
+      height:8px; border-radius:4px; background:rgba(255,255,255,.1); overflow:hidden; margin:8px 0;
+    }
+    .prog-bar > i { display:block; height:100%; background:#14b8a6; }
+    .actions {
+      position:fixed; left:0; right:0; bottom:0; padding:10px 12px 14px;
+      background:linear-gradient(transparent, #0b1220 30%);
+      display:flex; flex-wrap:wrap; gap:8px; justify-content:center;
+      max-width:480px; margin:0 auto;
+    }
+    .abtn {
+      flex:1 1 40%; min-height:48px; border-radius:10px; border:1px solid rgba(255,255,255,.25);
+      background:rgba(30,41,59,.95); color:inherit; font-size:14px; font-weight:600; cursor:pointer;
+    }
+    .abtn.primary { background:#0d9488; border-color:#14b8a6; }
+    .abtn.warn { border-color:#fbbf24; color:#fbbf24; }
+    .empty { text-align:center; padding:28px 12px; opacity:.85; }
+    .ready {
+      display:block; width:100%; text-align:left; margin:6px 0; padding:12px;
+      border:1px solid rgba(255,255,255,.15); border-radius:8px;
+      background:transparent; color:inherit; cursor:pointer; font-size:13px;
+    }
+    .itens { font-size:12px; opacity:.8; margin-top:8px; }
+  </style>
+</head>
+<body>
+<div class="dw">
+  <div class="dw-top">
+    <strong>Motorista</strong>
+    <a href="entregas-viagem.html">Viagens</a>
+  </div>
+  <div id="msg" class="dw-msg"></div>
+  <div id="root">Carregando…</div>
+</div>
+<div class="actions" id="actions"></div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+
+  let state = null;
+  let tripId = localStorage.getItem("dw_trip_id") || "";
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "dw-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function pct(p) {
+    if (!p || !p.total) return 0;
+    return Math.round((100 * (p.concluidas || 0)) / p.total);
+  }
+
+  async function doAct(action, extra) {
+    if (!state || !state.trip) return;
+    // client-only
+    const def = (state.acoes || []).find((a) => a.action === action);
+    if (def && def.href) {
+      window.open(def.href, "_blank");
+      return;
+    }
+    let body = Object.assign({ trip_id: state.trip.id, action: action }, extra || {});
+    if (action === "cancel" || action === "skip_stop" || action === "report_problem" || action === "pause") {
+      const motivo = prompt(action === "report_problem" ? "Descreva o problema:" : "Motivo / observação:");
+      if (action === "cancel" && !motivo) return;
+      if (motivo) body.motivo = motivo;
+      if (action === "report_problem") body.tipo = "other";
+    }
+    if (action === "complete_delivery") {
+      const nome = prompt("Nome do receptor:", (state.parada_atual && state.parada_atual.contato) || "Receptor");
+      if (nome == null) return;
+      body.receptor_nome = nome || "Receptor";
+      body.assinatura = "ok";
+    }
+    const res = await AuthService.api("/api/admin/delivery/driver", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("ok · " + action, true);
+    load();
+  }
+
+  function renderActions(acoes) {
+    const box = document.getElementById("actions");
+    if (!acoes || !acoes.length) {
+      box.innerHTML = "";
+      return;
+    }
+    box.innerHTML = acoes.map((a) => {
+      const cls = "abtn" + (a.primary ? " primary" : "") + (a.action === "report_problem" || a.action === "cancel" ? " warn" : "");
+      return `<button type="button" class="${cls}" data-act="${a.action}">${a.label}</button>`;
+    }).join("");
+    box.querySelectorAll("[data-act]").forEach((btn) => {
+      btn.onclick = () => doAct(btn.dataset.act);
+    });
+  }
+
+  function render(data) {
+    state = data;
+    const root = document.getElementById("root");
+    if (!data.tem_trip) {
+      renderActions([]);
+      let html = `<div class="card empty">
+        <h2>Sem viagem ativa</h2>
+        <p class="sub">${data.nota || ""}</p>
+      </div>`;
+      const pool = data.viagens_prontas || [];
+      if (pool.length) {
+        html += `<div class="card"><h2>Viagens prontas</h2>`;
+        pool.forEach((t) => {
+          html += `<button type="button" class="ready" data-tid="${t.id}">
+            <strong>${t.id}</strong> · ${t.paradas} paradas<br>
+            <span class="sub">${t.motorista || "—"} · ${t.veiculo || "—"} · ${t.manifesto_id || ""}</span>
+          </button>`;
+        });
+        html += `</div>`;
+      }
+      root.innerHTML = html;
+      root.querySelectorAll("[data-tid]").forEach((btn) => {
+        btn.onclick = () => {
+          tripId = btn.dataset.tid;
+          localStorage.setItem("dw_trip_id", tripId);
+          load();
+        };
+      });
+      return;
+    }
+
+    const t = data.trip;
+    const p = data.progresso || {};
+    const cur = data.parada_atual;
+    const nxt = data.proxima_parada;
+    tripId = t.id;
+    localStorage.setItem("dw_trip_id", tripId);
+
+    let html = `<div class="card">
+      <h2>Viagem ${t.id} <span class="badge">${t.status_label || t.status}</span></h2>
+      <div class="sub">${t.motorista || "—"} · ${t.veiculo || "—"} · MF ${t.manifesto_id || "—"}</div>
+      <div class="prog-bar"><i style="width:${pct(p)}%"></i></div>
+      <div class="sub">${p.concluidas || 0}/${p.total || 0} paradas · restam ${p.restantes || 0}</div>
+    </div>`;
+
+    if (cur) {
+      html += `<div class="card">
+        <h2>Parada atual #${cur.seq} <span class="badge">${cur.status_label || cur.status}</span></h2>
+        <div class="addr">${cur.parceiro || "Cliente"}</div>
+        <div>${cur.endereco || "—"}</div>
+        <div class="sub">${cur.cidade || ""} · ${cur.janela || ""}</div>
+        <div class="sub">${cur.contato || ""} ${cur.telefone || ""}</div>
+        ${cur.instrucoes || cur.observacao ? `<div class="sub" style="margin-top:6px">${cur.instrucoes || cur.observacao}</div>` : ""}
+        <div class="itens">${(cur.itens || []).map((i) => (i.qtd || 1) + "× " + (i.produto || "")).join(" · ") || "—"}</div>
+        <div class="sub" style="margin-top:6px">DO ${cur.entrega_id}</div>
+      </div>`;
+    } else {
+      html += `<div class="card"><h2>Sem parada atual</h2><p class="sub">Trip aguardando partida ou já concluída.</p></div>`;
+    }
+
+    if (nxt) {
+      html += `<div class="card">
+        <h2>Próxima</h2>
+        <div><strong>${nxt.parceiro || "—"}</strong></div>
+        <div class="sub">${nxt.endereco || ""} · ${nxt.cidade || ""}</div>
+      </div>`;
+    }
+
+    root.innerHTML = html;
+    renderActions(data.acoes || []);
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    if (tripId) qs.set("trip_id", tripId);
+    qs.set("recurso_id", "DRV-01");
+    const res = await AuthService.api("/api/delivery/driver?" + qs.toString());
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    render(res);
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>

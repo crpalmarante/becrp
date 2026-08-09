@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Calendário de Entregas</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .chip {
+      padding:6px 10px; border:1px solid rgba(255,255,255,.15); border-radius:6px;
+      font-size:12px; color:inherit; text-decoration:none; background:transparent; cursor:pointer;
+    }
+    .chip.active { border-color:rgba(20,184,166,.5); background:rgba(20,184,166,.15); font-weight:600; }
+    .warns { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+    .warn {
+      font-size:12px; padding:6px 10px; border-radius:6px;
+      border:1px solid rgba(251,191,36,.35); background:rgba(251,191,36,.08);
+    }
+    .windows { display:flex; flex-direction:column; gap:12px; }
+    .win {
+      border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:12px;
+      background:rgba(0,0,0,.15);
+    }
+    .win.full { border-color:rgba(248,113,113,.45); }
+    .win h3 { margin:0 0 4px; font-size:14px; }
+    .win .cap { font-size:12px; opacity:.75; margin-bottom:8px; }
+    .ev {
+      display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+      padding:8px; margin-bottom:6px; border-radius:6px;
+      border:1px solid rgba(255,255,255,.12); font-size:12px;
+      cursor:grab;
+    }
+    .ev:active { cursor:grabbing; }
+    .ev.green { border-left:3px solid #4ade80; }
+    .ev.blue { border-left:3px solid #60a5fa; }
+    .ev.orange { border-left:3px solid #fb923c; }
+    .ev.gray { border-left:3px solid #9ca3af; }
+    .ev.red, .ev.darkred { border-left:3px solid #f87171; }
+    .ev strong { font-size:12px; }
+    .sub { font-size:11px; opacity:.7; }
+    .badge { font-size:10px; padding:1px 5px; border:1px solid rgba(255,255,255,.2); border-radius:3px; }
+    .days {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px;
+    }
+    .day {
+      border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:10px;
+      background:rgba(0,0,0,.15); cursor:pointer; min-height:90px;
+    }
+    .day.hoje { border-color:rgba(20,184,166,.5); }
+    .day.lotado { border-color:rgba(248,113,113,.4); }
+    .day h4 { margin:0 0 4px; font-size:13px; }
+    .route {
+      border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:12px;
+      margin-bottom:12px; background:rgba(0,0,0,.15);
+    }
+    .route h3 { margin:0 0 8px; font-size:14px; }
+    .drop-hint { font-size:11px; opacity:.5; padding:6px; text-align:center; border:1px dashed rgba(255,255,255,.15); border-radius:6px; }
+    .btn-xs {
+      padding:2px 6px; font-size:10px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.25); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="entregas-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="entregas-dashboard.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Dashboard</span></a>
+      <a class="menu-item" href="entregas-fila.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Fila</span></a>
+      <a class="menu-item" href="entregas-planejamento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Planejamento</span></a>
+      <a class="menu-item active" href="entregas-calendario.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Calendário</span></a>
+      <a class="menu-item" href="entregas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Pedidos</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Home</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="topbar-title">Entregas — Calendário</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Delivery / Calendar</div>
+          <h2 class="workspace-title">Quando acontece a entrega</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">RFC-18104 — visualização temporal + capacidade. Arraste DO para outra janela (dia). Sem inventário.</p>
+          <div id="msg" class="pc-msg"></div>
+          <div class="pc-toolbar">
+            <div class="field"><label>Data</label><input class="form-input" id="filtro-data" type="date"></div>
+            <div class="field"><label>Fonte</label><select class="form-input" id="filtro-fonte"><option value="">Todas</option></select></div>
+            <div class="field"><label>Motorista</label><input class="form-input" id="filtro-motorista" placeholder="filtro"></div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+          </div>
+          <div class="chips" id="views"></div>
+          <div id="warns" class="warns"></div>
+          <div id="board"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let view = "day";
+  let perms = { pode_escrever: false };
+  let dragId = null;
+
+  if (!document.getElementById("filtro-data").value) {
+    document.getElementById("filtro-data").value = new Date().toISOString().slice(0, 10);
+  }
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function evHtml(e) {
+    const cor = e.cor || "green";
+    return `<div class="ev ${cor}" draggable="${perms.pode_escrever ? "true" : "false"}" data-id="${e.id}">
+      <strong>${e.id}</strong>
+      <span class="badge">${e.prioridade_label || e.prioridade || ""}</span>
+      <span>${e.parceiro || "—"}</span>
+      <span class="sub">${e.regiao || ""} · ${e.motorista || "sem motorista"}</span>
+      <span class="sub">${e.status_label || e.status}</span>
+      ${e.atrasada ? '<span class="badge">atrasada</span>' : ""}
+    </div>`;
+  }
+
+  function bindDnD(root) {
+    root.querySelectorAll(".ev[draggable=true]").forEach((el) => {
+      el.ondragstart = () => { dragId = el.dataset.id; };
+      el.ondragend = () => { dragId = null; };
+    });
+    root.querySelectorAll("[data-drop-periodo]").forEach((col) => {
+      col.ondragover = (e) => { e.preventDefault(); };
+      col.ondrop = async (e) => {
+        e.preventDefault();
+        if (!dragId || !perms.pode_escrever) return;
+        await reschedule(dragId, {
+          data: col.dataset.dropData,
+          periodo: col.dataset.dropPeriodo,
+          slot_id: col.dataset.dropSlot || "",
+        });
+      };
+    });
+  }
+
+  async function reschedule(entregaId, body) {
+    const res = await AuthService.api("/api/admin/delivery/calendar/reschedule", {
+      method: "POST",
+      body: JSON.stringify(Object.assign({ entrega_id: entregaId }, body)),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg((res.action || "ok") + " · " + entregaId, true);
+    load();
+  }
+
+  function renderDay(data) {
+    const wins = data.janelas || [];
+    if (!wins.length) {
+      return '<div class="drop-hint">Sem eventos nem slots neste dia</div>';
+    }
+    let html = '<div class="windows">';
+    wins.forEach((w) => {
+      html += `<div class="win ${w.lotado ? "full" : ""}" data-drop-periodo="${w.periodo || ""}"
+        data-drop-data="${data.data}" data-drop-slot="${w.slot_id || ""}">
+        <h3>${w.periodo_label} · ${w.inicio || ""}–${w.fim || ""}</h3>
+        <div class="cap">Agendadas ${w.agendadas}
+          ${w.capacidade ? " · Capacidade " + w.capacidade : ""}
+          ${w.disponivel != null ? " · Livre " + w.disponivel : ""}
+          ${w.utilizacao_pct != null ? " · " + w.utilizacao_pct + "%" : ""}
+          ${w.lotado ? " · LOTADO" : ""}</div>
+        ${(w.eventos || []).map(evHtml).join("") || '<div class="drop-hint">Solte uma DO aqui</div>'}
+      </div>`;
+    });
+    html += "</div>";
+    return html;
+  }
+
+  function renderDays(data) {
+    const days = data.dias || [];
+    if (!days.length) return '<div class="drop-hint">Sem dias no período</div>';
+    let html = '<div class="days">';
+    days.forEach((d) => {
+      html += `<div class="day ${d.hoje ? "hoje" : ""} ${d.lotado ? "lotado" : ""}" data-pick="${d.data}">
+        <h4>${d.weekday} ${d.label}</h4>
+        <div class="sub">${d.entregas} entrega(s)</div>
+        <div class="sub">${d.capacidade ? d.reservados + "/" + d.capacidade : ""}
+          ${d.atrasadas ? " · " + d.atrasadas + " atras." : ""}</div>
+      </div>`;
+    });
+    html += "</div>";
+    return html;
+  }
+
+  function renderField(data) {
+    const routes = data.rotas_campo || [];
+    if (!routes.length) return '<div class="drop-hint">Nenhuma rota de campo neste dia</div>';
+    let html = "";
+    routes.forEach((r) => {
+      html += `<div class="route">
+        <h3>${r.motorista} · ${r.entregas} · em trânsito ${r.em_transito || 0}</h3>
+        ${(r.eventos || []).map(evHtml).join("")}
+      </div>`;
+    });
+    return html;
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    qs.set("view", view);
+    const data = document.getElementById("filtro-data").value;
+    const fonte = document.getElementById("filtro-fonte").value;
+    const mot = document.getElementById("filtro-motorista").value.trim();
+    if (data) qs.set("data", data);
+    if (fonte) qs.set("fonte", fonte);
+    if (mot) qs.set("motorista", mot);
+
+    const res = await AuthService.api("/api/delivery/calendar?" + qs.toString());
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    perms = res.permissoes || perms;
+
+    const r = res.resumo || {};
+    document.getElementById("meta").textContent =
+      (res.view_label || view) + " · " + (res.data_de || res.data || "") +
+      (res.data_ate && res.data_ate !== res.data_de ? " → " + res.data_ate : "") +
+      " · " + (res.fonte || "") +
+      " · " + (r.entregas || 0) + " DO · atrasadas " + (r.atrasadas || 0) +
+      " · lotadas " + (r.lotadas || 0) +
+      " · " + (res.gerado_em || "").replace("T", " ");
+
+    const fontes = res.fontes || [];
+    const sel = document.getElementById("filtro-fonte");
+    const cur = fonte;
+    sel.innerHTML = '<option value="">Todas</option>' +
+      fontes.map((f) => `<option value="${f}">${f}</option>`).join("");
+    sel.value = cur;
+
+    const views = (res.meta && res.meta.views) || [
+      { id: "day", label: "Dia" },
+      { id: "week", label: "Semana" },
+      { id: "month", label: "Mês" },
+      { id: "field", label: "Campo" },
+    ];
+    document.getElementById("views").innerHTML = views.map((v) =>
+      `<button type="button" class="chip ${v.id === view ? "active" : ""}" data-view="${v.id}">${v.label}</button>`
+    ).join("");
+    document.querySelectorAll("[data-view]").forEach((btn) => {
+      btn.onclick = () => { view = btn.dataset.view; load(); };
+    });
+
+    document.getElementById("warns").innerHTML = (res.conflitos || []).map((c) =>
+      `<div class="warn">${c.texto}</div>`
+    ).join("");
+
+    const board = document.getElementById("board");
+    if (view === "day") board.innerHTML = renderDay(res);
+    else if (view === "field") board.innerHTML = renderField(res);
+    else board.innerHTML = renderDays(res);
+
+    board.querySelectorAll("[data-pick]").forEach((el) => {
+      el.onclick = () => {
+        document.getElementById("filtro-data").value = el.dataset.pick;
+        view = "day";
+        load();
+      };
+    });
+    bindDnD(board);
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("filtro-data").onchange = load;
+  document.getElementById("filtro-fonte").onchange = load;
+  document.getElementById("filtro-motorista").onchange = load;
+  load();
+})();
+</script>
+</body>
+</html>

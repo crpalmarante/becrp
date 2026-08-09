@@ -3629,7 +3629,11 @@
     renderAll();
     setSmartCtx("summary");
     setCaixaCtx("default");
-    setMode((posContexto && posContexto.modo_sugerido) || "pdv");
+    const urlMode = new URLSearchParams(window.location.search).get("mode");
+    const initialMode = urlMode === "caixa" || urlMode === "pdv"
+      ? urlMode
+      : (posContexto && posContexto.modo_sugerido) || "pdv";
+    setMode(initialMode);
     syncUndoBtn();
     if (posContexto && posContexto.aviso) {
       document.getElementById("status-hint").textContent = posContexto.aviso;

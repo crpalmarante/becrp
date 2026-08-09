@@ -73,7 +73,7 @@ tr:hover td{background:#f5f5f5}
 .wf-history-entry:last-child{border:none}
 .wf-role-badge{background:#e3f2fd;color:#1565c0;padding:1px 8px;border-radius:8px;font-size:.65rem;font-weight:600}
 </style>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
@@ -118,7 +118,7 @@ tr:hover td{background:#f5f5f5}
 <option value="Emprestimo Pessoal">Empr&eacute;stimo Pessoal</option>
 </select></div>
 <div class="form-row"><label>Valor Total (R$):</label>
-<input type="number" id="s-valor-total" step="0.01" min="0" oninput="calcularParcelaPreview()"></div>
+<input type="text" id="s-valor-total" data-mask="moeda" inputmode="decimal" placeholder="R$ 0,00" oninput="calcularParcelaPreview()"></div>
 <div class="form-row"><label>N&uacute;mero de Parcelas:</label>
 <input type="number" id="s-num-parcelas" min="1" value="1" oninput="calcularParcelaPreview()"></div>
 <div class="form-row"><label>Taxa de Juros (%):</label>
@@ -239,7 +239,7 @@ return s;
 
 // ---- Calcular Parcela ----
 async function calcularParcelaPreview(){
-const valor=parseFloat(document.getElementById('s-valor-total').value||0);
+const valor=parseFloat(Mascaras.limparMoeda(document.getElementById('s-valor-total').value)||0);
 const num=parseInt(document.getElementById('s-num-parcelas').value||1);
 const taxa=parseFloat(document.getElementById('s-taxa-juros').value||0);
 if(valor>0&&num>0&&taxa>=0){
@@ -252,7 +252,7 @@ if(d.status==='ok')document.getElementById('s-valor-parcela-preview').textConten
 }
 
 async function calcularParcela(){
-const valor=parseFloat(document.getElementById('s-valor-total').value||0);
+const valor=parseFloat(Mascaras.limparMoeda(document.getElementById('s-valor-total').value)||0);
 const num=parseInt(document.getElementById('s-num-parcelas').value||1);
 const taxa=parseFloat(document.getElementById('s-taxa-juros').value||0);
 if(!valor||valor<=0){mostrarToast('Informe o valor total','error');return;}
@@ -271,7 +271,7 @@ mostrarToast('Valor da parcela: R$ '+fmt(d.valor_parcela),'success');
 async function incluirEmprestimo(){
 const funcId=document.getElementById('s-funcionario-id').value;
 const tipo=document.getElementById('s-tipo').value;
-const valorTotal=document.getElementById('s-valor-total').value;
+const valorTotal=Mascaras.limparMoeda(document.getElementById('s-valor-total').value);
 const numParcelas=document.getElementById('s-num-parcelas').value;
 const taxaJuros=document.getElementById('s-taxa-juros').value;
 const data1Parc=document.getElementById('s-data-primeira-parcela').value;
@@ -567,5 +567,6 @@ carregarEmprestimos();
 carregarPendentes();
 </script>
 <footer style="text-align:center;padding:16px 0;margin-top:32px;font-size:.8rem;color:#999;border-top:1px solid #e0e0e0">Powered by <strong>COBOL</strong> &mdash; Palmarante Loja</footer>
+<script src="../js/masks.js"></script>
 </body>
 </html>

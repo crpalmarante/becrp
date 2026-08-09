@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dados da Empresa - Folha - Palmarante</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#333}
+header{background:#1a237e;color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+header h1{font-size:1.4rem}
+header a{color:#ffd54f;text-decoration:none;font-size:.9rem}
+main{padding:20px;max-width:1300px;margin:0 auto}
+.card{background:#fff;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1);padding:20px;margin-bottom:20px}
+.card h2{font-size:1.1rem;margin-bottom:16px;color:#1a237e}
+.form-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.form-row label{min-width:120px;font-weight:500;font-size:.9rem}
+.form-row input,.form-row select{flex:1;padding:7px 10px;border:1px solid #ccc;border-radius:4px;font-size:.9rem;min-width:120px}
+.form-row input:focus{border-color:#1a237e;outline:none}
+.form-row input[readonly]{background:#f5f5f5;color:#555}
+.form-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+@media(max-width:900px){.form-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+.form-grid .form-row label{min-width:100px}
+.btn{padding:8px 20px;border:none;border-radius:4px;cursor:pointer;font-size:.9rem;font-weight:500}
+.btn-primary{background:#1a237e;color:#fff;transition:.2s}
+.btn-primary:hover{background:#283593}
+.btn-success{background:#2e7d32;color:#fff}
+.btn-success:hover{background:#388e3c}
+.toast{position:fixed;bottom:20px;right:20px;padding:12px 24px;border-radius:6px;color:#fff;font-weight:500;display:none;z-index:999}
+.toast.success{background:#2e7d32}
+.toast.error{background:#c62828}
+.toast.info{background:#1565c0}
+.banner{border-radius:8px;padding:14px 18px;margin-bottom:20px;font-size:.9rem;display:none}
+.banner.pronta{background:#e8f5e9;border-left:5px solid #2e7d32;color:#1b5e20}
+.banner.pendente{background:#fff3e0;border-left:5px solid #f9a825;color:#e65100}
+.banner b{display:block;margin-bottom:4px}
+.sec-title{font-size:.85rem;font-weight:700;color:#1a237e;text-transform:uppercase;letter-spacing:.5px;margin:18px 0 10px;grid-column:1/-1}
+.note{font-size:.75rem;color:#888;margin-bottom:12px}
+.small{font-size:.75rem;color:#888}
+</style>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header>
+<h1>Dados da Empresa (Folha)</h1>
+<a href="/pages/funcionarios.html">&larr; Funcionarios</a>
+</header>
+
+<main>
+
+<div id="banner" class="banner"></div>
+
+<div class="card">
+<h2>Identificação (RFC-008 §2)</h2>
+<p class="note">Fonte única: data/empresas.json (org_store). Regra 3: razão social, CNPJ, CNAE e regime tributário são obrigatórios para a folha.</p>
+<div class="form-grid">
+<div class="form-row"><label>Razão Social:</label><input type="text" id="emp-nome-razao" placeholder="Ex: COMERCIAL FABIELI LTDA"></div>
+<div class="form-row"><label>Nome Fantasia:</label><input type="text" id="emp-nome-fantasia" placeholder="Ex: COMERCIAL FABIELI"></div>
+<div class="form-row"><label>CNPJ:</label><input type="text" id="emp-cnpj" maxlength="18" placeholder="00.000.000/0000-00"></div>
+<div class="form-row"><label>Insc. Estadual:</label><input type="text" id="emp-ie" placeholder="IE"></div>
+<div class="form-row"><label>Insc. Municipal:</label><input type="text" id="emp-inscricao-mun" placeholder="Inscrição municipal"></div>
+<div class="form-row"><label>Situação:</label>
+<select id="emp-ativo"><option value="true">Ativo</option><option value="false">Inativo</option></select>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h2>Fiscal e Encargos (RFC-008 §5.3 / RFC-014)</h2>
+<p class="note">CNAE principal e regime tributário são <b>obrigatórios</b> — base do cálculo de encargos patronais (RAT/SAT).</p>
+<div class="form-grid">
+<div class="form-row"><label>CNAE Principal:</label><input type="text" id="emp-cnae-codigo" maxlength="7" placeholder="Ex: 4754701"></div>
+<div class="form-row"><label>Desc. CNAE:</label><input type="text" id="emp-cnae-desc" placeholder="Ex: Comércio varejista de móveis"></div>
+<div class="form-row"><label>Regime Tributário:</label>
+<select id="emp-tipo-fiscal">
+<option value="">Selecionar...</option>
+<option value="Simples Nacional">Simples Nacional</option>
+<option value="Lucro Presumido">Lucro Presumido</option>
+<option value="Lucro Real">Lucro Real</option>
+</select>
+</div>
+<div class="form-row"><label>CRT:</label>
+<select id="emp-crt">
+<option value="">—</option>
+<option value="1">1 - Simples Nacional</option>
+<option value="2">2 - Simples (excesso)</option>
+<option value="3">3 - Lucro Presumido</option>
+<option value="4">4 - Lucro Real</option>
+</select>
+</div>
+</div>
+</div>
+
+<div class="card">
+<h2>Endereço e Contato (RFC-008 §2)</h2>
+<div class="form-grid">
+<div class="sec-title">Endereço</div>
+<div class="form-row"><label>Logradouro:</label><input type="text" id="emp-logradouro" placeholder="Rua/Av"></div>
+<div class="form-row"><label>Número:</label><input type="text" id="emp-numero" placeholder="Nº ou S/N"></div>
+<div class="form-row"><label>Complemento:</label><input type="text" id="emp-complemento" placeholder="Complemento"></div>
+<div class="form-row"><label>Bairro:</label><input type="text" id="emp-bairro" placeholder="Bairro"></div>
+<div class="form-row"><label>Cidade:</label><input type="text" id="emp-cidade" placeholder="Cidade"></div>
+<div class="form-row"><label>Cód. Município:</label><input type="text" id="emp-cod-municipio" maxlength="7" placeholder="Ex: 4216206"></div>
+<div class="form-row"><label>UF:</label><input type="text" id="emp-uf" maxlength="2" placeholder="SC"></div>
+<div class="form-row"><label>CEP:</label><input type="text" id="emp-cep" maxlength="9" placeholder="00000-000"></div>
+<div class="sec-title">Contato</div>
+<div class="form-row"><label>Telefone:</label><input type="text" id="emp-telefone" placeholder="(47) 3444-3503"></div>
+<div class="form-row"><label>E-mail:</label><input type="email" id="emp-email" placeholder="contato@empresa.com"></div>
+</div>
+</div>
+
+<div style="display:flex;gap:10px;align-items:center;">
+<button class="btn btn-success" onclick="salvarEmpresa()">Salvar Dados da Empresa</button>
+<span id="status-save" class="small"></span>
+</div>
+
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+let empresa = null;
+
+function mostrarToast(msg, tipo) {
+const t = document.getElementById('toast');
+t.textContent = msg;
+t.className = 'toast ' + tipo;
+t.style.display = 'block';
+setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function montarBanner(pronta, faltantes) {
+const b = document.getElementById('banner');
+if (pronta) {
+b.className = 'banner pronta';
+b.style.display = 'block';
+b.innerHTML = '<b>✅ Empresa pronta para a folha</b>CNAE principal e regime tributário configurados — encargos patronais podem ser calculados (RFC-014).';
+} else {
+b.className = 'banner pendente';
+b.style.display = 'block';
+const nomes = {nome_razao:'Razão social', cnpj:'CNPJ', cnae_prim_codigo:'CNAE principal', tipo_fiscal:'Regime tributário', uf:'UF'};
+const lista = (faltantes || []).map(f => nomes[f] || f).join(', ');
+b.innerHTML = '<b>⚠️ Empresa incompleta para a folha</b>Campos obrigatórios faltando: <b>' + lista + '</b>. Complete para liberar o cálculo de encargos.';
+}
+}
+
+function preencherForm(e) {
+if (!e) return;
+empresa = e;
+const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+set('emp-nome-razao', e.nome_razao || e.nome || '');
+set('emp-nome-fantasia', e.nome_fantasia || '');
+set('emp-cnpj', e.cnpj || '');
+set('emp-ie', e.ie || e.inscricao_est || '');
+set('emp-inscricao-mun', e.inscricao_mun || '');
+set('emp-ativo', String(e.ativo !== false && e.ativo !== 'false'));
+set('emp-cnae-codigo', e.cnae_prim_codigo || '');
+set('emp-cnae-desc', e.cnae_prim_desc || '');
+set('emp-tipo-fiscal', e.tipo_fiscal || '');
+set('emp-crt', e.crt !== undefined && e.crt !== '' ? String(e.crt) : '');
+set('emp-logradouro', e.logradouro || '');
+set('emp-numero', e.numero || '');
+set('emp-complemento', e.complemento || '');
+set('emp-bairro', e.bairro || '');
+set('emp-cidade', e.municipio || e.cidade || '');
+set('emp-cod-municipio', e.cod_municipio || '');
+set('emp-uf', e.uf || '');
+set('emp-cep', e.cep || '');
+set('emp-telefone', e.telefone || '');
+set('emp-email', e.email || '');
+}
+
+async function carregarEmpresa() {
+try {
+const r = await fetch('/api/folha/empresa');
+if (r.status === 401 || r.status === 403) {
+document.getElementById('banner').className = 'banner pendente';
+document.getElementById('banner').style.display = 'block';
+document.getElementById('banner').innerHTML = '<b>🔒 Acesso restrito</b>Faça login como administrador para visualizar/editar os dados da empresa.';
+return;
+}
+const data = await r.json();
+if (data.status === 'ok') {
+preencherForm(data.empresa);
+montarBanner(data.folha_pronta, data.faltantes);
+}
+} catch(e) { mostrarToast('Erro ao carregar empresa', 'error'); }
+}
+
+function montarPayload() {
+const payload = {
+nome_razao: document.getElementById('emp-nome-razao').value.trim(),
+nome_fantasia: document.getElementById('emp-nome-fantasia').value.trim(),
+cnpj: document.getElementById('emp-cnpj').value.trim(),
+ie: document.getElementById('emp-ie').value.trim(),
+inscricao_mun: document.getElementById('emp-inscricao-mun').value.trim(),
+ativo: document.getElementById('emp-ativo').value === 'true',
+cnae_prim_codigo: document.getElementById('emp-cnae-codigo').value.trim(),
+cnae_prim_desc: document.getElementById('emp-cnae-desc').value.trim(),
+tipo_fiscal: document.getElementById('emp-tipo-fiscal').value,
+crt: document.getElementById('emp-crt').value,
+logradouro: document.getElementById('emp-logradouro').value.trim(),
+numero: document.getElementById('emp-numero').value.trim(),
+complemento: document.getElementById('emp-complemento').value.trim(),
+bairro: document.getElementById('emp-bairro').value.trim(),
+municipio: document.getElementById('emp-cidade').value.trim(),
+cod_municipio: document.getElementById('emp-cod-municipio').value.trim(),
+uf: document.getElementById('emp-uf').value.trim().toUpperCase(),
+cep: document.getElementById('emp-cep').value.trim(),
+telefone: document.getElementById('emp-telefone').value.trim(),
+email: document.getElementById('emp-email').value.trim(),
+};
+return payload;
+}
+
+async function salvarEmpresa() {
+const params = {};
+const payload = montarPayload();
+for (const [k, v] of Object.entries(payload)) {
+// vazio explícito = limpar campo (regra 3: tirar regime/CNAE desativa a folha)
+if (v !== null && v !== undefined) params[k] = v;
+}
+const st = document.getElementById('status-save');
+st.textContent = 'Salvando...';
+try {
+const r = await fetch('/api/folha/empresa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) });
+const data = await r.json();
+if (data.status === 'ok') {
+preencherForm(data.empresa);
+montarBanner(data.folha_pronta, data.faltantes);
+st.textContent = '';
+mostrarToast(data.folha_pronta ? '✅ Dados salvos — empresa pronta para a folha!' : 'Salvo, mas faltam campos: ' + (data.faltantes || []).join(', '), data.folha_pronta ? 'success' : 'info');
+} else {
+st.textContent = '';
+mostrarToast(data.message || data.mensagem || 'Erro ao salvar', 'error');
+}
+} catch(e) { st.textContent = ''; mostrarToast('Erro ao salvar', 'error'); }
+}
+
+carregarEmpresa();
+</script>
+<footer style="text-align:center;padding:16px 0;margin-top:32px;font-size:.8rem;color:#999;border-top:1px solid #e0e0e0">Powered by <strong>COBOL</strong> &mdash; Palmarante Loja</footer>
+<script src="../js/masks.js"></script>
+</body>
+</html>

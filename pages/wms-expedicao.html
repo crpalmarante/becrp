@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — WMS Expedição</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .pc-toolbar .grow { flex:1; min-width:160px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin:0 0 16px; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .pc-form .field { margin:0; }
+    .pc-form .actions { display:flex; gap:8px; flex-wrap:wrap; grid-column:1/-1; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; vertical-align:top; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .badge-sa { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); white-space:nowrap; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 10px; }
+    .sub { font-size:12px; opacity:.75; }
+    .act-btns { display:flex; flex-wrap:wrap; gap:4px; }
+    .detail { margin-top:12px; padding:12px; border:1px dashed rgba(255,255,255,.15); border-radius:8px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item active" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="page-header">
+      <h1>WMS Expedição</h1>
+    </div>
+
+    <div class="pc-toolbar">
+      <div class="field grow"><input id="q" type="text" placeholder="buscar..." class="input"></div>
+      <div class="field">
+        <select id="status" class="input"><option value="">Status</option></select>
+      </div>
+      <div class="field">
+        <select id="destino" class="input"><option value="">Destino</option></select>
+      </div>
+      <button class="btn" onclick="load()">Buscar</button>
+      <button class="btn btn-secondary" onclick="refresh()">Atualizar</button>
+    </div>
+    <div id="msg" class="pc-msg"></div>
+    <div class="pc-meta" id="meta"></div>
+    <table class="pc-table">
+      <thead><tr><th>ID</th><th>Doc</th><th>Parceiro</th><th>Armazém</th><th>Status</th><th>Pend</th><th>Faltas</th><th>Ações</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div id="detail" class="detail"></div>
+  </main>
+</div>
+
+<script src="../js/utils.js"></script>
+<script>
+const API = window.location.origin + '/api';
+const token = localStorage.getItem('auth_token') || '';
+
+async function api(path, method='GET', body) {
+  const opts = { method, headers: { 'X-Auth-Token': token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+function msg(txt, err) {
+  const el = document.getElementById('msg');
+  el.textContent = txt;
+  el.className = 'pc-msg ' + (err ? 'err' : 'ok');
+}
+
+async function load() {
+  const q = document.getElementById('q').value;
+  const status = document.getElementById('status').value;
+  const destino = document.getElementById('destino').value;
+  const r = await api('/wms/expedicoes?q=' + encodeURIComponent(q) + (status ? '&status=' + status : '') + (destino ? '&destino=' + destino : ''));
+  if (r.status !== 'ok') return msg(r.message, true);
+  document.getElementById('status').innerHTML = '<option value="">Status</option>' + Object.entries(r.status_opcoes || {}).map(([k,v]) => `<option value="${k}">${v}</option>`).join('');
+  document.getElementById('destino').innerHTML = '<option value="">Destino</option>' + Object.entries(r.destinos || {}).map(([k,v]) => `<option value="${k}">${v}</option>`).join('');
+  document.getElementById('meta').textContent = `Filtrado: ${r.filtrado || 0} / Total: ${r.total || 0}`;
+  document.getElementById('tb').innerHTML = (r.expedicoes || []).map(e => {
+    const acoes = (e.acoes || []).map(a => `<button class="btn btn-sm" onclick="act('${e.id}', '${a}')">${a}</button>`).join('');
+    return `<tr><td><a href="#" onclick="openExp('${e.id}'); return false">${e.id}</a></td><td>${e.documento_ref || ''}</td><td>${e.parceiro || ''}</td><td>${e.armazem}</td><td><span class="badge-sa">${e.status_label || e.status}</span></td><td>${e.pendentes || 0}</td><td>${e.faltas || 0}</td><td class="act-btns">${acoes}</td></tr>`;
+  }).join('');
+}
+
+async function openExp(id) {
+  const r = await api('/wms/expedicoes/' + id);
+  if (r.status !== 'ok') return msg(r.message, true);
+  const e = r.expedicao;
+  const lines = (e.linhas || []).map(l => `<tr><td>${l.linha}</td><td>${l.produto}</td><td>${l.qtd_esperada}</td><td>${l.qtd_conferida}</td><td>${l.status_label || l.status}</td><td>${l.loc_origem || ''}</td></tr>`).join('');
+  document.getElementById('detail').innerHTML = `
+    <h3>${e.id}</h3>
+    <p>Destino: ${e.destino_label || e.destino} | Pick: ${e.pick_list_id || ''} | Transportadora: ${e.transportadora || ''} | Veículo: ${e.veiculo || ''} | Motorista: ${e.motorista || ''}</p>
+    <table class="pc-table"><thead><tr><th>Linha</th><th>Produto</th><th>Esperada</th><th>Conferida</th><th>Status</th><th>Origem</th></tr></thead><tbody>${lines}</tbody></table>
+    <div class="act-btns" style="margin-top:10px">
+      ${(e.acoes || []).map(a => `<button class="btn" onclick="act('${e.id}', '${a}')">${a}</button>`).join('')}
+    </div>`;
+}
+
+async function act(id, action) {
+  const r = await api('/admin/wms/expedicoes/' + id, 'POST', { action });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Ação ' + action + ' ok');
+  openExp(id); load();
+}
+
+async function refresh() { load(); }
+
+(function init() { load(); })();
+</script>
+</body>
+</html>

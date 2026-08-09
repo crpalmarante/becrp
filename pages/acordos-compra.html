@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Acordos de Compra</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:none}.view.active{display:block}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel)}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+table.data tr{cursor:pointer}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(20,184,166,.15);color:#5eead4}
+.badge-rascunho{background:rgba(148,163,184,.15);color:#cbd5e1}
+.badge-em_cotacao{background:rgba(234,179,8,.15);color:#fde68a}
+.badge-fechado{background:rgba(34,197,94,.15);color:#86efac}
+.badge-cancelado{background:rgba(239,68,68,.15);color:#fca5a5}
+.badge-vencedora{background:rgba(34,197,94,.15);color:#86efac}
+.money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
+.tab-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-secondary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:var(--font-sm);font-weight:600}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.so-btn.danger{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45);color:#fca5a5}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.line-row{display:grid;grid-template-columns:2fr 70px 80px 30px;gap:8px;align-items:center;margin-bottom:6px}
+.cotacao-card{padding:12px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:8px;background:var(--surface-panel)}
+.cotacao-card.vencedora{border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.08)}
+.cot-line{display:grid;grid-template-columns:2fr 80px 110px 30px;gap:8px;align-items:center;margin-bottom:4px}
+.mapa-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.mapa-table th,.mapa-table td{padding:8px 10px;border:1px solid var(--border-color);text-align:center}
+.mapa-table th{background:rgba(255,255,255,.06)}
+.mapa-table td:first-child,.mapa-table th:first-child{text-align:left}
+.mapa-vencedora{background:rgba(34,197,94,.15);font-weight:700}
+@media print{
+  .no-print{display:none!important}
+  #mapa-modal{display:block!important;position:static;background:#fff;color:#000}
+  .dialog-box{max-height:none;overflow:visible;box-shadow:none;border:none}
+}
+.tabs{display:flex;gap:8px;border-bottom:1px solid var(--border-color);margin-bottom:16px}
+.tabs button{background:transparent;border:none;color:var(--text-muted);padding:10px 16px;cursor:pointer;font-weight:600}
+.tabs button.active{color:#5eead4;border-bottom:2px solid #5eead4}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
+      <a class="menu-item active" href="acordos-compra.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Acordos</span></a>
+      <a class="menu-item" href="vendas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Vendas</span></a>
+      <a class="menu-item" href="parceiros.html?role=SUPPLIER"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar"><div class="topbar-brand"><span class="topbar-title">Acordos de Compra</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="tabs">
+        <button class="active" id="tab-acordos">Acordos</button>
+        <button id="tab-novo">Novo</button>
+      </div>
+      <div class="view active" id="view-list">
+        <div class="toolbar">
+          <input type="search" id="q" class="form-input" placeholder="Buscar número, descrição..." style="max-width:280px">
+          <select id="status" class="form-input" style="max-width:160px">
+            <option value="">Todos</option>
+            <option value="rascunho">Rascunho</option>
+            <option value="em_cotacao">Em Cotação</option>
+            <option value="fechado">Fechado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+          <button type="button" class="tab-btn" id="btn-refresh">Atualizar</button>
+          <a class="so-btn" href="compras.html">Pedidos de Compra</a>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Número</th><th>Tipo</th><th>Descrição</th><th>Data</th><th>Itens</th><th>Cotações</th><th>Status</th></tr></thead>
+            <tbody id="tbody"><tr><td colspan="7" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+        <div id="detail" style="margin-top:16px"></div>
+      </div>
+
+      <div class="view" id="view-form">
+        <h2 id="form-title">Novo Acordo de Compra</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:12px 0">
+          <label style="font-size:12px;color:var(--text-muted)">Tipo<select class="form-input" id="f-tipo"><option value="tender">Call for Tender</option><option value="blanket">Blanket</option></select></label>
+          <label style="font-size:12px;color:var(--text-muted)">Descrição<input class="form-input" id="f-descricao" placeholder="Compra de notebooks e monitores"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Comprador<input class="form-input" id="f-comprador"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Condição<input class="form-input" id="f-terms" value="30"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Forma Pagamento<input class="form-input" id="f-forma" value="Boleto"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Data<input class="form-input" id="f-data" type="date"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Fechamento previsto<input class="form-input" id="f-fechamento" type="date"></label>
+        </div>
+        <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:12px">Notas
+          <textarea class="form-input" id="f-notas" rows="2" style="width:100%"></textarea>
+        </label>
+        <h3 style="font-size:14px;margin:16px 0 8px">Itens a cotar</h3>
+        <div id="lines"></div>
+        <button type="button" class="so-btn" id="btn-add-line" style="margin:8px 0">+ Item</button>
+        <div class="so-actions">
+          <button type="button" class="so-btn primary" id="btn-salvar">Salvar rascunho</button>
+          <button type="button" class="so-btn" id="btn-voltar">Voltar</button>
+        </div>
+        <div id="form-msg" style="margin-top:12px"></div>
+      </div>
+    </div>
+
+    <div class="dialog-overlay" id="mapa-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px">
+      <div class="dialog-box" style="max-width:900px;max-height:90vh;overflow:auto;background:var(--surface-panel);border-radius:var(--radius-panel);padding:20px">
+        <div class="dialog-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 class="dialog-title">Mapa de Cotação</h3>
+          <button class="dialog-close" id="btn-mapa-close" style="background:transparent;border:none;color:var(--text-primary);font-size:24px">&times;</button>
+        </div>
+        <div id="mapa-body"></div>
+        <div class="dialog-footer no-print" style="margin-top:16px">
+          <button class="so-btn" id="btn-mapa-print">Imprimir</button>
+          <button class="so-btn" id="btn-mapa-fechar">Fechar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+      <div class="status-bar-left"><span id="status-user-info">Usuário: —</span></div>
+      <div class="status-bar-right"><span>Acordos de Compra · BECRP v1.0</span></div>
+    </div>
+  </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script src="../js/masks.js"></script>
+<script>
+(function(){
+  const API = "/api/acordos-compra";
+  const STATUS_LABEL = {rascunho:"Rascunho", em_cotacao:"Em Cotação", fechado:"Fechado", cancelado:"Cancelado"};
+  const money = n => (Number(n)||0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+  const escapeHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  let acordos = [];
+  let current = null;
+  let lines = [];
+
+  async function api(path, opts={}){
+    const token = AuthService.getToken();
+    const res = await fetch(path, {method: opts.method||"GET", headers: Object.assign({"X-Auth-Token": token, "Content-Type": "application/json"}, opts.headers||{}), body: opts.body});
+    return res.json();
+  }
+  function showView(id){ document.querySelectorAll(".view").forEach(v=>v.classList.remove("active")); document.getElementById("view-"+id).classList.add("active"); }
+
+  async function load(){
+    const st = document.getElementById("status").value;
+    const q = document.getElementById("q").value.trim().toLowerCase();
+    const qs = new URLSearchParams(); if(st) qs.set("status",st); if(q) qs.set("q",q);
+    const data = await api(API + (qs.toString()?"?"+qs:""));
+    acordos = data.acordos || [];
+    const tbody = document.getElementById("tbody");
+    if(!acordos.length){ tbody.innerHTML = '<tr><td colspan="7" class="empty">Nenhum acordo</td></tr>'; document.getElementById("detail").innerHTML=""; return; }
+    tbody.innerHTML = acordos.map(a=>`
+      <tr data-id="${a.id}">
+        <td><span class="badge">${escapeHtml(a.numero||"#"+a.id)}</span></td>
+        <td>${escapeHtml(a.tipo||"tender")}</td>
+        <td>${escapeHtml(a.descricao||"—")}</td>
+        <td>${escapeHtml(a.data||"—")}</td>
+        <td>${(a.itens||[]).length}</td>
+        <td>${(a.cotacoes||[]).length}</td>
+        <td><span class="badge badge-${escapeHtml(a.status||"rascunho")}">${escapeHtml(STATUS_LABEL[a.status]||a.status)}</span></td>
+      </tr>`).join("");
+    tbody.querySelectorAll("tr[data-id]").forEach(tr=>{ tr.onclick=()=>openDetail(tr.dataset.id); });
+  }
+
+  function renderAcLines(){
+    const box = document.getElementById("lines");
+    if(!lines.length) lines.push({produto:"", qtd:1, uom:"UN"});
+    box.innerHTML = lines.map((l,i)=>`
+      <div class="line-row">
+        <input class="form-input" id="ln-prod-${i}" value="${escapeHtml(l.produto||"")}" placeholder="Produto">
+        <input class="form-input" id="ln-qtd-${i}" type="number" step="0.001" value="${l.qtd||""}" placeholder="Qtd">
+        <input class="form-input" id="ln-uom-${i}" value="${escapeHtml(l.uom||"UN")}" placeholder="UN">
+        <button type="button" class="so-btn danger" data-del="${i}" style="padding:4px 8px">×</button>
+      </div>`).join("");
+    box.querySelectorAll("[data-del]").forEach(btn=>{ btn.onclick=()=>{ lines.splice(Number(btn.dataset.del),1); if(!lines.length) lines.push({produto:"",qtd:1,uom:"UN"}); renderAcLines(); }; });
+  }
+
+  function collectAc(){
+    lines = lines.map((l,i)=>({
+      produto: document.getElementById(`ln-prod-${i}`).value,
+      qtd: Number(document.getElementById(`ln-qtd-${i}`).value)||0,
+      uom: document.getElementById(`ln-uom-${i}`).value || "UN",
+    })).filter(l=>l.produto.trim());
+    return {
+      tipo: document.getElementById("f-tipo").value,
+      descricao: document.getElementById("f-descricao").value,
+      comprador: document.getElementById("f-comprador").value,
+      payment_terms: document.getElementById("f-terms").value,
+      forma_pg: document.getElementById("f-forma").value,
+      data: document.getElementById("f-data").value,
+      fechamento: document.getElementById("f-fechamento").value,
+      notas: document.getElementById("f-notas").value,
+      itens: lines,
+    };
+  }
+
+  async function saveAc(){
+    const payload = collectAc();
+    const res = await api(API, {method:"POST", body: JSON.stringify(Object.assign({action:"create"}, payload))});
+    const msg = document.getElementById("form-msg");
+    if(res.status !== "ok"){ msg.textContent = res.message || "Erro"; msg.style.color = "#fca5a5"; return; }
+    msg.textContent = "Acordo " + res.acordo.numero + " criado"; msg.style.color = "#86efac";
+    await load();
+    showView("list");
+  }
+
+  async function openDetail(id){
+    const a = acordos.find(x=>String(x.id)===String(id));
+    if(!a) return;
+    current = a;
+    const cotacoes = a.cotacoes || [];
+    const vencId = (a.vencedor || {}).cotacao_id;
+    const cotHtml = cotacoes.length ? cotacoes.map(c=>`
+      <div class="cotacao-card ${c.id===vencId?'vencedora':''}">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>${escapeHtml(c.fornecedor||"—")}</strong>
+          <span class="badge ${c.id===vencId?'badge-vencedora':'badge-rascunho'}">${c.id===vencId?'VENCEDORA':'Proposta'}</span>
+        </div>
+        <p class="muted" style="margin:4px 0">CNPJ ${escapeHtml(c.cnpj||"—")} · Prazo ${escapeHtml(c.prazo||"—")} · ${c.forma_pg||""}</p>
+        <p class="money" style="font-weight:700">${money(c.valor_total)}</p>
+        <table class="data" style="margin-top:8px"><thead><tr><th>Item</th><th>Qtd</th><th>Preço</th></tr></thead>
+        <tbody>${(c.itens||[]).map(i=>`<tr><td>${escapeHtml(i.produto||"—")}</td><td>${i.qtd}</td><td class="money">${money(i.preco)}</td></tr>`).join("")}</tbody></table>
+        ${c.id!==vencId ? `<button type="button" class="so-btn" data-set-vencedora="${c.id}" style="margin-top:8px">Marcar vencedora</button>` : ""}
+        <button type="button" class="so-btn danger" data-del-cot="${c.id}" style="margin-top:8px">Remover</button>
+      </div>`).join("") : "<p class='muted'>Nenhuma cotação</p>";
+
+    document.getElementById("detail").innerHTML = `
+      <div class="ct-detail">
+        <h3>${escapeHtml(a.numero)} · ${escapeHtml(a.descricao||"")} <span class="badge badge-${escapeHtml(a.status)}">${escapeHtml(STATUS_LABEL[a.status]||a.status)}</span></h3>
+        <p class="muted">Comprador: ${escapeHtml(a.comprador||"—")} · ${(a.itens||[]).length} item(s) · ${cotacoes.length} cotação(ões)</p>
+        <div class="so-actions">
+          ${a.status==="rascunho"?'<button type="button" class="so-btn" id="btn-abrir-cot">Abrir Cotação</button>':''}
+          ${a.status==="em_cotacao"?'<button type="button" class="so-btn primary" id="btn-fechar">Fechar Cotação</button>':''}
+          ${a.status==="fechado"?'<button type="button" class="so-btn primary" id="btn-converter">Gerar Pedido de Compra</button>':''}
+          ${a.cotacoes&&a.cotacoes.length?'<button type="button" class="so-btn" id="btn-mapa">Mapa de Cotação</button>':''}
+          ${a.status!=="cancelado"&&a.status!=="fechado"?'<button type="button" class="so-btn danger" id="btn-cancelar-ac">Cancelar</button>':''}
+        </div>
+        <h3 style="font-size:14px;margin:16px 0 8px">Itens</h3>
+        <div class="table-wrap"><table class="data"><thead><tr><th>Item</th><th>Qtd</th><th>UN</th></tr></thead>
+        <tbody>${(a.itens||[]).map(i=>`<tr><td>${escapeHtml(i.produto||"—")}</td><td>${i.qtd}</td><td>${escapeHtml(i.uom||"UN")}</td></tr>`).join("")}</tbody></table></div>
+        ${a.tipo==="blanket"?`
+          <h3 style="font-size:14px;margin:16px 0 8px">Blanket — Saldo e Liberações</h3>
+          <div style="border:1px dashed var(--border-color);padding:12px;border-radius:8px;margin-bottom:12px">
+            <div id="blanket-saldo"></div>
+            ${a.status==="fechado"?`
+              <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px">
+                <input class="form-input" id="lib-valor" type="number" step="0.01" placeholder="Valor a liberar">
+                <input class="form-input" id="lib-qtd" type="number" step="0.001" placeholder="Qtd a liberar">
+                <input class="form-input" id="lib-forn" placeholder="Fornecedor" value="${escapeHtml(a.vencedor?a.vencedor.fornecedor:a.fornecedor||"")}">
+              </div>
+              <button type="button" class="so-btn primary" id="btn-liberar" style="margin-top:8px">Liberar pedido</button>` : ""}
+          </div>` : ""}
+        <h3 style="font-size:14px;margin:16px 0 8px">Cotações de Fornecedores</h3>
+        ${a.status==="em_cotacao"||a.status==="rascunho"?`
+          <div style="border:1px dashed var(--border-color);padding:12px;border-radius:8px;margin-bottom:12px">
+            <h4 style="font-size:13px;margin:0 0 8px">Adicionar proposta</h4>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px">
+              <input class="form-input" id="cot-forn" placeholder="Fornecedor">
+              <input class="form-input" id="cot-cnpj" placeholder="CNPJ">
+              <input class="form-input" id="cot-prazo" placeholder="Prazo (dias)">
+              <input class="form-input" id="cot-frete" type="number" step="0.01" value="0" placeholder="Frete">
+            </div>
+            <div id="cot-lines"></div>
+            <button type="button" class="so-btn" id="btn-cot-add" style="margin:8px 0">+ Item da proposta</button>
+            <button type="button" class="so-btn primary" id="btn-cot-salvar">Salvar proposta</button>
+          </div>` : ""}
+        ${cotHtml}
+      </div>`;
+
+    document.getElementById("btn-abrir-cot")?.addEventListener("click", ()=>setStatus("em_cotacao"));
+    document.getElementById("btn-fechar")?.addEventListener("click", ()=>setStatus("fechado"));
+    document.getElementById("btn-cancelar-ac")?.addEventListener("click", ()=>{ if(confirm("Cancelar acordo?")) setStatus("cancelado"); });
+    document.getElementById("btn-converter")?.addEventListener("click", converter);
+    document.getElementById("btn-mapa")?.addEventListener("click", abrirMapa);
+    document.getElementById("btn-cot-salvar")?.addEventListener("click", addCotacao);
+    document.getElementById("btn-cot-add")?.addEventListener("click", addCotLine);
+    document.querySelectorAll("[data-set-vencedora]").forEach(b=>{ b.onclick=()=>setVencedora(b.dataset.setVencedora); });
+    document.querySelectorAll("[data-del-cot]").forEach(b=>{ b.onclick=()=>delCotacao(b.dataset.delCot); });
+    document.getElementById("btn-liberar")?.addEventListener("click", liberarBlanket);
+    renderCotLines(a.itens || []);
+    renderBlanket(a);
+  }
+
+  function renderBlanket(a){
+    if(a.tipo !== "blanket") return;
+    const box = document.getElementById("blanket-saldo");
+    if(!box) return;
+    const b = a.blanket || {};
+    if(!b || (!b.valor_total && !b.qtd_total)){
+      box.innerHTML = `<p class="muted">Blanket sem saldo configurado.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
+          <input class="form-input" id="setup-valor" type="number" step="0.01" placeholder="Valor total">
+          <input class="form-input" id="setup-qtd" type="number" step="0.001" placeholder="Qtd total">
+        </div>
+        <button type="button" class="so-btn" id="btn-setup-blanket" style="margin-top:8px">Configurar saldo</button>`;
+      document.getElementById("btn-setup-blanket")?.addEventListener("click", setupBlanket);
+      return;
+    }
+    let html = "";
+    if(b.valor_total) html += `Valor total: ${money(b.valor_total)} · Saldo: ${money(b.saldo_valor)}<br>`;
+    if(b.qtd_total) html += `Qtd total: ${b.qtd_total} · Saldo: ${b.saldo_qtd}<br>`;
+    if((b.liberacoes||[]).length){
+      html += `<table class="data" style="margin-top:8px"><thead><tr><th>Pedido</th><th>Valor</th><th>Qtd</th><th>Data</th></tr></thead><tbody>`;
+      html += b.liberacoes.map(l=>`<tr><td>${escapeHtml(l.pedido_num||"#"+l.pedido_id)}</td><td class="money">${money(l.valor)}</td><td>${l.qtd}</td><td>${escapeHtml(l.data||"—")}</td></tr>`).join("");
+      html += `</tbody></table>`;
+    }
+    box.innerHTML = html;
+  }
+
+  async function setupBlanket(){
+    if(!current) return;
+    const valor = Number(document.getElementById("setup-valor").value)||0;
+    const qtd = Number(document.getElementById("setup-qtd").value)||0;
+    if(!valor && !qtd) return alert("Informe valor ou quantidade total");
+    const res = await api(API, {method:"POST", body: JSON.stringify({action:"blanket_setup", id: current.id, valor_total: valor||undefined, qtd_total: qtd||undefined})});
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    await load();
+    openDetail(current.id);
+  }
+
+  async function liberarBlanket(){
+    if(!current) return;
+    const valor = Number(document.getElementById("lib-valor").value)||0;
+    const qtd = Number(document.getElementById("lib-qtd").value)||0;
+    if(!valor && !qtd) return alert("Informe valor ou quantidade a liberar");
+    const res = await api(API, {method:"POST", body: JSON.stringify({action:"liberar_blanket", id: current.id, valor, qtd, fornecedor: document.getElementById("lib-forn").value})});
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    alert("Pedido " + (res.pedido.numero || res.pedido.id) + " liberado");
+    await load();
+    openDetail(current.id);
+  }
+
+  let cotLines = [];
+  function addCotLine(){ cotLines.push({produto:"", qtd:1, preco:0}); renderCotLines(current?current.itens:[]); }
+  function renderCotLines(baseItems){
+    const box = document.getElementById("cot-lines");
+    if(!box) return;
+    if(!cotLines.length){
+      cotLines = baseItems.map(i=>({produto:i.produto, qtd:i.qtd, preco:0}));
+      if(!cotLines.length) cotLines.push({produto:"", qtd:1, preco:0});
+    }
+    box.innerHTML = cotLines.map((l,i)=>`
+      <div class="cot-line">
+        <input class="form-input" id="cot-prod-${i}" value="${escapeHtml(l.produto||"")}" placeholder="Produto">
+        <input class="form-input" id="cot-qtd-${i}" type="number" step="0.001" value="${l.qtd||""}" placeholder="Qtd">
+        <input class="form-input" id="cot-preco-${i}" type="number" step="0.01" value="${l.preco||""}" placeholder="Preço">
+        <button type="button" class="so-btn danger" data-cot-del="${i}" style="padding:4px 8px">×</button>
+      </div>`).join("");
+    box.querySelectorAll("[data-cot-del]").forEach(b=>{ b.onclick=()=>{ cotLines.splice(Number(b.dataset.cotDel),1); if(!cotLines.length) cotLines.push({produto:"",qtd:1,preco:0}); renderCotLines(baseItems); }; });
+  }
+
+  async function setStatus(status){
+    if(!current) return;
+    const res = await api(API, {method:"POST", body: JSON.stringify({action:"status", id: current.id, status})});
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    await load();
+    openDetail(current.id);
+  }
+
+  async function setVencedora(cid){
+    if(!current) return;
+    const res = await api(API, {method:"POST", body: JSON.stringify({action:"status", id: current.id, status:"fechado"})});
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    await load();
+    openDetail(current.id);
+  }
+
+  async function delCotacao(cid){
+    if(!confirm("Remover proposta?")) return;
+    const res = await api(API, {method:"POST", body: JSON.stringify({action:"delete_cotacao", id: current.id, cotacao_id: cid})});
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    await load();
+    openDetail(current.id);
+  }
+
+  async function addCotacao(){
+    if(!current) return;
+    cotLines = cotLines.map((l,i)=>({
+      produto: document.getElementById(`cot-prod-${i}`).value,
+      qtd: Number(document.getElementById(`cot-qtd-${i}`).value)||0,
+      preco: Number(document.getElementById(`cot-preco-${i}`).value)||0,
+      subtotal: (Number(document.getElementById(`cot-qtd-${i}`).value)||0) * (Number(document.getElementById(`cot-preco-${i}`).value)||0),
+    })).filter(l=>l.produto.trim());
+    const payload = {
+      action: "add_cotacao",
+      id: current.id,
+      fornecedor: document.getElementById("cot-forn").value,
+      cnpj: document.getElementById("cot-cnpj").value,
+      prazo: document.getElementById("cot-prazo").value,
+      frete: Number(document.getElementById("cot-frete").value)||0,
+      itens: cotLines,
+    };
+    const res = await api(API, {method:"POST", body: JSON.stringify(payload)});
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    cotLines = [];
+    await load();
+    openDetail(current.id);
+  }
+
+  async function converter(){
+    if(!current) return;
+    if(!confirm("Gerar pedido de compra a partir do acordo fechado?")) return;
+    const res = await api(API, {method:"POST", body: JSON.stringify({action:"converter", id: current.id})});
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    alert("Pedido " + (res.pedido.numero || res.pedido.id) + " gerado");
+    location.href = "compras.html";
+  }
+
+  async function abrirMapa(){
+    if(!current) return;
+    const res = await api(`/api/acordos-compra/${current.id}/mapa`);
+    if(res.status !== "ok") return alert(res.message || "Erro");
+    const m = res.mapa;
+    const forns = m.fornecedores;
+    let html = `<h2>${escapeHtml(m.acordo.numero)} · ${escapeHtml(m.acordo.descricao||"—")}</h2>`;
+    html += `<p>Itens a cotar: ${m.itens.length} · Cotações: ${m.resumo.length}</p>`;
+    if(m.resumo.length){
+      html += `<table class="mapa-table"><thead><tr><th>Fornecedor</th>${m.itens.map(i=>`<th>${escapeHtml(i.produto||i.prod_id||"—")}</th>`).join("")}<th>Total</th><th>Prazo</th><th>Frete</th></tr></thead><tbody>`;
+      for(const r of m.resumo){
+        const cls = r.vencedora ? 'mapa-vencedora' : '';
+        html += `<tr class="${cls}"><td><strong>${escapeHtml(r.fornecedor)}</strong>${r.vencedora?' <span class="badge badge-vencedora">VENCEDOR</span>':''}</td>`;
+        for(const it of m.itens){
+          const row = m.matriz.find(x=>x.produto===it.produto);
+          const p = row?.precos[r.fornecedor];
+          html += `<td>${p&&p.preco?money(p.preco):"—"}</td>`;
+        }
+        html += `<td class="money">${money(r.valor_total)}</td><td>${escapeHtml(r.prazo||"—")}</td><td class="money">${money(r.frete)}</td></tr>`;
+      }
+      html += `</tbody></table>`;
+    }
+    document.getElementById("mapa-body").innerHTML = html;
+    document.getElementById("mapa-modal").style.display = "flex";
+  }
+
+  function fecharMapa(){ document.getElementById("mapa-modal").style.display = "none"; }
+
+  document.getElementById("btn-mapa-close").onclick = fecharMapa;
+  document.getElementById("btn-mapa-fechar").onclick = fecharMapa;
+  document.getElementById("btn-mapa-print").onclick = ()=>window.print();
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("q").addEventListener("keydown", e=>{ if(e.key==="Enter") load(); });
+  document.getElementById("status").onchange = load;
+  document.getElementById("tab-acordos").onclick = ()=>{ showView("list"); document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active")); document.getElementById("tab-acordos").classList.add("active"); };
+  document.getElementById("tab-novo").onclick = ()=>{
+    current=null; lines=[{produto:"",qtd:1,uom:"UN"}]; renderAcLines();
+    document.getElementById("form-title").textContent="Novo Acordo";
+    document.getElementById("f-tipo").value="tender";
+    document.getElementById("f-descricao").value="";
+    document.getElementById("f-comprador").value=(AuthService.getUser()||{}).nome||"";
+    document.getElementById("f-data").value=new Date().toISOString().slice(0,10);
+    document.getElementById("f-fechamento").value="";
+    document.getElementById("f-notas").value="";
+    document.getElementById("form-msg").textContent="";
+    showView("form");
+    document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active")); document.getElementById("tab-novo").classList.add("active");
+  };
+  document.getElementById("btn-voltar").onclick = ()=>{ showView("list"); document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active")); document.getElementById("tab-acordos").classList.add("active"); load(); };
+  document.getElementById("btn-salvar").onclick = saveAc;
+  document.getElementById("btn-add-line").onclick = ()=>{ lines.push({produto:"",qtd:1,uom:"UN"}); renderAcLines(); };
+
+  load();
+})();
+</script>
+</body>
+</html>

@@ -57,6 +57,32 @@
     },
   };
 
+  const CfopProvider = {
+    async search(text) {
+      const key = "cfop:" + (text || "").toLowerCase();
+      const cached = cacheGet(key);
+      if (cached) return cached;
+      const data = await apiGet("/api/lookup/cfop?q=" + encodeURIComponent(text || "") + "&limit=20");
+      const items = (data.items || []).map(c => ({...c, label: c.codigo + " — " + c.descricao}));
+      cacheSet(key, items);
+      return items;
+    },
+  };
+
+  const CstProvider = {
+    async search(text, tipo) {
+      const key = "cst:" + (tipo || "") + ":" + (text || "").toLowerCase();
+      const cached = cacheGet(key);
+      if (cached) return cached;
+      let url = "/api/lookup/cst?q=" + encodeURIComponent(text || "") + "&limit=20";
+      if (tipo) url += "&tipo=" + encodeURIComponent(tipo);
+      const data = await apiGet(url);
+      const items = (data.items || []).map(c => ({...c, label: c.codigo + " — " + c.descricao}));
+      cacheSet(key, items);
+      return items;
+    },
+  };
+
   /** Provider genérico para CRUD JSON admin (categoria, marca, fabricante…). */
   function makeJsonCatalogProvider(opts) {
     const listPath = opts.listPath;
@@ -272,6 +298,8 @@
   global.LookupService = {
     NcmProvider,
     CestProvider,
+    CfopProvider,
+    CstProvider,
     CategoriaProvider,
     MarcaProvider,
     FabricanteProvider,

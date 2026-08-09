@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Moedas</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:none}.view.active{display:block}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel)}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+.money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
+.tab-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-secondary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:var(--font-sm);font-weight:600}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;max-width:700px}
+.result{font-size:1.25rem;font-weight:700;color:#5eead4;margin-top:16px}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
+      <a class="menu-item active" href="currency.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Moedas</span></a>
+      <a class="menu-item" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar"><div class="topbar-brand"><span class="topbar-title">Moedas e Taxas de Câmbio</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="tabs">
+        <button class="active" id="tab-rates">Taxas</button>
+        <button id="tab-convert">Conversor</button>
+      </div>
+
+      <div class="view active" id="view-rates">
+        <div class="toolbar">
+          <button type="button" class="tab-btn" id="btn-refresh">Atualizar</button>
+          <a class="so-btn" href="compras.html">Compras</a>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Moeda</th><th>Taxa (BRL)</th><th>Ação</th></tr></thead>
+            <tbody id="tbody"><tr><td colspan="3" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="view" id="view-convert">
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Valor</label>
+            <input class="form-input" id="cv-valor" type="number" value="100" step="0.01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">De</label>
+            <select class="form-input" id="cv-de"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Para</label>
+            <select class="form-input" id="cv-para"></select>
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end">
+            <button class="so-btn primary" id="btn-convert">Converter</button>
+          </div>
+        </div>
+        <div class="result" id="cv-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/common.js"></script>
+<script>
+const API='/api';
+const TOKEN=localStorage.getItem('auth_token');
+let rates={};
+async function loadRates(){
+  const r=await fetch(`${API}/currency`,{headers:{'X-Auth-Token':TOKEN}});
+  const j=await r.json();
+  rates=j.rates||{};
+  renderRates();
+  populateSelects();
+}
+function renderRates(){
+  const tb=document.getElementById('tbody');
+  const entries=Object.entries(rates).sort((a,b)=>a[0].localeCompare(b[0]));
+  if(!entries.length){tb.innerHTML='<tr><td colspan="3" class="empty">Nenhuma taxa cadastrada</td></tr>';return;}
+  tb.innerHTML=entries.map(([moeda,taxa])=>`
+    <tr data-moeda="${moeda}">
+      <td><strong>${moeda}</strong></td>
+      <td class="money"><input class="form-input rate-input" type="number" step="0.0001" value="${taxa.toFixed(4)}" style="max-width:160px" data-moeda="${moeda}"></td>
+      <td><button class="so-btn primary" onclick="saveRate('${moeda}')">Salvar</button></td>
+    </tr>`).join('');
+  document.querySelectorAll('.rate-input').forEach(inp=>{
+    inp.addEventListener('change',e=>saveRate(e.target.dataset.moeda, e.target.value));
+  });
+}
+function populateSelects(){
+  const opts=Object.keys(rates).map(m=>`<option value="${m}">${m}</option>`).join('');
+  document.getElementById('cv-de').innerHTML=opts;
+  document.getElementById('cv-para').innerHTML=opts;
+  document.getElementById('cv-para').value='BRL';
+}
+async function saveRate(moeda, taxa){
+  if(taxa===undefined) taxa=document.querySelector(`.rate-input[data-moeda="${moeda}"]`).value;
+  const r=await fetch(`${API}/currency`,{method:'POST',headers:{'X-Auth-Token':TOKEN,'Content-Type':'application/json'},body:JSON.stringify({moeda,taxa})});
+  const j=await r.json();
+  if(j.status!=='ok'){alert('Erro: '+(j.message||''));return;}
+  rates=j.rates;
+  renderRates();
+  populateSelects();
+}
+async function convert(){
+  const v=document.getElementById('cv-valor').value;
+  const de=document.getElementById('cv-de').value;
+  const para=document.getElementById('cv-para').value;
+  const r=await fetch(`${API}/currency/convert?valor=${v}&de=${de}&para=${para}`,{headers:{'X-Auth-Token':TOKEN}});
+  const j=await r.json();
+  document.getElementById('cv-result').innerText=j.status==='ok'?`${j.valor} ${j.de} = ${j.convertido.toFixed(2)} ${j.para}`:'Erro: '+(j.message||'');
+}
+document.getElementById('btn-refresh').addEventListener('click',loadRates);
+document.getElementById('btn-convert').addEventListener('click',convert);
+document.getElementById('tab-rates').addEventListener('click',()=>show('view-rates'));
+document.getElementById('tab-convert').addEventListener('click',()=>show('view-convert'));
+function show(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active', b.id==='tab-'+(id.replace('view-',''))));
+}
+loadRates();
+</script>
+</body>
+</html>

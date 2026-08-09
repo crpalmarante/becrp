@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Tabelas Fiscais</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:none}.view.active{display:block}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.tab-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-secondary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:var(--font-sm);font-weight:600}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.so-btn.danger{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45);color:#fca5a5}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel)}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.form-row{display:grid;grid-template-columns:1fr 2fr 1fr 1fr 80px;gap:8px;align-items:center;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
+      <a class="menu-item" href="fiscal-reforma.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Reforma Tributária</span></a>
+      <a class="menu-item" href="sped-livros.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Livros Fiscais</span></a>
+      <a class="menu-item" href="tax-apuracao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Apuração</span></a>
+      <a class="menu-item active" href="fiscal-tabelas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Tabelas Fiscais</span></a>
+      <a class="menu-item" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar"><div class="topbar-brand"><span class="topbar-title">Tabelas Fiscais</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="tabs">
+        <button class="active" id="tab-cfop">CFOP</button>
+        <button id="tab-cst">CST</button>
+      </div>
+
+      <div class="view active" id="view-cfop">
+        <div class="toolbar">
+          <input class="form-input" id="cfop-q" placeholder="Buscar CFOP/descricao" style="max-width:240px">
+          <button class="tab-btn" id="btn-cfop-refresh">Atualizar</button>
+        </div>
+        <div id="cfop-form" style="margin-bottom:16px">
+          <div class="form-row">
+            <input class="form-input" id="cfop-cod" placeholder="Código">
+            <input class="form-input" id="cfop-desc" placeholder="Descrição">
+            <select class="form-input" id="cfop-tipo"><option value="entrada">Entrada</option><option value="saida">Saída</option></select>
+            <input class="form-input" id="cfop-aplic" placeholder="Aplicação">
+            <button class="so-btn primary" id="btn-cfop-save">Salvar</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Código</th><th>Descrição</th><th>Tipo</th><th>Aplicação</th><th>Ação</th></tr></thead>
+            <tbody id="cfop-body"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="view" id="view-cst">
+        <div class="toolbar">
+          <input class="form-input" id="cst-q" placeholder="Buscar CST/descricao" style="max-width:240px">
+          <button class="tab-btn" id="btn-cst-refresh">Atualizar</button>
+        </div>
+        <div id="cst-form" style="margin-bottom:16px">
+          <div class="form-row" style="grid-template-columns:1fr 2fr 1fr 1fr 80px">
+            <input class="form-input" id="cst-cod" placeholder="Código">
+            <input class="form-input" id="cst-desc" placeholder="Descrição">
+            <select class="form-input" id="cst-tipo"><option value="icms">ICMS</option><option value="icms_sn">ICMS SN</option><option value="pis_cofins">PIS/COFINS</option></select>
+            <select class="form-input" id="cst-regime"><option value="todos">Todos</option><option value="simples">Simples</option><option value="normal">Normal</option></select>
+            <button class="so-btn primary" id="btn-cst-save">Salvar</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Código</th><th>Descrição</th><th>Tipo</th><th>Regime</th><th>Ação</th></tr></thead>
+            <tbody id="cst-body"><tr><td colspan="5" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+const API_CFOP='/api/admin/fiscal/tabelas/cfop';
+const API_CST='/api/admin/fiscal/tabelas/cst';
+function show(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active', b.id==='tab-'+(id.replace('view-',''))));
+}
+document.getElementById('tab-cfop').onclick=()=>show('view-cfop');
+document.getElementById('tab-cst').onclick=()=>show('view-cst');
+
+async function loadCfop(){
+  const q=document.getElementById('cfop-q').value;
+  const r=await AuthService.api(`${API_CFOP}?q=${encodeURIComponent(q)}`);
+  const tb=document.getElementById('cfop-body');
+  if(r.status!=='ok'||!r.items.length){ tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum CFOP</td></tr>'; return; }
+  tb.innerHTML=r.items.map(i=>`<tr>
+    <td><strong>${i.codigo}</strong></td><td>${i.descricao}</td><td>${i.tipo}</td><td>${i.aplicacao||''}</td>
+    <td><button class="so-btn danger" onclick="deleteCfop('${i.codigo}')">×</button></td>
+  </tr>`).join('');
+}
+async function saveCfop(){
+  const body={acao:'save', codigo:document.getElementById('cfop-cod').value, dados:{
+    descricao:document.getElementById('cfop-desc').value,
+    tipo:document.getElementById('cfop-tipo').value,
+    aplicacao:document.getElementById('cfop-aplic').value,
+    ativo:true
+  }};
+  await AuthService.api(API_CFOP,{method:'POST',body:JSON.stringify(body)});
+  document.getElementById('cfop-cod').value=''; document.getElementById('cfop-desc').value=''; document.getElementById('cfop-aplic').value='';
+  loadCfop();
+}
+async function deleteCfop(cod){
+  if(!confirm('Remover '+cod+'?')) return;
+  await AuthService.api(API_CFOP,{method:'POST',body:JSON.stringify({acao:'delete', codigo:cod})});
+  loadCfop();
+}
+document.getElementById('btn-cfop-refresh').onclick=loadCfop;
+document.getElementById('btn-cfop-save').onclick=saveCfop;
+document.getElementById('cfop-q').onkeydown=e=>{ if(e.key==='Enter') loadCfop(); };
+
+async function loadCst(){
+  const q=document.getElementById('cst-q').value;
+  const r=await AuthService.api(`${API_CST}?q=${encodeURIComponent(q)}`);
+  const tb=document.getElementById('cst-body');
+  if(r.status!=='ok'||!r.items.length){ tb.innerHTML='<tr><td colspan="5" class="empty">Nenhum CST</td></tr>'; return; }
+  tb.innerHTML=r.items.map(i=>`<tr>
+    <td><strong>${i.codigo}</strong></td><td>${i.descricao}</td><td>${i.tipo}</td><td>${i.regime}</td>
+    <td><button class="so-btn danger" onclick="deleteCst('${i.codigo}')">×</button></td>
+  </tr>`).join('');
+}
+async function saveCst(){
+  const body={acao:'save', codigo:document.getElementById('cst-cod').value, dados:{
+    descricao:document.getElementById('cst-desc').value,
+    tipo:document.getElementById('cst-tipo').value,
+    regime:document.getElementById('cst-regime').value,
+    ativo:true
+  }};
+  await AuthService.api(API_CST,{method:'POST',body:JSON.stringify(body)});
+  document.getElementById('cst-cod').value=''; document.getElementById('cst-desc').value='';
+  loadCst();
+}
+async function deleteCst(cod){
+  if(!confirm('Remover '+cod+'?')) return;
+  await AuthService.api(API_CST,{method:'POST',body:JSON.stringify({acao:'delete', codigo:cod})});
+  loadCst();
+}
+document.getElementById('btn-cst-refresh').onclick=loadCst;
+document.getElementById('btn-cst-save').onclick=saveCst;
+document.getElementById('cst-q').onkeydown=e=>{ if(e.key==='Enter') loadCst(); };
+
+loadCfop();
+</script>
+</body>
+</html>

@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Viagem (Trip)</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .pc-toolbar .grow { flex:1; min-width:140px; }
+    .layout { display:grid; grid-template-columns: 1fr 1.3fr; gap:16px; }
+    @media (max-width:900px) { .layout { grid-template-columns:1fr; } }
+    .panel {
+      border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:12px;
+      background:rgba(0,0,0,.15);
+    }
+    .panel h3 { margin:0 0 10px; font-size:14px; }
+    .tr-row {
+      padding:10px; margin-bottom:8px; border:1px solid rgba(255,255,255,.12);
+      border-radius:6px; cursor:pointer; font-size:13px;
+    }
+    .tr-row.active { border-color:rgba(20,184,166,.5); background:rgba(20,184,166,.1); }
+    .tr-row .sub { font-size:11px; opacity:.7; }
+    .badge { font-size:10px; padding:1px 5px; border:1px solid rgba(255,255,255,.2); border-radius:3px; }
+    .prog { font-size:12px; margin:8px 0; opacity:.85; }
+    .stop {
+      display:flex; gap:8px; align-items:flex-start; padding:8px; margin-bottom:6px;
+      border:1px solid rgba(255,255,255,.1); border-radius:6px; font-size:12px;
+    }
+    .stop.current, .stop.arrived { border-color:rgba(20,184,166,.45); }
+    .stop.completed { opacity:.65; }
+    .stop.skipped { opacity:.5; text-decoration:line-through; }
+    .stop .n {
+      min-width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,.25); font-size:11px;
+    }
+    .act-btns { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+    .btn-xs {
+      padding:4px 8px; font-size:11px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.25); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+    .btn-xs.primary { border-color:rgba(20,184,166,.5); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="entregas-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="entregas-dashboard.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Dashboard</span></a>
+      <a class="menu-item" href="entregas-fila.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Fila</span></a>
+      <a class="menu-item" href="entregas-planejamento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Planejamento</span></a>
+      <a class="menu-item" href="entregas-calendario.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Calendário</span></a>
+      <a class="menu-item" href="entregas-manifesto.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Manifesto</span></a>
+      <a class="menu-item active" href="entregas-viagem.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Viagem</span></a>
+      <a class="menu-item" href="entregas-motorista.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Motorista</span></a>
+      <a class="menu-item" href="entregas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Pedidos</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Home</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="topbar-title">Entregas — Viagem (Trip)</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Delivery / Trip</div>
+          <h2 class="workspace-title">Execução da viagem</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">RFC-18106 — Trip = execução do Manifest liberado. Sem inventário.</p>
+          <div id="msg" class="pc-msg"></div>
+          <div class="pc-toolbar">
+            <div class="field"><label>Data</label><input class="form-input" id="filtro-data" type="date"></div>
+            <div class="field"><label>Status</label><select class="form-input" id="filtro-status"><option value="">Todos</option></select></div>
+            <div class="field grow"><label>Busca</label><input class="form-input" id="filtro-q" placeholder="TR / MF / motorista"></div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+            <button class="dialog-btn" id="btn-novo" type="button">Do manifesto</button>
+          </div>
+          <div class="layout">
+            <div class="panel">
+              <h3>Viagens</h3>
+              <div id="lista"></div>
+            </div>
+            <div class="panel">
+              <h3>Detalhe</h3>
+              <div id="detalhe"><div class="pc-note">Selecione uma viagem</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let perms = { pode_escrever: false };
+  let selectedId = null;
+  let statusOp = {};
+
+  if (!document.getElementById("filtro-data").value) {
+    document.getElementById("filtro-data").value = new Date().toISOString().slice(0, 10);
+  }
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  const LABEL_ACT = {
+    start: "Partir",
+    pause: "Pausar",
+    resume: "Retomar",
+    complete: "Concluir trip",
+    close: "Fechar",
+    cancel: "Cancelar",
+    arrive_stop: "Chegou no cliente",
+    complete_stop: "Concluir parada",
+    skip_stop: "Pular parada",
+  };
+
+  async function doAction(id, action) {
+    if (!perms.pode_escrever) return msg("Sem permissão", false);
+    let body = { action: action };
+    if (action === "cancel" || action === "skip_stop" || action === "pause") {
+      const motivo = prompt(action === "cancel" ? "Motivo do cancelamento:" : "Motivo / observação:");
+      if (action === "cancel" && !motivo) return;
+      if (motivo) body.motivo = motivo;
+    }
+    const res = await AuthService.api("/api/admin/delivery/trip/" + encodeURIComponent(id), {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg((LABEL_ACT[action] || action) + " · " + id, true);
+    selectedId = id;
+    load();
+  }
+
+  function renderDetail(t) {
+    if (!t) {
+      document.getElementById("detalhe").innerHTML = '<div class="pc-note">Selecione uma viagem</div>';
+      return;
+    }
+    const p = t.progresso || {};
+    let html = `<div>
+      <strong>${t.id}</strong> <span class="badge">${t.status_label || t.status}</span>
+      <div class="sub">${t.data} · Manifesto ${t.manifesto_id} · ${t.motorista || "—"} · ${t.veiculo || "—"}</div>
+      <div class="sub">Partida ${t.partida_em || "—"} · Retorno ${t.retorno_em || "—"}</div>
+    </div>`;
+    html += `<div class="prog">Paradas: ${p.concluidas || 0}/${p.total || 0} · restantes ${p.restantes || 0}` +
+      (p.atual_seq ? ` · atual #${p.atual_seq} (${p.atual_entrega || ""})` : "") + `</div>`;
+
+    html += `<div class="act-btns">`;
+    if (perms.pode_escrever) {
+      (t.acoes || []).forEach((a) => {
+        const primary = ["start", "complete_stop", "arrive_stop"].includes(a);
+        html += `<button type="button" class="btn-xs ${primary ? "primary" : ""}" data-act="${a}">${LABEL_ACT[a] || a}</button>`;
+      });
+    }
+    html += `</div>`;
+
+    html += `<div style="margin-top:8px"><strong>Paradas</strong></div>`;
+    (t.stops || []).forEach((s) => {
+      html += `<div class="stop ${s.status || ""}">
+        <div class="n">${s.seq}</div>
+        <div>
+          <strong>${s.entrega_id || "?"}</strong> <span class="badge">${s.status_label || s.status}</span>
+          <div>${s.parceiro || "—"}</div>
+          <div class="sub">${s.endereco || ""} · ${s.cidade || ""}</div>
+        </div>
+      </div>`;
+    });
+
+    document.getElementById("detalhe").innerHTML = html;
+    document.querySelectorAll("[data-act]").forEach((btn) => {
+      btn.onclick = () => doAction(t.id, btn.dataset.act);
+    });
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    const data = document.getElementById("filtro-data").value;
+    const status = document.getElementById("filtro-status").value;
+    const q = document.getElementById("filtro-q").value.trim();
+    if (data) qs.set("data", data);
+    if (status) qs.set("status", status);
+    if (q) qs.set("q", q);
+
+    const res = await AuthService.api("/api/delivery/trip?" + qs.toString());
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    perms = res.permissoes || perms;
+    statusOp = res.status_opcoes || {};
+
+    document.getElementById("meta").textContent =
+      (res.filtrado || 0) + " viagem(ns) · total " + (res.total || 0) +
+      " · " + ((res.meta && res.meta.atualizado_em) || "").replace("T", " ");
+
+    const selS = document.getElementById("filtro-status");
+    const curS = status;
+    selS.innerHTML = '<option value="">Todos</option>' +
+      Object.keys(statusOp).map((k) => `<option value="${k}">${statusOp[k]}</option>`).join("");
+    selS.value = curS;
+
+    const rows = res.trips || [];
+    if (!selectedId && rows.length) selectedId = rows[0].id;
+    document.getElementById("lista").innerHTML = rows.map((t) => {
+      const p = t.progresso || {};
+      return `<div class="tr-row ${t.id === selectedId ? "active" : ""}" data-id="${t.id}">
+        <strong>${t.id}</strong> <span class="badge">${t.status_label}</span>
+        <div class="sub">${t.manifesto_id} · ${t.motorista || "—"}</div>
+        <div class="sub">${p.concluidas || 0}/${p.total || 0} paradas</div>
+      </div>`;
+    }).join("") || '<div class="pc-note">Nenhuma viagem — crie a partir de um manifesto liberado</div>';
+
+    document.querySelectorAll(".tr-row[data-id]").forEach((el) => {
+      el.onclick = () => {
+        selectedId = el.dataset.id;
+        const t = rows.find((x) => x.id === selectedId);
+        document.querySelectorAll(".tr-row").forEach((r) => r.classList.toggle("active", r.dataset.id === selectedId));
+        renderDetail(t);
+      };
+    });
+
+    renderDetail(rows.find((x) => x.id === selectedId) || null);
+  }
+
+  async function novo() {
+    if (!perms.pode_escrever) return msg("Sem permissão", false);
+    const mid = prompt("ID do manifesto liberado (ex.: MF-SEED-0001):", "MF-SEED-0001");
+    if (!mid) return;
+    const res = await AuthService.api("/api/admin/delivery/trip", {
+      method: "POST",
+      body: JSON.stringify({ manifesto_id: mid.trim() }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    selectedId = res.trip && res.trip.id;
+    msg("criado · " + selectedId, true);
+    load();
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("btn-novo").onclick = novo;
+  document.getElementById("filtro-data").onchange = load;
+  document.getElementById("filtro-status").onchange = load;
+  document.getElementById("filtro-q").onchange = load;
+  load();
+})();
+</script>
+</body>
+</html>

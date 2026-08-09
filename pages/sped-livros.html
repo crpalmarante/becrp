@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Livros Fiscais / SPED</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:none}.view.active{display:block}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.tab-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-secondary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:var(--font-sm);font-weight:600}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel);max-height:500px}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap;position:sticky;top:0}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+.money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.kpi-box{padding:12px;border:1px solid var(--border-color);border-radius:var(--radius-panel);background:var(--surface-panel)}
+.kpi-box h4{margin:0 0 4px;font-size:12px;color:var(--text-muted);text-transform:uppercase}
+.kpi-box .val{font-size:1.2rem;font-weight:700;font-family:ui-monospace,monospace}
+pre.sped{background:var(--surface-panel);border:1px solid var(--border-color);border-radius:var(--radius-panel);padding:12px;max-height:500px;overflow:auto;font-size:12px;white-space:pre}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
+      <a class="menu-item" href="fiscal-reforma.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Reforma Tributária</span></a>
+      <a class="menu-item active" href="sped-livros.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Livros Fiscais</span></a>
+      <a class="menu-item" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar"><div class="topbar-brand"><span class="topbar-title">Livros Fiscais / SPED</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="tabs">
+        <button class="active" id="tab-livro">Livro</button>
+        <button id="tab-sped">SPED</button>
+      </div>
+
+      <div class="view active" id="view-livro">
+        <div class="toolbar">
+          <input class="form-input" id="l-dt-ini" type="date" placeholder="De">
+          <input class="form-input" id="l-dt-fim" type="date" placeholder="Até">
+          <select class="form-input" id="l-tipo">
+            <option value="">Entradas + Saídas</option>
+            <option value="entrada">Entradas</option>
+            <option value="saida">Saídas</option>
+          </select>
+          <input class="form-input" id="l-parceiro" placeholder="Parceiro" style="max-width:160px">
+          <button class="so-btn primary" id="btn-livro">Gerar</button>
+          <button class="so-btn" id="btn-livro-print">Imprimir</button>
+        </div>
+        <div id="livro-kpis" class="kpi"></div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Tipo</th><th>Data</th><th>Número</th><th>Parceiro</th><th>CNPJ</th><th>Valor</th><th>ICMS</th><th>CBS</th><th>IBS</th></tr></thead>
+            <tbody id="livro-body"><tr><td colspan="9" class="empty">Clique em Gerar</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="view" id="view-sped">
+        <div class="toolbar">
+          <input class="form-input" id="sped-comp" placeholder="AAAAMM" maxlength="6" style="max-width:120px">
+          <button class="so-btn primary" id="btn-sped">Gerar SPED</button>
+          <button class="so-btn" id="btn-sped-download">Download .txt</button>
+        </div>
+        <pre class="sped" id="sped-out">Clique em Gerar SPED.</pre>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+const API='/api/fiscal';
+const money=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+function show(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active', b.id==='tab-'+(id.replace('view-',''))));
+}
+document.getElementById('tab-livro').onclick=()=>show('view-livro');
+document.getElementById('tab-sped').onclick=()=>show('view-sped');
+
+document.getElementById('btn-livro').onclick=async ()=>{
+  const p={
+    dt_ini:document.getElementById('l-dt-ini').value,
+    dt_fim:document.getElementById('l-dt-fim').value,
+    tipo:document.getElementById('l-tipo').value,
+    parceiro:document.getElementById('l-parceiro').value,
+  };
+  const qs=new URLSearchParams(Object.entries(p).filter(([k,v])=>v)).toString();
+  const r=await AuthService.api(`${API}/livros${qs?'?'+qs:''}`);
+  const tb=document.getElementById('livro-body');
+  const kpis=document.getElementById('livro-kpis');
+  if(r.status!=='ok'||!r.rows.length){ tb.innerHTML='<tr><td colspan="9" class="empty">Nenhum registro</td></tr>'; kpis.innerHTML=''; return; }
+  tb.innerHTML=r.rows.map(row=>`
+    <tr>
+      <td><span class="badge" style="background:${row.tipo==='entrada'?'rgba(59,130,246,.15)':'rgba(168,85,247,.15)'};color:${row.tipo==='entrada'?'#93c5fd':'#d8b4fe'}">${row.tipo==='entrada'?'Entrada':'Saída'}</span></td>
+      <td>${row.data||'—'}</td>
+      <td>${row.numero||'—'}<br><small style="color:var(--text-muted)">${row.serie||''}</small></td>
+      <td>${row.fornecedor||row.cliente||'—'}</td>
+      <td>${row.cnpj||'—'}</td>
+      <td class="money">${money(row.valor_total)}</td>
+      <td class="money">${money(row.valor_icms)}</td>
+      <td class="money">${money(row.valor_cbs)}</td>
+      <td class="money">${money(row.valor_ibs)}</td>
+    </tr>`).join('');
+  kpis.innerHTML=`<div class="kpi-box"><h4>Entradas</h4><div class="val">${r.resumo.entradas.qtd}</div></div>
+    <div class="kpi-box"><h4>Total Entradas</h4><div class="val">${money(r.resumo.entradas.total)}</div></div>
+    <div class="kpi-box"><h4>Saídas</h4><div class="val">${r.resumo.saidas.qtd}</div></div>
+    <div class="kpi-box"><h4>Total Saídas</h4><div class="val">${money(r.resumo.saidas.total)}</div></div>`;
+};
+document.getElementById('btn-livro-print').onclick=()=>{ window.print(); };
+
+document.getElementById('btn-sped').onclick=async ()=>{
+  const comp=document.getElementById('sped-comp').value;
+  const r=await AuthService.api(`${API}/sped${comp?'?competencia='+comp:''}`);
+  const out=document.getElementById('sped-out');
+  if(r.status!=='ok'){ out.textContent='Erro: '+(r.message||''); return; }
+  out.textContent=r.sped;
+  out.dataset.text=r.sped;
+};
+document.getElementById('btn-sped-download').onclick=()=>{
+  const text=document.getElementById('sped-out').dataset.text;
+  if(!text) return;
+  const blob=new Blob([text],{type:'text/plain'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='sped_fiscal.txt';
+  a.click();
+};
+</script>
+</body>
+</html>

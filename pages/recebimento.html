@@ -25,12 +25,13 @@
     .rcv-badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; }
     .st-draft { background:#555; }
     .st-verified { background:#8a6d3b; }
+    .st-quality_rejected { background:#9d3e3e; }
     .st-completed { background:#2d6a4f; }
     .st-cancelled { background:#6c2b2b; }
     .rcv-detail { margin-top:20px; padding:16px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
     .rcv-actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
     .rcv-items-edit { display:flex; flex-direction:column; gap:8px; }
-    .rcv-item-row { display:grid; grid-template-columns: 1fr 100px 100px auto; gap:8px; align-items:center; }
+    .rcv-item-row { display:grid; grid-template-columns: 1fr 100px 100px 100px auto; gap:8px; align-items:center; }
     .rcv-msg { margin:8px 0; font-size:14px; }
     .rcv-msg.err { color:#f87171; }
     .rcv-msg.ok { color:#4ade80; }
@@ -125,6 +126,7 @@
               <option value="">Todos status</option>
               <option value="draft">Rascunho</option>
               <option value="verified">Conferido</option>
+              <option value="quality_rejected">Rejeitado qualidade</option>
               <option value="completed">Concluído</option>
               <option value="cancelled">Cancelado</option>
             </select>
@@ -145,6 +147,7 @@
               </select>
               <button class="dialog-btn dialog-btn-secondary" id="btn-mon-refresh">Atualizar fila</button>
               <button class="dialog-btn dialog-btn-secondary" id="btn-mon-scan">Scan pasta inbox</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-mon-distdfe" title="Baixa NF-e da SEFAZ (DistDFe) com certificado A1">SEFAZ DistDFe</button>
               <button class="dialog-btn dialog-btn-primary" id="btn-mon-process">Processar novos</button>
               <label class="dialog-btn dialog-btn-secondary" style="cursor:pointer;margin:0">
                 Enfileirar XML
@@ -215,6 +218,25 @@
   </div>
 </div>
 
+<div class="dialog-overlay" id="qc-modal" style="display:none">
+  <div class="dialog-box" style="max-width:520px">
+    <div class="dialog-header">
+      <h3 class="dialog-title">Quality Check</h3>
+      <button class="dialog-close" id="btn-close-qc">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <p class="mode-note">Responda antes de concluir o recebimento. Checks críticos rejeitados bloqueiam a conclusão (supervisor pode forçar).</p>
+      <div id="qc-list"></div>
+      <div class="form-error" id="qc-error"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn dialog-btn-secondary" id="btn-qc-cancel">Cancelar</button>
+      <button class="dialog-btn dialog-btn-secondary" id="btn-qc-force" style="display:none">Forçar concluir</button>
+      <button class="dialog-btn dialog-btn-primary" id="btn-qc-ok">Concluir</button>
+    </div>
+  </div>
+</div>
+
 <div class="dialog-overlay" id="xml-modal" style="display:none">
   <div class="dialog-box" style="max-width:480px">
     <div class="dialog-header">
@@ -253,6 +275,7 @@
   const STATUS_LABEL = {
     draft: "Rascunho",
     verified: "Conferido",
+    quality_rejected: "Rejeitado qualidade",
     completed: "Concluído",
     cancelled: "Cancelado",
   };
@@ -398,8 +421,10 @@
            <td class="${diffCls}">${diff > 0 ? "+" : ""}${diff}</td>
            <td>${it.notes || "—"}</td>
            <td class="res-${result || ""}">${RESULT_LABEL[result] || result || "—"}</td>`;
+      const preco = Number(it.preco || 0);
       return `<tr>
         <td>${label}${meta ? `<div style="opacity:.6;font-size:12px">${meta}</div>` : ""}${linkUi}</td>
+        <td>${preco ? preco.toLocaleString("pt-BR", {style:"currency", currency:"BRL"}) : "—"}</td>
         <td>${exp}</td>
         ${qtyCells}
       </tr>`;
@@ -420,6 +445,11 @@
          divergências=<strong>${ver.differences_count != null ? ver.differences_count : "—"}</strong>
          ${ver.started_at ? " · início " + ver.started_at : ""}
          ${ver.completed_at ? " · fim " + ver.completed_at : ""}</p>`
+      : "";
+
+    const qc = r.quality_check || null;
+    const qcHtml = qc
+      ? `<p class="rcv-nfe-meta">Quality Check: <strong class="${qc.resultado === 'approved' ? 'diff-ok' : (qc.resultado === 'rejected' ? 'diff-miss' : 'diff-bad')}">${qc.resultado || "—"}</strong> · ${qc.ok_count}/${qc.total} · por ${qc.avaliado_por || "—"} em ${qc.avaliado_em || ""}</p>`
       : "";
 
     const pl = r.partner_lookup || null;
@@ -476,11 +506,12 @@
       ${nfeHtml}
       ${partnerHtml}
       ${verHtml}
+      ${qcHtml}
       ${r.nota ? `<p>${r.nota}</p>` : ""}
       ${scanHtml}
       <table class="rcv-table">
         <thead><tr>
-          <th>Produto</th><th>Esperado</th><th>Bom</th><th>Avaria</th><th>Δ</th><th>Obs.</th><th>Resultado</th>
+          <th>Produto</th><th>Preço/Custo</th><th>Esperado</th><th>Bom</th><th>Avaria</th><th>Δ</th><th>Obs.</th><th>Resultado</th>
         </tr></thead>
         <tbody>${itemsHtml}</tbody>
       </table>
@@ -713,26 +744,9 @@
             body: JSON.stringify({ items: collectItems(), method: "manual" }),
           });
           if (v.status !== "ok") return msg(v.message || "Falha na conferência");
+          r = v.receiving;
         }
-        const res = await AuthService.api("/api/receiving/" + id + "/complete", {
-          method: "POST",
-          body: JSON.stringify({}),
-        });
-        if (res.status !== "ok") return msg(res.message || "Falha ao concluir");
-        let t = "Concluído — estoque atualizado (só qty boa).";
-        const c = res.contabilidade;
-        if (c) {
-          if (c.ok && !c.skipped && c.numero) {
-            t += " Contábil " + c.numero + (c.status === "draft" ? " (rascunho)" : "");
-          } else if (c.ok && c.skipped) {
-            t += " Contábil: " + (c.reason || "sem lançamento");
-          } else if (!c.ok) {
-            t += " Contábil falhou: " + (c.error || c.reason || "erro");
-          }
-        }
-        msg(t, !(c && c.ok === false));
-        await loadList();
-        openDetail(id);
+        openQualityCheck(id, r);
       };
     }
     const cancelBtn = document.getElementById("act-cancel");
@@ -750,7 +764,7 @@
     }
   }
 
-  function addItemRow(pid, qty) {
+  function addItemRow(pid, qty, preco) {
     const wrap = document.getElementById("new-items");
     const row = document.createElement("div");
     row.className = "rcv-item-row";
@@ -758,6 +772,7 @@
       <input class="form-input item-pid" placeholder="produto_id" value="${pid || ""}">
       <input class="form-input item-nome" placeholder="nome (opc.)">
       <input class="form-input item-qty" type="number" min="1" placeholder="qty" value="${qty || 1}">
+      <input class="form-input item-preco" type="number" step="0.01" placeholder="preço/custo" value="${preco || ""}">
       <button type="button" class="dialog-btn dialog-btn-secondary item-rm">×</button>`;
     row.querySelector(".item-rm").onclick = () => row.remove();
     wrap.appendChild(row);
@@ -846,6 +861,7 @@
       produto_id: row.querySelector(".item-pid").value.trim(),
       produto_nome: row.querySelector(".item-nome").value.trim(),
       qty: Number(row.querySelector(".item-qty").value || 0),
+      preco: Number(row.querySelector(".item-preco").value || 0),
     })).filter((i) => i.produto_id && i.qty > 0);
     const body = {
       estabelecimento_id: document.getElementById("new-estab").value,
@@ -956,6 +972,23 @@
     const res = await AuthService.api("/api/nfe-monitor/scan", { method: "POST", body: "{}" });
     if (res.status !== "ok") return msg(res.message || "Scan falhou");
     msg("Scan: " + (res.total_created || 0) + " novo(s).", true);
+    await loadMonitor();
+  };
+  document.getElementById("btn-mon-distdfe").onclick = async () => {
+    msg("Consultando SEFAZ DistDFe…");
+    const res = await AuthService.api("/api/nfe-monitor/distdfe", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    if (res.status !== "ok") {
+      return msg(res.message || (res.errors && res.errors[0]) || "DistDFe falhou");
+    }
+    msg(
+      (res.message || "DistDFe OK") +
+        " · baixados: " + (res.saved_count || 0) +
+        " · monitor: " + (res.ingested_count || 0),
+      true
+    );
     await loadMonitor();
   };
   document.getElementById("btn-mon-process").onclick = async () => {
@@ -1074,6 +1107,74 @@
   document.getElementById("btn-pend-refresh").onclick = () => loadPending();
   document.getElementById("pend-filter-status").onchange = () => loadPending();
   document.getElementById("pend-filter-cat").onchange = () => loadPending();
+
+  let qcTargetId = null;
+  let qcChecks = [];
+  async function openQualityCheck(rid, rec){
+    qcTargetId = rid;
+    const res = await AuthService.api("/api/quality-checks/config");
+    qcChecks = (res.status === "ok" ? res.config : []) || [];
+    if(!qcChecks.length){
+      // sem configuração, conclui direto
+      return doComplete(rid, []);
+    }
+    const box = document.getElementById("qc-list");
+    box.innerHTML = qcChecks.map((c,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;margin:8px 0">
+        <label style="flex:1;font-size:13px">${c.label || c.id}</label>
+        <select class="form-input qc-ans" data-id="${c.id}" style="max-width:120px">
+          <option value="true">Sim</option>
+          <option value="false">Não</option>
+        </select>
+        <input class="form-input qc-obs" data-id="${c.id}" placeholder="obs" style="max-width:160px">
+      </div>
+    `).join("");
+    document.getElementById("qc-error").textContent = "";
+    document.getElementById("qc-modal").style.display = "flex";
+    document.getElementById("btn-qc-force").style.display = "none";
+  }
+  function closeQualityCheck(){ document.getElementById("qc-modal").style.display = "none"; qcTargetId = null; }
+  async function submitQualityCheck(force=false){
+    if(!qcTargetId) return;
+    const respostas = Array.from(document.querySelectorAll(".qc-ans")).map(sel=>{
+      const obs = document.querySelector(`.qc-obs[data-id="${sel.dataset.id}"]`);
+      return {check_id: sel.dataset.id, ok: sel.value === "true", obs: obs ? obs.value : ""};
+    });
+    const res = await AuthService.api("/api/quality-checks/result/" + qcTargetId, {
+      method: "POST",
+      body: JSON.stringify({respostas})
+    });
+    if(res.status !== "ok") return document.getElementById("qc-error").textContent = res.message || "Erro";
+    const qc = res.result;
+    if(qc.resultado === "rejected" && !force){
+      document.getElementById("qc-error").textContent = "Quality check REJEITADO. Corrija ou clique em Forçar concluir (supervisor).";
+      document.getElementById("btn-qc-force").style.display = "inline-block";
+      return;
+    }
+    closeQualityCheck();
+    await doComplete(qcTargetId, respostas, force);
+  }
+  async function doComplete(rid, qcRespostas, force=false){
+    const res = await AuthService.api("/api/receiving/" + rid + "/complete", {
+      method: "POST",
+      body: JSON.stringify({quality_respostas: qcRespostas, force_quality: force})
+    });
+    if(res.status !== "ok") return msg(res.message || "Falha ao concluir");
+    let t = "Concluído — estoque atualizado (só qty boa).";
+    const c = res.contabilidade;
+    if (c) {
+      if (c.ok && !c.skipped && c.numero) { t += " Contábil " + c.numero + (c.status === "draft" ? " (rascunho)" : ""); }
+      else if (c.ok && c.skipped) { t += " Contábil: " + (c.reason || "sem lançamento"); }
+      else if (!c.ok) { t += " Contábil falhou: " + (c.error || c.reason || "erro"); }
+    }
+    msg(t, !(c && c.ok === false));
+    await loadList();
+    openDetail(rid);
+  }
+  document.getElementById("btn-qc-ok").onclick = ()=>submitQualityCheck(false);
+  document.getElementById("btn-qc-force").onclick = ()=>submitQualityCheck(true);
+  document.getElementById("btn-qc-cancel").onclick = closeQualityCheck;
+  document.getElementById("btn-close-qc").onclick = closeQualityCheck;
 
   (async function boot() {
     await loadEmpresas();

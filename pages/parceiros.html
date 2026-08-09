@@ -235,7 +235,7 @@
                 <div class="pf-grid">
                   <div class="field">
                     <label for="f-doc_main" id="lbl-doc-main">CNPJ / CPF</label>
-                    <input class="form-input" id="f-doc_main" placeholder="Documento principal">
+                    <input class="form-input" id="f-doc_main" data-mask="doc" placeholder="Documento principal">
                   </div>
                   <div class="field">
                     <label for="f-doc_ie">Inscrição Estadual</label>
@@ -282,6 +282,23 @@
             <div class="pf-pane" id="tab-fiscal">
               <div class="pf-card">
                 <div class="pf-grid">
+                  <div class="field full">
+                    <label for="f-price_list">Lista de preço padrão (Vendas B2B)</label>
+                    <select class="form-input" id="f-price_list">
+                      <option value="">— Nenhuma (usa preço base / loja) —</option>
+                    </select>
+                  </div>
+                  <div class="field">
+                    <label for="f-credit_limit">Limite de crédito (R$)</label>
+                    <input class="form-input" id="f-credit_limit" type="number" min="0" step="0.01" placeholder="0 = sem limite">
+                  </div>
+                  <div class="field">
+                    <label for="f-payment_terms">Condição de pagamento</label>
+                    <input class="form-input" id="f-payment_terms" placeholder="30 ou 30/60/90">
+                  </div>
+                  <div class="field">
+                    <label><input type="checkbox" id="f-credit_blocked"> Crédito bloqueado</label>
+                  </div>
                   <div class="field">
                     <label for="f-regime">Regime tributário</label>
                     <select class="form-input" id="f-regime">
@@ -324,6 +341,7 @@
 
 <script src="../js/services/AuthService.js"></script>
 <script src="../js/auth/page-boot.js"></script>
+<script src="../js/masks.js"></script>
 <script src="../js/components/DataGrid.js"></script>
 <script>
 (function () {
@@ -420,8 +438,25 @@
     return [pref.city, pref.state].filter(Boolean).join("/") || "—";
   }
 
+  async function loadPriceLists() {
+    const sel = document.getElementById("f-price_list");
+    if (!sel) return;
+    const cur = sel.value;
+    try {
+      const data = await window.api("/api/admin/price-lists");
+      const lists = (data.status === "ok" ? (data.lists || data.price_lists || []) : [])
+        .filter((l) => l.active !== false);
+      sel.innerHTML = '<option value="">— Nenhuma (usa preço base / loja) —</option>' +
+        lists.map((l) =>
+          `<option value="${l.id}">${(l.name || l.id)}${l.code ? " (" + l.code + ")" : ""}</option>`
+        ).join("");
+      if (cur) sel.value = cur;
+    } catch (e) { /* ignore */ }
+  }
+
   async function load() {
     if (grid) grid.setLoading(true);
+    await loadPriceLists();
     const q = roleFilter ? "?role=" + encodeURIComponent(roleFilter) : "";
     const data = await window.api("/api/admin/partners" + q);
     if (data.status !== "ok") {
@@ -800,6 +835,10 @@
     document.getElementById("f-person_type").value = "COMPANY";
     document.getElementById("f-regime").value = "SN";
     document.getElementById("f-contribuinte_icms").value = "1";
+    document.getElementById("f-price_list").value = "";
+    document.getElementById("f-credit_limit").value = "";
+    document.getElementById("f-payment_terms").value = "30";
+    document.getElementById("f-credit_blocked").checked = false;
     document.getElementById("f-ativo").checked = true;
     document.getElementById("pf-code-label").textContent = "Novo";
     document.getElementById("form-error").classList.remove("visible");
@@ -837,6 +876,10 @@
       document.getElementById("f-doc_im").value = docOf(row, "IM");
       document.getElementById("f-regime").value = row.regime || "SN";
       document.getElementById("f-contribuinte_icms").value = row.contribuinte_icms || "1";
+      document.getElementById("f-price_list").value = row.default_price_list_id || "";
+      document.getElementById("f-credit_limit").value = row.credit_limit != null ? row.credit_limit : "";
+      document.getElementById("f-payment_terms").value = row.payment_terms || "30";
+      document.getElementById("f-credit_blocked").checked = !!row.credit_blocked;
       document.getElementById("f-observacao").value = row.observacao || "";
       document.getElementById("f-ativo").checked = row.ativo !== false && row.status !== "INACTIVE";
       addresses = (row.addresses || []).map((a) => ({ ...a, id: a.id || uid() }));
@@ -889,6 +932,10 @@
       addresses: addresses.map((a) => ({ ...a, country: a.country || "BR" })),
       contacts: contacts.slice(),
       bank_accounts: bankAccounts.slice(),
+      default_price_list_id: document.getElementById("f-price_list").value || "",
+      credit_limit: parseFloat(document.getElementById("f-credit_limit").value || "0") || 0,
+      payment_terms: document.getElementById("f-payment_terms").value.trim() || "30",
+      credit_blocked: document.getElementById("f-credit_blocked").checked,
       regime: document.getElementById("f-regime").value,
       contribuinte_icms: document.getElementById("f-contribuinte_icms").value,
       observacao: document.getElementById("f-observacao").value.trim(),

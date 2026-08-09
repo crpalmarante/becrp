@@ -58,7 +58,7 @@ tr:hover td{background:#f5f5f5}
 .result-table td:last-child{text-align:right;font-family:'Courier New',monospace;font-weight:500}
 .result-table .total-row td{font-weight:700;background:#e8eaf6}
 </style>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
@@ -112,11 +112,11 @@ tr:hover td{background:#f5f5f5}
 <div class="form-row"><label>Estrutura:</label>
 <select id="s-estrutura-id"><option value="">Selecionar...</option></select></div>
 <div class="form-row"><label>Salário Base (R$):</label>
-<input type="number" id="s-salario-base" step="0.01" min="0"></div>
+<input type="text" id="s-salario-base" data-mask="moeda" inputmode="decimal" placeholder="R$ 0,00"></div>
 <div class="form-row"><label>Horas Extras:</label>
 <input type="number" id="s-horas-extras" step="0.5" min="0" value="0"></div>
 <div class="form-row"><label>Valor Hora Extra (R$):</label>
-<input type="number" id="s-valor-hora-extra" step="0.01" min="0" value="0"></div>
+<input type="text" id="s-valor-hora-extra" data-mask="moeda" inputmode="decimal" value="0" placeholder="R$ 0,00"></div>
 <div class="form-row"><label>Faltas (dias):</label>
 <input type="number" id="s-faltas" min="0" value="0"></div>
 <div class="form-row"><label>Percentual Vendas (%):</label>
@@ -359,9 +359,9 @@ const estruturaId=document.getElementById('s-estrutura-id').value;
 if(!estruturaId){mostrarToast('Selecione uma estrutura','error');return;}
 const params=new URLSearchParams();
 params.set('estrutura_id',estruturaId);
-params.set('salario_base',document.getElementById('s-salario-base').value||'0');
+params.set('salario_base',Mascaras.limparMoeda(document.getElementById('s-salario-base').value)||'0');
 params.set('horas_extras',document.getElementById('s-horas-extras').value||'0');
-params.set('valor_hora_extra',document.getElementById('s-valor-hora-extra').value||'0');
+params.set('valor_hora_extra',Mascaras.limparMoeda(document.getElementById('s-valor-hora-extra').value)||'0');
 params.set('faltas',document.getElementById('s-faltas').value||'0');
 params.set('percentual_vendas',document.getElementById('s-percentual-vendas').value||'0');
 try{
@@ -393,5 +393,6 @@ carregarEstruturas();
 carregarSelectEstruturas();
 </script>
 <footer style="text-align:center;padding:16px 0;margin-top:32px;font-size:.8rem;color:#999;border-top:1px solid #e0e0e0">Powered by <strong>COBOL</strong> &mdash; Palmarante Loja</footer>
+<script src="../js/masks.js"></script>
 </body>
 </html>

@@ -1,5 +1,19 @@
 # FiscalUI — Parametrização: O Pesadelo da Manutenção
 
+---
+
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 ## O Problema
 
 Um ERP brasileiro depende de **milhares de parâmetros** para funcionar. Cada parâmetro precisa ser configurado, atualizado e mantido. A manutenção disso consome mais tempo que qualquer outra atividade no ERP.

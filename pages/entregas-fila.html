@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Fila de Entregas</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .pc-toolbar .grow { flex:1; min-width:160px; }
+    .cats { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .cat {
+      border:1px solid rgba(255,255,255,.15); background:transparent; color:inherit;
+      padding:8px 12px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600;
+    }
+    .cat.active { background:rgba(20,184,166,.18); border-color:rgba(20,184,166,.45); }
+    .cat .n { opacity:.7; margin-left:6px; }
+    .cat.warn { border-color:rgba(251,191,36,.45); }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; vertical-align:top; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); white-space:nowrap; }
+    .badge.hi { border-color:rgba(251,191,36,.5); color:#fbbf24; }
+    .sub { font-size:12px; opacity:.75; }
+    .act-btns { display:flex; flex-wrap:wrap; gap:4px; }
+    .btn-xs {
+      padding:3px 8px; font-size:11px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.2); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+    .btn-xs.primary { border-color:rgba(20,184,166,.5); }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .chip {
+      padding:6px 10px; border:1px solid rgba(255,255,255,.15); border-radius:6px;
+      font-size:12px; color:inherit; text-decoration:none;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="entregas-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="entregas-dashboard.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Dashboard</span></a>
+      <a class="menu-item active" href="entregas-fila.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Fila</span></a>
+      <a class="menu-item" href="entregas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Pedidos</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Home</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="topbar-title">Entregas — Fila</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Delivery / Queue</div>
+          <h2 class="workspace-title">O que processar agora</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">RFC-18102 — fila dinâmica (projeção). Ordena por emergência → atraso → agenda. Auto-refresh ~30s. Sem baixa de estoque.</p>
+          <div id="msg" class="pc-msg"></div>
+          <div class="chips">
+            <a class="chip" href="entregas-workspace.html">Workspace</a>
+            <a class="chip" href="entregas-dashboard.html">Dashboard</a>
+            <a class="chip" href="entregas.html">Pedidos / Despacho</a>
+          </div>
+          <div class="cats" id="cats"></div>
+          <div class="pc-toolbar">
+            <div class="field grow"><label>Buscar</label><input class="form-input" id="q" placeholder="DO, cliente, motorista…"></div>
+            <div class="field"><label>Fonte</label><select class="form-input" id="filtro-fonte"><option value="">Todas</option></select></div>
+            <div class="field"><label>Prioridade</label>
+              <select class="form-input" id="filtro-prio">
+                <option value="">Todas</option>
+                <option value="emergency">Emergência</option>
+                <option value="high">Alta</option>
+                <option value="normal">Normal</option>
+                <option value="low">Baixa</option>
+              </select>
+            </div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+          </div>
+          <table class="pc-table">
+            <thead>
+              <tr>
+                <th>Prio</th><th>Entrega</th><th>Cliente / Destino</th>
+                <th>Agenda</th><th>Status</th><th>Motorista</th><th>Despacho</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let perms = { pode_escrever: false };
+  let categoria = "all_open";
+  let timer = null;
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  async function doAction(id, action, extra) {
+    const body = Object.assign({ action: action }, extra || {});
+    const res = await AuthService.api("/api/admin/delivery/queue/" + encodeURIComponent(id), {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    const label = (res.order && res.order.status_label)
+      || (res.dispatch && res.dispatch.id)
+      || (res.slot && res.slot.id)
+      || action;
+    msg(id + " → " + label, true);
+    load();
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    qs.set("categoria", categoria);
+    const fonte = document.getElementById("filtro-fonte").value;
+    const prio = document.getElementById("filtro-prio").value;
+    const q = document.getElementById("q").value.trim();
+    if (fonte) qs.set("fonte", fonte);
+    if (prio) qs.set("prioridade", prio);
+    if (q) qs.set("q", q);
+
+    const data = await AuthService.api("/api/delivery/queue?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha", false);
+    perms = data.permissoes || perms;
+
+    document.getElementById("meta").textContent =
+      (data.filtrado || 0) + " na fila · " + (data.total_aberto || 0) + " abertas · " +
+      (data.gerado_em || "").replace("T", " ") +
+      " · perfil " + ((data.permissoes && data.permissoes.role) || "—");
+
+    const fontes = data.fontes || [];
+    const sel = document.getElementById("filtro-fonte");
+    const cur = fonte;
+    sel.innerHTML = '<option value="">Todas</option>' +
+      fontes.map((f) => `<option value="${f}">${f}</option>`).join("");
+    sel.value = cur;
+
+    document.getElementById("cats").innerHTML = (data.categorias || []).map((c) => {
+      const warn = c.id === "exceptions" && c.count ? " warn" : "";
+      const active = c.id === (data.categoria || categoria) ? " active" : "";
+      return `<button type="button" class="cat${active}${warn}" data-cat="${c.id}">${c.label}<span class="n">${c.count || 0}</span></button>`;
+    }).join("");
+    document.querySelectorAll("[data-cat]").forEach((btn) => {
+      btn.onclick = () => { categoria = btn.dataset.cat; load(); };
+    });
+
+    const rows = data.items || [];
+    const tb = document.getElementById("rows");
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="8" style="opacity:.6;padding:28px;text-align:center">Fila vazia nesta categoria</td></tr>';
+    } else {
+      tb.innerHTML = rows.map((r) => {
+        const prioCls = (r.prioridade === "emergency" || r.prioridade === "high" || r.atrasada) ? " hi" : "";
+        let acts = '<div class="act-btns">';
+        acts += `<a class="btn-xs" href="entregas.html">Abrir</a>`;
+        if (perms.pode_escrever && r.acao_rapida) {
+          acts += `<button type="button" class="btn-xs primary" data-act="${r.acao_rapida.action}" data-id="${r.id}">${r.acao_rapida.label}</button>`;
+        }
+        if (perms.pode_escrever) {
+          acts += `<button type="button" class="btn-xs" data-act="priority" data-id="${r.id}">Prio</button>`;
+        }
+        acts += "</div>";
+        return `<tr>
+          <td><span class="badge${prioCls}">${r.prioridade_label || r.prioridade}</span>
+            ${r.atrasada ? '<div class="sub">ATRASADA</div>' : ""}</td>
+          <td><strong>${r.id}</strong><div class="sub">${r.origem_ref || ""} · ${r.progresso || ""}</div></td>
+          <td>${r.parceiro || "—"}<div class="sub">${r.destino || r.regiao || ""}</div></td>
+          <td>${r.data_agendada || "—"}<div class="sub">${r.janela || ""}</div></td>
+          <td><span class="badge">${r.status_label || r.status}</span>
+            <div class="sub">${r.categoria_label || ""}</div></td>
+          <td>${r.motorista || "—"}<div class="sub">${r.veiculo || r.tracking_status_label || ""}</div></td>
+          <td class="sub">${r.dispatch_id || "—"}</td>
+          <td>${acts}</td>
+        </tr>`;
+      }).join("");
+
+      tb.querySelectorAll("[data-act]").forEach((btn) => {
+        btn.onclick = async () => {
+          const act = btn.dataset.act;
+          const id = btn.dataset.id;
+          const extra = {};
+          if (act === "assign") {
+            extra.motorista = prompt("Motorista:", "Carlos Motorista") || "";
+            extra.veiculo = prompt("Veículo:", "ABC1D23") || "";
+            extra.recurso_id = "DRV-01";
+            if (!extra.motorista.trim()) return msg("Motorista obrigatório", false);
+          }
+          if (act === "priority") {
+            extra.prioridade = prompt("Prioridade (emergency|high|normal|low):", "high") || "";
+            if (!extra.prioridade.trim()) return;
+          }
+          if (act === "cancel") {
+            extra.motivo = prompt("Motivo:") || "";
+            if (!extra.motivo.trim()) return msg("Motivo obrigatório", false);
+          }
+          if (act === "reschedule") {
+            extra.motivo = prompt("Motivo do reagendamento:", "atraso operacional") || "reagendamento";
+          }
+          await doAction(id, act, extra);
+        };
+      });
+    }
+
+    const sec = (data.meta && data.meta.refresh_seconds) || 30;
+    if (timer) clearInterval(timer);
+    timer = setInterval(load, sec * 1000);
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("filtro-fonte").onchange = load;
+  document.getElementById("filtro-prio").onchange = load;
+  document.getElementById("q").onkeydown = (e) => { if (e.key === "Enter") load(); };
+  load();
+})();
+</script>
+</body>
+</html>

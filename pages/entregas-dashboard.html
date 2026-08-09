@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Entregas Dashboard</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:120px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-bottom:16px; }
+    .kpi {
+      display:block; padding:12px; border:1px solid rgba(255,255,255,.12);
+      border-radius:8px; color:inherit; text-decoration:none;
+    }
+    .kpi:hover { border-color:rgba(20,184,166,.5); }
+    .kpi.high { border-color:rgba(251,191,36,.45); }
+    .kpi .v { font-size:24px; font-weight:700; }
+    .kpi .l { font-size:11px; text-transform:uppercase; opacity:.65; margin-top:4px; }
+    .panels { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:12px; }
+    .panel { padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .panel h3 { margin:0 0 8px; font-size:14px; }
+    .row { display:flex; justify-content:space-between; gap:8px; font-size:13px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+    .sub { font-size:12px; opacity:.7; }
+    .bar-wrap { margin:6px 0 10px; }
+    .bar-label { display:flex; justify-content:space-between; font-size:12px; margin-bottom:2px; }
+    .bar {
+      height:6px; border-radius:3px; background:rgba(255,255,255,.08); overflow:hidden;
+    }
+    .bar > i { display:block; height:100%; background:rgba(20,184,166,.7); }
+    .bar.full > i { background:rgba(251,191,36,.75); }
+    .pc-table { width:100%; border-collapse:collapse; margin-top:8px; }
+    .pc-table th, .pc-table td { padding:6px 8px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:12px; }
+    .sev-high { color:#fbbf24; }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+    .chip {
+      padding:6px 10px; border:1px solid rgba(255,255,255,.15); border-radius:6px;
+      font-size:12px; color:inherit; text-decoration:none;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="entregas-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item active" href="entregas-dashboard.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Dashboard</span></a>
+      <a class="menu-item" href="entregas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Entregas</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Home</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="topbar-title">Entregas — Dashboard</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Delivery / Dashboard</div>
+          <h2 class="workspace-title">Entregas de hoje</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">RFC-18101 — overview operacional (read-only). Workspace age; Analytics cobre histórico. Auto-refresh ~45s.</p>
+          <div id="msg" class="pc-msg"></div>
+          <div class="pc-toolbar">
+            <div class="field"><label>Fonte</label>
+              <select class="form-input" id="filtro-fonte"><option value="">Todas</option></select>
+            </div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+          </div>
+          <div class="chips">
+            <a class="chip" href="entregas-workspace.html">Workspace</a>
+            <a class="chip" href="entregas.html">Pedidos</a>
+            <a class="chip" href="entregas.html">Analytics</a>
+          </div>
+          <div class="kpi-grid" id="kpis"></div>
+          <div class="panels" id="panels"></div>
+          <table class="pc-table">
+            <thead><tr><th>Quando</th><th>Entrega</th><th>Evento</th><th>Detalhe</th></tr></thead>
+            <tbody id="events"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let timer = null;
+
+  function msg(t) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg" + (t ? " err" : "");
+  }
+
+  function pct(v) { return v == null ? "—" : v + "%"; }
+
+  function maxVal(rows) {
+    return Math.max(1, ...(rows || []).map((r) => Number(r.valor || r.entregas || 0)));
+  }
+
+  function statusBars(rows) {
+    const m = maxVal(rows);
+    return (rows || []).map((r) => {
+      const w = Math.round(100 * Number(r.valor || 0) / m);
+      return `<div class="bar-wrap">
+        <div class="bar-label"><span>${r.label || r.id}</span><strong>${r.valor}</strong></div>
+        <div class="bar"><i style="width:${w}%"></i></div>
+      </div>`;
+    }).join("") || '<div class="sub">sem dados</div>';
+  }
+
+  async function load() {
+    msg("");
+    const fonte = document.getElementById("filtro-fonte").value;
+    const qs = fonte ? "?fonte=" + encodeURIComponent(fonte) : "";
+    const data = await AuthService.api("/api/delivery/dashboard" + qs);
+    if (data.status !== "ok") return msg(data.message || "Falha");
+
+    const cx = data.contexto || {};
+    const r = data.resumo || {};
+    document.getElementById("meta").textContent =
+      (cx.fonte || "TODAS") + " · " + (cx.data || "") + " " + (cx.hora || "") +
+      " · no prazo " + pct(r.no_prazo_pct) +
+      " · slots " + pct(r.capacidade_slots_pct) +
+      " · gerado " + (data.gerado_em || "").replace("T", " ");
+
+    const fontes = data.fontes || [];
+    const sel = document.getElementById("filtro-fonte");
+    const cur = fonte;
+    sel.innerHTML = '<option value="">Todas</option>' +
+      fontes.map((f) => `<option value="${f}">${f}</option>`).join("");
+    sel.value = cur;
+
+    document.getElementById("kpis").innerHTML = (data.kpis || []).map((k) =>
+      `<a class="kpi ${k.prioridade || ""}" href="${k.href || "entregas.html"}">
+        <div class="v">${k.valor == null ? "—" : k.valor}</div>
+        <div class="l">${k.titulo}</div>
+      </a>`
+    ).join("");
+
+    const agenda = data.agenda || [];
+    const agendaHtml = agenda.length
+      ? agenda.map((s) => {
+          const full = s.lotado ? " full" : "";
+          const w = s.utilizacao_pct == null ? 0 : s.utilizacao_pct;
+          return `<div class="bar-wrap">
+            <div class="bar-label"><span>${s.periodo_label || s.periodo} ${s.janela}</span>
+              <strong>${s.entregas}/${s.capacidade} · ${pct(s.utilizacao_pct)}</strong></div>
+            <div class="bar${full}"><i style="width:${Math.min(100, w)}%"></i></div>
+          </div>`;
+        }).join("")
+      : '<div class="sub">Sem slots hoje — gere na Agenda</div>';
+
+    const drv = data.motoristas || [];
+    const drvHtml = drv.length
+      ? drv.map((d) => `<div class="row">
+          <span><strong>${d.nome}</strong>
+            <div class="sub">${d.entrega_atual || "livre"} · ${d.parada_atual || ""} · ${d.tracking || d.status_label || ""}</div>
+          </span>
+          <strong>${d.ativas}</strong>
+        </div>`).join("")
+      : '<div class="sub">Sem motoristas</div>';
+
+    const reg = data.regioes || [];
+    const regHtml = reg.length
+      ? reg.map((x) => `<div class="row"><span>${x.regiao}</span><strong>${x.entregas}</strong></div>`).join("")
+      : '<div class="sub">Sem região (informe cidade nas paradas)</div>';
+
+    const al = data.alertas || [];
+    const alHtml = al.length
+      ? al.map((a) => `<div class="row">
+          <span class="${a.severidade === "high" ? "sev-high" : ""}"><strong>${a.id}</strong>
+            <div class="sub">${a.tipo} · ${a.texto || ""}</div></span>
+          <span class="sub">${a.severidade || ""}</span>
+        </div>`).join("")
+      : '<div class="sub">Sem alertas</div>';
+
+    const disp = data.dispatch || {};
+
+    document.getElementById("panels").innerHTML = `
+      <div class="panel"><h3>Status das entregas</h3>${statusBars(data.status)}</div>
+      <div class="panel"><h3>Agenda de hoje</h3>${agendaHtml}</div>
+      <div class="panel"><h3>Atividade dos motoristas</h3>${drvHtml}</div>
+      <div class="panel"><h3>Despacho</h3>
+        <div class="row"><span>Lotes</span><strong>${disp.total || 0}</strong></div>
+        ${statusBars(disp.barras || [])}
+      </div>
+      <div class="panel"><h3>Distribuição regional</h3>${regHtml}</div>
+      <div class="panel"><h3>Alertas</h3>${alHtml}</div>
+    `;
+
+    const ev = data.eventos || [];
+    document.getElementById("events").innerHTML = ev.length
+      ? ev.map((e) => `<tr>
+          <td class="sub">${(e.em || "").replace("T", " ")}</td>
+          <td><strong>${e.entrega_id || "—"}</strong></td>
+          <td>${e.tipo || "—"}</td>
+          <td>${e.mensagem || "—"} <span class="sub">${e.usuario || ""}</span></td>
+        </tr>`).join("")
+      : '<tr><td colspan="4" style="opacity:.6;padding:16px;text-align:center">Sem eventos recentes</td></tr>';
+
+    const sec = (data.meta && data.meta.refresh_seconds) || 45;
+    if (timer) clearInterval(timer);
+    timer = setInterval(load, sec * 1000);
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("filtro-fonte").onchange = load;
+  load();
+})();
+</script>
+</body>
+</html>

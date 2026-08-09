@@ -146,6 +146,21 @@ function hasPermission(id){
     return perms.includes(id);
 }
 
+/* Apps instalados (RFC-1000) — carregado abaixo */
+let installedApps=null; // Set | null = ainda não filtrar por app
+let menuModuleApp={};
+let accountingMenuIds=new Set();
+let setupByApp=new Map(); // app_id → {url,label,required,done} pendente (RFC-0000 §18)
+const baseMenuIds=new Set(["dashboard","cadastros","configuracoes","apps","admin"]);
+
+function hasAppForModule(moduleId){
+    if(!installedApps) return true;
+    if(baseMenuIds.has(moduleId)) return true;
+    const appId=menuModuleApp[moduleId];
+    if(!appId) return true;
+    return installedApps.has(appId);
+}
+
 function filterMenu(items){
     const result=[];
     for(const item of items){
@@ -153,24 +168,71 @@ function filterMenu(items){
             result.push(item);
             continue;
         }
-        if(item.id==="configuracoes"||item.id==="admin"){
+        const appId=menuModuleApp[item.id]||(item.id==="configuracoes"?"accounting":null);
+        let setup=null;
+        if(appId){
+            const s=setupByApp.get(appId);
+            if(s&&!s.done) setup=s;
+        }
+        if(item.id==="configuracoes"||item.id==="admin"||item.id==="apps"){
             if(userData.role==="admin"){
-                result.push(item);
+                let row={...item};
+                if(item.id==="configuracoes"&&item.apps&&installedApps){
+                    row.apps=item.apps.filter(a=>{
+                        if(a.section) return true;
+                        if(accountingMenuIds.has(a.id)) return installedApps.has("accounting");
+                        return true;
+                    });
+                }
+                if(setup) row.setup=setup;
+                result.push(row);
             }
             continue;
         }
+        if(!hasAppForModule(item.id)) continue;
         if(item.apps){
-            const filtered=item.apps.filter(a=>hasPermission(a.id));
+            const filtered=item.apps.filter(a=>{
+                if(a.section) return true;
+                return hasPermission(a.id);
+            });
             if(filtered.length>0){
-                result.push({...item,apps:filtered});
+                const row={...item,apps:filtered};
+                if(setup) row.setup=setup;
+                result.push(row);
             }
         }else{
             if(hasPermission(item.id)){
-                result.push(item);
+                const row={...item};
+                if(setup) row.setup=setup;
+                result.push(row);
             }
         }
     }
     return result;
+}
+
+try{
+    const setupRes=await apiFetch("/api/platform/setup");
+    if(setupRes.status==="ok"&&setupRes.needs_wizard&&userData.role==="admin"){
+        window.location.href="pages/setup-wizard.html";
+    }
+}catch(e){
+    console.warn("platform setup not loaded",e);
+}
+
+try{
+    const appsRes=await apiFetch("/api/apps");
+    if(appsRes.status==="ok"){
+        installedApps=new Set(appsRes.installed||[]);
+        menuModuleApp=appsRes.menu_module_app||{};
+        accountingMenuIds=new Set(appsRes.accounting_menu_ids||[]);
+        setupByApp.clear();
+        for(const p of (appsRes.setup_pending||[])){
+            setupByApp.set(p.app_id,p);
+        }
+    }
+}catch(e){
+    console.warn("apps registry not loaded",e);
 }
 
 window.filteredMenu=filterMenu(menuData);

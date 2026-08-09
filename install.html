@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Instalação</title>
+<meta name="theme-color" content="#714B67">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/variaveis.css">
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/themes.css">
+<link rel="stylesheet" href="css/login.css">
+<style>
+  .login-card { max-width: 480px; }
+  .install-sec {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+    opacity: .55; margin: 16px 0 8px;
+  }
+  .install-note { font-size: 12px; opacity: .65; margin: 0 0 12px; line-height: 1.4; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 520px) { .row2 { grid-template-columns: 1fr; } }
+  .wiz-steps { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .wiz-steps span {
+    font-size:10px; padding:3px 7px; border-radius:4px;
+    border:1px solid rgba(255,255,255,.15); opacity:.5;
+  }
+  .wiz-steps span.on { opacity:1; border-color:rgba(20,184,166,.5); }
+  .wiz-steps span.done { opacity:.85; border-color:rgba(74,222,128,.4); }
+  .panel-step { display:none; }
+  .panel-step.on { display:block; }
+  .actions { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+  .actions .form-btn { flex:1; }
+  .btn-sec {
+    flex:1; min-height:42px; border-radius:6px; cursor:pointer;
+    border:1px solid rgba(255,255,255,.25); background:transparent; color:inherit;
+  }
+  .init-list { list-style:none; padding:0; margin:12px 0; font-size:14px; }
+  .init-list li { padding:6px 0; opacity:.5; }
+  .init-list li.ok { opacity:1; color:#4ade80; }
+  .init-list li.run { opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="login-page">
+  <div class="login-card" id="login-card">
+    <div class="login-inner">
+      <div class="login-header">
+        <span class="brand-icon">✦</span>
+        <h1>BECRP</h1>
+        <p id="install-subtitle">Instalação do zero</p>
+      </div>
+
+      <p class="install-note" id="install-note">
+        RFC-0000 — transforme a plataforma vazia em ambiente pronto.
+        Depois do install você fará login e configurará o negócio.
+      </p>
+
+      <div class="wiz-steps" id="wiz-steps">
+        <span data-s="1">1 Instância</span>
+        <span data-s="2">2 Admin</span>
+        <span data-s="3">3 Localização</span>
+        <span data-s="4">4 Init</span>
+      </div>
+
+      <form class="form" id="install-form" autocomplete="off">
+        <!-- 1 Instance -->
+        <div class="panel-step on" data-panel="1">
+          <div class="install-sec">Business Instance</div>
+          <div class="field">
+            <label for="inst-name">Nome do negócio</label>
+            <input type="text" id="inst-name" placeholder="Ex.: Loja Exemplo" required>
+          </div>
+          <div class="field">
+            <label for="inst-id">Identificador</label>
+            <input type="text" id="inst-id" placeholder="loja_exemplo" readonly style="opacity:.7">
+          </div>
+          <div class="field">
+            <label for="inst-desc">Descrição (opcional)</label>
+            <input type="text" id="inst-desc" placeholder="Produção">
+          </div>
+          <div class="actions">
+            <button type="button" class="form-btn" id="btn-p1">Continuar</button>
+          </div>
+        </div>
+
+        <!-- 2 Admin -->
+        <div class="panel-step" data-panel="2">
+          <div class="install-sec">Administrador da plataforma</div>
+          <div class="field">
+            <label for="setup-name">Nome completo</label>
+            <input type="text" id="setup-name" placeholder="Administrador" required>
+          </div>
+          <div class="field">
+            <label for="setup-user">Usuário / login</label>
+            <input type="text" id="setup-user" placeholder="admin" required autocomplete="username">
+          </div>
+          <div class="field">
+            <label for="setup-email">E-mail</label>
+            <input type="email" id="setup-email" placeholder="admin@empresa.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="setup-pass">Senha</label>
+            <input type="password" id="setup-pass" placeholder="Mínimo 4 caracteres" required autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label for="setup-pass2">Confirmar senha</label>
+            <input type="password" id="setup-pass2" placeholder="Repita a senha" required autocomplete="new-password">
+          </div>
+          <div class="actions">
+            <button type="button" class="btn-sec" id="btn-back2">Voltar</button>
+            <button type="button" class="form-btn" id="btn-p2">Continuar</button>
+          </div>
+        </div>
+
+        <!-- 3 Localization -->
+        <div class="panel-step" data-panel="3">
+          <div class="install-sec">Localização</div>
+          <div class="row2">
+            <div class="field">
+              <label for="loc-country">País</label>
+              <input type="text" id="loc-country" value="BR">
+            </div>
+            <div class="field">
+              <label for="loc-lang">Idioma</label>
+              <input type="text" id="loc-lang" value="pt-BR">
+            </div>
+            <div class="field">
+              <label for="loc-tz">Fuso</label>
+              <input type="text" id="loc-tz" value="America/Sao_Paulo">
+            </div>
+            <div class="field">
+              <label for="loc-cur">Moeda</label>
+              <input type="text" id="loc-cur" value="BRL">
+            </div>
+          </div>
+          <div class="actions">
+            <button type="button" class="btn-sec" id="btn-back3">Voltar</button>
+            <button type="submit" class="form-btn" id="install-btn">Instalar plataforma</button>
+          </div>
+          <div class="form-loading" id="install-loading">
+            <div class="spinner"></div>
+            <span>Instalando…</span>
+          </div>
+        </div>
+
+        <!-- 4 Progress -->
+        <div class="panel-step" data-panel="4">
+          <div class="install-sec">Inicializando</div>
+          <p class="install-note">Preparando a Business Instance…</p>
+          <ul class="init-list" id="init-list"></ul>
+          <p class="install-note" id="init-done" style="display:none;color:#4ade80">
+            Plataforma pronta. Redirecionando para o login…
+          </p>
+        </div>
+
+        <div class="form-error" id="install-error"></div>
+      </form>
+
+      <div class="login-footer" style="text-align:center;margin-top:24px;font-size:12px;color:var(--text-secondary)">
+        Já instalado? <a href="index.html" style="color:inherit">Ir para o login</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/install.js"></script>
+</body>
+</html>

@@ -6,6 +6,18 @@
 
 ---
 
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 Este documento define **o que será construído agora** vs. **o que permanece como visão de futuro**.
 
 Arquitetura conceitual completa (BC-000 a BC-006C) documenta o mapa da cidade.

@@ -221,6 +221,80 @@ body{
 
 }
 
+/*=========================================================
+  MENU SETUP BADGE (RFC-0000 §18)
+=========================================================*/
+
+.menu-setup-badge{
+
+    margin-left:auto;
+
+    flex-shrink:0;
+
+    font-size:var(--font-xs);
+
+    font-weight:var(--font-semibold);
+
+    color:var(--color-warning);
+
+    background:rgba(217,119,6,.15);
+
+    border:1px solid rgba(217,119,6,.45);
+
+    border-radius:var(--radius-sm);
+
+    padding:2px 8px;
+
+    text-decoration:none;
+
+    white-space:nowrap;
+
+    cursor:pointer;
+
+}
+
+.menu-setup-badge.required{
+
+    color:var(--color-danger);
+
+    background:rgba(220,38,38,.12);
+
+    border-color:rgba(220,38,38,.45);
+
+}
+
+.menu-setup-badge:hover{
+
+    color:var(--text-primary);
+
+    background:rgba(217,119,6,.3);
+
+}
+
+.menu-item-simple{
+
+    position:relative;
+
+}
+
+.menu-item-simple .menu-setup-badge{
+
+    position:absolute;
+
+    right:var(--space-4);
+
+    top:50%;
+
+    transform:translateY(-50%);
+
+}
+
+#sidebar.collapsed .menu-setup-badge{
+
+    display:none;
+
+}
+
 #sidebar.collapsed .menu-label{
 
     opacity:0;

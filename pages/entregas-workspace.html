@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Entregas Workspace</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .ctx {
+      display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center;
+      margin-bottom:14px; padding:12px 14px;
+      border:1px solid rgba(255,255,255,.12); border-radius:8px;
+    }
+    .ctx .wh { font-size:18px; font-weight:700; }
+    .ctx .meta { font-size:13px; opacity:.75; }
+    .ctx .tools { display:flex; flex-wrap:wrap; gap:8px; margin-left:auto; align-items:end; }
+    .ctx .field { margin:0; min-width:110px; }
+    .notifs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .notif {
+      font-size:12px; padding:6px 10px; border-radius:6px;
+      border:1px solid rgba(255,255,255,.15);
+    }
+    .notif.warn { border-color:rgba(251,191,36,.5); color:#fbbf24; }
+    .notif.info { border-color:rgba(20,184,166,.4); }
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+    .chip {
+      padding:8px 12px; border:1px solid rgba(255,255,255,.15); border-radius:6px;
+      font-size:12px; color:inherit; text-decoration:none; font-weight:600;
+    }
+    .chip:hover { border-color:rgba(20,184,166,.5); }
+    .sec-title {
+      font-size:11px; text-transform:uppercase; letter-spacing:.04em;
+      opacity:.6; margin:18px 0 8px;
+    }
+    .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; }
+    .card {
+      display:block; padding:14px; border:1px solid rgba(255,255,255,.12);
+      border-radius:8px; color:inherit; text-decoration:none;
+    }
+    .card:hover { border-color:rgba(20,184,166,.5); }
+    .card.high { border-color:rgba(251,191,36,.45); }
+    .card .t { font-weight:700; font-size:14px; }
+    .card .n { font-size:28px; font-weight:700; margin:6px 0 2px; line-height:1; }
+    .card .s { font-size:11px; opacity:.65; }
+    .card .u { font-size:11px; color:#fbbf24; margin-top:4px; }
+    .cal { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; }
+    .cal-day {
+      min-width:88px; padding:10px; border:1px solid rgba(255,255,255,.12);
+      border-radius:8px; font-size:12px;
+    }
+    .cal-day.full { border-color:rgba(251,191,36,.45); }
+    .cal-day .d { font-weight:700; }
+    .grid-main {
+      display:grid; grid-template-columns:1.2fr 1fr; gap:12px; margin-top:4px;
+    }
+    @media (max-width:900px) { .grid-main { grid-template-columns:1fr; } }
+    .panel { padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:8px; margin-bottom:12px; }
+    .panel h3 { margin:0 0 8px; font-size:14px; }
+    .item {
+      display:flex; justify-content:space-between; gap:8px; align-items:center;
+      font-size:13px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .sub { font-size:12px; opacity:.7; }
+    .badge {
+      font-size:11px; padding:2px 6px; border:1px solid rgba(255,255,255,.15);
+      border-radius:4px; white-space:nowrap;
+    }
+    .act-btns { display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
+    .btn-xs {
+      padding:3px 8px; font-size:11px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.2); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+    .btn-xs.primary { border-color:rgba(20,184,166,.5); }
+    .current {
+      padding:14px; border:1px dashed rgba(20,184,166,.4); border-radius:8px;
+      margin-bottom:12px;
+    }
+    .current h3 { margin:0 0 6px; font-size:14px; }
+    .current .prod { font-size:18px; font-weight:700; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="entregas-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="entregas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Entregas</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">WMS Expedição</span></a>
+      <a class="menu-item" href="parceiros.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Parceiros</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="topbar-title">Entregas — Workspace</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Delivery / Workspace</div>
+          <h2 class="workspace-title">O que precisa de atenção agora</h2>
+        </div>
+        <div class="workspace-content">
+          <p class="pc-note">RFC-18100 — cockpit: KPIs · fila · motoristas · ativas · alertas. Não move estoque. Auto-refresh ~45s.</p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="ctx" id="ctx">
+            <div>
+              <div class="wh" id="ctx-wh">—</div>
+              <div class="meta" id="ctx-meta">—</div>
+            </div>
+            <div class="tools">
+              <div class="field"><label>Fonte</label>
+                <select class="form-input" id="filtro-fonte"><option value="">Todas</option></select>
+              </div>
+              <div class="field"><label>Período</label>
+                <select class="form-input" id="filtro-periodo">
+                  <option value="today">Hoje</option>
+                  <option value="tomorrow">Amanhã</option>
+                  <option value="week">Semana</option>
+                  <option value="all">Todos</option>
+                </select>
+              </div>
+              <div class="field"><label>Perfil</label>
+                <select class="form-input" id="filtro-perfil">
+                  <option value="despachante">Despachante</option>
+                  <option value="motorista">Motorista</option>
+                  <option value="supervisor">Supervisor</option>
+                  <option value="gerente">Gerente</option>
+                </select>
+              </div>
+              <div class="field"><label>Motorista</label>
+                <input class="form-input" id="filtro-drv" placeholder="Carlos">
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+            </div>
+          </div>
+
+          <div class="notifs" id="notifs"></div>
+          <div class="chips" id="atalhos"></div>
+
+          <div class="sec-title">Indicadores</div>
+          <div class="cards" id="cards"></div>
+
+          <div id="bloco-foco"></div>
+          <div id="bloco-cal"></div>
+
+          <div class="grid-main">
+            <div>
+              <div class="sec-title" id="sec-fila">Fila de despacho</div>
+              <div id="fila"></div>
+              <div class="sec-title">Entregas ativas</div>
+              <div id="ativos"></div>
+            </div>
+            <div>
+              <div class="sec-title" id="sec-drv">Motoristas</div>
+              <div id="motoristas"></div>
+              <div class="sec-title" id="sec-alertas">Alertas</div>
+              <div id="alertas"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  const uname = auth.user.usuario || auth.user.nome || "";
+  document.getElementById("user-name-display").textContent = auth.user.nome || uname || "Usuário";
+
+  const LS_FONTE = "del_ws_fonte";
+  const LS_PERFIL = "del_ws_perfil";
+  const LS_PERIODO = "del_ws_periodo";
+  document.getElementById("filtro-fonte").value = localStorage.getItem(LS_FONTE) || "";
+  document.getElementById("filtro-perfil").value = localStorage.getItem(LS_PERFIL) || "despachante";
+  document.getElementById("filtro-periodo").value = localStorage.getItem(LS_PERIODO) || "today";
+
+  let perms = { pode_escrever: false };
+  let timer = null;
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function orderRow(r) {
+    const urg = r.urgente || r.atrasada ? ' style="color:#fbbf24"' : "";
+    let acts = `<a class="btn-xs" href="entregas.html">Abrir</a>`;
+    if (perms.pode_escrever && r.acao_rapida) {
+      acts = `<button type="button" class="btn-xs primary" data-kind="order" data-id="${r.id}" data-act="${r.acao_rapida.action}">${r.acao_rapida.label}</button>` + acts;
+    }
+    const sub = [
+      r.parceiro || "",
+      r.data_agendada || "",
+      r.janela || "",
+      r.motorista || "",
+      r.atrasada ? "ATRASADA" : "",
+      r.progresso ? "prog " + r.progresso : "",
+    ].filter(Boolean).join(" · ");
+    return `<div class="item">
+      <div>
+        <a href="entregas.html"${urg}><strong>${r.id}</strong></a>
+        <div class="sub">${sub}</div>
+      </div>
+      <div class="act-btns">
+        <span class="badge">${r.status_label || r.status}</span>
+        ${acts}
+      </div>
+    </div>`;
+  }
+
+  function bindQuick(root) {
+    root.querySelectorAll("[data-kind]").forEach((btn) => {
+      btn.onclick = async () => {
+        const body = {
+          kind: btn.dataset.kind,
+          id: btn.dataset.id,
+          action: btn.dataset.act,
+        };
+        if (btn.dataset.act === "assign") {
+          body.motorista = prompt("Motorista:", document.getElementById("filtro-drv").value || "Carlos Motorista") || "";
+          body.veiculo = prompt("Veículo:", "ABC1D23") || "";
+          body.recurso_id = "DRV-01";
+          if (!body.motorista.trim()) return msg("Motorista obrigatório", false);
+        }
+        if (btn.dataset.act === "cancel") {
+          body.motivo = prompt("Motivo:") || "";
+          if (!body.motivo.trim()) return msg("Motivo obrigatório", false);
+        }
+        const res = await AuthService.api("/api/admin/delivery/workspace", {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        const st = (res.item && (res.item.status_label || res.item.status)) || "ok";
+        msg((res.kind || "") + " → " + st, true);
+        load();
+      };
+    });
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    const fonte = document.getElementById("filtro-fonte").value;
+    const periodo = document.getElementById("filtro-periodo").value;
+    const perfil = document.getElementById("filtro-perfil").value;
+    const drv = document.getElementById("filtro-drv").value.trim();
+    if (fonte) qs.set("fonte", fonte);
+    if (periodo) qs.set("periodo", periodo);
+    if (perfil) qs.set("perfil", perfil);
+    if (drv) qs.set("motorista", drv);
+    localStorage.setItem(LS_FONTE, fonte);
+    localStorage.setItem(LS_PERFIL, perfil);
+    localStorage.setItem(LS_PERIODO, periodo);
+
+    const res = await AuthService.api("/api/delivery/workspace?" + qs.toString());
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    perms = res.permissoes || perms;
+    const lay = res.layout || {};
+    const cx = res.contexto || {};
+
+    const fontes = res.fontes || [];
+    const sel = document.getElementById("filtro-fonte");
+    const cur = fonte;
+    sel.innerHTML = '<option value="">Todas</option>' +
+      fontes.map((f) => `<option value="${f}">${f}</option>`).join("");
+    sel.value = cur;
+
+    document.getElementById("ctx-wh").textContent =
+      (cx.fonte || "TODAS") + " · " + (cx.turno || "");
+    document.getElementById("ctx-meta").textContent =
+      (cx.data || "") + " " + (cx.hora || "") +
+      " · perfil " + (res.perfil || "—") +
+      " · " + (res.periodo || "") +
+      (res.analytics_hoje && res.analytics_hoje.on_time_pct != null
+        ? " · on-time " + res.analytics_hoje.on_time_pct + "%"
+        : "");
+
+    document.getElementById("notifs").innerHTML = (res.notificacoes || []).length
+      ? res.notificacoes.map((n) =>
+          `<span class="notif ${n.nivel || ""}">${n.texto}</span>`).join("")
+      : '<span class="notif info">Operação estável — sem alertas</span>';
+
+    document.getElementById("atalhos").innerHTML = (res.atalhos || []).map((a) =>
+      `<a class="chip" href="${a.href}">${a.label}</a>`
+    ).join("");
+
+    document.getElementById("cards").innerHTML = (res.cards || []).map((c) => {
+      const u = (c.urgentes || 0) > 0 ? `<div class="u">${c.urgentes} urgente(s)</div>` : "";
+      return `<a class="card ${c.prioridade || ""}" href="${c.href || "entregas.html"}">
+        <div class="t">${c.titulo}</div>
+        <div class="n">${c.valor == null ? "—" : c.valor}</div>
+        <div class="s">${c.sub || ""}</div>${u}
+      </a>`;
+    }).join("");
+
+    const foco = res.foco;
+    const bf = document.getElementById("bloco-foco");
+    if (foco) {
+      const q = foco.acao_rapida;
+      const btn = (perms.pode_escrever && q)
+        ? `<button type="button" class="btn-xs primary" data-kind="order" data-id="${foco.id}" data-act="${q.action}">${q.label}</button>`
+        : "";
+      bf.innerHTML = `<div class="sec-title">Foco agora</div>
+        <div class="current">
+          <h3>${foco.id} · ${foco.status_label || foco.status}</h3>
+          <div class="prod">${foco.parceiro || "—"}</div>
+          <div class="sub">${foco.motivo || ""} · agenda ${foco.data_agendada || "—"} ${foco.janela || ""}
+            · ${foco.motorista || "sem motorista"}</div>
+          <div class="act-btns" style="margin-top:10px">
+            ${btn}
+            <a class="btn-xs" href="entregas.html">Abrir entregas</a>
+          </div>
+        </div>`;
+      bindQuick(bf);
+    } else {
+      bf.innerHTML = "";
+    }
+
+    const bc = document.getElementById("bloco-cal");
+    if (lay.mostrar_calendario !== false) {
+      bc.innerHTML = `<div class="sec-title">Calendário (7 dias)</div>
+        <div class="cal">${(res.calendario || []).map((d) =>
+          `<div class="cal-day ${d.lotado ? "full" : ""}">
+            <div class="d">${d.label}</div>
+            <div class="sub">${d.entregas} DO · ${d.reservados}/${d.capacidade || 0} slots</div>
+          </div>`
+        ).join("")}</div>`;
+    } else {
+      bc.innerHTML = "";
+    }
+
+    const filaEl = document.getElementById("fila");
+    if (lay.mostrar_fila === false) {
+      document.getElementById("sec-fila").style.display = "none";
+      filaEl.innerHTML = "";
+    } else {
+      document.getElementById("sec-fila").style.display = "";
+      const rows = res.fila_despacho || [];
+      filaEl.innerHTML = `<div class="panel"><h3>Pendentes (${rows.length})</h3>${
+        rows.length ? rows.map(orderRow).join("") : '<div class="sub">Fila vazia</div>'
+      }</div>`;
+      bindQuick(filaEl);
+    }
+
+    const at = res.entregas_ativas || [];
+    document.getElementById("ativos").innerHTML = `<div class="panel"><h3>Em execução (${at.length})</h3>${
+      at.length ? at.map(orderRow).join("") : '<div class="sub">Nenhuma ativa</div>'
+    }</div>`;
+    bindQuick(document.getElementById("ativos"));
+
+    const drvEl = document.getElementById("motoristas");
+    if (lay.mostrar_motoristas === false) {
+      document.getElementById("sec-drv").style.display = "none";
+      drvEl.innerHTML = "";
+    } else {
+      document.getElementById("sec-drv").style.display = "";
+      const m = res.motoristas || [];
+      drvEl.innerHTML = `<div class="panel"><h3>Recursos (${m.length})</h3>${
+        m.length
+          ? m.map((d) => `<div class="item">
+              <div><strong>${d.nome}</strong>
+                <div class="sub">${d.id} · ${d.placa || "—"} · ativas ${d.entregas_ativas}
+                  ${d.tarefa_atual ? " · " + d.tarefa_atual : ""}</div>
+              </div>
+              <span class="badge">${d.status_label || d.status}</span>
+            </div>`).join("")
+          : '<div class="sub">Nenhum</div>'
+      }</div>`;
+    }
+
+    const alEl = document.getElementById("alertas");
+    if (lay.mostrar_alertas === false) {
+      document.getElementById("sec-alertas").style.display = "none";
+      alEl.innerHTML = "";
+    } else {
+      document.getElementById("sec-alertas").style.display = "";
+      const al = res.alertas || [];
+      alEl.innerHTML = `<div class="panel"><h3>Operacionais (${al.length})</h3>${
+        al.length
+          ? al.map((a) => `<div class="item">
+              <div><strong>${a.id}</strong><div class="sub">${a.tipo} · ${a.texto || ""}</div></div>
+              <span class="badge">${a.status || a.nivel || ""}</span>
+            </div>`).join("")
+          : '<div class="sub">Nenhum alerta</div>'
+      }</div>`;
+    }
+
+    const sec = (res.meta && res.meta.refresh_seconds) || 45;
+    if (timer) clearInterval(timer);
+    timer = setInterval(load, sec * 1000);
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("filtro-fonte").onchange = load;
+  document.getElementById("filtro-periodo").onchange = load;
+  document.getElementById("filtro-perfil").onchange = load;
+  document.getElementById("filtro-drv").onchange = load;
+  load();
+})();
+</script>
+</body>
+</html>

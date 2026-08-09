@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Entregas</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .pc-toolbar .grow { flex:1; min-width:160px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 10px; }
+    .pc-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin:0 0 16px; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .pc-form .field { margin:0; }
+    .pc-form .actions { display:flex; gap:8px; flex-wrap:wrap; grid-column:1/-1; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; vertical-align:top; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .badge-sa { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); white-space:nowrap; }
+    .sub { font-size:12px; opacity:.75; }
+    .act-btns { display:flex; flex-wrap:wrap; gap:4px; }
+    .tabs { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; }
+    .tab-btn { border:1px solid rgba(255,255,255,.15); background:transparent; color:inherit; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .tab-btn.active { background:rgba(20,184,166,.18); border-color:rgba(20,184,166,.45); }
+    .panel { display:none; }
+    .panel.active { display:block; }
+    .detail { margin-top:12px; padding:12px; border:1px dashed rgba(255,255,255,.15); border-radius:8px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr)); gap:10px; margin-bottom:14px; }
+    .kpi { padding:12px; border:1px solid rgba(255,255,255,.12); border-radius:8px; }
+    .kpi .v { font-size:22px; font-weight:700; }
+    .kpi .l { font-size:11px; text-transform:uppercase; opacity:.65; margin-top:4px; }
+    .an-panels { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+    .an-panel { padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .an-panel h3 { margin:0 0 8px; font-size:14px; }
+    .an-row { display:flex; justify-content:space-between; font-size:13px; padding:3px 0; border-bottom:1px solid rgba(255,255,255,.06); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="entregas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Entregas</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">WMS Expedição</span></a>
+      <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">WMS Workspace</span></a>
+      <a class="menu-item" href="parceiros.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Parceiros</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="topbar-title">Entregas</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Delivery</div>
+          <h2 class="workspace-title">Entrega de mercadorias</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">
+            RFC-18000/18001 — pedido de entrega com paradas (após venda / WMS).
+            Não substitui venda nem fiscal. Ciclo: rascunho → … → em trânsito → entregue.
+          </p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="tabs">
+            <button type="button" class="tab-btn active" data-tab="ord">Pedidos</button>
+            <button type="button" class="tab-btn" data-tab="sch">Agenda</button>
+            <button type="button" class="tab-btn" data-tab="trk">Tracking</button>
+            <button type="button" class="tab-btn" data-tab="pod">POD</button>
+            <button type="button" class="tab-btn" data-tab="an">Analytics</button>
+            <button type="button" class="tab-btn" data-tab="dsp">Despacho</button>
+            <button type="button" class="tab-btn" data-tab="tsk">Tarefas</button>
+            <button type="button" class="tab-btn" data-tab="res">Recursos</button>
+          </div>
+
+          <div class="panel active" id="panel-ord">
+            <div class="pc-form" id="form-ord" hidden>
+              <div class="field"><label>Parceiro</label><input class="form-input" id="f-parc" placeholder="Cliente"></div>
+              <div class="field"><label>Origem (fonte)</label><input class="form-input" id="f-fonte" value="DC-01"></div>
+              <div class="field"><label>Doc. ref</label><input class="form-input" id="f-doc" placeholder="PV-…"></div>
+              <div class="field"><label>Data agendada</label><input class="form-input" id="f-data" type="date"></div>
+              <div class="field"><label>Janela</label>
+                <select class="form-input" id="f-janela">
+                  <option value="">—</option>
+                  <option value="manha">Manhã</option>
+                  <option value="tarde">Tarde</option>
+                  <option value="noite">Noite</option>
+                  <option value="dia">Dia inteiro</option>
+                </select>
+              </div>
+              <div class="field" style="grid-column:span 2"><label>Endereço (parada 1)</label><input class="form-input" id="f-end" placeholder="Rua…"></div>
+              <div class="field"><label>Cidade</label><input class="form-input" id="f-cid"></div>
+              <div class="field"><label>UF</label><input class="form-input" id="f-uf" maxlength="2"></div>
+              <div class="field" style="grid-column:span 2"><label>Itens (produto|qtd)</label>
+                <textarea class="form-input" id="f-itens" rows="2" placeholder="Produto demo|2"></textarea>
+              </div>
+              <div class="field"><label>De expedição WMS</label><select class="form-input" id="f-exp"><option value="">—</option></select></div>
+              <div class="actions">
+                <button class="dialog-btn dialog-btn-primary" id="btn-create">Criar entrega</button>
+                <button class="dialog-btn dialog-btn-secondary" id="btn-from-exp">Gerar da expedição</button>
+              </div>
+            </div>
+            <div class="pc-toolbar">
+              <div class="field grow"><label>Buscar</label><input class="form-input" id="q-ord" placeholder="DO, cliente…"></div>
+              <div class="field"><label>Status</label>
+                <select class="form-input" id="filtro-ord-st">
+                  <option value="">Todos</option>
+                  <option value="draft">Rascunho</option>
+                  <option value="confirmed">Confirmada</option>
+                  <option value="waiting_stock">Aguardando estoque</option>
+                  <option value="ready">Pronta</option>
+                  <option value="assigned">Atribuída</option>
+                  <option value="in_transit">Em trânsito</option>
+                  <option value="delivered">Entregue</option>
+                  <option value="completed">Concluída</option>
+                </select>
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-search-ord">Filtrar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-new-ord" hidden>Nova</button>
+            </div>
+            <table class="pc-table">
+              <thead><tr><th>ID</th><th>Cliente / Doc</th><th>Fonte</th><th>Paradas</th><th>Agenda</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody id="rows-ord"></tbody>
+            </table>
+            <div class="detail" id="ord-detail" hidden></div>
+          </div>
+
+          <div class="panel" id="panel-sch">
+            <p class="pc-note">RFC-18005 — slots de entrega (capacidade por data/janela/origem). Reserva = promise ao cliente. Sem baixa de estoque.</p>
+            <div class="pc-form" id="form-sch" hidden>
+              <div class="field"><label>Data</label><input class="form-input" id="fs-data" type="date"></div>
+              <div class="field"><label>Período</label>
+                <select class="form-input" id="fs-periodo">
+                  <option value="manha">Manhã 08–12</option>
+                  <option value="tarde" selected>Tarde 13–18</option>
+                  <option value="noite">Noite 18–21</option>
+                  <option value="dia">Dia inteiro</option>
+                </select>
+              </div>
+              <div class="field"><label>Fonte</label><input class="form-input" id="fs-fonte" value="DC-01"></div>
+              <div class="field"><label>Capacidade</label><input class="form-input" id="fs-cap" type="number" min="1" value="10"></div>
+              <div class="actions">
+                <button class="dialog-btn dialog-btn-primary" id="btn-create-slot">Criar slot</button>
+                <button class="dialog-btn dialog-btn-secondary" id="btn-gen-week">Gerar semana</button>
+              </div>
+            </div>
+            <div class="pc-toolbar">
+              <div class="field"><label>Fonte</label><input class="form-input" id="q-sch-fonte" value="DC-01" style="width:90px"></div>
+              <div class="field"><label>De</label><input class="form-input" id="q-sch-de" type="date"></div>
+              <div class="field"><label>Até</label><input class="form-input" id="q-sch-ate" type="date"></div>
+              <div class="field"><label>Status</label>
+                <select class="form-input" id="q-sch-st">
+                  <option value="">Todos</option>
+                  <option value="open">Aberto</option>
+                  <option value="full">Lotado</option>
+                  <option value="closed">Fechado</option>
+                </select>
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-search-sch">Filtrar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-new-sch" hidden>Novo</button>
+            </div>
+            <table class="pc-table">
+              <thead><tr><th>Slot</th><th>Janela</th><th>Capacidade</th><th>Reservas</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody id="rows-sch"></tbody>
+            </table>
+            <div class="detail" id="sch-detail" hidden></div>
+          </div>
+
+          <div class="panel" id="panel-trk">
+            <p class="pc-note">RFC-18006 — timeline de execução (eventos + localização opcional). Não cria entrega nem rota. Sem baixa de estoque.</p>
+            <div class="pc-toolbar">
+              <div class="field grow"><label>Buscar</label><input class="form-input" id="q-trk" placeholder="DO, cliente, motorista…"></div>
+              <div class="field"><label>Status</label>
+                <select class="form-input" id="q-trk-st">
+                  <option value="">Todos</option>
+                  <option value="prepared">Preparada</option>
+                  <option value="assigned">Atribuída</option>
+                  <option value="departed">Saiu</option>
+                  <option value="in_transit">Em trânsito</option>
+                  <option value="arrived">No destino</option>
+                  <option value="delivered">Entregue</option>
+                  <option value="failed">Falhou</option>
+                </select>
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-search-trk">Filtrar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-ensure-trk" hidden>Iniciar DO…</button>
+            </div>
+            <table class="pc-table">
+              <thead><tr><th>Entrega</th><th>Cliente</th><th>Tracking</th><th>Último evento</th><th>Local</th><th>Ações</th></tr></thead>
+              <tbody id="rows-trk"></tbody>
+            </table>
+            <div class="detail" id="trk-detail" hidden></div>
+          </div>
+
+          <div class="panel" id="panel-pod">
+            <p class="pc-note">RFC-18007 — prova de entrega por parada (receptor, assinatura, fotos, docs). Conclusão da DO exige POD confirmado. Sem baixa de estoque / sem fiscal.</p>
+            <div class="pc-form" id="form-pod" hidden>
+              <div class="field"><label>Entrega</label><input class="form-input" id="fp-do" placeholder="DO-…"></div>
+              <div class="field"><label>Parada</label><input class="form-input" id="fp-parada" type="number" min="1" value="1"></div>
+              <div class="field"><label>Receptor</label><input class="form-input" id="fp-rec" placeholder="Nome quem recebeu"></div>
+              <div class="field"><label>Entregador</label><input class="form-input" id="fp-ent" placeholder="Motorista"></div>
+              <div class="field"><label>Assinatura (ref)</label><input class="form-input" id="fp-sig" placeholder="assinatura: João"></div>
+              <div class="field"><label>Foto (ref)</label><input class="form-input" id="fp-foto" placeholder="foto-porta.jpg"></div>
+              <div class="field" style="grid-column:span 2"><label>Observação</label><input class="form-input" id="fp-obs"></div>
+              <div class="actions">
+                <button class="dialog-btn dialog-btn-primary" id="btn-create-pod">Criar / garantir POD</button>
+                <button class="dialog-btn dialog-btn-secondary" id="btn-ensure-pods">Gerar PODs da DO</button>
+              </div>
+            </div>
+            <div class="pc-toolbar">
+              <div class="field grow"><label>Buscar</label><input class="form-input" id="q-pod" placeholder="POD, DO, receptor…"></div>
+              <div class="field"><label>Status</label>
+                <select class="form-input" id="q-pod-st">
+                  <option value="">Todos</option>
+                  <option value="waiting">Aguardando</option>
+                  <option value="confirmed">Confirmado</option>
+                  <option value="rejected">Rejeitado</option>
+                  <option value="reviewed">Revisado</option>
+                  <option value="closed">Fechado</option>
+                </select>
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-search-pod">Filtrar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-new-pod" hidden>Novo</button>
+            </div>
+            <table class="pc-table">
+              <thead><tr><th>POD</th><th>Entrega / Parada</th><th>Receptor</th><th>Evidência</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody id="rows-pod"></tbody>
+            </table>
+            <div class="detail" id="pod-detail" hidden></div>
+          </div>
+
+          <div class="panel" id="panel-an">
+            <p class="pc-note">RFC-18008 — somente leitura. Agrega volume, on-time, agenda, POD, recursos e exceções. Não altera operação nem inventa custo de frete.</p>
+            <div class="pc-toolbar">
+              <div class="field"><label>Fonte</label><input class="form-input" id="q-an-fonte" placeholder="DC-01" style="width:90px"></div>
+              <div class="field"><label>De</label><input class="form-input" id="q-an-de" type="date"></div>
+              <div class="field"><label>Até</label><input class="form-input" id="q-an-ate" type="date"></div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-search-an">Atualizar</button>
+            </div>
+            <div class="kpi-grid" id="an-kpis"></div>
+            <div class="an-panels" id="an-panels"></div>
+            <table class="pc-table" style="margin-top:12px">
+              <thead><tr><th>Tipo</th><th>ID</th><th>Nota</th><th>Status</th></tr></thead>
+              <tbody id="an-exc"></tbody>
+            </table>
+          </div>
+
+          <div class="panel" id="panel-dsp">
+            <p class="pc-note">RFC-18003 — lote do dia: agrupa DOs, atribui motorista/veículo, libera tarefas. Sem baixa de estoque.</p>
+            <div class="pc-form" id="form-dsp" hidden>
+              <div class="field"><label>Data</label><input class="form-input" id="fd-data" type="date"></div>
+              <div class="field"><label>Fonte</label><input class="form-input" id="fd-fonte" value="DC-01"></div>
+              <div class="field"><label>Prioridade</label>
+                <select class="form-input" id="fd-prio">
+                  <option value="normal">Normal</option>
+                  <option value="high">Alta</option>
+                  <option value="emergency">Emergência</option>
+                  <option value="low">Baixa</option>
+                </select>
+              </div>
+              <div class="field"><label>Recurso</label><select class="form-input" id="fd-rec"></select></div>
+              <div class="field" style="grid-column:span 2"><label>Entregas (fila)</label>
+                <select class="form-input" id="fd-dos" multiple size="4"></select>
+              </div>
+              <div class="actions">
+                <button class="dialog-btn dialog-btn-primary" id="btn-create-dsp">Criar lote</button>
+              </div>
+            </div>
+            <div class="pc-toolbar">
+              <button class="dialog-btn dialog-btn-primary" id="btn-search-dsp">Atualizar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-new-dsp" hidden>Novo lote</button>
+            </div>
+            <table class="pc-table">
+              <thead><tr><th>ID</th><th>Data</th><th>Entregas</th><th>Recurso</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody id="rows-dsp"></tbody>
+            </table>
+          </div>
+
+          <div class="panel" id="panel-tsk">
+            <div class="pc-toolbar">
+              <div class="field grow"><label>Buscar</label><input class="form-input" id="q-tsk"></div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-search-tsk">Filtrar</button>
+            </div>
+            <table class="pc-table">
+              <thead><tr><th>ID</th><th>Tipo</th><th>Entrega</th><th>Título</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody id="rows-tsk"></tbody>
+            </table>
+          </div>
+
+          <div class="panel" id="panel-res">
+            <div class="pc-form" id="form-res" hidden>
+              <div class="field"><label>Tipo</label>
+                <select class="form-input" id="fr-tipo">
+                  <option value="driver">Motorista</option>
+                  <option value="vehicle">Veículo</option>
+                  <option value="team">Equipe</option>
+                  <option value="carrier">Transportadora</option>
+                </select>
+              </div>
+              <div class="field"><label>Nome</label><input class="form-input" id="fr-nome"></div>
+              <div class="field"><label>Placa</label><input class="form-input" id="fr-placa"></div>
+              <div class="field"><label>Telefone</label><input class="form-input" id="fr-tel"></div>
+              <div class="actions">
+                <button class="dialog-btn dialog-btn-primary" id="btn-create-res">Salvar recurso</button>
+              </div>
+            </div>
+            <div class="pc-toolbar">
+              <button class="dialog-btn dialog-btn-primary" id="btn-search-res">Atualizar</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-new-res" hidden>Novo</button>
+            </div>
+            <table class="pc-table">
+              <thead><tr><th>ID</th><th>Tipo</th><th>Nome</th><th>Placa</th><th>Status</th></tr></thead>
+              <tbody id="rows-res"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/masks.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let perms = { pode_escrever: false };
+  let orders = [];
+  let recursos = [];
+
+  const ACT = {
+    confirm: "Confirmar",
+    wait_stock: "Aguard. estoque",
+    ready: "Pronta",
+    assign: "Atribuir",
+    depart: "Sair p/ entrega",
+    deliver: "Entregar",
+    complete: "Concluir",
+    cancel: "Cancelar",
+  };
+  const TACT = { assign: "Atribuir", start: "Iniciar", complete: "Concluir", fail: "Falhou", cancel: "Cancelar" };
+  const DACT = {
+    plan: "Planejar", assign: "Atribuir", release: "Liberar",
+    start: "Iniciar rota", complete: "Concluir", close: "Fechar", cancel: "Cancelar",
+  };
+  const SACT = { reserve: "Reservar", close: "Fechar", cancel: "Cancelar slot" };
+  const TRACT = {
+    arrived: "Chegou", location: "GPS", note: "Nota", failed: "Falhou",
+  };
+  const PODACT = {
+    capture: "Capturar", confirm: "Confirmar", reject: "Rejeitar",
+    review: "Revisar", close: "Fechar",
+  };
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    btn.onclick = () => {
+      document.querySelectorAll(".tab-btn").forEach((b) => b.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+    };
+  });
+
+  async function loadExps() {
+    try {
+      const data = await AuthService.api("/api/wms/expedicoes");
+      const list = ((data.status === "ok" && data.expedicoes) || []).filter((e) =>
+        ["packing", "loading", "dispatched", "completed"].includes(e.status)
+      );
+      document.getElementById("f-exp").innerHTML =
+        '<option value="">—</option>' +
+        list.map((e) => `<option value="${e.id}">${e.id} · ${e.documento_ref || ""} · ${e.status_label}</option>`).join("");
+    } catch (_) {}
+  }
+
+  function parseItens(text) {
+    return text.split("\n").map((line) => {
+      const p = line.split("|").map((x) => x.trim());
+      if (!p[0]) return null;
+      return { produto: p[0], qtd: Number(p[1] || 1) };
+    }).filter(Boolean);
+  }
+
+  function showDetail(r) {
+    const box = document.getElementById("ord-detail");
+    box.hidden = false;
+    const stops = (r.paradas || []).map((s) => {
+      const itens = (s.itens || []).map((i) => `${i.produto} × ${i.qtd}`).join(", ");
+      return `<tr>
+        <td>${s.parada}</td>
+        <td>${s.rotulo}<div class="sub">${s.endereco || "—"} · ${s.cidade || ""} ${s.uf || ""}</div></td>
+        <td>${s.address_type || "SHIPPING"}</td>
+        <td>${itens}</td>
+        <td><span class="badge-sa">${s.status_label || s.status}</span></td>
+      </tr>`;
+    }).join("");
+    box.innerHTML = `<strong>${r.id}</strong> · ${r.parceiro} · motorista ${r.motorista || "—"} / ${r.veiculo || "—"}
+      <div class="sub">${r.observacao || ""} · exp ${r.expedicao_id || "—"}</div>
+      <table class="pc-table" style="margin-top:8px">
+        <thead><tr><th>#</th><th>Parada</th><th>Tipo end.</th><th>Itens</th><th>Status</th></tr></thead>
+        <tbody>${stops}</tbody>
+      </table>
+      ${perms.pode_escrever ? `<button class="dialog-btn dialog-btn-secondary" id="btn-gen-tasks" data-id="${r.id}" style="margin-top:8px">Gerar tarefas</button>` : ""}`;
+    const g = document.getElementById("btn-gen-tasks");
+    if (g) {
+      g.onclick = async () => {
+        const res = await AuthService.api("/api/admin/delivery/tarefas/gerar", {
+          method: "POST",
+          body: JSON.stringify({ entrega_id: g.dataset.id }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg((res.geradas || 0) + " tarefa(s) · " + (res.message || ""), true);
+        loadTsk();
+      };
+    }
+  }
+
+  async function loadOrd() {
+    msg("");
+    const qs = new URLSearchParams();
+    const q = document.getElementById("q-ord").value.trim();
+    const st = document.getElementById("filtro-ord-st").value;
+    if (q) qs.set("q", q);
+    if (st) qs.set("status", st);
+    const data = await AuthService.api("/api/delivery/orders?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha", false);
+    perms = data.permissoes || perms;
+    document.getElementById("form-ord").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new-ord").hidden = !perms.pode_escrever;
+    document.getElementById("form-res").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new-res").hidden = !perms.pode_escrever;
+    document.getElementById("form-dsp").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new-dsp").hidden = !perms.pode_escrever;
+    document.getElementById("form-sch").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new-sch").hidden = !perms.pode_escrever;
+    document.getElementById("btn-ensure-trk").hidden = !perms.pode_escrever;
+    document.getElementById("form-pod").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new-pod").hidden = !perms.pode_escrever;
+    orders = data.orders || [];
+    document.getElementById("meta").textContent =
+      (data.filtrado || 0) + "/" + (data.total || 0) + " entregas · perfil " +
+      ((data.permissoes && data.permissoes.role) || "—");
+
+    const tb = document.getElementById("rows-ord");
+    if (!orders.length) {
+      tb.innerHTML = '<tr><td colspan="7" style="opacity:.6;padding:24px;text-align:center">Nenhuma entrega</td></tr>';
+      return;
+    }
+    tb.innerHTML = orders.map((r) => {
+      const id = encodeURIComponent(r.id);
+      let acts = `<div class="act-btns"><button class="dialog-btn dialog-btn-secondary" data-view="${id}" style="padding:3px 8px;font-size:11px">Paradas</button>`;
+      (r.acoes || []).forEach((a) => {
+        if (!perms.pode_escrever) return;
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-act="${a}" data-id="${id}" style="padding:3px 8px;font-size:11px">${ACT[a] || a}</button>`;
+      });
+      acts += "</div>";
+      return `<tr>
+        <td><strong>${r.id}</strong></td>
+        <td>${r.parceiro}<div class="sub">${r.origem_ref || ""}</div></td>
+        <td>${r.fonte}</td>
+        <td>${r.paradas_count || 0} / ${r.itens_count || 0} itens</td>
+        <td>${r.data_agendada || "—"}<div class="sub">${r.janela || ""}${r.slot_id ? " · " + r.slot_id : ""}${r.scheduling_status ? " · " + r.scheduling_status : ""}</div></td>
+        <td><span class="badge-sa">${r.status_label || r.status}</span></td>
+        <td>${acts}</td>
+      </tr>`;
+    }).join("");
+
+    tb.querySelectorAll("[data-view]").forEach((btn) => {
+      btn.onclick = () => {
+        const r = orders.find((x) => x.id === decodeURIComponent(btn.dataset.view));
+        if (r) showDetail(r);
+      };
+    });
+    tb.querySelectorAll("[data-act]").forEach((btn) => {
+      btn.onclick = async () => {
+        const body = { action: btn.dataset.act };
+        if (btn.dataset.act === "cancel") {
+          body.motivo = prompt("Motivo:") || "";
+          if (!body.motivo.trim()) return msg("Motivo obrigatório", false);
+        }
+        if (btn.dataset.act === "assign") {
+          const drv = (recursos.find((x) => x.tipo === "driver") || {}).nome || "Carlos Motorista";
+          body.motorista = prompt("Motorista:", drv) || "";
+          body.veiculo = prompt("Veículo:", "ABC1D23") || "";
+          body.recurso_id = (recursos.find((x) => x.tipo === "driver") || {}).id || "";
+          if (!body.motorista.trim()) return msg("Motorista obrigatório", false);
+        }
+        const res = await AuthService.api("/api/admin/delivery/orders/" + btn.dataset.id, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Entrega → " + (res.order && res.order.status_label), true);
+        loadOrd();
+      };
+    });
+  }
+
+  async function loadTsk() {
+    const q = document.getElementById("q-tsk").value.trim();
+    const qs = q ? "?q=" + encodeURIComponent(q) : "";
+    const data = await AuthService.api("/api/delivery/tarefas" + qs);
+    if (data.status !== "ok") return;
+    const rows = data.tarefas || [];
+    const tb = document.getElementById("rows-tsk");
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Nenhuma tarefa</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((r) => {
+      const id = encodeURIComponent(r.id);
+      let acts = '<div class="act-btns">';
+      (r.acoes || []).forEach((a) => {
+        if (!perms.pode_escrever) return;
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-tact="${a}" data-id="${id}" style="padding:3px 8px;font-size:11px">${TACT[a] || a}</button>`;
+      });
+      acts += "</div>";
+      return `<tr>
+        <td><strong>${r.id}</strong></td>
+        <td>${r.tipo_label || r.tipo}</td>
+        <td>${r.entrega_id}<div class="sub">parada ${r.parada || "—"}</div></td>
+        <td>${r.titulo}</td>
+        <td><span class="badge-sa">${r.status_label || r.status}</span></td>
+        <td>${acts}</td>
+      </tr>`;
+    }).join("");
+    tb.querySelectorAll("[data-tact]").forEach((btn) => {
+      btn.onclick = async () => {
+        const body = { action: btn.dataset.tact };
+        if (btn.dataset.tact === "assign") body.operador = prompt("Operador:", auth.user.usuario || "") || "";
+        if (btn.dataset.tact === "cancel" || btn.dataset.tact === "fail") {
+          body.motivo = prompt("Motivo:") || "";
+          if (!body.motivo.trim()) return msg("Motivo obrigatório", false);
+        }
+        const res = await AuthService.api("/api/admin/delivery/tarefas/" + btn.dataset.id, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Tarefa → " + (res.tarefa && res.tarefa.status_label), true);
+        loadTsk();
+      };
+    });
+  }
+
+  function showSchDetail(r) {
+    const box = document.getElementById("sch-detail");
+    box.hidden = false;
+    const books = (r.reservas || []).map((b) =>
+      `<tr>
+        <td>${b.entrega_id}</td>
+        <td>${b.parceiro || "—"}</td>
+        <td><span class="badge-sa">${b.status_label || b.status}</span></td>
+        <td>${b.motivo || "—"}</td>
+        ${perms.pode_escrever && b.status !== "cancelled"
+          ? `<td><button class="dialog-btn dialog-btn-secondary" data-book-cancel="${encodeURIComponent(r.id)}" data-eid="${encodeURIComponent(b.entrega_id)}" style="padding:3px 8px;font-size:11px">Liberar</button>
+             <button class="dialog-btn dialog-btn-secondary" data-book-confirm="${encodeURIComponent(r.id)}" data-eid="${encodeURIComponent(b.entrega_id)}" style="padding:3px 8px;font-size:11px">Confirmar</button></td>`
+          : "<td>—</td>"}
+      </tr>`
+    ).join("");
+    box.innerHTML = `<strong>${r.id}</strong> · promise <em>${r.promise || ""}</em> · ${r.fonte}
+      <div class="sub">${r.observacao || ""} · ${r.booked || 0}/${r.capacidade || 0} usados · ${r.disponivel || 0} livres</div>
+      <table class="pc-table" style="margin-top:8px">
+        <thead><tr><th>Entrega</th><th>Parceiro</th><th>Status</th><th>Motivo</th><th></th></tr></thead>
+        <tbody>${books || '<tr><td colspan="5" style="opacity:.6">Sem reservas</td></tr>'}</tbody>
+      </table>`;
+    box.querySelectorAll("[data-book-cancel]").forEach((btn) => {
+      btn.onclick = async () => {
+        const motivo = prompt("Motivo da liberação:") || "";
+        if (!motivo.trim()) return msg("Motivo obrigatório", false);
+        const res = await AuthService.api("/api/admin/delivery/scheduling/" + btn.dataset.bookCancel, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "cancel_booking",
+            entrega_id: decodeURIComponent(btn.dataset.eid),
+            motivo,
+          }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Reserva liberada", true);
+        loadSch();
+        loadOrd();
+      };
+    });
+    box.querySelectorAll("[data-book-confirm]").forEach((btn) => {
+      btn.onclick = async () => {
+        const res = await AuthService.api("/api/admin/delivery/scheduling/" + btn.dataset.bookConfirm, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "confirm",
+            entrega_id: decodeURIComponent(btn.dataset.eid),
+          }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Promise confirmada", true);
+        loadSch();
+        loadOrd();
+      };
+    });
+  }
+
+  async function loadSch() {
+    const qs = new URLSearchParams();
+    const fonte = document.getElementById("q-sch-fonte").value.trim();
+    const de = document.getElementById("q-sch-de").value;
+    const ate = document.getElementById("q-sch-ate").value;
+    const st = document.getElementById("q-sch-st").value;
+    if (fonte) qs.set("fonte", fonte);
+    if (de) qs.set("data_de", de);
+    if (ate) qs.set("data_ate", ate);
+    if (st) qs.set("status", st);
+    const data = await AuthService.api("/api/delivery/scheduling?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha agenda", false);
+    perms = data.permissoes || perms;
+    document.getElementById("form-sch").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new-sch").hidden = !perms.pode_escrever;
+    if (!document.getElementById("fs-data").value) {
+      document.getElementById("fs-data").value = new Date().toISOString().slice(0, 10);
+    }
+    const rows = data.slots || [];
+    const tb = document.getElementById("rows-sch");
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Nenhum slot</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((r) => {
+      const id = encodeURIComponent(r.id);
+      let acts = `<div class="act-btns"><button class="dialog-btn dialog-btn-secondary" data-sview="${id}" style="padding:3px 8px;font-size:11px">Detalhe</button>`;
+      (r.acoes || []).forEach((a) => {
+        if (!perms.pode_escrever) return;
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-sact="${a}" data-id="${id}" style="padding:3px 8px;font-size:11px">${SACT[a] || a}</button>`;
+      });
+      if (perms.pode_escrever && r.status === "open") {
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-sres="${id}" style="padding:3px 8px;font-size:11px">Reagendar DO…</button>`;
+      }
+      acts += "</div>";
+      const bookPreview = (r.reservas || [])
+        .filter((b) => b.status !== "cancelled")
+        .map((b) => b.entrega_id)
+        .slice(0, 3)
+        .join(", ");
+      return `<tr>
+        <td><strong>${r.id}</strong><div class="sub">${r.fonte} · ${r.tipo || ""}</div></td>
+        <td>${r.data}<div class="sub">${r.periodo_label || r.periodo} ${r.inicio || ""}–${r.fim || ""}</div></td>
+        <td>${r.booked || 0}/${r.capacidade || 0}<div class="sub">${r.disponivel || 0} livres</div></td>
+        <td>${r.reservas_ativas || 0}<div class="sub">${bookPreview || "—"}</div></td>
+        <td><span class="badge-sa">${r.status_label || r.status}</span></td>
+        <td>${acts}</td>
+      </tr>`;
+    }).join("");
+
+    tb.querySelectorAll("[data-sview]").forEach((btn) => {
+      btn.onclick = () => {
+        const r = rows.find((x) => x.id === decodeURIComponent(btn.dataset.sview));
+        if (r) showSchDetail(r);
+      };
+    });
+    tb.querySelectorAll("[data-sact]").forEach((btn) => {
+      btn.onclick = async () => {
+        const act = btn.dataset.sact;
+        const body = { action: act };
+        if (act === "reserve") {
+          const eid = prompt("ID da entrega (DO-…):", (orders[0] && orders[0].id) || "") || "";
+          if (!eid.trim()) return msg("Informe a entrega", false);
+          body.entrega_id = eid.trim();
+          body.status = "scheduled";
+        }
+        if (act === "cancel" || act === "close") {
+          body.motivo = prompt("Motivo:") || (act === "close" ? "fechado" : "");
+          if (act === "cancel" && !body.motivo.trim()) return msg("Motivo obrigatório", false);
+        }
+        const res = await AuthService.api("/api/admin/delivery/scheduling/" + btn.dataset.id, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Slot → " + (res.slot && res.slot.status_label), true);
+        loadSch();
+        loadOrd();
+      };
+    });
+    tb.querySelectorAll("[data-sres]").forEach((btn) => {
+      btn.onclick = async () => {
+        const eid = prompt("Reagendar entrega (DO-…):") || "";
+        if (!eid.trim()) return;
+        const motivo = prompt("Motivo:", "pedido do cliente") || "reagendamento";
+        const res = await AuthService.api("/api/admin/delivery/scheduling/" + btn.dataset.sres, {
+          method: "POST",
+          body: JSON.stringify({
+            action: "reschedule",
+            entrega_id: eid.trim(),
+            novo_slot_id: decodeURIComponent(btn.dataset.sres),
+            motivo,
+          }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Reagendado → " + (res.slot && res.slot.id), true);
+        loadSch();
+        loadOrd();
+      };
+    });
+  }
+
+  function showTrkDetail(r) {
+    const box = document.getElementById("trk-detail");
+    box.hidden = false;
+    const tl = (r.events || []).map((e) =>
+      `<tr>
+        <td class="sub">${(e.em || "").replace("T", " ")}</td>
+        <td>${e.tipo_label || e.tipo}</td>
+        <td>${e.mensagem || "—"}${e.parada != null ? ' <span class="sub">parada ' + e.parada + "</span>" : ""}</td>
+        <td class="sub">${e.usuario || "—"}</td>
+      </tr>`
+    ).join("");
+    const cust = r.customer || {};
+    box.innerHTML = `<strong>${r.entrega_id}</strong> · ${r.parceiro || "—"} ·
+      <span class="badge-sa">${r.status_label || r.status}</span>
+      <div class="sub">DO ${r.order_status_label || "—"} · motorista ${r.motorista || "—"} / ${r.veiculo || "—"}
+        · agenda ${r.data_agendada || "—"} ${r.janela || ""}</div>
+      <div class="sub" style="margin-top:6px">Cliente vê: <em>${cust.status_label || "—"}</em>
+        ${(cust.timeline || []).length} eventos públicos</div>
+      <table class="pc-table" style="margin-top:8px">
+        <thead><tr><th>Quando</th><th>Evento</th><th>Detalhe</th><th>User</th></tr></thead>
+        <tbody>${tl || '<tr><td colspan="4" style="opacity:.6">Sem eventos</td></tr>'}</tbody>
+      </table>`;
+  }
+
+  async function loadTrk() {
+    const qs = new URLSearchParams();
+    const q = document.getElementById("q-trk").value.trim();
+    const st = document.getElementById("q-trk-st").value;
+    if (q) qs.set("q", q);
+    if (st) qs.set("status", st);
+    const data = await AuthService.api("/api/delivery/tracking?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha tracking", false);
+    perms = data.permissoes || perms;
+    document.getElementById("btn-ensure-trk").hidden = !perms.pode_escrever;
+    const rows = data.tracks || [];
+    const tb = document.getElementById("rows-trk");
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Nenhum tracking</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((r) => {
+      const id = encodeURIComponent(r.entrega_id || r.id);
+      const last = r.last_event || {};
+      let acts = `<div class="act-btns"><button class="dialog-btn dialog-btn-secondary" data-tview="${id}" style="padding:3px 8px;font-size:11px">Timeline</button>`;
+      (r.acoes || []).forEach((a) => {
+        if (!perms.pode_escrever) return;
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-tact2="${a}" data-id="${id}" style="padding:3px 8px;font-size:11px">${TRACT[a] || a}</button>`;
+      });
+      acts += "</div>";
+      const loc = (r.last_lat != null && r.last_lng != null)
+        ? `${r.last_lat}, ${r.last_lng}`
+        : "—";
+      return `<tr>
+        <td><strong>${r.entrega_id}</strong><div class="sub">${r.id || ""}</div></td>
+        <td>${r.parceiro || "—"}<div class="sub">${r.origem_ref || ""}</div></td>
+        <td><span class="badge-sa">${r.status_label || r.status}</span><div class="sub">${r.order_status_label || ""}</div></td>
+        <td>${last.tipo_label || last.tipo || "—"}<div class="sub">${(last.em || "").replace("T", " ")}</div></td>
+        <td class="sub">${loc}</td>
+        <td>${acts}</td>
+      </tr>`;
+    }).join("");
+
+    tb.querySelectorAll("[data-tview]").forEach((btn) => {
+      btn.onclick = () => {
+        const r = rows.find((x) => (x.entrega_id || x.id) === decodeURIComponent(btn.dataset.tview));
+        if (r) showTrkDetail(r);
+      };
+    });
+    tb.querySelectorAll("[data-tact2]").forEach((btn) => {
+      btn.onclick = async () => {
+        const act = btn.dataset.tact2;
+        const body = { action: act, entrega_id: decodeURIComponent(btn.dataset.id) };
+        if (act === "note") {
+          body.mensagem = prompt("Observação:") || "";
+          if (!body.mensagem.trim()) return;
+        }
+        if (act === "failed") {
+          body.mensagem = prompt("Motivo da falha:") || "";
+          if (!body.mensagem.trim()) return msg("Motivo obrigatório", false);
+        }
+        if (act === "location") {
+          body.lat = prompt("Latitude:", "-28.26") || "";
+          body.lng = prompt("Longitude:", "-52.40") || "";
+          if (!body.lat || !body.lng) return msg("Lat/Lng obrigatórios", false);
+          body.mensagem = "GPS manual";
+        }
+        if (act === "arrived") {
+          body.mensagem = "Chegou no destino";
+        }
+        const res = await AuthService.api("/api/admin/delivery/tracking/" + btn.dataset.id, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Evento · " + (res.track && res.track.status_label), true);
+        loadTrk();
+      };
+    });
+  }
+
+  function showPodDetail(r) {
+    const box = document.getElementById("pod-detail");
+    box.hidden = false;
+    const evs = (r.evidencias || []).map((e) =>
+      `<tr><td class="sub">${(e.em || "").replace("T", " ")}</td><td>${e.tipo}</td><td>${e.ref || "—"}</td><td class="sub">${e.usuario || ""}</td></tr>`
+    ).join("");
+    box.innerHTML = `<strong>${r.id}</strong> · ${r.entrega_id} parada ${r.parada}
+      · <span class="badge-sa">${r.status_label || r.status}</span>
+      <div class="sub">${r.parceiro || ""} · ${r.parada_rotulo || ""} · ${r.parada_endereco || ""}</div>
+      <div class="sub">Receptor: ${r.receptor_nome || "—"} · Entregador: ${r.entregador || "—"}
+        · conf ${ (r.confirmado_em || "").replace("T", " ") || "—" }</div>
+      <div class="sub">Assinatura: ${r.assinatura || "—"} · Fotos: ${(r.fotos || []).join(", ") || "—"}
+        · Docs: ${(r.documentos || []).join(", ") || "—"}</div>
+      <div class="sub">${r.observacao || ""}${r.motivo_rejeicao ? " · rejeição: " + r.motivo_rejeicao : ""}</div>
+      <table class="pc-table" style="margin-top:8px">
+        <thead><tr><th>Quando</th><th>Tipo</th><th>Ref</th><th>User</th></tr></thead>
+        <tbody>${evs || '<tr><td colspan="4" style="opacity:.6">Sem evidências</td></tr>'}</tbody>
+      </table>`;
+  }
+
+  async function loadPod() {
+    const qs = new URLSearchParams();
+    const q = document.getElementById("q-pod").value.trim();
+    const st = document.getElementById("q-pod-st").value;
+    if (q) qs.set("q", q);
+    if (st) qs.set("status", st);
+    const data = await AuthService.api("/api/delivery/pod?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha POD", false);
+    perms = data.permissoes || perms;
+    document.getElementById("form-pod").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new-pod").hidden = !perms.pode_escrever;
+    const rows = data.pods || [];
+    const tb = document.getElementById("rows-pod");
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Nenhum POD</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((r) => {
+      const id = encodeURIComponent(r.id);
+      let acts = `<div class="act-btns"><button class="dialog-btn dialog-btn-secondary" data-pview="${id}" style="padding:3px 8px;font-size:11px">Detalhe</button>`;
+      (r.acoes || []).forEach((a) => {
+        if (!perms.pode_escrever) return;
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-pact="${a}" data-id="${id}" style="padding:3px 8px;font-size:11px">${PODACT[a] || a}</button>`;
+      });
+      acts += "</div>";
+      const ev = [
+        r.tem_assinatura ? "assinatura" : "",
+        (r.fotos_count || 0) ? r.fotos_count + " foto(s)" : "",
+        (r.documentos_count || 0) ? r.documentos_count + " doc(s)" : "",
+      ].filter(Boolean).join(" · ") || "—";
+      return `<tr>
+        <td><strong>${r.id}</strong></td>
+        <td>${r.entrega_id}<div class="sub">parada ${r.parada} · ${r.parada_rotulo || ""}</div></td>
+        <td>${r.receptor_nome || "—"}<div class="sub">${r.entregador || ""}</div></td>
+        <td class="sub">${ev}</td>
+        <td><span class="badge-sa">${r.status_label || r.status}</span></td>
+        <td>${acts}</td>
+      </tr>`;
+    }).join("");
+
+    tb.querySelectorAll("[data-pview]").forEach((btn) => {
+      btn.onclick = () => {
+        const r = rows.find((x) => x.id === decodeURIComponent(btn.dataset.pview));
+        if (r) showPodDetail(r);
+      };
+    });
+    tb.querySelectorAll("[data-pact]").forEach((btn) => {
+      btn.onclick = async () => {
+        const act = btn.dataset.pact;
+        const body = { action: act };
+        if (act === "confirm" || act === "capture") {
+          body.receptor_nome = prompt("Receptor:", "Cliente") || "";
+          body.entregador = prompt("Entregador:", "Carlos Motorista") || "";
+          if (act === "confirm" && !body.receptor_nome.trim()) return msg("Receptor obrigatório", false);
+          const sig = prompt("Assinatura (ref opcional):", "assinatura:cliente") || "";
+          if (sig.trim()) body.assinatura = sig.trim();
+          const foto = prompt("Foto (ref opcional):", "entrega.jpg") || "";
+          if (foto.trim()) body.fotos = [foto.trim()];
+          body.observacao = prompt("Observação:", "") || "";
+        }
+        if (act === "reject") {
+          body.motivo = prompt("Motivo da rejeição:") || "";
+          if (!body.motivo.trim()) return msg("Motivo obrigatório", false);
+          const foto = prompt("Foto evidência (opcional):", "recusa.jpg") || "";
+          if (foto.trim()) body.fotos = [foto.trim()];
+        }
+        if (act === "review" || act === "close") {
+          body.motivo = prompt("Nota:", act) || act;
+        }
+        const res = await AuthService.api("/api/admin/delivery/pod/" + btn.dataset.id, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("POD → " + (res.pod && res.pod.status_label), true);
+        loadPod();
+        loadOrd();
+        loadTrk();
+      };
+    });
+  }
+
+  function mapRows(obj) {
+    return Object.entries(obj || {}).map(([k, v]) =>
+      `<div class="an-row"><span>${k || "—"}</span><strong>${v}</strong></div>`
+    ).join("") || '<div class="sub">—</div>';
+  }
+
+  async function loadAn() {
+    const qs = new URLSearchParams();
+    const fonte = document.getElementById("q-an-fonte").value.trim();
+    const de = document.getElementById("q-an-de").value;
+    const ate = document.getElementById("q-an-ate").value;
+    if (fonte) qs.set("fonte", fonte);
+    if (de) qs.set("data_de", de);
+    if (ate) qs.set("data_ate", ate);
+    const data = await AuthService.api("/api/delivery/analytics?" + qs.toString());
+    if (data.status !== "ok") return msg(data.message || "Falha analytics", false);
+    const k = data.kpis || {};
+    const fmt = (v) => (v == null || v === "" ? "—" : v);
+    document.getElementById("an-kpis").innerHTML = [
+      ["Total", k.entregas_total],
+      ["Abertas", k.entregas_abertas],
+      ["Entregues", k.entregas_entregues],
+      ["Concluídas", k.entregas_concluidas],
+      ["Em trânsito", k.em_transito],
+      ["Canceladas", k.entregas_canceladas],
+      ["On-time %", k.on_time_pct != null ? k.on_time_pct + "%" : "—"],
+      ["Atraso %", k.late_pct != null ? k.late_pct + "%" : "—"],
+      ["POD ok %", k.pod_sucesso_pct != null ? k.pod_sucesso_pct + "%" : "—"],
+      ["Slots uso %", k.slots_utilizacao_pct != null ? k.slots_utilizacao_pct + "%" : "—"],
+      ["Rec. livres", k.recursos_disponiveis],
+    ].map(([l, v]) => `<div class="kpi"><div class="v">${fmt(v)}</div><div class="l">${l}</div></div>`).join("");
+
+    const sch = data.scheduling || {};
+    const pod = data.pod || {};
+    const rec = data.recursos || {};
+    const drv = (rec.motoristas || []).map((d) =>
+      `<div class="an-row"><span>${d.motorista}</span><strong>${d.concluidas}/${d.entregas}` +
+      (d.sucesso_pct != null ? ` · ${d.sucesso_pct}%` : "") + `</strong></div>`
+    ).join("") || '<div class="sub">—</div>';
+    const cli = (data.clientes || []).map((c) =>
+      `<div class="an-row"><span>${c.parceiro}</span><strong>${c.entregas}</strong></div>`
+    ).join("") || '<div class="sub">—</div>';
+
+    document.getElementById("an-panels").innerHTML = `
+      <div class="an-panel"><h3>Volume por status</h3>${mapRows((data.volume || {}).por_status)}</div>
+      <div class="an-panel"><h3>Por origem (fonte)</h3>${mapRows((data.volume || {}).por_fonte)}</div>
+      <div class="an-panel"><h3>Agenda</h3>
+        <div class="an-row"><span>Slots</span><strong>${sch.slots || 0}</strong></div>
+        <div class="an-row"><span>Reservados / cap.</span><strong>${sch.reservados || 0}/${sch.capacidade || 0}</strong></div>
+        <div class="an-row"><span>Agendadas</span><strong>${sch.entregas_agendadas || 0}</strong></div>
+        <div class="an-row"><span>Reagendadas</span><strong>${sch.reagendadas || 0}</strong></div>
+      </div>
+      <div class="an-panel"><h3>POD</h3>
+        <div class="an-row"><span>Confirmados</span><strong>${pod.confirmados || 0}</strong></div>
+        <div class="an-row"><span>Rejeitados</span><strong>${pod.rejeitados || 0}</strong></div>
+        <div class="an-row"><span>Pendentes</span><strong>${pod.pendentes || 0}</strong></div>
+        ${mapRows(pod.por_status)}
+      </div>
+      <div class="an-panel"><h3>Motoristas</h3>${drv}</div>
+      <div class="an-panel"><h3>Top clientes</h3>${cli}</div>
+      <div class="an-panel"><h3>Despacho</h3>${mapRows((data.dispatch || {}).por_status)}</div>
+      <div class="an-panel"><h3>Tracking</h3>${mapRows((data.tracking || {}).por_status)}</div>
+      <div class="an-panel"><h3>Tarefas</h3>${mapRows((data.tarefas || {}).por_status)}</div>
+    `;
+
+    const exc = data.exceptions || [];
+    document.getElementById("an-exc").innerHTML = exc.length
+      ? exc.map((e) => `<tr>
+          <td>${e.tipo}</td><td><strong>${e.id}</strong></td>
+          <td>${e.nota || "—"}</td>
+          <td><span class="badge-sa">${e.status || "—"}</span></td>
+        </tr>`).join("")
+      : '<tr><td colspan="4" style="opacity:.6;padding:16px;text-align:center">Sem exceções</td></tr>';
+
+    document.getElementById("meta").textContent =
+      "Analytics · " + (data.gerado_em || "").replace("T", " ") +
+      " · " + (data.exceptions_count || 0) + " exceção(ões)" +
+      (data.custos && !data.custos.disponivel ? " · custos n/d" : "");
+  }
+
+  async function loadDspForm() {
+    const q = await AuthService.api("/api/delivery/dispatch/queue");
+    const dos = (q.status === "ok" && q.orders) || [];
+    document.getElementById("fd-dos").innerHTML = dos.map((o) =>
+      `<option value="${o.id}">${o.id} · ${o.parceiro} · ${o.status_label}</option>`
+    ).join("");
+    document.getElementById("fd-rec").innerHTML =
+      '<option value="">—</option>' +
+      recursos.filter((r) => r.tipo === "driver" || r.tipo === "carrier").map((r) =>
+        `<option value="${r.id}">${r.id} · ${r.nome}</option>`
+      ).join("");
+    if (!document.getElementById("fd-data").value) {
+      document.getElementById("fd-data").value = new Date().toISOString().slice(0, 10);
+    }
+  }
+
+  async function loadDsp() {
+    const data = await AuthService.api("/api/delivery/dispatch");
+    if (data.status !== "ok") return;
+    perms = data.permissoes || perms;
+    document.getElementById("form-dsp").hidden = !perms.pode_escrever;
+    document.getElementById("btn-new-dsp").hidden = !perms.pode_escrever;
+    await loadDspForm();
+    const rows = data.dispatches || [];
+    const tb = document.getElementById("rows-dsp");
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="6" style="opacity:.6;padding:24px;text-align:center">Nenhum lote</td></tr>';
+      return;
+    }
+    tb.innerHTML = rows.map((r) => {
+      const id = encodeURIComponent(r.id);
+      let acts = '<div class="act-btns">';
+      (r.acoes || []).forEach((a) => {
+        if (!perms.pode_escrever) return;
+        acts += `<button class="dialog-btn dialog-btn-secondary" data-dact="${a}" data-id="${id}" style="padding:3px 8px;font-size:11px">${DACT[a] || a}</button>`;
+      });
+      acts += "</div>";
+      const ents = (r.entregas || []).map((e) => e.id).join(", ") || (r.entrega_ids || []).join(", ");
+      return `<tr>
+        <td><strong>${r.id}</strong><div class="sub">${r.prioridade_label || ""}</div></td>
+        <td>${r.data || "—"} · ${r.fonte || ""}</td>
+        <td>${r.entregas_count || 0}<div class="sub">${ents}</div></td>
+        <td>${r.motorista || "—"}<div class="sub">${r.veiculo || r.recurso_id || ""}</div></td>
+        <td><span class="badge-sa">${r.status_label || r.status}</span></td>
+        <td>${acts}</td>
+      </tr>`;
+    }).join("");
+    tb.querySelectorAll("[data-dact]").forEach((btn) => {
+      btn.onclick = async () => {
+        const body = { action: btn.dataset.dact };
+        if (btn.dataset.dact === "cancel") {
+          body.motivo = prompt("Motivo:") || "";
+          if (!body.motivo.trim()) return msg("Motivo obrigatório", false);
+        }
+        if (btn.dataset.dact === "assign") {
+          const r = rows.find((x) => x.id === decodeURIComponent(btn.dataset.id));
+          body.motorista = prompt("Motorista:", (r && r.motorista) || "Carlos Motorista") || "";
+          body.veiculo = prompt("Veículo:", (r && r.veiculo) || "ABC1D23") || "";
+          body.recurso_id = (r && r.recurso_id) || document.getElementById("fd-rec").value || "DRV-01";
+          if (!body.motorista.trim()) return msg("Motorista obrigatório", false);
+        }
+        const res = await AuthService.api("/api/admin/delivery/dispatch/" + btn.dataset.id, {
+          method: "POST",
+          body: JSON.stringify(body),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        msg("Despacho → " + (res.dispatch && res.dispatch.status_label), true);
+        loadDsp();
+        loadOrd();
+        loadTsk();
+        loadRes();
+      };
+    });
+  }
+
+  async function loadRes() {
+    const data = await AuthService.api("/api/delivery/recursos");
+    if (data.status !== "ok") return;
+    recursos = data.recursos || [];
+    const tb = document.getElementById("rows-res");
+    tb.innerHTML = recursos.length
+      ? recursos.map((r) => `<tr>
+          <td><strong>${r.id}</strong></td>
+          <td>${r.tipo_label || r.tipo}</td>
+          <td>${r.nome}<div class="sub">${r.telefone || ""}</div></td>
+          <td>${r.placa || "—"}</td>
+          <td><span class="badge-sa">${r.status_label || r.status}</span></td>
+        </tr>`).join("")
+      : '<tr><td colspan="5" style="opacity:.6;padding:24px;text-align:center">Nenhum recurso</td></tr>';
+  }
+
+  document.getElementById("btn-search-ord").onclick = loadOrd;
+  document.getElementById("filtro-ord-st").onchange = loadOrd;
+  document.getElementById("btn-new-ord").onclick = () => { document.getElementById("form-ord").hidden = false; };
+  document.getElementById("btn-search-tsk").onclick = loadTsk;
+  document.getElementById("btn-search-res").onclick = loadRes;
+  document.getElementById("btn-search-dsp").onclick = loadDsp;
+  document.getElementById("btn-search-sch").onclick = loadSch;
+  document.getElementById("btn-search-trk").onclick = loadTrk;
+  document.getElementById("q-trk-st").onchange = loadTrk;
+  document.getElementById("btn-search-pod").onclick = loadPod;
+  document.getElementById("q-pod-st").onchange = loadPod;
+  document.getElementById("btn-search-an").onclick = loadAn;
+  document.getElementById("btn-new-res").onclick = () => { document.getElementById("form-res").hidden = false; };
+  document.getElementById("btn-new-sch").onclick = () => { document.getElementById("form-sch").hidden = false; };
+  document.getElementById("btn-new-pod").onclick = () => {
+    document.getElementById("form-pod").hidden = false;
+    if (!document.getElementById("fp-do").value && orders[0]) {
+      document.getElementById("fp-do").value = orders[0].id;
+    }
+  };
+
+  document.getElementById("btn-create-pod").onclick = async () => {
+    const res = await AuthService.api("/api/admin/delivery/pod", {
+      method: "POST",
+      body: JSON.stringify({
+        entrega_id: document.getElementById("fp-do").value.trim(),
+        parada: Number(document.getElementById("fp-parada").value || 1),
+        receptor_nome: document.getElementById("fp-rec").value.trim(),
+        entregador: document.getElementById("fp-ent").value.trim(),
+        assinatura: document.getElementById("fp-sig").value.trim(),
+        fotos: document.getElementById("fp-foto").value.trim()
+          ? [document.getElementById("fp-foto").value.trim()] : [],
+        observacao: document.getElementById("fp-obs").value.trim(),
+      }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("POD " + res.pod.id, true);
+    loadPod();
+  };
+
+  document.getElementById("btn-ensure-pods").onclick = async () => {
+    const eid = document.getElementById("fp-do").value.trim()
+      || prompt("Entrega (DO-…):", (orders[0] && orders[0].id) || "") || "";
+    if (!eid.trim()) return;
+    const res = await AuthService.api("/api/admin/delivery/pod", {
+      method: "POST",
+      body: JSON.stringify({ action: "ensure", entrega_id: eid.trim() }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg((res.criados || 0) + " POD(s) criado(s)", true);
+    loadPod();
+  };
+  document.getElementById("btn-ensure-trk").onclick = async () => {
+    const eid = prompt("Iniciar tracking da entrega (DO-…):", (orders[0] && orders[0].id) || "") || "";
+    if (!eid.trim()) return;
+    const res = await AuthService.api("/api/admin/delivery/tracking", {
+      method: "POST",
+      body: JSON.stringify({ entrega_id: eid.trim() }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Tracking " + res.track.id, true);
+    loadTrk();
+  };
+  document.getElementById("btn-new-dsp").onclick = async () => {
+    document.getElementById("form-dsp").hidden = false;
+    await loadDspForm();
+  };
+
+  document.getElementById("btn-create-slot").onclick = async () => {
+    const res = await AuthService.api("/api/admin/delivery/scheduling", {
+      method: "POST",
+      body: JSON.stringify({
+        data: document.getElementById("fs-data").value,
+        periodo: document.getElementById("fs-periodo").value,
+        fonte: document.getElementById("fs-fonte").value.trim(),
+        capacidade: Number(document.getElementById("fs-cap").value || 10),
+      }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Slot " + res.slot.id, true);
+    loadSch();
+  };
+
+  document.getElementById("btn-gen-week").onclick = async () => {
+    const res = await AuthService.api("/api/admin/delivery/scheduling", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "generate_week",
+        data: document.getElementById("fs-data").value || new Date().toISOString().slice(0, 10),
+        fonte: document.getElementById("fs-fonte").value.trim() || "DC-01",
+        capacidade: Number(document.getElementById("fs-cap").value || 10),
+        dias: 7,
+        periodos: ["manha", "tarde"],
+      }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Gerados " + (res.criados || 0) + " slots (" + (res.pulados || 0) + " pulados)", true);
+    loadSch();
+  };
+
+  document.getElementById("btn-create-dsp").onclick = async () => {
+    const sel = document.getElementById("fd-dos");
+    const ids = Array.from(sel.selectedOptions).map((o) => o.value);
+    if (!ids.length) return msg("Selecione ao menos uma entrega", false);
+    const rec = document.getElementById("fd-rec").value;
+    const res = await AuthService.api("/api/admin/delivery/dispatch", {
+      method: "POST",
+      body: JSON.stringify({
+        data: document.getElementById("fd-data").value,
+        fonte: document.getElementById("fd-fonte").value.trim(),
+        prioridade: document.getElementById("fd-prio").value,
+        recurso_id: rec,
+        entrega_ids: ids,
+      }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Lote " + res.dispatch.id, true);
+    loadDsp();
+  };
+
+  document.getElementById("btn-create").onclick = async () => {
+    const itens = parseItens(document.getElementById("f-itens").value);
+    const res = await AuthService.api("/api/admin/delivery/orders", {
+      method: "POST",
+      body: JSON.stringify({
+        parceiro: document.getElementById("f-parc").value.trim(),
+        fonte: document.getElementById("f-fonte").value.trim(),
+        origem_ref: document.getElementById("f-doc").value.trim(),
+        data_agendada: document.getElementById("f-data").value,
+        janela: document.getElementById("f-janela").value,
+        endereco: document.getElementById("f-end").value.trim(),
+        cidade: document.getElementById("f-cid").value.trim(),
+        uf: document.getElementById("f-uf").value.trim(),
+        itens: itens.length ? itens : [{ produto: "item", qtd: 1 }],
+      }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Criada " + res.order.id, true);
+    loadOrd();
+  };
+
+  document.getElementById("btn-from-exp").onclick = async () => {
+    const exp = document.getElementById("f-exp").value;
+    if (!exp) return msg("Selecione a expedição", false);
+    const res = await AuthService.api("/api/admin/delivery/orders", {
+      method: "POST",
+      body: JSON.stringify({ expedicao_id: exp }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Criada " + res.order.id + " a partir de " + exp, true);
+    loadOrd();
+  };
+
+  document.getElementById("btn-create-res").onclick = async () => {
+    const res = await AuthService.api("/api/admin/delivery/recursos", {
+      method: "POST",
+      body: JSON.stringify({
+        tipo: document.getElementById("fr-tipo").value,
+        nome: document.getElementById("fr-nome").value.trim(),
+        placa: document.getElementById("fr-placa").value.trim(),
+        telefone: document.getElementById("fr-tel").value.trim(),
+      }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Recurso " + res.recurso.id, true);
+    loadRes();
+  };
+
+  (async function boot() {
+    await loadRes();
+    await loadExps();
+    await loadOrd();
+    await loadSch();
+    await loadTrk();
+    await loadPod();
+    await loadAn();
+    await loadDsp();
+    await loadTsk();
+  })();
+})();
+</script>
+</body>
+</html>

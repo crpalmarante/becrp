@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Apps</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .apps-wrap { max-width:720px; margin:0 auto; }
+    .apps-note { font-size:13px; opacity:.7; margin:0 0 20px; line-height:1.45; }
+    .apps-msg { font-size:14px; margin:0 0 12px; min-height:1.2em; }
+    .apps-msg.ok { color:#4ade80; }
+    .apps-msg.err { color:#f87171; }
+    .pkg-list { display:flex; flex-direction:column; gap:10px; margin-bottom:28px; }
+    .pkg {
+      text-align:left; width:100%; cursor:pointer;
+      border:1px solid rgba(255,255,255,.14); border-radius:8px;
+      padding:14px 16px; background:transparent; color:inherit;
+    }
+    .pkg:hover { border-color:rgba(20,184,166,.45); }
+    .pkg.rec { border-color:rgba(20,184,166,.35); }
+    .pkg strong { display:block; font-size:15px; margin-bottom:4px; }
+    .pkg span { font-size:12px; opacity:.7; }
+    .pkg .tag { font-size:10px; opacity:.8; margin-left:8px; }
+    .sec { font-size:12px; text-transform:uppercase; opacity:.55; margin:20px 0 10px; letter-spacing:.04em; }
+    .app-row {
+      display:flex; align-items:center; gap:12px;
+      padding:10px 0; border-bottom:1px solid rgba(255,255,255,.08); font-size:13px;
+    }
+    .app-row label { flex:1; cursor:pointer; }
+    .app-row .sub { display:block; font-size:11px; opacity:.65; margin-top:2px; }
+    .apps-actions { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="apps.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Apps</span></a>
+      <a class="menu-item" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Início</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="topbar-title">Apps</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Apps</div>
+          <h2 class="workspace-title">Monte o seu BECRP</h2>
+        </div>
+        <div class="workspace-content">
+          <div class="apps-wrap">
+            <p class="apps-note">
+              A base já está instalada. Escolha um pacote ou marque os apps.
+              Depois você pode instalar mais em qualquer momento.
+            </p>
+            <div id="msg" class="apps-msg"></div>
+
+            <div class="sec">Pacotes</div>
+            <div class="pkg-list" id="packages"></div>
+
+            <div class="sec">Ou personalizado</div>
+            <div id="custom-apps"></div>
+            <div class="apps-actions">
+              <button type="button" class="dialog-btn dialog-btn-primary" id="btn-custom">Aplicar seleção</button>
+              <button type="button" class="dialog-btn" id="btn-home">Ir para o início</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  if ((auth.user && auth.user.role) !== "admin") {
+    alert("Apps: apenas Administrador.");
+    location.href = "../index4.html";
+    return;
+  }
+  document.getElementById("user-name-display").textContent =
+    auth.user.nome || auth.user.usuario || "Admin";
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "apps-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  async function load() {
+    const res = await AuthService.api("/api/apps");
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+
+    const pkgs = (res.packages || []).filter((p) => p.id !== "custom");
+    document.getElementById("packages").innerHTML = pkgs.map((p) =>
+      `<button type="button" class="pkg ${p.recommended ? "rec" : ""}" data-pkg="${p.id}">
+        <strong>${p.name}${p.recommended ? '<span class="tag">recomendado</span>' : ""}</strong>
+        <span>${p.summary || ""}</span>
+      </button>`
+    ).join("");
+
+    document.querySelectorAll("[data-pkg]").forEach((btn) => {
+      btn.onclick = () => applyPackage(btn.dataset.pkg);
+    });
+
+    const byCat = { operacao: [], conformidade: [] };
+    (res.apps || []).forEach((a) => {
+      const c = a.category === "conformidade" ? "conformidade" : "operacao";
+      byCat[c].push(a);
+    });
+
+    let html = "";
+    [["operacao", "Operação"], ["conformidade", "Conformidade"]].forEach(([k, label]) => {
+      html += `<div class="sec" style="margin-top:8px">${label}</div>`;
+      byCat[k].forEach((a) => {
+        html += `<div class="app-row">
+          <input type="checkbox" id="app-${a.id}" data-app="${a.id}" ${a.installed ? "checked" : ""}>
+          <label for="app-${a.id}">${a.name}
+            <span class="sub">${a.summary || ""}</span>
+          </label>
+        </div>`;
+      });
+    });
+    document.getElementById("custom-apps").innerHTML = html;
+
+    if (!res.onboarding_complete) {
+      msg("Escolha um pacote para começar (ex.: Loja).", true);
+    } else if (res.package_id) {
+      msg("Pacote atual: " + res.package_id + " · " + (res.installed || []).length + " app(s)", true);
+    }
+  }
+
+  async function applyPackage(packageId, apps) {
+    msg("Aplicando…", true);
+    const body = { package_id: packageId };
+    if (apps) body.apps = apps;
+    const res = await AuthService.api("/api/admin/apps/package", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg("Pacote aplicado. O menu passa a mostrar só o instalado.", true);
+    await load();
+  }
+
+  document.getElementById("btn-custom").onclick = () => {
+    const apps = [...document.querySelectorAll("#custom-apps [data-app]:checked")]
+      .map((el) => el.dataset.app);
+    applyPackage("custom", apps);
+  };
+
+  document.getElementById("btn-home").onclick = () => {
+    location.href = "../index4.html";
+  };
+
+  load();
+})();
+</script>
+</body>
+</html>

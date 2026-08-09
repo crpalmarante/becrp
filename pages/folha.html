@@ -52,7 +52,7 @@ tr:hover td{background:#f5f5f5}
 .comp-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-bottom:1px solid #f0f0f0;cursor:pointer;border-radius:4px;}
 .comp-row:hover{background:#f5f5f5;}
 </style>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
 
@@ -65,7 +65,7 @@ tr:hover td{background:#f5f5f5}
 
 <div class="card">
 <div class="tabs">
-<button class="tab active" onclick="ativarAba(this,'aba-gerar')">Gerar Folha</button>
+<button class="tab active" onclick="ativarAba(this,'aba-gerar')">Processar</button>
 <button class="tab" onclick="ativarAba(this,'aba-holerites')">Holerites</button>
 <button class="tab" onclick="ativarAba(this,'aba-ferias')">Ferias</button>
 <button class="tab" onclick="ativarAba(this,'aba-decimo')">13o Salario</button>
@@ -75,52 +75,48 @@ tr:hover td{background:#f5f5f5}
 </div>
 
 <div id="aba-gerar" class="tab-content active">
-<h2>Gerar Holerite</h2>
-<div class="grid-2">
-<div>
-<div class="form-row"><label>Funcionario:</label>
-<select id="g-funcionario-id"><option value="">Selecionar...</option></select></div>
-<div class="form-row"><label>Estrutura:</label>
-<input type="text" id="g-estrutura-nome" readonly style="background:#f5f5f5;color:#555;" placeholder="Nenhuma">
-<a href="estrutura_salarial.html" target="_blank" style="font-size:.8rem;color:#1a237e;">Gerenciar Estruturas</a>
+<h2>Processar Folha</h2>
+<div style="background:#e8eaf6;border:1px solid #c5cae9;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:.82rem;color:#283593;">
+Competência única (RFC-006): <b>abrir</b> o mês → lançar funcionários → <b>calcular</b> (INSS/IRRF progressivos no COBOL) → <b>validar</b> → <b>fechar</b> → <b>pagar</b>. Competência fechada é imutável.
 </div>
-<div class="form-row"><label>Competencia:</label>
-<input type="month" id="g-competencia"></div>
-<div class="form-row"><label>Salario Base (R$):</label>
-<input type="number" id="g-salario-base" step="0.01" min="0" readonly></div>
-<div class="form-row"><label>Horas Extras:</label>
-<input type="number" id="g-horas-extras" step="0.5" min="0" value="0" oninput="recalcularHolerite()"></div>
-<div class="form-row"><label>Valor Hora Extra (R$):</label>
-<input type="number" id="g-valor-hora-extra" step="0.01" min="0" value="0" oninput="recalcularHolerite()"></div>
-<div class="form-row"><label>Faltas (dias):</label>
-<input type="number" id="g-faltas" min="0" value="0" oninput="recalcularHolerite()"></div>
+<div class="form-row">
+<label>Competência (mês):</label>
+<input type="month" id="p-competencia">
+<button class="btn btn-sm btn-primary" onclick="abrirCompetencia()">Abrir Competência</button>
+<button class="btn btn-sm" onclick="processarTodos()">Calcular Todos</button>
+<button class="btn btn-sm" onclick="concluirCompetencia()">Concluir (→ Calculada)</button>
 </div>
-<div>
-<div class="summary-box"><div class="label">Proventos</div><div class="value" id="g-proventos">0,00</div></div>
-<div class="summary-box" style="border-left-color:#c62828;"><div class="label">INSS</div><div class="value" id="g-inss" style="color:#c62828;">0,00</div></div>
-<div class="summary-box" style="border-left-color:#c62828;"><div class="label">IRRF</div><div class="value" id="g-irrf" style="color:#c62828;">0,00</div></div>
-<div class="summary-box" style="border-left-color:#e65100;"><div class="label">FGTS</div><div class="value" id="g-fgts" style="color:#e65100;">0,00</div></div>
-<div class="summary-box" style="border-left-color:#2e7d32;"><div class="label">Liquido a Receber</div><div class="value" id="g-liquido" style="color:#2e7d32;">0,00</div></div>
-<button class="btn btn-success" onclick="gerarHolerite()" style="margin-top:10px;width:100%;padding:12px;">Gerar Holerite</button>
+<div id="p-resultado" style="margin-top:10px"></div>
+<h3 style="font-size:.9rem;color:#1a237e;margin:16px 0 8px;">Funcionários ativos da competência</h3>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>Func.</th><th>Salário Base</th><th>Horas Extras (R$)</th><th>DSR</th><th>Faltas (dias)</th><th>Dep.</th><th>Outros Prov.</th><th>Outros Desc.</th></tr></thead>
+<tbody id="p-funcs"></tbody>
+</table>
 </div>
-</div>
-<div id="g-componentes-section" style="display:none;border-top:1px solid #e0e0e0;padding-top:12px;margin-top:12px;">
-<h3 style="font-size:.9rem;color:#1a237e;margin-bottom:8px;">Componentes da Estrutura Salarial</h3>
-<p style="color:#888;font-size:.75rem;margin-bottom:6px;">Clique em uma linha para alternar entre automático e manual.</p>
-<div id="g-componentes-list"></div>
-<div class="form-row" style="margin-top:8px;">
-<label>Observações:</label>
-<textarea id="g-observacoes" rows="2" style="flex:2;padding:6px;border:1px solid #ccc;border-radius:4px;font-family:inherit;font-size:.85rem;"></textarea>
-</div>
+<h3 style="font-size:.9rem;color:#1a237e;margin:16px 0 8px;">Competências</h3>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>Competência</th><th>Estado</th><th>Func.</th><th>Proventos</th><th>Descontos</th><th>Líquido</th><th>Ações</th></tr></thead>
+<tbody id="p-competencias"></tbody>
+</table>
 </div>
 </div>
 
 <div id="aba-holerites" class="tab-content">
 <h2>Holerites</h2>
+<div style="background:#e8f5e9;border:1px solid #c8e6c9;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:.82rem;color:#1b5e20;">
+Visão do processamento (RFC-007): os holerites são gerados a partir da competência processada — <b>nenhum valor é digitado</b>. Competência fechada é imutável: regenerar reproduz exatamente os mesmos valores.
+</div>
+<div class="form-row">
+<label>Gerar Holerites da Competência:</label>
+<input type="month" id="h-competencia">
+<button class="btn btn-sm btn-primary" onclick="gerarHoleritesCompetencia()">Gerar</button>
+<button class="btn btn-sm" onclick="carregarHolerites()">Atualizar</button>
+</div>
 <div class="form-row">
 <label>Filtrar Mes:</label>
 <input type="month" id="f-mes" onchange="carregarHolerites()">
-<button class="btn btn-sm btn-primary" onclick="carregarHolerites()">Atualizar</button>
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:14px;" id="resumo-folha"></div>
 <div style="overflow-x:auto;">
@@ -134,12 +130,16 @@ tr:hover td{background:#f5f5f5}
 <div style="background:#fff;border-radius:8px;max-width:700px;width:90%;max-height:85vh;overflow-y:auto;padding:24px;box-shadow:0 8px 30px rgba(0,0,0,.2);">
 <h3 style="color:#1a237e;margin-bottom:12px;">Detalhes do Holerite <span id="modal-det-holerite-id"></span></h3>
 <div style="margin-bottom:12px;">
+<div style="font-size:.8rem;color:#1a237e;font-weight:600;margin-bottom:6px;">Bases de Cálculo</div>
+<div id="modal-det-bases" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+</div>
+<div style="margin-bottom:12px;">
 <table><thead><tr><th>Tipo</th><th>Nome</th><th>Formula</th><th>Metodo</th><th>Valor</th></tr></thead>
 <tbody id="modal-det-componentes"></tbody>
 </table>
 </div>
 <div class="form-row"><label>Observações:</label>
-<textarea id="modal-det-observacoes" rows="2" style="flex:2;padding:6px;border:1px solid #ccc;border-radius:4px;font-family:inherit;font-size:.85rem;"></textarea>
+<textarea id="modal-det-observacoes" rows="2" maxlength="200" style="flex:2;padding:6px;border:1px solid #ccc;border-radius:4px;font-family:inherit;font-size:.85rem;"></textarea>
 </div>
 <div style="display:flex;gap:8px;margin-top:12px;">
 <button class="btn btn-primary" onclick="salvarDetalhesHolerite()">Salvar</button>
@@ -237,6 +237,15 @@ tr:hover td{background:#f5f5f5}
 <select id="r-funcionario-id"><option value="">Selecionar...</option></select></div>
 <div class="form-row"><label>Data Desligamento:</label>
 <input type="date" id="r-data-deslig"></div>
+<div class="form-row"><label>Motivo Desligamento:</label>
+<select id="r-motivo">
+<option value="">Selecionar...</option>
+<option value="sem-justa-causa">Sem justa causa</option>
+<option value="com-justa-causa">Com justa causa</option>
+<option value="pedido-demissao">Pedido de demissao</option>
+<option value="acordo">Acordo entre as partes</option>
+<option value="termino-contrato">Termino de contrato</option>
+</select></div>
 <div class="form-row"><label>Tipo Aviso:</label>
 <select id="r-tipo-aviso">
 <option value="trabalhado">Trabalhado</option>
@@ -251,6 +260,8 @@ tr:hover td{background:#f5f5f5}
 <input type="number" id="r-ferias-vencidas" min="0" max="30" value="30"></div>
 <div class="form-row"><label>Ferias Proporcionais (meses):</label>
 <input type="number" id="r-ferias-prop" min="0" max="12" value="0"></div>
+<div class="form-row"><label>13o Proporcional (meses):</label>
+<input type="number" id="r-decimo-prop" min="0" max="12" value="0"></div>
 <div class="form-row"><label>Salario Base (R$):</label>
 <input type="number" id="r-salario-base" step="0.01" min="0" readonly></div>
 </div>
@@ -262,13 +273,14 @@ tr:hover td{background:#f5f5f5}
 <div class="summary-box" style="border-left-color:#e65100;"><div class="label">FGTS</div><div class="value" id="rescisao-fgts" style="color:#e65100;">0,00</div></div>
 <div class="summary-box" style="border-left-color:#e65100;"><div class="label">Multa FGTS</div><div class="value" id="rescisao-multa" style="color:#e65100;">0,00</div></div>
 <div class="summary-box" style="border-left-color:#2e7d32;"><div class="label">Liquido</div><div class="value" id="rescisao-liquido" style="color:#2e7d32;">0,00</div></div>
+<div class="summary-box" style="border-left-color:#1a237e;"><div class="label">Prazo Pagamento</div><div class="value" id="rescisao-prazo" style="font-size:.75rem;">-</div></div>
 </div>
 <button class="btn btn-success" onclick="calcularRescisao()" style="margin-top:10px;width:100%;padding:12px;">Calcular e Registrar</button>
 </div>
 </div>
 <div style="overflow-x:auto;margin-top:16px;">
 <table>
-<thead><tr><th>ID</th><th>Funcionario</th><th>Data Deslig.</th><th class="valor">Saldo</th><th class="valor">Ferias</th><th class="valor">13o</th><th class="valor">FGTS</th><th class="valor">Multa</th><th class="valor">Liquido</th><th>Situacao</th><th>Acoes</th></tr></thead>
+<thead><tr><th>ID</th><th>Funcionario</th><th>Motivo</th><th>Data Deslig.</th><th class="valor">Saldo</th><th class="valor">Ferias</th><th class="valor">13o</th><th class="valor">FGTS</th><th class="valor">Multa</th><th class="valor">Liquido</th><th>Prazo</th><th>Situacao</th><th>Acoes</th></tr></thead>
 <tbody id="tabela-rescisoes"></tbody>
 </table>
 </div>
@@ -310,7 +322,7 @@ tr:hover td{background:#f5f5f5}
 
 <div id="aba-config" class="tab-content">
 <h2>Configuracao da Folha</h2>
-<div class="form-row"><label>Salario Minimo:</label><input type="number" id="c-salario-minimo" step="0.01" value="1412.00"></div>
+<div class="form-row"><label>Salario Minimo:</label><input type="text" id="c-salario-minimo" data-mask="moeda" inputmode="decimal" value="R$ 1.412,00"></div>
 <h3 style="font-size:.9rem;color:#1a237e;margin:14px 0 8px;">Tabela INSS</h3>
 <div class="grid-2">
 <div class="form-row"><label>Faixa 1 - teto:</label><input type="number" id="c-inss-f1-teto" step="0.01" value="1412.00"></div>
@@ -325,16 +337,22 @@ tr:hover td{background:#f5f5f5}
 <h3 style="font-size:.9rem;color:#1a237e;margin:14px 0 8px;">Tabela IRRF</h3>
 <div class="grid-2">
 <div class="form-row"><label>Ded. por dependente:</label><input type="number" id="c-irrf-ded-dep" step="0.01" value="189.59"></div>
-<div class="form-row"><label>Faixa 1 - teto:</label><input type="number" id="c-irrf-f1-teto" step="0.01" value="2112.00"></div>
+<div class="form-row"><label>Faixa 1 - teto:</label><input type="number" id="c-irrf-f1-teto" step="0.01" value="2259.20"></div>
 <div class="form-row"><label>Faixa 1 - aliquota %:</label><input type="number" id="c-irrf-f1-aliq" step="0.01" value="0"></div>
+<div class="form-row"><label>Faixa 1 - deducao:</label><input type="number" id="c-irrf-f1-ded" step="0.01" value="0"></div>
 <div class="form-row"><label>Faixa 2 - teto:</label><input type="number" id="c-irrf-f2-teto" step="0.01" value="2826.65"></div>
 <div class="form-row"><label>Faixa 2 - aliquota %:</label><input type="number" id="c-irrf-f2-aliq" step="0.01" value="7.5"></div>
+<div class="form-row"><label>Faixa 2 - deducao:</label><input type="number" id="c-irrf-f2-ded" step="0.01" value="169.44"></div>
 <div class="form-row"><label>Faixa 3 - teto:</label><input type="number" id="c-irrf-f3-teto" step="0.01" value="3751.05"></div>
 <div class="form-row"><label>Faixa 3 - aliquota %:</label><input type="number" id="c-irrf-f3-aliq" step="0.01" value="15"></div>
+<div class="form-row"><label>Faixa 3 - deducao:</label><input type="number" id="c-irrf-f3-ded" step="0.01" value="381.44"></div>
 <div class="form-row"><label>Faixa 4 - teto:</label><input type="number" id="c-irrf-f4-teto" step="0.01" value="4664.68"></div>
 <div class="form-row"><label>Faixa 4 - aliquota %:</label><input type="number" id="c-irrf-f4-aliq" step="0.01" value="22.5"></div>
+<div class="form-row"><label>Faixa 4 - deducao:</label><input type="number" id="c-irrf-f4-ded" step="0.01" value="662.77"></div>
+<div class="form-row"><label>Faixa 5 - aliquota % (acima F4):</label><input type="number" id="c-irrf-f5-aliq" step="0.01" value="27.5"></div>
+<div class="form-row"><label>Faixa 5 - deducao:</label><input type="number" id="c-irrf-f5-ded" step="0.01" value="896.00"></div>
 </div>
-<div class="form-row"><label>FGTS %:</label><input type="number" id="c-fgts-aliq" step="0.01" value="8"></div>
+<div class="form-row"><label>FGTS %:</label><input type="number" id="c-fgts-aliquota" step="0.01" value="8"></div>
 <div class="form-row"><label>Hora Extra %:</label><input type="number" id="c-hora-extra-aliq" step="0.01" value="50"></div>
 <button class="btn btn-primary" onclick="salvarConfig()">Salvar Configuracao</button>
 </div>
@@ -361,6 +379,7 @@ if(id==='aba-config'){carregarConfig()}
 if(id==='aba-ferias'){carregarFerias()}
 if(id==='aba-decimo'){carregarDecimos()}
 if(id==='aba-rescisao'){carregarRescisoes()}
+if(id==='aba-gerar'){renderFuncsFolha();carregarCompetencias();}
 }
 
 // ---- Carregar funcionarios ----
@@ -372,7 +391,7 @@ funcionarios=data.funcionarios||[];
 const opts='<option value="">Selecionar...</option>'+funcionarios.map(f=>
 '<option value="'+f.id+'">#'+f.id+' - '+f.nome+' (R$ '+(parseFloat(f.salario||0).toFixed(2))+')</option>'
 ).join('');
-for(const id of['g-funcionario-id','f-funcionario-id','d-funcionario-id','r-funcionario-id']){
+for(const id of['f-funcionario-id','d-funcionario-id','r-funcionario-id']){
 const sel=document.getElementById(id);
 if(sel)sel.innerHTML=opts;
 }
@@ -383,27 +402,9 @@ function getFuncionario(id){
 return funcionarios.find(f=>f.id==parseInt(id));
 }
 
-// ---- Load estrutura info ----
-async function carregarEstruturaFunc(funcId){
-const el=document.getElementById('g-estrutura-nome');
-if(!funcId){el.value='';return;}
-try{
-const r=await fetch('/api/contabilidade/funcionarios');
-const d=await r.json();
-const fc=(d.funcionarios||[]).find(f=>f.funcionario_id==funcId);
-if(fc&&fc.estrutura_id){
-const r2=await fetch('/api/estruturas-salariais');
-const d2=await r2.json();
-const est=(d2.estruturas||[]).find(e=>e.id==fc.estrutura_id);
-el.value=est?est.nome:'ID: '+fc.estrutura_id;
-}else{el.value='Nenhuma';}
-}catch(e){el.value='';}
-}
-
 // ---- Auto-fill salary ----
 document.addEventListener('change',function(e){
 const map={
-'g-funcionario-id':'g-salario-base',
 'f-funcionario-id':'f-salario-base',
 'd-funcionario-id':'d-salario-base',
 'r-funcionario-id':'r-salario-base'
@@ -413,237 +414,26 @@ if(inputId){
 const func=getFuncionario(e.target.value);
 const sal = func?parseFloat(func.salario||0).toFixed(2):'';
 document.getElementById(inputId).value=sal;
-if(e.target.id==='g-funcionario-id'){
-carregarComponentesEstrutura(
-e.target.value,
-sal,
-document.getElementById('g-horas-extras').value,
-document.getElementById('g-valor-hora-extra').value,
-document.getElementById('g-faltas').value
-);
 }
-}
-if(e.target.id==='g-funcionario-id')carregarEstruturaFunc(e.target.value);
 });
 
-// ---- Gerar Folha ----
-function limparResumo(){
-for(const id of['g-proventos','g-inss','g-irrf','g-fgts','g-liquido'])
-document.getElementById(id).textContent='0,00';
-}
-
-function recalcularHolerite(){
-const salario=parseFloat(document.getElementById('g-salario-base').value||0);
-const horasExtras=parseFloat(document.getElementById('g-horas-extras').value||0);
-const vlHoraExtra=parseFloat(document.getElementById('g-valor-hora-extra').value||0);
-const faltas=parseInt(document.getElementById('g-faltas').value||0);
-if(salario<=0){limparResumo();return;}
-
-const vlHe=horasExtras*vlHoraExtra;
-const dsr=vlHe>0?vlHe/6:0;
-const prov=salario+vlHe+dsr;
-const valDia=salario/30;
-const descFaltas=valDia*faltas;
-const baseInss=prov-descFaltas;
-
-fetch('/api/folha/calcular/inss?salario='+baseInss).then(r=>r.json()).then(d=>{
-const inss=d.inss||0;
-return fetch('/api/folha/calcular/irrf?salario='+baseInss+'&inss='+inss);
-}).then(r=>r.json()).then(d=>{
-const irrf=d.irrf||0;
-const inssVal=parseFloat(document.querySelector('#g-inss').dataset.valor||0);
-const totalDesc=inssVal+irrf;
-const liquido=prov-totalDesc;
-const fgts=salario*0.08;
-document.getElementById('g-proventos').textContent=fmt(prov);
-document.getElementById('g-inss').textContent=fmt(inssVal);
-document.getElementById('g-inss').dataset.valor=inssVal;
-document.getElementById('g-irrf').textContent=fmt(irrf);
-document.getElementById('g-fgts').textContent=fmt(fgts);
-document.getElementById('g-liquido').textContent=fmt(liquido);
-document.getElementById('g-proventos').dataset.valor=prov;
-document.getElementById('g-irrf').dataset.valor=irrf;
-document.getElementById('g-fgts').dataset.valor=fgts;
-document.getElementById('g-liquido').dataset.valor=liquido;
-}).catch(()=>{
-document.getElementById('g-proventos').textContent=fmt(prov);
-document.getElementById('g-liquido').textContent=fmt(prov);
-});
-
-fetch('/api/folha/calcular/inss?salario='+baseInss).then(r=>r.json()).then(d=>{
-document.getElementById('g-inss').textContent=fmt(d.inss||0);
-document.getElementById('g-inss').dataset.valor=d.inss||0;
-const prov=parseFloat(document.getElementById('g-proventos').dataset.valor||0);
-const irrf=parseFloat(document.getElementById('g-irrf').dataset.valor||0);
-const totalDesc=(d.inss||0)+(irrf||0);
-document.getElementById('g-liquido').textContent=fmt(prov-totalDesc);
-});
-}
-
-// ---- Componentes da Estrutura ----
-async function carregarComponentesEstrutura(funcId, salarioBase, horasExtras, vlHoraExtra, faltas){
-    const section = document.getElementById('g-componentes-section');
-    const list = document.getElementById('g-componentes-list');
-    if(!funcId){section.style.display='none';return;}
-    try{
-        const r = await fetch('/api/contabilidade/funcionarios');
-        const d = await r.json();
-        const fc = (d.funcionarios||[]).find(f => f.funcionario_id == funcId);
-        if(!fc || !fc.estrutura_id){section.style.display='none';return;}
-        const r2 = await fetch('/api/estruturas-salariais');
-        const d2 = await r2.json();
-        const est = (d2.estruturas||[]).find(e => e.id == fc.estrutura_id);
-        if(!est){section.style.display='none';return;}
-        
-        const params = new URLSearchParams();
-        params.set('estrutura_id', fc.estrutura_id);
-        params.set('salario_base', salarioBase);
-        params.set('horas_extras', horasExtras||0);
-        params.set('valor_hora_extra', vlHoraExtra||0);
-        params.set('faltas', faltas||0);
-        const r3 = await fetch('/api/estrutura-salarial/calcular', {
-            method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params
-        });
-        const calc = await r3.json();
-        if(calc.status!=='ok'){section.style.display='none';return;}
-        
-        section.style.display='block';
-        let rows = '';
-        (calc.proventos||[]).forEach(p => {
-            rows += '<div class="comp-row" data-nome="'+p.nome+'" data-tipo="provento" data-formula="'+p.formula+'" data-valor-auto="'+p.valor+'" onclick="toggleCompManual(this)">'+
-                '<span style="flex:0 0 30px;color:#2e7d32;font-weight:600;">+</span>'+
-                '<span style="flex:2;font-size:.85rem;">'+p.nome+'</span>'+
-                '<span style="flex:0 0 60px;font-size:.75rem;color:#666;" class="comp-formula">'+p.formula+'</span>'+
-                '<span style="flex:0 0 30px;font-size:.7rem;" class="comp-metodo" style="color:#1565c0;">auto</span>'+
-                '<input type="number" step="0.01" class="comp-valor" value="'+p.valor+'" readonly style="width:100px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;text-align:right;font-size:.85rem;background:#f5f5f5;">'+
-                '</div>';
-        });
-        (calc.descontos||[]).forEach(p => {
-            const val = Math.abs(p.valor);
-            rows += '<div class="comp-row" data-nome="'+p.nome+'" data-tipo="desconto" data-formula="'+p.formula+'" data-valor-auto="'+val+'" onclick="toggleCompManual(this)">'+
-                '<span style="flex:0 0 30px;color:#c62828;font-weight:600;">-</span>'+
-                '<span style="flex:2;font-size:.85rem;">'+p.nome+'</span>'+
-                '<span style="flex:0 0 60px;font-size:.75rem;color:#666;" class="comp-formula">'+p.formula+'</span>'+
-                '<span style="flex:0 0 30px;font-size:.7rem;" class="comp-metodo" style="color:#1565c0;">auto</span>'+
-                '<input type="number" step="0.01" class="comp-valor" value="'+val+'" readonly style="width:100px;padding:3px 6px;border:1px solid #ccc;border-radius:4px;text-align:right;font-size:.85rem;background:#f5f5f5;">'+
-                '</div>';
-        });
-        list.innerHTML = rows;
-    }catch(e){section.style.display='none';}
-}
-
-function toggleCompManual(el){
-    const metodo = el.querySelector('.comp-metodo');
-    const input = el.querySelector('.comp-valor');
-    if(metodo.textContent === 'auto'){
-        metodo.textContent = 'manual';
-        metodo.style.color = '#e65100';
-        input.readOnly = false;
-        input.style.background = '#fff3cd';
-        input.focus();
-    } else {
-        metodo.textContent = 'auto';
-        metodo.style.color = '#1565c0';
-        input.readOnly = true;
-        input.style.background = '#f5f5f5';
-        input.value = el.dataset.valorAuto;
-    }
-    recalcularResumoComponentes();
-}
-
-function recalcularResumoComponentes(){
-    const rows = document.querySelectorAll('#g-componentes-list .comp-row');
-    let totalProv = 0, totalDesc = 0;
-    rows.forEach(row => {
-        const val = parseFloat(row.querySelector('.comp-valor').value) || 0;
-        if(row.dataset.tipo === 'provento') totalProv += val;
-        else totalDesc += val;
-    });
-    document.getElementById('g-proventos').textContent = fmt(totalProv);
-    document.getElementById('g-proventos').dataset.valor = totalProv;
-    document.getElementById('g-liquido').textContent = fmt(totalProv - totalDesc);
-    document.getElementById('g-liquido').dataset.valor = totalProv - totalDesc;
-    fetch('/api/folha/calcular/inss?salario='+totalProv).then(r=>r.json()).then(d=>{
-        const inss = d.inss||0;
-        document.getElementById('g-inss').textContent = fmt(inss);
-        document.getElementById('g-inss').dataset.valor = inss;
-        const liq = totalProv - totalDesc - inss;
-        document.getElementById('g-liquido').textContent = fmt(liq);
-        return fetch('/api/folha/calcular/irrf?salario='+totalProv+'&inss='+inss);
-    }).then(r=>r.json()).then(d=>{
-        document.getElementById('g-irrf').textContent = fmt(d.irrf||0);
-        document.getElementById('g-irrf').dataset.valor = d.irrf||0;
-        const inss = parseFloat(document.getElementById('g-inss').dataset.valor||0);
-        const irrf = parseFloat(document.getElementById('g-irrf').dataset.valor||0);
-        const liq = totalProv - totalDesc - inss - irrf;
-        document.getElementById('g-liquido').textContent = fmt(liq);
-        document.getElementById('g-liquido').dataset.valor = liq;
-    });
-    document.getElementById('g-fgts').textContent = fmt(totalProv * 0.08);
-    document.getElementById('g-fgts').dataset.valor = totalProv * 0.08;
-}
-
-function getComponentesData(){
-    const rows = document.querySelectorAll('#g-componentes-list .comp-row');
-    const componentes = [];
-    rows.forEach(row => {
-        componentes.push({
-            nome: row.dataset.nome,
-            tipo: row.dataset.tipo,
-            formula: row.dataset.formula,
-            valor_auto: parseFloat(row.dataset.valorAuto),
-            valor_manual: parseFloat(row.querySelector('.comp-valor').value) || 0,
-            metodo: row.querySelector('.comp-metodo').textContent,
-        });
-    });
-    return componentes;
-}
-
-async function gerarHolerite(){
-const funcId=document.getElementById('g-funcionario-id').value;
-const competencia=document.getElementById('g-competencia').value;
-if(!funcId){mostrarToast('Selecione um funcionario','error');return;}
+// ---- Holerites ----
+async function gerarHoleritesCompetencia(){
+const competencia=document.getElementById('h-competencia').value;
 if(!competencia){mostrarToast('Selecione a competencia','error');return;}
-const nome=funcionarios.find(f=>f.id==funcId)?.nome||'';
+if(!confirm('Gerar/regenerar os holerites de '+competencia.replace('-','/')+' a partir do processamento?\nObservacoes e pagamentos individuais dos holerites atuais serao recriados da competencia.'))return;
 const params=new URLSearchParams();
-params.set('funcionario_id',funcId);
 params.set('competencia',competencia.replace('-','/'));
-params.set('salario_base',document.getElementById('g-salario-base').value);
-params.set('horas_extras',document.getElementById('g-horas-extras').value);
-params.set('valor_hora_extra',document.getElementById('g-valor-hora-extra').value);
-params.set('faltas',document.getElementById('g-faltas').value);
-params.set('nome',nome);
-const observacoes = document.getElementById('g-observacoes').value.trim();
-if(observacoes) params.set('observacoes', observacoes);
 try{
 const r=await fetch('/api/folha/holerite/gerar',{
 method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:params
 });
 const data=await r.json();
-if(data.status==='ok'||data.id){
-const comps = getComponentesData();
-if(comps.length){
-const detParams = new URLSearchParams();
-detParams.set('id', data.id);
-detParams.set('componentes', JSON.stringify(comps));
-detParams.set('observacoes', observacoes);
-fetch('/api/folha/holerite/detalhes/salvar', {
-method:'POST',
-headers:{'Content-Type':'application/x-www-form-urlencoded'},
-body:detParams
-}).catch(()=>{});
-}
-mostrarToast('Holerite #'+data.id+' gerado!','success');
-document.getElementById('g-horas-extras').value='0';
-document.getElementById('g-valor-hora-extra').value='0';
-document.getElementById('g-faltas').value='0';
-limparResumo();
-carregarHolerites();
-}else mostrarToast(data.mensagem||'Erro','error');
-}catch(e){mostrarToast('Erro','error');}
+if(data.status==='ok'){mostrarToast(data.gerados+' holerites gerados!','success');carregarHolerites();}
+else mostrarToast(data.mensagem||'Erro','error');
+}catch(e){mostrarToast('Erro ao gerar holerites','error');}
 }
 
-// ---- Holerites ----
 async function carregarHolerites(){
 try{
 const r=await fetch('/api/folha/holerites');const data=await r.json();
@@ -728,16 +518,28 @@ async function abrirDetalhesHolerite(id){
     try{
         const r = await fetch('/api/folha/holerite/detalhes?id='+id);
         const d = await r.json();
+        const bases = d.bases||{};
+        const bEl = document.getElementById('modal-det-bases');
+        bEl.innerHTML = [
+            ['Salário Ref.', bases.salario],
+            ['Base INSS', bases.base_inss],
+            ['Base IRRF', bases.base_irrf],
+            ['FGTS', bases.fgts],
+        ].map(([label, val]) =>
+            '<div style="background:#e8eaf6;border:1px solid #c5cae9;border-radius:6px;padding:6px 10px;font-size:.75rem;">'+
+            '<div style="color:#3949ab;">'+label+'</div>'+
+            '<div style="font-weight:600;color:#1a237e;">'+fmt(val)+'</div></div>'
+        ).join('');
         const comps = d.componentes||[];
         const tbody = document.getElementById('modal-det-componentes');
         if(!comps.length){
             tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">Nenhum componente detalhado</td></tr>';
         }else{
             tbody.innerHTML = comps.map(c => {
-                const val = c.metodo==='manual' ? c.valor_manual : c.valor_auto;
+                const val = c.metodo==='manual' ? (c.valor_manual||0) : (c.valor_auto||0);
                 const sig = c.tipo==='provento' ? '' : '-';
                 return '<tr>'+
-                    '<td>'+(c.tipo||'')+'</td>'+
+                    '<td>'+(c.tipo==='provento'?'<span style="color:#2e7d32;font-weight:600;">+ Provento</span>':'<span style="color:#c62828;font-weight:600;">- Desconto</span>')+'</td>'+
                     '<td>'+(c.nome||'')+'</td>'+
                     '<td>'+(c.formula||'')+'</td>'+
                     '<td>'+((c.metodo==='manual')?'<span style="color:#e65100;">manual</span>':'auto')+'</td>'+
@@ -943,14 +745,18 @@ else mostrarToast(data.mensagem||'Erro','error');
 async function calcularRescisao(){
 const funcId=document.getElementById('r-funcionario-id').value;
 if(!funcId){mostrarToast('Selecione um funcionario','error');return;}
+const motivo=document.getElementById('r-motivo').value;
+if(!motivo){mostrarToast('Selecione o motivo de desligamento','error');return;}
 const params=new URLSearchParams();
 params.set('funcionario_id',funcId);
+params.set('motivo',motivo);
 params.set('data_desligamento',document.getElementById('r-data-deslig').value);
 params.set('tipo_aviso',document.getElementById('r-tipo-aviso').value);
 params.set('dias_aviso',document.getElementById('r-dias-aviso').value);
 params.set('saldo_dias',document.getElementById('r-saldo-dias').value);
 params.set('ferias_vencidas_dias',document.getElementById('r-ferias-vencidas').value);
 params.set('ferias_proporcionais_meses',document.getElementById('r-ferias-prop').value);
+params.set('13_meses',document.getElementById('r-decimo-prop').value);
 params.set('salario_base',document.getElementById('r-salario-base').value);
 try{
 const r=await fetch('/api/folha/rescisao/incluir',{
@@ -966,9 +772,10 @@ document.getElementById('rescisao-decimo').textContent=fmt(data.decimo_proporcio
 document.getElementById('rescisao-fgts').textContent=fmt(data.fgts);
 document.getElementById('rescisao-multa').textContent=fmt(data.multa_fgts);
 document.getElementById('rescisao-liquido').textContent=fmt(data.liquido);
+document.getElementById('rescisao-prazo').textContent=data.prazo_pagamento||'-';
 }
 carregarRescisoes();
-}else mostrarToast(data.mensagem||'Erro','error');
+}else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -978,21 +785,24 @@ const r=await fetch('/api/folha/rescisoes');const data=await r.json();
 const rescisoes=data.rescisoes||[];
 const tbody=document.getElementById('tabela-rescisoes');
 if(rescisoes.length===0){
-tbody.innerHTML='<tr><td colspan="11" style="text-align:center;color:#888;padding:30px;">Nenhum registro de rescisao</td></tr>';
+tbody.innerHTML='<tr><td colspan="13" style="text-align:center;color:#888;padding:30px;">Nenhum registro de rescisao</td></tr>';
 }else{
 tbody.innerHTML=rescisoes.map(res=>{
 const s=res.situacao||'C';
 const sitLabel={C:'Calculado',P:'Pago'};
+const motivoLabel={'sem-justa-causa':'Sem justa causa','com-justa-causa':'Com justa causa','pedido-demissao':'Pedido demissao','acordo':'Acordo','termino-contrato':'Termino contrato'};
 return '<tr>'+
 '<td>'+res.id+'</td>'+
 '<td>'+(res.nome||'#'+res.funcionario_id)+'</td>'+
-'<td>'+(res.data_desligamento||'')+'</td>'+
+'<td>'+(motivoLabel[res.motivo]||res.motivo||'-')+'</td>'+
+'<td>'+(res.data_deslig||res.data_desligamento||'')+'</td>'+
 '<td class="valor">'+fmt(res.saldo_salario)+'</td>'+
 '<td class="valor">'+fmt(res.ferias)+'</td>'+
 '<td class="valor">'+fmt(res.decimo_proporcional)+'</td>'+
 '<td class="valor">'+fmt(res.fgts)+'</td>'+
 '<td class="valor">'+fmt(res.multa_fgts)+'</td>'+
 '<td class="valor"><strong>'+fmt(res.liquido)+'</strong></td>'+
+'<td style="font-size:.75rem;">'+(res.prazo_pagamento||'-')+'</td>'+
 '<td>'+(sitLabel[s]||s)+'</td>'+
 '<td style="white-space:nowrap;">'+
 (s==='C'?'<button class="btn btn-sm btn-success" onclick="pagarRescisao('+res.id+')">Pagar</button> ':'')+
@@ -1142,7 +952,7 @@ async function carregarConfig(){
 try{
 const r=await fetch('/api/folha/config');const data=await r.json();
 if(data.status!=='erro'){
-const ids=['salario_minimo','inss_f1_teto','inss_f1_aliq','inss_f2_teto','inss_f2_aliq','inss_f3_teto','inss_f3_aliq','inss_f4_teto','inss_f4_aliq','irrf_ded_dep','irrf_f1_teto','irrf_f1_aliq','irrf_f2_teto','irrf_f2_aliq','irrf_f3_teto','irrf_f3_aliq','irrf_f4_teto','irrf_f4_aliq','fgts_aliquota','hora_extra_aliq'];
+const ids=['salario_minimo','inss_f1_teto','inss_f1_aliq','inss_f2_teto','inss_f2_aliq','inss_f3_teto','inss_f3_aliq','inss_f4_teto','inss_f4_aliq','irrf_ded_dep','irrf_f1_teto','irrf_f1_aliq','irrf_f2_teto','irrf_f2_aliq','irrf_f3_teto','irrf_f3_aliq','irrf_f4_teto','irrf_f4_aliq','irrf_f1_ded','irrf_f2_ded','irrf_f3_ded','irrf_f4_ded','irrf_f5_aliq','irrf_f5_ded','fgts_aliquota','hora_extra_aliq'];
 ids.forEach(id=>{
 const el=document.getElementById('c-'+id);
 if(el&&data[id]!==undefined)el.value=parseFloat(data[id]).toFixed(2);
@@ -1152,9 +962,9 @@ if(el&&data[id]!==undefined)el.value=parseFloat(data[id]).toFixed(2);
 }
 
 async function salvarConfig(){
-const ids=['salario_minimo','inss_f1_teto','inss_f1_aliq','inss_f2_teto','inss_f2_aliq','inss_f3_teto','inss_f3_aliq','inss_f4_teto','inss_f4_aliq','irrf_ded_dep','irrf_f1_teto','irrf_f1_aliq','irrf_f2_teto','irrf_f2_aliq','irrf_f3_teto','irrf_f3_aliq','irrf_f4_teto','irrf_f4_aliq','fgts_aliquota','hora_extra_aliq'];
+const ids=['salario_minimo','inss_f1_teto','inss_f1_aliq','inss_f2_teto','inss_f2_aliq','inss_f3_teto','inss_f3_aliq','inss_f4_teto','inss_f4_aliq','irrf_ded_dep','irrf_f1_teto','irrf_f1_aliq','irrf_f2_teto','irrf_f2_aliq','irrf_f3_teto','irrf_f3_aliq','irrf_f4_teto','irrf_f4_aliq','irrf_f1_ded','irrf_f2_ded','irrf_f3_ded','irrf_f4_ded','irrf_f5_aliq','irrf_f5_ded','fgts_aliquota','hora_extra_aliq'];
 const params=new URLSearchParams();
-ids.forEach(id=>params.set(id,document.getElementById('c-'+id).value));
+ids.forEach(id=>params.set(id,id==='salario_minimo'?Mascaras.limparMoeda(document.getElementById('c-'+id).value):document.getElementById('c-'+id).value));
 try{
 const r=await fetch('/api/folha/config/salvar',{
 method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:params
@@ -1165,17 +975,157 @@ else mostrarToast(data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
+// ---- RFC-006: Processamento da Folha ----
+const ESTADOS={A:['Aberta','#f57f17'],C:['Calculada','#1565c0'],V:['Validada','#6a1b9a'],F:['Fechada','#2e7d32'],P:['Paga','#37474f']};
+
+function getCompetencia(){
+return (document.getElementById('p-competencia').value||'').replace('-','/');
+}
+
+async function apiFolha(path, dados){
+try{
+const params=new URLSearchParams();
+Object.entries(dados||{}).forEach(([k,v])=>{if(v!==''&&v!=null)params.set(k,v)});
+const r=await fetch(path,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:params});
+const data=await r.json();
+if(data.status==='error'){mostrarToast(data.message||'Erro','error');throw new Error(data.message||'Erro');}
+return data;
+}catch(e){if(e.message!=='Erro')mostrarToast(e.message||'Erro','error');throw e;}
+}
+
+async function abrirCompetencia(){
+const comp=getCompetencia();
+if(!comp){mostrarToast('Selecione a competencia','error');return;}
+try{
+await apiFolha('/api/folha/competencia/abrir',{competencia:comp});
+mostrarToast('Competencia aberta','success');
+renderFuncsFolha();
+}catch(e){}
+}
+
+function renderFuncsFolha(){
+const ativos=funcionarios.filter(f=>{const sv=(f.situacao_vinculo||'').toString().toLowerCase();return sv==='ativo'||sv==='a'||sv==='';});
+const tbody=document.getElementById('p-funcs');
+if(ativos.length===0){tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:#888">Nenhum funcionario ativo</td></tr>';return;}
+tbody.innerHTML=ativos.map(f=>
+'<tr>'+
+'<td>#'+f.id+' '+f.nome+'</td>'+
+'<td><input type="number" class="pf" data-id="'+f.id+'" data-campo="salario_base" step="0.01" min="0" value="'+(parseFloat(f.salario||0).toFixed(2))+'" style="width:110px"></td>'+
+'<td><input type="number" class="pf" data-id="'+f.id+'" data-campo="horas_extras" step="0.01" min="0" value="0" style="width:100px"></td>'+
+'<td><input type="number" class="pf" data-id="'+f.id+'" data-campo="dsr" step="0.01" min="0" value="0" style="width:90px"></td>'+
+'<td><input type="number" class="pf" data-id="'+f.id+'" data-campo="faltas" step="1" min="0" value="0" style="width:70px"></td>'+
+'<td><input type="number" class="pf" data-id="'+f.id+'" data-campo="dependentes" step="1" min="0" value="0" style="width:60px"></td>'+
+'<td><input type="number" class="pf" data-id="'+f.id+'" data-campo="outros_proventos" step="0.01" min="0" value="0" style="width:100px"></td>'+
+'<td><input type="number" class="pf" data-id="'+f.id+'" data-campo="outros_descontos" step="0.01" min="0" value="0" style="width:100px"></td>'+
+'</tr>'
+).join('');
+}
+
+async function processarTodos(){
+const comp=getCompetencia();
+if(!comp){mostrarToast('Selecione a competencia','error');return;}
+const linhas=document.querySelectorAll('#p-funcs tr');
+if(linhas.length===0){mostrarToast('Nenhum funcionario listado','error');return;}
+let totalProv=0,totalDesc=0,totalLiq=0;
+let html='';
+try{
+await apiFolha('/api/folha/competencia/abrir',{competencia:comp});
+}catch(e){if(!String(e.message||'').includes('ja existe')){return;}}
+for(const linha of linhas){
+const inputs=linha.querySelectorAll('.pf');
+const dados={competencia:comp};
+inputs.forEach(i=>{dados[i.dataset.campo]=i.value;if(i.dataset.campo==='salario_base'){dados.nome=funcionarios.find(f=>f.id==parseInt(i.dataset.id))?.nome||'';}});
+const fid=linha.querySelector('.pf').dataset.id;
+dados.funcionario_id=fid;
+dados.nome=funcionarios.find(f=>f.id==parseInt(fid))?.nome||'';
+try{
+const res=await apiFolha('/api/folha/competencia/calcular',dados);
+totalProv+=parseFloat(res.proventos||0);totalDesc+=parseFloat(res.total_descontos||0);totalLiq+=parseFloat(res.liquido||0);
+html+='<tr><td>#'+fid+' '+(dados.nome||'')+'</td><td>R$ '+(parseFloat(res.proventos||0).toFixed(2))+'</td><td>R$ '+(parseFloat(res.inss||0).toFixed(2))+'</td><td>R$ '+(parseFloat(res.irrf||0).toFixed(2))+'</td><td style="color:#2e7d32">R$ '+(parseFloat(res.liquido||0).toFixed(2))+'</td></tr>';
+}catch(e){}
+}
+document.getElementById('p-resultado').innerHTML='<h3 style="font-size:.9rem;color:#1a237e;margin:10px 0 6px;">Resultado (INSS/IRRF calculados no COBOL)</h3>'+
+'<div style="overflow-x:auto"><table><thead><tr><th>Funcionario</th><th>Proventos</th><th>INSS</th><th>IRRF</th><th>Liquido</th></tr></thead><tbody>'+html+'</tbody></table></div>'+
+'<p style="margin-top:8px;font-size:.85rem">Totais: proventos <b>R$ '+totalProv.toFixed(2)+'</b> · descontos <b>R$ '+totalDesc.toFixed(2)+'</b> · liquido <b>R$ '+totalLiq.toFixed(2)+'</b></p>'+
+'<button class="btn btn-sm btn-primary" onclick="concluirCompetencia()">Concluir (→ Calculada)</button>';
+mostrarToast('Funcionarios calculados','success');
+carregarCompetencias();
+}
+
+async function concluirCompetencia(compArg){
+const comp=compArg||getCompetencia();
+if(!comp){mostrarToast('Selecione a competencia','error');return;}
+try{
+await apiFolha('/api/folha/competencia/concluir',{competencia:comp});
+mostrarToast('Competencia calculada','success');
+carregarCompetencias();
+}catch(e){}
+}
+
+async function transicaoCompetencia(acao,comp){
+try{
+const caminhos={validar:'/api/folha/competencia/validar',fechar:'/api/folha/competencia/fechar',pagar:'/api/folha/competencia/pagar'};
+const dados={competencia:comp};
+if(acao==='pagar'){
+const dt=prompt('Data de pagamento (AAAA-MM-DD):',new Date().toISOString().slice(0,10));
+if(!dt)return;
+dados.data_pagamento=dt;
+}
+await apiFolha(caminhos[acao],dados);
+mostrarToast('Operacao concluida','success');
+carregarCompetencias();
+}catch(e){}
+}
+
+async function verDetalhe(comp){
+try{
+const r=await fetch('/api/folha/competencia?competencia='+encodeURIComponent(comp));
+const data=await r.json();
+const funcs=(data.funcionarios||[]);
+let html='<div class="modal" style="display:block;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;overflow:auto"><div style="max-width:860px;margin:40px auto;background:#fff;border-radius:8px;padding:20px">'+
+'<h2 style="color:#1a237e">Folha '+comp+'</h2><table><thead><tr><th>Func.</th><th>Salário</th><th>Proventos</th><th>Base INSS</th><th>INSS</th><th>Base IRRF</th><th>IRRF</th><th>Desc.</th><th>Líquido</th></tr></thead><tbody>';
+if(funcs.length===0)html+='<tr><td colspan="9" style="text-align:center;color:#888">Sem funcionarios processados</td></tr>';
+funcs.forEach(f=>{html+='<tr><td>#'+f.funcionario_id+' '+f.nome+'</td><td>'+fmtMoeda(f.salario_base)+'</td><td>'+fmtMoeda(f.proventos)+'</td><td>'+fmtMoeda(f.base_inss)+'</td><td style="color:#c62828">'+fmtMoeda(f.inss)+'</td><td>'+fmtMoeda(f.base_irrf)+'</td><td style="color:#c62828">'+fmtMoeda(f.irrf)+'</td><td>'+fmtMoeda(f.total_descontos)+'</td><td style="color:#2e7d32">'+fmtMoeda(f.liquido)+'</td></tr>';});
+html+='</tbody></table><button class="btn" onclick="fecharModalDetalhe()">Fechar</button></div></div>';
+const div=document.createElement('div');div.id='modal-detalhe-folha';div.innerHTML=html;document.body.appendChild(div);
+}catch(e){mostrarToast('Erro ao carregar detalhe','error');}
+}
+function fecharModalDetalhe(){const el=document.getElementById('modal-detalhe-folha');if(el)el.remove();}
+function fmtMoeda(v){return 'R$ '+(parseFloat(v||0).toFixed(2));}
+
+async function carregarCompetencias(){
+try{
+const r=await fetch('/api/folha/competencias');const data=await r.json();
+const comps=data.competencias||[];
+const tbody=document.getElementById('p-competencias');
+if(comps.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#888">Nenhuma competencia processada</td></tr>';return;}
+tbody.innerHTML=comps.map(c=>{
+const [nome,cor]=ESTADOS[c.situacao]||[c.situacao,'#888'];
+const acoes=[];
+if(c.situacao==='A'||c.situacao==='C')acoes.push('<button class="btn btn-sm btn-primary" onclick="concluirCompetencia(\''+c.competencia+'\')">Concluir</button>');
+if(c.situacao==='C')acoes.push('<button class="btn btn-sm" onclick="transicaoCompetencia(\'validar\',\''+c.competencia+'\')">Validar</button>');
+if(c.situacao==='V')acoes.push('<button class="btn btn-sm" onclick="transicaoCompetencia(\'fechar\',\''+c.competencia+'\')">Fechar</button>');
+if(c.situacao==='F')acoes.push('<button class="btn btn-sm btn-success" onclick="transicaoCompetencia(\'pagar\',\''+c.competencia+'\')">Pagar</button>');
+acoes.push('<button class="btn btn-sm" onclick="verDetalhe(\''+c.competencia+'\')">Detalhe</button>');
+return '<tr><td>'+c.competencia+'</td><td><span style="background:'+cor+';color:#fff;padding:2px 10px;border-radius:10px;font-size:.75rem">'+nome+'</span></td><td>'+c.qtde_funcionarios+'</td><td>'+fmtMoeda(c.total_proventos)+'</td><td style="color:#c62828">'+fmtMoeda(c.total_descontos)+'</td><td style="color:#2e7d32">'+fmtMoeda(c.liquido)+'</td><td>'+acoes.join(' ')+'</td></tr>';
+}).join('');
+}catch(e){}
+}
+
 // ---- Init ----
 const agora=new Date();
 const mesStr=agora.getFullYear()+'-'+String(agora.getMonth()+1).padStart(2,'0');
-document.getElementById('g-competencia').value=mesStr;
-document.getElementById('f-mes').value=mesStr;
-document.getElementById('c-competencia').value=mesStr;
-document.getElementById('d-ano').value=agora.getFullYear();
-carregarFuncionarios();
+const elG=document.getElementById('g-competencia');if(elG)elG.value=mesStr;
+const elP=document.getElementById('p-competencia');if(elP)elP.value=mesStr;
+const elH=document.getElementById('h-competencia');if(elH)elH.value=mesStr;
+const elF=document.getElementById('f-mes');if(elF)elF.value=mesStr;
+const elC=document.getElementById('c-competencia');if(elC)elC.value=mesStr;
+const elD=document.getElementById('d-ano');if(elD)elD.value=agora.getFullYear();
+carregarFuncionarios().then(()=>{renderFuncsFolha();carregarCompetencias();});
 carregarHolerites();
 carregarConfig();
 </script>
 <footer style="text-align:center;padding:16px 0;margin-top:32px;font-size:.8rem;color:#999;border-top:1px solid #e0e0e0">Powered by <strong>COBOL</strong> &mdash; Palmarante Loja</footer>
+<script src="../js/masks.js"></script>
 </body>
 </html>

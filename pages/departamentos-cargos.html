@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Departamentos e Cargos - Palmarante Loja</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#333; }
+header { background:#1a237e; color:#fff; padding:16px 24px; display:flex; justify-content:space-between; align-items:center; }
+header h1 { font-size:1.4rem; }
+header a { color:#ffd54f; text-decoration:none; font-size:.9rem; }
+main { padding:24px; max-width:1400px; margin:0 auto; }
+.card { background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); padding:20px; margin-bottom:20px; }
+.card h2 { font-size:1.1rem; margin-bottom:16px; color:#1a237e; }
+table { width:100%; border-collapse:collapse; font-size:.85rem; }
+th { background:#e8eaf6; text-align:left; padding:8px 10px; font-weight:600; border-bottom:2px solid #c5cae9; white-space:nowrap; }
+td { padding:6px 10px; border-bottom:1px solid #eee; }
+tr:hover td { background:#f5f5f5; }
+.form-row { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; align-items:center; }
+.form-row label { min-width:110px; font-weight:500; font-size:.9rem; }
+.form-row input, .form-row select { flex:1; padding:10px 12px; border:1px solid #ccc; border-radius:6px; font-size:.9rem; min-width:120px; }
+.form-row input:focus { border-color:#1a237e; outline:none; }
+.form-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
+@media(max-width:900px){.form-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
+.btn { padding:8px 20px; border:none; border-radius:4px; cursor:pointer; font-size:.9rem; font-weight:500; }
+.btn-primary { background:#1a237e; color:#fff; }
+.btn-primary:hover { background:#283593; }
+.btn-success { background:#2e7d32; color:#fff; }
+.btn-success:hover { background:#388e3c; }
+.btn-danger { background:#c62828; color:#fff; }
+.btn-danger:hover { background:#d32f2f; }
+.btn-warning { background:#f9a825; color:#333; }
+.btn-sm { padding:4px 10px; font-size:.8rem; }
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:.7rem; font-weight:600; }
+.badge.ativo { background:#e8f5e9; color:#2e7d32; }
+.badge.inativo { background:#fce4ec; color:#c62828; }
+.toast { position:fixed; bottom:20px; right:20px; padding:12px 24px; border-radius:6px; color:#fff; font-weight:500; display:none; z-index:999; }
+.toast.success { background:#2e7d32; }
+.toast.error { background:#c62828; }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:900px){.two-col{grid-template-columns:1fr;}}
+.note { font-size:.75rem; color:#888; margin-bottom:10px; }
+</style>
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<header>
+<h1>Departamentos e Cargos</h1>
+<a href="/pages/funcionarios.html">&larr; Funcionarios</a>
+</header>
+
+<main>
+
+<div class="two-col">
+
+<!-- Departamentos -->
+<div class="card">
+<h2>Departamentos (RFC-008)</h2>
+<p class="note">Unidade organizacional usada no rateio e relatorios. Inativacao nao apaga historico.</p>
+<div class="form-grid">
+<div class="form-row"><label>Codigo:</label><input type="text" id="dep-codigo" maxlength="10" placeholder="Ex: TI"></div>
+<div class="form-row"><label>Descricao:</label><input type="text" id="dep-descricao" maxlength="50" placeholder="Ex: Tecnologia"></div>
+<div class="form-row"><label>Centro Custo:</label><input type="text" id="dep-centro-custo" maxlength="20" placeholder="Ex: CC-01"></div>
+<div class="form-row"><label>Responsavel:</label><input type="text" id="dep-responsavel" maxlength="40" placeholder="Ex: Ana"></div>
+</div>
+<div style="margin-top:6px;display:flex;gap:8px;">
+<input type="hidden" id="dep-id" value="">
+<button class="btn btn-success" onclick="salvarDepartamento()">Salvar Departamento</button>
+<button class="btn btn-warning btn-sm" onclick="limparDepartamento()" style="display:none;" id="dep-cancelar">Cancelar</button>
+</div>
+<div style="overflow-x:auto;margin-top:16px;">
+<table><thead><tr><th>ID</th><th>Codigo</th><th>Descricao</th><th>Centro Custo</th><th>Responsavel</th><th>Status</th><th>Acoes</th></tr></thead>
+<tbody id="tabela-departamentos"></tbody></table>
+</div>
+</div>
+
+<!-- Cargos -->
+<div class="card">
+<h2>Cargos (RFC-008)</h2>
+<p class="note">Posicao ocupada pelo funcionario. Salario de referencia e informativo (o real e do funcionario).</p>
+<div class="form-grid">
+<div class="form-row"><label>Codigo:</label><input type="text" id="car-codigo" maxlength="10" placeholder="Ex: DEV"></div>
+<div class="form-row"><label>Descricao:</label><input type="text" id="car-descricao" maxlength="50" placeholder="Ex: Analista de Sistemas"></div>
+<div class="form-row"><label>CBO:</label><input type="text" id="car-cbo" maxlength="6" placeholder="Ex: 2124-05"></div>
+<div class="form-row"><label>Sal. Referencia:</label><input type="number" id="car-salario-ref" step="0.01" min="0" placeholder="0.00"></div>
+</div>
+<div style="margin-top:6px;display:flex;gap:8px;">
+<input type="hidden" id="car-id" value="">
+<button class="btn btn-success" onclick="salvarCargo()">Salvar Cargo</button>
+<button class="btn btn-warning btn-sm" onclick="limparCargo()" style="display:none;" id="car-cancelar">Cancelar</button>
+</div>
+<div style="overflow-x:auto;margin-top:16px;">
+<table><thead><tr><th>ID</th><th>Codigo</th><th>Descricao</th><th>CBO</th><th>Sal. Ref.</th><th>Status</th><th>Acoes</th></tr></thead>
+<tbody id="tabela-cargos"></tbody></table>
+</div>
+</div>
+
+</div>
+</main>
+
+<div id="toast" class="toast"></div>
+
+<script>
+function mostrarToast(msg, tipo) {
+const t = document.getElementById('toast');
+t.textContent = msg;
+t.className = 'toast ' + tipo;
+t.style.display = 'block';
+setTimeout(() => t.style.display = 'none', 3000);
+}
+
+async function carregarDepartamentos() {
+try {
+const r = await fetch('/api/departamentos');
+const data = await r.json();
+const tbody = document.getElementById('tabela-departamentos');
+const deps = data.departamentos || [];
+if (deps.length === 0) {
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;padding:20px;">Nenhum departamento cadastrado</td></tr>';
+} else {
+tbody.innerHTML = deps.map(d =>
+'<tr><td>' + d.id + '</td><td>' + (d.codigo || '') + '</td><td>' + (d.descricao || '') + '</td><td>' + (d.centro_custo || '') + '</td><td>' + (d.responsavel || '') + '</td>' +
+'<td><span class="badge ' + (d.status === 'inativo' ? 'inativo' : 'ativo') + '">' + (d.status || 'ativo') + '</span></td>' +
+'<td style="white-space:nowrap;">' +
+(d.status !== 'inativo' ? '<button class="btn btn-sm btn-primary" onclick="editarDepartamento(' + d.id + ')">Editar</button> <button class="btn btn-sm btn-danger" onclick="excluirDepartamento(' + d.id + ')">Inativar</button>' : '<span style="color:#999;font-size:.75rem;">inativo</span>') +
+'</td></tr>'
+).join('');
+}
+} catch(e) { mostrarToast('Erro ao carregar departamentos', 'error'); }
+}
+
+async function carregarCargos() {
+try {
+const r = await fetch('/api/cargos');
+const data = await r.json();
+const tbody = document.getElementById('tabela-cargos');
+const cargos = data.cargos || [];
+if (cargos.length === 0) {
+tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;padding:20px;">Nenhum cargo cadastrado</td></tr>';
+} else {
+tbody.innerHTML = cargos.map(c =>
+'<tr><td>' + c.id + '</td><td>' + (c.codigo || '') + '</td><td>' + (c.descricao || '') + '</td><td>' + (c.cbo || '') + '</td><td>' + (c.salario_referencia ? 'R$ ' + parseFloat(c.salario_referencia).toFixed(2) : '-') + '</td>' +
+'<td><span class="badge ' + (c.status === 'inativo' ? 'inativo' : 'ativo') + '">' + (c.status || 'ativo') + '</span></td>' +
+'<td style="white-space:nowrap;">' +
+(c.status !== 'inativo' ? '<button class="btn btn-sm btn-primary" onclick="editarCargo(' + c.id + ')">Editar</button> <button class="btn btn-sm btn-danger" onclick="excluirCargo(' + c.id + ')">Inativar</button>' : '<span style="color:#999;font-size:.75rem;">inativo</span>') +
+'</td></tr>'
+).join('');
+}
+} catch(e) { mostrarToast('Erro ao carregar cargos', 'error'); }
+}
+
+async function salvarDepartamento() {
+const id = document.getElementById('dep-id').value;
+const isEdit = id !== '';
+const codigo = document.getElementById('dep-codigo').value.trim();
+const descricao = document.getElementById('dep-descricao').value.trim();
+if (!codigo) { mostrarToast('Codigo obrigatorio', 'error'); return; }
+if (!descricao) { mostrarToast('Descricao obrigatoria', 'error'); return; }
+const params = new URLSearchParams();
+params.set('codigo', codigo);
+params.set('descricao', descricao);
+params.set('centro_custo', document.getElementById('dep-centro-custo').value.trim());
+params.set('responsavel', document.getElementById('dep-responsavel').value.trim());
+if (isEdit) params.set('id', id);
+const endpoint = isEdit ? '/api/departamento/alterar' : '/api/departamento/incluir';
+try {
+const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
+const data = await r.json();
+if (data.status === 'ok' || data.id) { mostrarToast('Departamento salvo!', 'success'); limparDepartamento(); carregarDepartamentos(); }
+else mostrarToast(data.message || data.mensagem || 'Erro', 'error');
+} catch(e) { mostrarToast('Erro ao salvar departamento', 'error'); }
+}
+
+function editarDepartamento(id) {
+fetch('/api/departamentos').then(r=>r.json()).then(data => {
+const d = (data.departamentos || []).find(x => String(x.id) === String(id));
+if (!d) return;
+document.getElementById('dep-id').value = d.id;
+document.getElementById('dep-codigo').value = d.codigo || '';
+document.getElementById('dep-descricao').value = d.descricao || '';
+document.getElementById('dep-centro-custo').value = d.centro_custo || '';
+document.getElementById('dep-responsavel').value = d.responsavel || '';
+document.getElementById('dep-cancelar').style.display = 'inline-block';
+window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+}
+
+function limparDepartamento() {
+document.getElementById('dep-id').value = '';
+document.getElementById('dep-codigo').value = '';
+document.getElementById('dep-descricao').value = '';
+document.getElementById('dep-centro-custo').value = '';
+document.getElementById('dep-responsavel').value = '';
+document.getElementById('dep-cancelar').style.display = 'none';
+}
+
+async function excluirDepartamento(id) {
+if (!confirm('Inativar departamento #' + id + '? (historico preservado)')) return;
+const params = new URLSearchParams(); params.set('id', id);
+try {
+const r = await fetch('/api/departamento/excluir', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
+const data = await r.json();
+if (data.status === 'ok') { mostrarToast('Departamento inativado!', 'success'); carregarDepartamentos(); }
+else mostrarToast(data.message || 'Erro', 'error');
+} catch(e) { mostrarToast('Erro', 'error'); }
+}
+
+async function salvarCargo() {
+const id = document.getElementById('car-id').value;
+const isEdit = id !== '';
+const codigo = document.getElementById('car-codigo').value.trim();
+const descricao = document.getElementById('car-descricao').value.trim();
+if (!codigo) { mostrarToast('Codigo obrigatorio', 'error'); return; }
+if (!descricao) { mostrarToast('Descricao obrigatoria', 'error'); return; }
+const params = new URLSearchParams();
+params.set('codigo', codigo);
+params.set('descricao', descricao);
+params.set('cbo', document.getElementById('car-cbo').value.trim());
+params.set('salario_referencia', document.getElementById('car-salario-ref').value || '0');
+if (isEdit) params.set('id', id);
+const endpoint = isEdit ? '/api/cargo/alterar' : '/api/cargo/incluir';
+try {
+const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
+const data = await r.json();
+if (data.status === 'ok' || data.id) { mostrarToast('Cargo salvo!', 'success'); limparCargo(); carregarCargos(); }
+else mostrarToast(data.message || data.mensagem || 'Erro', 'error');
+} catch(e) { mostrarToast('Erro ao salvar cargo', 'error'); }
+}
+
+function editarCargo(id) {
+fetch('/api/cargos').then(r=>r.json()).then(data => {
+const c = (data.cargos || []).find(x => String(x.id) === String(id));
+if (!c) return;
+document.getElementById('car-id').value = c.id;
+document.getElementById('car-codigo').value = c.codigo || '';
+document.getElementById('car-descricao').value = c.descricao || '';
+document.getElementById('car-cbo').value = c.cbo || '';
+document.getElementById('car-salario-ref').value = c.salario_referencia || '';
+document.getElementById('car-cancelar').style.display = 'inline-block';
+window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+}
+
+function limparCargo() {
+document.getElementById('car-id').value = '';
+document.getElementById('car-codigo').value = '';
+document.getElementById('car-descricao').value = '';
+document.getElementById('car-cbo').value = '';
+document.getElementById('car-salario-ref').value = '';
+document.getElementById('car-cancelar').style.display = 'none';
+}
+
+async function excluirCargo(id) {
+if (!confirm('Inativar cargo #' + id + '? (historico preservado)')) return;
+const params = new URLSearchParams(); params.set('id', id);
+try {
+const r = await fetch('/api/cargo/excluir', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
+const data = await r.json();
+if (data.status === 'ok') { mostrarToast('Cargo inativado!', 'success'); carregarCargos(); }
+else mostrarToast(data.message || 'Erro', 'error');
+} catch(e) { mostrarToast('Erro', 'error'); }
+}
+
+carregarDepartamentos();
+carregarCargos();
+</script>
+<footer style="text-align:center;padding:16px 0;margin-top:32px;font-size:.8rem;color:#999;border-top:1px solid #e0e0e0">Powered by <strong>COBOL</strong> &mdash; Palmarante Loja</footer>
+</body>
+</html>

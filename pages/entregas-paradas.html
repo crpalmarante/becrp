@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Paradas (Stops)</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .pc-toolbar .grow { flex:1; min-width:140px; }
+    .layout { display:grid; grid-template-columns: 1fr 1.2fr; gap:16px; }
+    @media (max-width:900px) { .layout { grid-template-columns:1fr; } }
+    .panel {
+      border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:12px;
+      background:rgba(0,0,0,.15);
+    }
+    .panel h3 { margin:0 0 10px; font-size:14px; }
+    .st-row {
+      padding:10px; margin-bottom:8px; border:1px solid rgba(255,255,255,.12);
+      border-radius:6px; cursor:pointer; font-size:13px;
+    }
+    .st-row.active { border-color:rgba(20,184,166,.5); background:rgba(20,184,166,.1); }
+    .st-row.current, .st-row.arrived, .st-row.servicing { border-color:rgba(20,184,166,.35); }
+    .st-row .sub { font-size:11px; opacity:.7; }
+    .badge { font-size:10px; padding:1px 5px; border:1px solid rgba(255,255,255,.2); border-radius:3px; }
+    .act-btns { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+    .btn-xs {
+      padding:4px 8px; font-size:11px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.25); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+    .btn-xs.primary { border-color:rgba(20,184,166,.5); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="entregas-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="entregas-viagem.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Viagem</span></a>
+      <a class="menu-item" href="entregas-motorista.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Motorista</span></a>
+      <a class="menu-item active" href="entregas-paradas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Paradas</span></a>
+      <a class="menu-item" href="entregas-manifesto.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Manifesto</span></a>
+      <a class="menu-item" href="entregas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Pedidos</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Home</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="topbar-title">Entregas — Paradas (Stops)</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Delivery / Stops</div>
+          <h2 class="workspace-title">Unidade de execução</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">RFC-18108 — Stop = destino físico na Trip. Chegada, atendimento, POD. Sem inventário.</p>
+          <div id="msg" class="pc-msg"></div>
+          <div class="pc-toolbar">
+            <div class="field"><label>Data</label><input class="form-input" id="filtro-data" type="date"></div>
+            <div class="field"><label>Trip</label><input class="form-input" id="filtro-trip" placeholder="TR-…"></div>
+            <div class="field"><label>Status</label><select class="form-input" id="filtro-status"><option value="">Todos</option></select></div>
+            <div class="field grow"><label>Busca</label><input class="form-input" id="filtro-q" placeholder="cliente / DO / TR"></div>
+            <label style="font-size:12px;display:flex;gap:6px;align-items:center">
+              <input type="checkbox" id="filtro-ativas" checked> Só trips ativas
+            </label>
+            <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+          </div>
+          <div class="layout">
+            <div class="panel">
+              <h3>Paradas</h3>
+              <div id="lista"></div>
+            </div>
+            <div class="panel">
+              <h3>Detalhe</h3>
+              <div id="detalhe"><div class="pc-note">Selecione uma parada</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let selectedId = null;
+  let statusOp = {};
+
+  const LABEL = {
+    navigate: "Navegar",
+    arrive: "Chegada",
+    start_service: "Iniciar atendimento",
+    finish: "Concluir + POD",
+    skip: "Pular",
+    fail: "Falhou",
+    note: "Nota",
+    pod: "Garantir POD",
+  };
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  async function doAct(s, action) {
+    if (action === "navigate") {
+      if (s.navigate_url) window.open(s.navigate_url, "_blank");
+      return;
+    }
+    let body = { trip_id: s.trip_id, seq: s.seq, action: action };
+    if (action === "note" || action === "skip" || action === "fail") {
+      const motivo = prompt(action === "note" ? "Nota:" : "Motivo:");
+      if (!motivo) return;
+      body.motivo = motivo;
+      if (action === "note") body.nota = motivo;
+      if (action === "fail") body.tipo = "other";
+    }
+    if (action === "finish") {
+      const nome = prompt("Receptor:", s.contato || "Receptor");
+      if (nome == null) return;
+      body.receptor_nome = nome || "Receptor";
+      body.assinatura = "ok";
+    }
+    const res = await AuthService.api("/api/admin/delivery/stops", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg(action + " · #" + s.seq, true);
+    selectedId = s.trip_id + "-" + s.seq;
+    load();
+  }
+
+  function renderDetail(s) {
+    if (!s) {
+      document.getElementById("detalhe").innerHTML = '<div class="pc-note">Selecione uma parada</div>';
+      return;
+    }
+    let html = `<div>
+      <strong>#${s.seq}</strong> <span class="badge">${s.status_label}</span>
+      <div class="sub">${s.trip_id} · ${s.trip_status_label || s.trip_status} · ${s.motorista || "—"}</div>
+      <div style="margin-top:8px;font-size:15px;font-weight:600">${s.parceiro || "—"}</div>
+      <div>${s.endereco || "—"}</div>
+      <div class="sub">${s.cidade || ""} · ${s.janela || ""}</div>
+      <div class="sub">${s.contato || ""} ${s.telefone || ""}</div>
+      <div class="sub" style="margin-top:6px">DO ${s.entrega_id} · parada pedido ${s.parada}</div>
+      <div class="sub">Chegada ${s.chegada_em || "—"} · Atend. ${s.servico_em || "—"} · Saída ${s.saida_em || "—"}
+        ${s.duracao_min != null ? " · " + s.duracao_min + " min" : ""}</div>
+      <div class="sub" style="margin-top:6px">${(s.itens || []).map((i) => (i.qtd || 1) + "× " + (i.produto || "")).join(" · ") || "sem itens"}</div>
+      ${s.observacao ? `<div class="sub" style="margin-top:6px">${s.observacao}</div>` : ""}
+      ${s.resultado ? `<div class="sub">Resultado: ${s.resultado}</div>` : ""}
+      ${s.pod ? `<div class="sub">POD ${s.pod.id} · ${s.pod.status_label || s.pod.status}</div>` : ""}
+    </div>`;
+    html += `<div class="act-btns">`;
+    (s.acoes || []).forEach((a) => {
+      const primary = ["arrive", "start_service", "finish"].includes(a);
+      html += `<button type="button" class="btn-xs ${primary ? "primary" : ""}" data-act="${a}">${LABEL[a] || a}</button>`;
+    });
+    html += `</div>`;
+    document.getElementById("detalhe").innerHTML = html;
+    document.querySelectorAll("[data-act]").forEach((btn) => {
+      btn.onclick = () => doAct(s, btn.dataset.act);
+    });
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    const data = document.getElementById("filtro-data").value;
+    const trip = document.getElementById("filtro-trip").value.trim();
+    const status = document.getElementById("filtro-status").value;
+    const q = document.getElementById("filtro-q").value.trim();
+    if (data) qs.set("data", data);
+    if (trip) qs.set("trip_id", trip);
+    if (status) qs.set("status", status);
+    if (q) qs.set("q", q);
+    if (document.getElementById("filtro-ativas").checked) qs.set("ativas", "1");
+
+    const res = await AuthService.api("/api/delivery/stops?" + qs.toString());
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    statusOp = res.status_opcoes || {};
+
+    document.getElementById("meta").textContent =
+      (res.filtrado || 0) + " parada(s)" +
+      " · " + ((res.meta && res.meta.nota) || "");
+
+    const selS = document.getElementById("filtro-status");
+    const curS = status;
+    selS.innerHTML = '<option value="">Todos</option>' +
+      Object.keys(statusOp).map((k) => `<option value="${k}">${statusOp[k]}</option>`).join("");
+    selS.value = curS;
+
+    const rows = res.stops || [];
+    if (!selectedId && rows.length) selectedId = rows[0].id;
+    document.getElementById("lista").innerHTML = rows.map((s) =>
+      `<div class="st-row ${s.status} ${s.id === selectedId ? "active" : ""}" data-id="${s.id}">
+        <strong>#${s.seq}</strong> <span class="badge">${s.status_label}</span>
+        <div>${s.parceiro || "—"}</div>
+        <div class="sub">${s.trip_id} · ${s.entrega_id} · ${s.cidade || ""}</div>
+      </div>`
+    ).join("") || '<div class="pc-note">Nenhuma parada (ative uma trip ou limpe filtros)</div>';
+
+    document.querySelectorAll(".st-row[data-id]").forEach((el) => {
+      el.onclick = () => {
+        selectedId = el.dataset.id;
+        const s = rows.find((x) => x.id === selectedId);
+        document.querySelectorAll(".st-row").forEach((r) => r.classList.toggle("active", r.dataset.id === selectedId));
+        renderDetail(s);
+      };
+    });
+    renderDetail(rows.find((x) => x.id === selectedId) || null);
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("filtro-data").onchange = load;
+  document.getElementById("filtro-trip").onchange = load;
+  document.getElementById("filtro-status").onchange = load;
+  document.getElementById("filtro-q").onchange = load;
+  document.getElementById("filtro-ativas").onchange = load;
+  load();
+})();
+</script>
+</body>
+</html>

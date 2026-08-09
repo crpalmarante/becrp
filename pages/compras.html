@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Compras</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:none}.view.active{display:block}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel)}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+table.data tr{cursor:pointer}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(20,184,166,.15);color:#5eead4}
+.badge-rascunho{background:rgba(148,163,184,.15);color:#cbd5e1}
+.badge-pendente{background:rgba(234,179,8,.15);color:#fde68a}
+.badge-aprovado{background:rgba(59,130,246,.15);color:#93c5fd}
+.badge-enviado{background:rgba(168,85,247,.15);color:#d8b4fe}
+.badge-recebido{background:rgba(34,197,94,.15);color:#86efac}
+.badge-cancelado{background:rgba(239,68,68,.15);color:#fca5a5}
+.diff-ok{color:#4ade80}
+.diff-bad{color:#f87171;font-weight:600}
+.money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.cnpj{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace;font-size:12px;color:var(--text-muted)}
+.empresa-cell{display:flex;flex-direction:column;gap:2px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
+.toolbar .form-input{max-width:320px}
+.tab-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-secondary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:var(--font-sm);font-weight:600}
+.tab-btn:hover{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:var(--text-primary)}
+.so-actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn:hover{background:rgba(255,255,255,.08)}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.so-btn.danger{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45);color:#fca5a5}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.ct-detail{margin-top:16px;padding:16px;border:1px solid var(--border-color);border-radius:var(--radius-panel);background:var(--surface-panel)}
+.line-row{display:grid;grid-template-columns:2fr 40px 70px 80px 80px 80px 90px 30px;gap:8px;align-items:center;margin-bottom:6px}
+.line-row input{font-size:13px}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item active" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
+      <a class="menu-item" href="vendas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Vendas</span></a>
+      <a class="menu-item" href="parceiros.html?role=SUPPLIER"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar"><div class="topbar-brand"><span class="topbar-title">Compras</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="view active" id="view-list">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Compras</div>
+          <h2 class="workspace-title">Pedidos de Compra</h2>
+        </div>
+        <div class="workspace-content">
+          <div class="toolbar">
+            <input type="search" id="q" class="form-input" placeholder="Buscar número, fornecedor, CNPJ..." style="max-width:280px">
+            <select id="status" class="form-input" style="max-width:150px">
+              <option value="">Todos</option>
+              <option value="rascunho">Rascunho</option>
+              <option value="pendente">Pendente</option>
+              <option value="aprovado">Aprovado</option>
+              <option value="enviado">Enviado</option>
+              <option value="recebido">Recebido</option>
+              <option value="cancelado">Cancelado</option>
+            </select>
+            <span id="aprova-info" style="font-size:12px;color:var(--text-muted);display:none"></span>
+          <button type="button" class="tab-btn" id="btn-refresh">Atualizar</button>
+          <button type="button" class="so-btn primary" id="btn-novo">+ Novo Pedido</button>
+          <button type="button" class="so-btn" id="btn-followup">Follow-up</button>
+          <a class="so-btn" href="recebimento.html">Recebimento</a>
+        </div>
+          <div class="table-wrap">
+            <table class="data">
+              <thead>
+                <tr><th>Número</th><th>Data</th><th>Fornecedor</th><th>Previsão</th><th>Itens</th><th>Total</th><th>Status</th></tr>
+              </thead>
+              <tbody id="tbody"><tr><td colspan="7" class="empty">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="view" id="view-followup">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Compras / Follow-up</div>
+          <h2 class="workspace-title">Follow-up de Entregas</h2>
+        </div>
+        <div class="workspace-content">
+          <div class="toolbar">
+            <label style="font-size:12px;color:var(--text-muted)">Atraso mínimo (dias)<input class="form-input" id="fu-atraso" type="number" value="0" style="max-width:100px"></label>
+            <button type="button" class="tab-btn" id="btn-fu-refresh">Atualizar</button>
+            <button type="button" class="so-btn" id="btn-fu-voltar">Voltar</button>
+          </div>
+          <h3 style="font-size:14px;margin:16px 0 8px">Pedidos</h3>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th>Pedido</th><th>Fornecedor</th><th>Previsão</th><th>Entrega</th><th>Atraso</th><th>Status</th></tr></thead>
+              <tbody id="fu-tbody"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+          <h3 style="font-size:14px;margin:16px 0 8px">Scorecard de Fornecedores</h3>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th>Fornecedor</th><th>Entregas</th><th>No prazo</th><th>Atrasos</th><th>% Atraso</th><th>Média atraso</th></tr></thead>
+              <tbody id="sc-tbody"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="view" id="view-form">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Compras / Pedido</div>
+          <h2 class="workspace-title" id="form-title">Novo Pedido de Compra</h2>
+        </div>
+        <div class="workspace-content">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:12px">
+            <label style="font-size:12px;color:var(--text-muted)">Número<input class="form-input" id="f-numero" readonly></label>
+            <label style="font-size:12px;color:var(--text-muted)">Status<input class="form-input" id="f-status" readonly></label>
+            <label style="font-size:12px;color:var(--text-muted)">Data<input class="form-input" id="f-data" type="date"></label>
+            <label style="font-size:12px;color:var(--text-muted)">Previsão<input class="form-input" id="f-previsao" type="date"></label>
+            <label style="font-size:12px;color:var(--text-muted)">Fornecedor<input class="form-input" id="f-razao" placeholder="Razão social"></label>
+            <label style="font-size:12px;color:var(--text-muted)">CNPJ<input class="form-input" id="f-cnpj" placeholder="14 dígitos"></label>
+            <label style="font-size:12px;color:var(--text-muted)">Comprador<input class="form-input" id="f-comprador"></label>
+            <label style="font-size:12px;color:var(--text-muted)">Condição<input class="form-input" id="f-terms" value="30"></label>
+            <label style="font-size:12px;color:var(--text-muted)">Forma Pagamento<input class="form-input" id="f-forma" value="Boleto"></label>
+            <label style="font-size:12px;color:var(--text-muted)">Moeda
+              <select class="form-input" id="f-moeda"></select>
+            </label>
+            <label style="font-size:12px;color:var(--text-muted)">Taxa<input class="form-input" id="f-taxa" type="number" step="0.0001" value="1"></label>
+          </div>
+          <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:12px">Endereço Entrega
+            <input class="form-input" id="f-end-ent" style="width:100%">
+          </label>
+          <label style="font-size:12px;color:var(--text-muted);display:block;margin-bottom:12px">Notas
+            <textarea class="form-input" id="f-notas" rows="2" style="width:100%"></textarea>
+          </label>
+          <h3 style="font-size:14px;margin:16px 0 8px">Itens</h3>
+          <div id="lines"></div>
+          <button type="button" class="so-btn" id="btn-add-line" style="margin:8px 0">+ Item</button>
+          <div style="text-align:right;font-size:16px;font-weight:700;margin:12px 0">Total: <span class="money" id="f-total">R$ 0,00</span><br><small style="color:var(--text-muted);font-weight:400" id="f-total-brl"></small></div>
+          <div class="so-actions">
+            <button type="button" class="so-btn primary" id="btn-salvar">Salvar</button>
+            <button type="button" class="so-btn" id="btn-voltar">Voltar</button>
+            <button type="button" class="so-btn" id="btn-enviar-aprov">Enviar p/ Aprovação</button>
+            <button type="button" class="so-btn" id="btn-aprov">Aprovar</button>
+            <button type="button" class="so-btn" id="btn-enviar-forn">Enviar p/ Fornecedor</button>
+            <button type="button" class="so-btn" id="btn-receber">Criar Recebimento</button>
+            <button type="button" class="so-btn" id="btn-3wm">3-Way Match</button>
+            <button type="button" class="so-btn danger" id="btn-rejeitar">Rejeitar</button>
+            <button type="button" class="so-btn danger" id="btn-cancelar">Cancelar</button>
+          </div>
+          <div id="tres-way" style="margin-top:16px"></div>
+          <div id="form-msg" class="empty" style="padding:1rem;text-align:left"></div>
+        </div>
+      </div>
+    </div>
+    <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+      <div class="status-bar-left"><span id="status-user-info">Usuário: —</span></div>
+      <div class="status-bar-right"><span>Compras · BECRP v1.0</span></div>
+    </div>
+  </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script src="../js/masks.js"></script>
+<script>
+(function(){
+  const API = "/api/compras";
+  const STATUS_LABEL = {rascunho:"Rascunho", pendente:"Pendente", aprovado:"Aprovado", enviado:"Enviado", recebido:"Recebido", cancelado:"Cancelado"};
+  const APROVA_INFO = document.getElementById("aprova-info");
+  const I = "../assets/images/icons.svg";
+  let pedidos = [];
+  let current = null;
+  let lines = [];
+
+  const money = n => (Number(n)||0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+  const onlyDigits = s => String(s||"").replace(/\D/g,"");
+  const escapeHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+
+  async function api(path, opts={}){
+    const token = AuthService.getToken();
+    const res = await fetch(path, {
+      method: opts.method || "GET",
+      headers: Object.assign({"X-Auth-Token": token, "Content-Type": "application/json"}, opts.headers||{}),
+      body: opts.body,
+    });
+    return res.json();
+  }
+
+  function showView(id){
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    document.getElementById("view-"+id).classList.add("active");
+  }
+
+  async function loadCurrencies(){
+    try{
+      const r = await fetch("/api/currency", {headers:{"X-Auth-Token":AuthService.getToken()}});
+      const j = await r.json();
+      currencies = j.rates || {BRL:1};
+      const sel = document.getElementById("f-moeda");
+      sel.innerHTML = Object.keys(currencies).map(m=>`<option value="${m}">${m}</option>`).join('');
+      sel.value = "BRL";
+    }catch(e){ console.error(e); }
+  }
+  async function load(){
+    await loadCurrencies();
+    const st = document.getElementById("status").value;
+    const q = document.getElementById("q").value.trim().toLowerCase();
+    const qs = new URLSearchParams(); if(st) qs.set("status",st); if(q) qs.set("q",q);
+    const data = await api(API + (qs.toString()?"?"+qs:""));
+    pedidos = data.pedidos || [];
+    const tbody = document.getElementById("tbody");
+    if(!pedidos.length){ tbody.innerHTML = '<tr><td colspan="7" class="empty">Nenhum pedido</td></tr>'; return; }
+    tbody.innerHTML = pedidos.map(p=>`
+      <tr data-id="${p.id}">
+        <td><span class="badge">${escapeHtml(p.numero||"#"+p.id)}</span></td>
+        <td>${escapeHtml(p.data||"—")}</td>
+        <td><div class="empresa-cell"><strong>${escapeHtml(p.razao_social||"—")}</strong><span class="cnpj">${escapeHtml(p.cnpj||"—")}</span></div></td>
+        <td>${escapeHtml(p.previsao||"—")}</td>
+        <td>${(p.itens||[]).length}</td>
+        <td class="money">${p.moeda||"BRL"} ${(Number(p.total)||0).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2})}${p.moeda&&p.moeda!=="BRL"?`<br><small style="color:var(--text-muted)">${money(p.total_brl||0)}</small>`:''}</td>
+        <td><span class="badge badge-${escapeHtml(p.status||"rascunho")}">${escapeHtml(STATUS_LABEL[p.status]||p.status)}</span></td>
+      </tr>`).join("");
+    tbody.querySelectorAll("tr[data-id]").forEach(tr=>{ tr.onclick=()=>openForm(tr.dataset.id); });
+  }
+
+  let currencies = {BRL:1};
+  function totalBrl(total){
+    const moeda = document.getElementById("f-moeda").value || "BRL";
+    const taxa = Number(document.getElementById("f-taxa").value) || currencies[moeda] || 1;
+    return total * (moeda === "BRL" ? 1 : taxa);
+  }
+  function recalc(){
+    let total=0;
+    lines.forEach((l,i)=>{
+      l.qtd = Number(document.getElementById(`ln-qtd-${i}`).value)||0;
+      l.preco = Number(document.getElementById(`ln-preco-${i}`).value)||0;
+      l.desconto = Number(document.getElementById(`ln-desc-${i}`).value)||0;
+      l.subtotal = l.qtd * l.preco * (1 - l.desconto/100);
+      total += l.subtotal;
+    });
+    const moeda = document.getElementById("f-moeda").value || "BRL";
+    document.getElementById("f-total").textContent = `${moeda} ${(Number(total)||0).toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+    const brl = totalBrl(total);
+    document.getElementById("f-total-brl").textContent = moeda === "BRL" ? "" : `≈ ${money(brl)}`;
+  }
+
+  function renderLines(){
+    const box = document.getElementById("lines");
+    if(!lines.length) lines.push({produto:"", qtd:1, uom:"UN", preco:0, desconto:0});
+    box.innerHTML = lines.map((l,i)=>`
+      <div class="line-row">
+        <input class="form-input ln-prod" id="ln-prod-${i}" value="${escapeHtml(l.produto||"")}" placeholder="Produto">
+        <button type="button" class="so-btn" data-hist="${i}" style="padding:4px 8px" title="Histórico de preços">$</button>
+        <input class="form-input ln-qtd" id="ln-qtd-${i}" type="number" step="0.001" value="${l.qtd||""}" placeholder="Qtd">
+        <input class="form-input ln-uom" id="ln-uom-${i}" value="${escapeHtml(l.uom||"UN")}" placeholder="UN">
+        <input class="form-input ln-preco" id="ln-preco-${i}" type="number" step="0.01" value="${l.preco||""}" placeholder="Preço">
+        <input class="form-input ln-desc" id="ln-desc-${i}" type="number" step="0.01" value="${l.desconto||""}" placeholder="Desc %">
+        <span class="money" id="ln-sub-${i}">${money(l.subtotal||0)}</span>
+        <button type="button" class="so-btn danger" data-del="${i}" style="padding:4px 8px">×</button>
+      </div>
+      <div id="ln-hist-${i}" style="font-size:12px;color:var(--text-muted);margin-bottom:6px;display:none"></div>`).join("");
+    box.querySelectorAll("input").forEach(inp=>{ inp.oninput = ()=>{ recalc(); updateSubs(); }; });
+    box.querySelectorAll("[data-del]").forEach(btn=>{ btn.onclick = ()=>{ lines.splice(Number(btn.dataset.del),1); if(!lines.length) lines.push({produto:"",qtd:1,uom:"UN",preco:0,desconto:0}); renderLines(); recalc(); }; });
+    box.querySelectorAll("[data-hist]").forEach(btn=>{ btn.onclick = ()=> showHist(Number(btn.dataset.hist)); });
+    box.querySelectorAll(".ln-prod").forEach(inp=>{ inp.onblur = ()=> autoFillPrice(inp); });
+  }
+
+  async function showHist(idx){
+    const prod = document.getElementById(`ln-prod-${idx}`).value.trim();
+    if(!prod) return;
+    const box = document.getElementById(`ln-hist-${idx}`);
+    box.style.display = "block";
+    box.textContent = "Buscando...";
+    const res = await api(`/api/compras/precos?produto=${encodeURIComponent(prod)}`);
+    const r = res.resumo;
+    if(!r){
+      box.textContent = "Sem histórico de preços para este produto.";
+      return;
+    }
+    box.innerHTML = `Último: <strong>${money(r.ultimo_preco)}</strong> (${r.ultimo_fornecedor||"—"}, ${r.ultimo_data||"—"}) · Menor: ${money(r.menor_preco)} · Média: ${money(r.media_preco)} · ${r.total_compras} compra(s)`;
+  }
+
+  async function autoFillPrice(inp){
+    const idx = Number(inp.id.split("-").pop());
+    const prod = inp.value.trim();
+    if(!prod) return;
+    const precoEl = document.getElementById(`ln-preco-${idx}`);
+    if(precoEl.value && Number(precoEl.value) > 0) return;
+    const fornId = document.getElementById("f-cnpj").value.trim() || document.getElementById("f-razao").value.trim();
+    const qtd = Number(document.getElementById(`ln-qtd-${idx}`).value)||1;
+    // tenta pricelist primeiro
+    const plRes = await api(`/api/vendor-pricelist`, {
+      method: "POST",
+      body: JSON.stringify({action: "melhor_preco", produto_id: prod, fornecedor_id: fornId, qtd}),
+    });
+    if(plRes.status === "ok" && plRes.pricelist && plRes.pricelist.preco > 0){
+      precoEl.value = plRes.pricelist.preco;
+      recalc();
+      updateSubs();
+      return;
+    }
+    // fallback: histórico de compras
+    const res = await api(`/api/compras/precos?produto=${encodeURIComponent(prod)}`);
+    const r = res.resumo;
+    if(r && r.ultimo_preco > 0){
+      precoEl.value = r.ultimo_preco;
+      recalc();
+      updateSubs();
+    }
+  }
+
+  function updateSubs(){
+    lines.forEach((l,i)=>{
+      const el = document.getElementById(`ln-sub-${i}`);
+      if(el) el.textContent = money(l.subtotal||0);
+    });
+  }
+
+  function collect(){
+    lines = lines.map((l,i)=>({
+      produto: document.getElementById(`ln-prod-${i}`).value,
+      qtd: Number(document.getElementById(`ln-qtd-${i}`).value)||0,
+      uom: document.getElementById(`ln-uom-${i}`).value || "UN",
+      preco: Number(document.getElementById(`ln-preco-${i}`).value)||0,
+      desconto: Number(document.getElementById(`ln-desc-${i}`).value)||0,
+      subtotal: (Number(document.getElementById(`ln-qtd-${i}`).value)||0) * (Number(document.getElementById(`ln-preco-${i}`).value)||0) * (1 - (Number(document.getElementById(`ln-desc-${i}`).value)||0)/100),
+    }));
+    return {
+      id: current ? current.id : undefined,
+      numero: current ? current.numero : undefined,
+      data: document.getElementById("f-data").value,
+      previsao: document.getElementById("f-previsao").value,
+      razao_social: document.getElementById("f-razao").value,
+      cnpj: onlyDigits(document.getElementById("f-cnpj").value),
+      comprador: document.getElementById("f-comprador").value,
+      payment_terms: document.getElementById("f-terms").value,
+      forma_pg: document.getElementById("f-forma").value,
+      moeda: document.getElementById("f-moeda").value,
+      taxa_cambio: Number(document.getElementById("f-taxa").value) || 1,
+      endereco_entrega: document.getElementById("f-end-ent").value,
+      notas: document.getElementById("f-notas").value,
+      itens: lines.filter(l=>l.produto.trim() || l.qtd>0),
+    };
+  }
+
+  async function openForm(id){
+    const p = pedidos.find(x=>String(x.id)===String(id));
+    if(!p) return;
+    current = p;
+    document.getElementById("form-title").textContent = "Pedido " + (p.numero||"#"+p.id);
+    document.getElementById("f-numero").value = p.numero || "";
+    document.getElementById("f-status").value = STATUS_LABEL[p.status] || p.status;
+    document.getElementById("f-data").value = p.data || "";
+    document.getElementById("f-previsao").value = p.previsao || "";
+    document.getElementById("f-razao").value = p.razao_social || "";
+    document.getElementById("f-cnpj").value = p.cnpj || "";
+    document.getElementById("f-comprador").value = p.comprador || "";
+    document.getElementById("f-terms").value = p.payment_terms || p.condicao_pg || "30";
+    document.getElementById("f-forma").value = p.forma_pg || "Boleto";
+    document.getElementById("f-moeda").value = p.moeda || "BRL";
+    document.getElementById("f-taxa").value = p.taxa_cambio ? Number(p.taxa_cambio).toFixed(4) : (currencies[p.moeda]||1).toFixed(4);
+    document.getElementById("f-end-ent").value = p.endereco_entrega || "";
+    document.getElementById("f-notas").value = p.notas || "";
+    lines = (p.itens||[]).map(i=>Object.assign({}, i));
+    if(!lines.length) lines.push({produto:"", qtd:1, uom:"UN", preco:0, desconto:0});
+    renderLines();
+    recalc();
+    const aprova = p.aprova || {};
+    const a = aprova.aprovacao;
+    const r = aprova.rejeicao;
+    if(a){
+      APROVA_INFO.style.display = "inline";
+      APROVA_INFO.textContent = `Aprovado por ${a.usuario} em ${a.data}`;
+    } else if(r){
+      APROVA_INFO.style.display = "inline";
+      APROVA_INFO.textContent = `Rejeitado por ${r.usuario} em ${r.data}`;
+      APROVA_INFO.style.color = "#fca5a5";
+    } else {
+      APROVA_INFO.style.display = "none";
+    }
+    const st = p.status;
+    document.getElementById("btn-enviar-aprov").style.display = (st==="rascunho") ? "inline-block" : "none";
+    document.getElementById("btn-aprov").style.display = (st==="pendente") ? "inline-block" : "none";
+    document.getElementById("btn-rejeitar").style.display = (st==="pendente"||st==="rascunho") ? "inline-block" : "none";
+    document.getElementById("btn-enviar-forn").style.display = (st==="aprovado") ? "inline-block" : "none";
+    document.getElementById("btn-receber").style.display = (st==="enviado") ? "inline-block" : "none";
+    document.getElementById("btn-cancelar").style.display = (st!=="recebido"&&st!=="cancelado") ? "inline-block" : "none";
+    document.getElementById("form-msg").textContent = "";
+    showView("form");
+  }
+
+  function newPedido(){
+    current = null;
+    document.getElementById("form-title").textContent = "Novo Pedido de Compra";
+    document.getElementById("f-numero").value = "";
+    document.getElementById("f-status").value = "Rascunho";
+    document.getElementById("f-data").value = new Date().toISOString().slice(0,10);
+    document.getElementById("f-previsao").value = "";
+    document.getElementById("f-razao").value = "";
+    document.getElementById("f-cnpj").value = "";
+    document.getElementById("f-comprador").value = (AuthService.getUser()||{}).nome || "";
+    document.getElementById("f-terms").value = "30";
+    document.getElementById("f-forma").value = "Boleto";
+    document.getElementById("f-moeda").value = "BRL";
+    document.getElementById("f-taxa").value = "1.0000";
+    document.getElementById("f-end-ent").value = "";
+    document.getElementById("f-notas").value = "";
+    lines = [{produto:"", qtd:1, uom:"UN", preco:0, desconto:0}];
+    renderLines();
+    recalc();
+    document.getElementById("form-msg").textContent = "";
+    showView("form");
+  }
+
+  async function save(){
+    const payload = collect();
+    const action = current ? "update" : "create";
+    const res = await api(API, {method:"POST", body: JSON.stringify(Object.assign({action}, payload))});
+    const msg = document.getElementById("form-msg");
+    if(res.status !== "ok"){ msg.textContent = res.message || "Erro"; msg.style.color = "#fca5a5"; return; }
+    msg.textContent = "Salvo"; msg.style.color = "#86efac";
+    await load();
+    if(res.pedido) openForm(res.pedido.id);
+  }
+
+  async function setStatus(status, action="status"){
+    if(!current) return;
+    const res = await api(API, {method:"POST", body: JSON.stringify({action, id: current.id, status})});
+    const msg = document.getElementById("form-msg");
+    if(res.status !== "ok"){ msg.textContent = res.message || "Erro"; msg.style.color = "#fca5a5"; return; }
+    msg.textContent = "Status: " + STATUS_LABEL[res.doc_status||status]; msg.style.color = "#86efac";
+    await load();
+    openForm(current.id);
+  }
+
+  async function aprovar(){
+    if(!current) return;
+    if(!confirm("Aprovar pedido " + (current.numero||"#"+current.id) + "?")) return;
+    setStatus("aprovado", "aprovar");
+  }
+
+  async function rejeitar(){
+    if(!current) return;
+    const motivo = prompt("Motivo da rejeição") || "";
+    if(!confirm("Rejeitar pedido?")) return;
+    const res = await api(API, {method:"POST", body: JSON.stringify({action:"rejeitar", id: current.id, motivo})});
+    const msg = document.getElementById("form-msg");
+    if(res.status !== "ok"){ msg.textContent = res.message || "Erro"; msg.style.color = "#fca5a5"; return; }
+    msg.textContent = "Rejeitado"; msg.style.color = "#86efac";
+    await load();
+    openForm(current.id);
+  }
+
+  function criarRecebimento(){
+    if(!current) return;
+    const prefill = {
+      origem: "compra",
+      fornecedor_nome: current.razao_social || "",
+      fornecedor_cnpj: current.cnpj || "",
+      documento_ref: current.numero || String(current.id),
+      nota: "Pedido de compra " + (current.numero || "#"+current.id),
+      items: (current.itens||[]).map(i=>({
+        produto_nome: i.produto,
+        qty_expected: i.qtd,
+        unidade: i.uom,
+        match: "manual",
+      })),
+      pedido_compra_id: current.id,
+    };
+    localStorage.setItem("receiving_prefill", JSON.stringify(prefill));
+    location.href = "recebimento.html?prefill=1";
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("btn-novo").onclick = newPedido;
+  document.getElementById("q").addEventListener("keydown", e=>{ if(e.key==="Enter") load(); });
+  document.getElementById("status").onchange = load;
+  document.getElementById("btn-voltar").onclick = ()=>{ showView("list"); load(); };
+  document.getElementById("btn-salvar").onclick = save;
+  document.getElementById("btn-add-line").onclick = ()=>{ lines.push({produto:"", qtd:1, uom:"UN", preco:0, desconto:0}); renderLines(); recalc(); };
+  document.getElementById("btn-enviar-aprov").onclick = ()=>{ setStatus("pendente"); };
+  document.getElementById("btn-aprov").onclick = aprovar;
+  document.getElementById("btn-rejeitar").onclick = rejeitar;
+  document.getElementById("btn-enviar-forn").onclick = ()=>{ setStatus("enviado"); };
+  document.getElementById("btn-receber").onclick = criarRecebimento;
+  document.getElementById("btn-3wm").onclick = carregar3WM;
+  document.getElementById("btn-cancelar").onclick = ()=>{ if(confirm("Cancelar pedido?")) setStatus("cancelado"); };
+  document.getElementById("f-moeda").addEventListener("change", ()=>{ const m=document.getElementById("f-moeda").value; document.getElementById("f-taxa").value=(currencies[m]||1).toFixed(4); recalc(); });
+  document.getElementById("f-taxa").addEventListener("input", recalc);
+
+  async function carregar3WM(){
+    if(!current) return;
+    const box = document.getElementById("tres-way");
+    box.innerHTML = "Carregando...";
+    const res = await api(`/api/compras/three-way-match/${current.id}`);
+    if(res.status !== "ok"){ box.innerHTML = `<p class="empty">${escapeHtml(res.message || "Erro")}</p>`; return; }
+    const m = res.match;
+    let html = `<h3 style="font-size:14px;margin-bottom:8px">Three-Way Match · ${m.ok?'<span style="color:#4ade80">OK</span>':'<span style="color:#f87171">Divergências</span>'}</h3>`;
+    html += `<div class="table-wrap"><table class="data"><thead><tr><th>Produto</th><th>Pedido Qtd</th><th>Receb. Qtd</th><th>Fatura Qtd</th><th>Pedido Valor</th><th>Fatura Valor</th><th>Δ Qtd</th><th>Δ Valor</th></tr></thead><tbody>`;
+    html += m.linhas.map(l=>`
+      <tr>
+        <td>${escapeHtml(l.produto||"—")}</td>
+        <td>${l.pedido_qtd}</td>
+        <td>${l.recebimento_qtd||"—"}</td>
+        <td>${l.fatura_qtd||"—"}</td>
+        <td class="money">${money(l.pedido_valor)}</td>
+        <td class="money">${money(l.fatura_valor)}</td>
+        <td class="${l.dif_qtd_fatura? 'diff-bad':''}">${l.dif_qtd_fatura||"—"}</td>
+        <td class="${l.dif_valor? 'diff-bad':''}">${money(l.dif_valor)}</td>
+      </tr>`).join("");
+    html += `</tbody></table></div>`;
+    html += `<p style="margin-top:8px;font-size:13px">Total pedido: <strong class="money">${money(m.totais.pedido)}</strong> · Total fatura: <strong class="money">${money(m.totais.fatura)}</strong> · Diferença: <strong class="money">${money(m.totais.diferenca)}</strong></p>`;
+    if(!m.ok){
+      html += `<ul style="font-size:13px;color:#f87171">${m.divergencias.map(d=>`<li>${escapeHtml(d.tipo)}: ${escapeHtml(d.produto)}</li>`).join("")}</ul>`;
+    }
+    box.innerHTML = html;
+  }
+
+  async function loadFollowup(){
+    const atraso = document.getElementById("fu-atraso").value || 0;
+    const res = await api(`/api/compras/followup?atraso_minimo=${atraso}`);
+    const tbody = document.getElementById("fu-tbody");
+    if(!res.followup || !res.followup.length){
+      tbody.innerHTML = '<tr><td colspan="6" class="empty">Nenhum pedido no follow-up</td></tr>';
+    } else {
+      tbody.innerHTML = res.followup.map(r=>`
+        <tr>
+          <td><span class="badge">${escapeHtml(r.pedido_num||"#"+r.pedido_id)}</span></td>
+          <td>${escapeHtml(r.fornecedor||"—")}</td>
+          <td>${escapeHtml(r.previsao||"—")}</td>
+          <td>${escapeHtml(r.entrega||"—")}</td>
+          <td class="${r.atraso_dias>0?'diff-bad':(r.atraso_dias<0?'diff-ok':'')}">${r.atraso_dias>0?'+':''}${r.atraso_dias ?? "—"}</td>
+          <td><span class="badge badge-${escapeHtml(r.status_pedido||"rascunho")}">${escapeHtml(STATUS_LABEL[r.status_pedido]||r.status_pedido)}</span></td>
+        </tr>`).join("");
+    }
+    const sc = document.getElementById("sc-tbody");
+    if(!res.scorecard || !res.scorecard.length){
+      sc.innerHTML = '<tr><td colspan="6" class="empty">Sem dados</td></tr>';
+    } else {
+      sc.innerHTML = res.scorecard.map(f=>`
+        <tr>
+          <td>${escapeHtml(f.fornecedor||"—")}</td>
+          <td>${f.entregas}</td>
+          <td>${f.no_prazo}</td>
+          <td>${f.atrasos}</td>
+          <td>${f.pct_atraso}%</td>
+          <td>${f.media_atraso}</td>
+        </tr>`).join("");
+    }
+  }
+
+  document.getElementById("btn-followup").onclick = ()=>{ showView("followup"); loadFollowup(); };
+  document.getElementById("btn-fu-voltar").onclick = ()=>{ showView("list"); load(); };
+  document.getElementById("btn-fu-refresh").onclick = loadFollowup;
+
+  load();
+})();
+</script>
+</body>
+</html>

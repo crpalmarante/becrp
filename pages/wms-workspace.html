@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — WMS Workspace</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+
+    .ctx {
+      display:flex; flex-wrap:wrap; gap:12px 20px; align-items:center;
+      margin-bottom:14px; padding:12px 14px;
+      border:1px solid rgba(255,255,255,.12); border-radius:8px;
+    }
+    .ctx .wh { font-size:18px; font-weight:700; }
+    .ctx .meta { font-size:13px; opacity:.75; }
+    .ctx .tools { display:flex; flex-wrap:wrap; gap:8px; margin-left:auto; align-items:end; }
+    .ctx .field { margin:0; min-width:120px; }
+    .notifs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .notif {
+      font-size:12px; padding:6px 10px; border-radius:6px;
+      border:1px solid rgba(255,255,255,.15);
+    }
+    .notif.warn { border-color:rgba(251,191,36,.5); color:#fbbf24; }
+    .notif.info { border-color:rgba(20,184,166,.4); }
+
+    .chips { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 14px; }
+    .chip {
+      padding:6px 10px; border:1px solid rgba(255,255,255,.15); border-radius:6px;
+      font-size:12px; color:inherit; text-decoration:none;
+    }
+    .chip:hover { border-color:rgba(20,184,166,.5); }
+
+    .sec-title {
+      font-size:11px; text-transform:uppercase; letter-spacing:.04em;
+      opacity:.6; margin:18px 0 8px;
+    }
+    .cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; }
+    .card {
+      display:block; padding:14px; border:1px solid rgba(255,255,255,.12);
+      border-radius:8px; color:inherit; text-decoration:none;
+    }
+    .card:hover { border-color:rgba(20,184,166,.5); }
+    .card.high { border-color:rgba(251,191,36,.45); }
+    .card .t { font-weight:700; font-size:14px; }
+    .card .n { font-size:28px; font-weight:700; margin:6px 0 2px; line-height:1; }
+    .card .s { font-size:11px; opacity:.65; }
+    .card .u { font-size:11px; color:#fbbf24; margin-top:4px; }
+
+    .grid-main {
+      display:grid; grid-template-columns:1.2fr 1fr; gap:12px; margin-top:4px;
+    }
+    @media (max-width:900px) { .grid-main { grid-template-columns:1fr; } }
+    .cols { display:grid; grid-template-columns:1fr; gap:12px; }
+    .panel { padding:12px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .panel h3 { margin:0 0 8px; font-size:14px; }
+    .item {
+      display:flex; justify-content:space-between; gap:8px; align-items:center;
+      font-size:13px; padding:7px 0; border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .item a { color:inherit; }
+    .sub { font-size:12px; opacity:.7; }
+    .badge {
+      font-size:11px; padding:2px 6px; border:1px solid rgba(255,255,255,.15);
+      border-radius:4px; white-space:nowrap;
+    }
+    .act-btns { display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
+    .btn-xs {
+      padding:3px 8px; font-size:11px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.2); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+    .btn-xs.primary { border-color:rgba(20,184,166,.5); }
+    .btn-xs:hover { border-color:rgba(20,184,166,.7); }
+
+    .current {
+      padding:14px; border:1px dashed rgba(20,184,166,.4); border-radius:8px;
+      margin-bottom:12px;
+    }
+    .current h3 { margin:0 0 6px; font-size:14px; }
+    .current .prod { font-size:18px; font-weight:700; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="topbar-title">WMS — Workspace</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / WMS / Workspace</div>
+          <h2 class="workspace-title">O que precisa acontecer agora</h2>
+        </div>
+        <div class="workspace-content">
+          <p class="pc-note">RFC-9010 — disposição operacional: contexto → cards → filas → tarefa atual → exceções.</p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="ctx" id="ctx">
+            <div>
+              <div class="wh" id="ctx-wh">—</div>
+              <div class="meta" id="ctx-meta">—</div>
+            </div>
+            <div class="tools">
+              <div class="field"><label>Armazém</label>
+                <select class="form-input" id="filtro-arm"><option value="">Todos</option></select>
+              </div>
+              <div class="field"><label>Operador</label>
+                <input class="form-input" id="filtro-op" placeholder="bruno">
+              </div>
+              <div class="field"><label>Perfil</label>
+                <select class="form-input" id="filtro-perfil">
+                  <option value="supervisor">Supervisor</option>
+                  <option value="operador">Operador</option>
+                  <option value="gerente">Gerente</option>
+                </select>
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+            </div>
+          </div>
+
+          <div class="notifs" id="notifs"></div>
+          <div class="chips" id="atalhos"></div>
+
+          <div class="sec-title">Processos</div>
+          <div class="cards" id="cards"></div>
+
+          <div id="bloco-tarefa"></div>
+
+          <div class="grid-main">
+            <div>
+              <div class="sec-title" id="sec-filas">Filas operacionais</div>
+              <div class="cols" id="filas"></div>
+            </div>
+            <div>
+              <div class="sec-title">Minhas tarefas · Exceções</div>
+              <div class="cols" id="lado"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  const uname = auth.user.usuario || auth.user.nome || "";
+  document.getElementById("user-name-display").textContent = auth.user.nome || uname || "Usuário";
+
+  const LS_ARM = "wms_ws_armazem";
+  const LS_PERFIL = "wms_ws_perfil";
+  document.getElementById("filtro-op").value = uname || "";
+  document.getElementById("filtro-arm").value = localStorage.getItem(LS_ARM) || "";
+  document.getElementById("filtro-perfil").value = localStorage.getItem(LS_PERFIL) || "supervisor";
+
+  let perms = { pode_escrever: false };
+  let data = null;
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function queuePanel(title, href, items) {
+    const body = (items || []).length
+      ? items.map((r) => itemRow(r, href)).join("")
+      : '<div class="sub">Fila vazia</div>';
+    return `<div class="panel"><h3>${title}</h3>${body}</div>`;
+  }
+
+  function itemRow(r, href) {
+    const urg = r.urgente ? ' style="color:#fbbf24"' : "";
+    let acts = `<a class="btn-xs" href="${href}">Abrir</a>`;
+    if (perms.pode_escrever && r.acao_rapida) {
+      acts = `<button type="button" class="btn-xs primary" data-kind="${r.kind}" data-id="${r.id}" data-act="${r.acao_rapida.action}">${r.acao_rapida.label}</button>` + acts;
+    }
+    const sub = [r.documento_ref || r.produto || r.tipo || "", r.parceiro || r.operador || "", r.loc_origem || ""]
+      .filter(Boolean).join(" · ");
+    return `<div class="item">
+      <div>
+        <a href="${href}"${urg}><strong>${r.id}</strong></a>
+        <div class="sub">${sub}</div>
+      </div>
+      <div class="act-btns">
+        <span class="badge">${r.status_label || r.status}</span>
+        ${acts}
+      </div>
+    </div>`;
+  }
+
+  function bindQuick(root) {
+    root.querySelectorAll("[data-kind]").forEach((btn) => {
+      btn.onclick = async () => {
+        const res = await AuthService.api("/api/admin/wms/workspace", {
+          method: "POST",
+          body: JSON.stringify({
+            kind: btn.dataset.kind,
+            id: btn.dataset.id,
+            action: btn.dataset.act,
+            operador: document.getElementById("filtro-op").value.trim() || uname,
+          }),
+        });
+        if (res.status !== "ok") return msg(res.message || "Falha", false);
+        const st = (res.item && (res.item.status_label || res.item.status)) || "ok";
+        msg((res.kind || "") + " → " + st, true);
+        load();
+      };
+    });
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    const arm = document.getElementById("filtro-arm").value;
+    const op = document.getElementById("filtro-op").value.trim();
+    const perfil = document.getElementById("filtro-perfil").value;
+    if (arm) qs.set("armazem", arm);
+    if (op) qs.set("operador", op);
+    if (perfil) qs.set("perfil", perfil);
+    localStorage.setItem(LS_ARM, arm);
+    localStorage.setItem(LS_PERFIL, perfil);
+
+    const res = await AuthService.api("/api/wms/workspace?" + qs.toString());
+    if (res.status !== "ok") return msg(res.message || "Falha");
+    data = res;
+    perms = res.permissoes || perms;
+
+    const arms = res.armazens || [];
+    const sel = document.getElementById("filtro-arm");
+    const cur = arm;
+    sel.innerHTML = '<option value="">Todos</option>' +
+      arms.map((a) => `<option value="${a.codigo}">${a.codigo} · ${a.nome || ""}</option>`).join("");
+    sel.value = cur;
+
+    const cx = res.contexto || {};
+    document.getElementById("ctx-wh").textContent = cx.armazem_nome || "—";
+    document.getElementById("ctx-meta").textContent =
+      (cx.turno || "—") + " · " + (cx.data || "") + " " + (cx.hora || "") +
+      " · perfil " + (res.perfil || "—");
+
+    document.getElementById("notifs").innerHTML = (res.notificacoes || []).length
+      ? res.notificacoes.map((n) =>
+          `<span class="notif ${n.nivel || ""}">${n.texto}</span>`).join("")
+      : '<span class="notif info">Operação estável — sem alertas</span>';
+
+    document.getElementById("atalhos").innerHTML = (res.atalhos || []).map((a) =>
+      `<a class="chip" href="${a.href}">${a.label}</a>`
+    ).join("");
+
+    const lay = res.layout || {};
+    document.getElementById("cards").innerHTML = (res.cards || []).map((c) => {
+      const u = (c.urgentes || 0) > 0 ? `<div class="u">${c.urgentes} urgente(s)</div>` : "";
+      return `<a class="card ${c.prioridade || ""}" href="${c.href}">
+        <div class="t">${c.titulo}</div>
+        <div class="n">${c.pendentes == null ? "—" : c.pendentes}</div>
+        <div class="s">pendentes</div>${u}
+      </a>`;
+    }).join("");
+
+    const ct = res.tarefa_atual;
+    const bloco = document.getElementById("bloco-tarefa");
+    if (lay.mostrar_tarefa_atual !== false && ct) {
+      const q = ct.acao_rapida;
+      const btn = (perms.pode_escrever && q)
+        ? `<button type="button" class="btn-xs primary" data-kind="tarefa" data-id="${ct.id}" data-act="${q.action}">${q.label}</button>`
+        : "";
+      bloco.innerHTML = `<div class="sec-title">Tarefa atual</div>
+        <div class="current">
+          <h3>${ct.id} · ${ct.status_label || ct.status}</h3>
+          <div class="prod">${ct.produto || ct.tipo || "—"}</div>
+          <div class="sub">Local ${ct.loc_origem || "—"} → ${ct.loc_destino || "—"} · qtd ${ct.qtd || "—"}</div>
+          <div class="act-btns" style="margin-top:10px">
+            ${btn}
+            <a class="btn-xs" href="wms-tarefas.html">Abrir tarefas</a>
+          </div>
+        </div>`;
+      bindQuick(bloco);
+    } else {
+      bloco.innerHTML = "";
+    }
+
+    const f = res.filas || {};
+    const filasEl = document.getElementById("filas");
+    if (lay.mostrar_filas === false) {
+      document.getElementById("sec-filas").style.display = "none";
+      filasEl.innerHTML = "";
+    } else {
+      document.getElementById("sec-filas").style.display = "";
+      filasEl.innerHTML =
+        queuePanel("Recebimentos", "wms-recebimento.html", f.recebimentos) +
+        queuePanel("Expedições", "wms-expedicao.html", f.expedicoes) +
+        queuePanel("Operações", "wms-operacoes.html", f.operacoes);
+      bindQuick(filasEl);
+    }
+
+    const lado = document.getElementById("lado");
+    let html = queuePanel("Minhas tarefas", "wms-tarefas.html", f.minhas_tarefas);
+    if (lay.mostrar_excecoes !== false) {
+      const ex = res.excecoes || [];
+      html += `<div class="panel"><h3>Exceções</h3>${
+        ex.length
+          ? ex.map((e) => `<div class="item"><div><strong>${e.id}</strong>
+              <div class="sub">${e.tipo} · ${e.nota || ""}</div></div>
+              <span class="badge">${e.status || ""}</span></div>`).join("")
+          : '<div class="sub">Nenhuma</div>'
+      }</div>`;
+    }
+    lado.innerHTML = html;
+    bindQuick(lado);
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("filtro-arm").onchange = load;
+  document.getElementById("filtro-op").onchange = load;
+  document.getElementById("filtro-perfil").onchange = load;
+  load();
+})();
+</script>
+</body>
+</html>

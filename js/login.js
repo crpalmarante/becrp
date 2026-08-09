@@ -1,135 +1,103 @@
 /*=========================================================
-    FiscalBrasil ERP
-    File    : login.js
+  BECRP — Login (somente autenticação)
+  Instalação de primeira vez: install.html
 =========================================================*/
+
+const loginForm = document.getElementById("login-form");
+const loginUser = document.getElementById("login-user");
+const loginPass = document.getElementById("login-pass");
+const loginError = document.getElementById("login-error");
+const loginBtn = document.getElementById("login-btn");
+const loginLoading = document.getElementById("login-loading");
+const subtitle = document.getElementById("login-subtitle");
+const banner = document.getElementById("install-banner");
 
 /*=========================================================
-  DOM
+  Roteamento: sem admin → instalação; com admin → login
 =========================================================*/
 
-const loginForm=document.getElementById("login-form");
-const loginPanel=document.getElementById("login-form-panel");
-const setupPanel=document.getElementById("setup-form-panel");
-const loginUser=document.getElementById("login-user");
-const loginPass=document.getElementById("login-pass");
-const loginError=document.getElementById("login-error");
-const loginBtn=document.getElementById("login-btn");
-const loginLoading=document.getElementById("login-loading");
-const setupForm=document.getElementById("setup-form");
-const setupName=document.getElementById("setup-name");
-const setupUser=document.getElementById("setup-user");
-const setupEmail=document.getElementById("setup-email");
-const setupPass=document.getElementById("setup-pass");
-const setupPass2=document.getElementById("setup-pass2");
-const setupError=document.getElementById("setup-error");
-const setupBtn=document.getElementById("setup-btn");
-const setupLoading=document.getElementById("setup-loading");
-const subtitle=document.getElementById("login-subtitle");
+async function routeEntry() {
+  const params = new URLSearchParams(window.location.search || "");
+  if (params.get("installed") === "1" && banner) {
+    banner.style.display = "block";
+    banner.textContent = "Instalação concluída. Entre com o administrador criado.";
+    subtitle.textContent = "Primeiro login";
+  }
 
-/*=========================================================
-  CHECK SETUP
-=========================================================*/
-
-async function checkSetup(){
-    try{
-        const res=await fetch("/api/auth/check-setup");
-        const data=await res.json();
-        if(data.status==="ok"&&data.setup){
-            setupPanel.style.display="block";
-            loginPanel.style.display="none";
-            subtitle.textContent="Configuração inicial do sistema";
-        }
-    }catch(e){}
+  try {
+    const res = await fetch("/api/auth/check-setup");
+    const data = await res.json();
+    if (data.status === "ok" && data.setup === true) {
+      // Sistema ainda não instalado → tela de instalação
+      window.location.replace("install.html");
+      return;
+    }
+  } catch (e) {}
 }
 
-checkSetup();
+routeEntry();
 
 /*=========================================================
   LOGIN
 =========================================================*/
 
-loginForm.addEventListener("submit",async function(e){
-    e.preventDefault();
-    const usuario=loginUser.value.trim();
-    const senha=loginPass.value.trim();
-    if(!usuario||!senha){
-        loginError.textContent="Preencha usuário e senha";
-        loginError.classList.add("visible");
-        return;
+loginForm.addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const usuario = loginUser.value.trim();
+  const senha = loginPass.value.trim();
+  if (!usuario || !senha) {
+    loginError.textContent = "Preencha usuário e senha";
+    loginError.classList.add("visible");
+    return;
+  }
+  loginError.classList.remove("visible");
+  loginBtn.disabled = true;
+  loginLoading.classList.add("visible");
+  try {
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ usuario, senha }),
+    });
+    const data = await res.json();
+    if (data.status !== "ok") {
+      loginError.textContent = data.message || "Usuário ou senha incorretos";
+      loginError.classList.add("visible");
+      loginBtn.disabled = false;
+      loginLoading.classList.remove("visible");
+      return;
     }
-    loginError.classList.remove("visible");
-    loginBtn.disabled=true;
-    loginLoading.classList.add("visible");
-    try{
-        const res=await fetch("/api/auth/login",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({usuario,senha})
-        });
-        const data=await res.json();
-        if(data.status!=="ok"){
-            loginError.textContent=data.message||"Usuário ou senha incorretos";
-            loginError.classList.add("visible");
-            loginBtn.disabled=false;
-            loginLoading.classList.remove("visible");
-            return;
-        }
-        localStorage.setItem("auth_token",data.token);
-        localStorage.setItem("user_data",JSON.stringify(data));
-        window.location.href="index4.html";
-    }catch(err){
-        loginError.textContent="Erro de conexão com o servidor";
-        loginError.classList.add("visible");
-        loginBtn.disabled=false;
-        loginLoading.classList.remove("visible");
-    }
-});
+    localStorage.setItem("auth_token", data.token);
+    localStorage.setItem("user_data", JSON.stringify(data));
 
-/*=========================================================
-  SETUP (cria admin master)
-=========================================================*/
+    // RFC-0000 §10–11: após login → Business Setup se necessário
+    try {
+      const sr = await fetch("/api/platform/setup", {
+        headers: { "X-Auth-Token": data.token },
+      });
+      const sd = await sr.json();
+      if (sd.status === "ok" && sd.needs_wizard && data.role === "admin") {
+        window.location.href = "pages/setup-wizard.html";
+        return;
+      }
+    } catch (e) {}
 
-setupForm.addEventListener("submit",async function(e){
-    e.preventDefault();
-    const nome=setupName.value.trim();
-    const usuario=setupUser.value.trim();
-    const email=setupEmail.value.trim();
-    const senha=setupPass.value.trim();
-    const senha2=setupPass2.value.trim();
-    if(!nome||!usuario||!senha){
-        setupError.textContent="Preencha nome, usuário e senha";
-        setupError.classList.add("visible");
-        return;
+    // Roteamento por função: vendedor→PDV, caixa→caixa da loja,
+    // demais funções (admin/gerente/fiscal/contábil) → menu administrativo.
+    const pos = data.pos;
+    if (pos === "pdv") {
+      window.location.href = "pages/pos.html?mode=pdv";
+      return;
     }
-    if(senha!==senha2){
-        setupError.textContent="Senhas não conferem";
-        setupError.classList.add("visible");
-        return;
+    if (pos === "caixa") {
+      window.location.href = "pages/pos.html?mode=caixa";
+      return;
     }
-    setupError.classList.remove("visible");
-    setupBtn.disabled=true;
-    setupLoading.classList.add("visible");
-    try{
-        const res=await fetch("/api/auth/setup",{
-            method:"POST",
-            headers:{"Content-Type":"application/json"},
-            body:JSON.stringify({nome,usuario,senha,email})
-        });
-        const data=await res.json();
-        if(data.status!=="ok"){
-            setupError.textContent=data.message||"Erro ao configurar";
-            setupError.classList.add("visible");
-            setupBtn.disabled=false;
-            setupLoading.classList.remove("visible");
-            return;
-        }
-        localStorage.setItem("auth_token",data.token);
-        localStorage.setItem("user_data",JSON.stringify(data));
-        window.location.href="index4.html";
-    }catch(err){
-        setupError.textContent="Erro de conexão com o servidor";
-        setupError.classList.add("visible");
-        setupBtn.disabled=false;
-        setupLoading.classList.remove("visible");
-    }
+    window.location.href = "index4.html";
+  } catch (err) {
+    loginError.textContent = "Erro de conexão com o servidor";
+    loginError.classList.add("visible");
+    loginBtn.disabled = false;
+    loginLoading.classList.remove("visible");
+  }
 });

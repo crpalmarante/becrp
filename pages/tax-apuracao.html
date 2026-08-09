@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Apuração de Impostos</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:none}.view.active{display:block}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.tab-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-secondary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:var(--font-sm);font-weight:600}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel)}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+.money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.kpi-box{padding:14px;border:1px solid var(--border-color);border-radius:var(--radius-panel);background:var(--surface-panel);text-align:center}
+.kpi-box h4{margin:0 0 6px;font-size:12px;color:var(--text-muted);text-transform:uppercase}
+.kpi-box .val{font-size:1.3rem;font-weight:700;font-family:ui-monospace,monospace}
+.kpi-box .val.positive{color:#4ade80}
+.kpi-box .val.negative{color:#f87171}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
+      <a class="menu-item" href="fiscal-reforma.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Reforma Tributária</span></a>
+      <a class="menu-item" href="sped-livros.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Livros Fiscais</span></a>
+      <a class="menu-item active" href="tax-apuracao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Apuração</span></a>
+      <a class="menu-item" href="configuracoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Configurações</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar"><div class="topbar-brand"><span class="topbar-title">Apuração de Impostos</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="tabs">
+        <button class="active" id="tab-geral">Geral</button>
+        <button id="tab-hist">Histórico</button>
+      </div>
+
+      <div class="view active" id="view-geral">
+        <div class="toolbar">
+          <input class="form-input" id="a-dt-ini" type="date" placeholder="De">
+          <input class="form-input" id="a-dt-fim" type="date" placeholder="Até">
+          <button class="so-btn primary" id="btn-apurar">Apurar</button>
+          <button class="so-btn" id="btn-apurar-print">Imprimir</button>
+        </div>
+        <div id="apuracao-msg" style="color:#f87171;margin-bottom:10px"></div>
+        <div id="apuracao-result" style="display:none">
+          <div class="kpi" id="kpi-geral"></div>
+          <h3 style="font-size:14px;margin:16px 0 8px">Por competência</h3>
+          <div class="table-wrap">
+            <table class="data">
+              <thead><tr><th>Competência</th><th>Entradas</th><th>Saídas</th><th>ICMS</th><th>PIS</th><th>COFINS</th><th>CBS</th><th>IBS</th></tr></thead>
+              <tbody id="comp-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="view" id="view-hist">
+        <div class="toolbar">
+          <button class="tab-btn" id="btn-hist-refresh">Atualizar</button>
+        </div>
+        <div class="table-wrap">
+          <table class="data">
+            <thead><tr><th>Data</th><th>Período</th><th>ICMS</th><th>PIS</th><th>COFINS</th><th>CBS</th><th>IBS</th></tr></thead>
+            <tbody id="hist-body"><tr><td colspan="6" class="empty">Carregando...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+const API='/api/fiscal/apuracao';
+const money=n=>Number(n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+function show(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active', b.id==='tab-'+(id.replace('view-',''))));
+}
+document.getElementById('tab-geral').onclick=()=>show('view-geral');
+document.getElementById('tab-hist').onclick=()=>{ show('view-hist'); loadHistory(); };
+
+document.getElementById('btn-apurar').onclick=async ()=>{
+  const p={
+    dt_ini:document.getElementById('a-dt-ini').value,
+    dt_fim:document.getElementById('a-dt-fim').value,
+  };
+  const qs=new URLSearchParams(Object.entries(p).filter(([k,v])=>v)).toString();
+  const r=await AuthService.api(`${API}${qs?'?'+qs:''}`);
+  const msg=document.getElementById('apuracao-msg');
+  if(r.status!=='ok'){ msg.textContent=r.message||'Erro'; document.getElementById('apuracao-result').style.display='none'; return; }
+  msg.textContent='';
+  const a=r.apuracao;
+  const g=document.getElementById('kpi-geral');
+  g.innerHTML=Object.entries(a.total_geral).map(([imp,val])=>`
+    <div class="kpi-box">
+      <h4>${imp.toUpperCase()}</h4>
+      <div class="val ${val>=0?'positive':'negative'}">${money(val)}</div>
+      <small style="color:var(--text-muted)">${val>=0?'a pagar':'a compensar'}</small>
+    </div>`).join('');
+  const tb=document.getElementById('comp-body');
+  const comps=a.competencias||{};
+  if(!Object.keys(comps).length){ tb.innerHTML='<tr><td colspan="8" class="empty">Nenhuma competência</td></tr>'; }
+  else {
+    tb.innerHTML=Object.entries(comps).map(([comp,b])=>{
+      const icms=b.saidas.icms_deb-b.entradas.icms_cred;
+      const pis=b.saidas.pis_deb-b.entradas.pis_cred;
+      const cofins=b.saidas.cofins_deb-b.entradas.cofins_cred;
+      const cbs=b.saidas.cbs_deb-b.entradas.cbs_cred;
+      const ibs=b.saidas.ibs_deb-b.entradas.ibs_cred;
+      return `<tr>
+        <td>${comp}</td>
+        <td>${b.entradas.qtd} · ${money(b.entradas.valor)}</td>
+        <td>${b.saidas.qtd} · ${money(b.saidas.valor)}</td>
+        <td class="money ${icms>=0?'positive':'negative'}">${money(icms)}</td>
+        <td class="money ${pis>=0?'positive':'negative'}">${money(pis)}</td>
+        <td class="money ${cofins>=0?'positive':'negative'}">${money(cofins)}</td>
+        <td class="money ${cbs>=0?'positive':'negative'}">${money(cbs)}</td>
+        <td class="money ${ibs>=0?'positive':'negative'}">${money(ibs)}</td>
+      </tr>`;
+    }).join('');
+  }
+  document.getElementById('apuracao-result').style.display='block';
+};
+document.getElementById('btn-apurar-print').onclick=()=>window.print();
+
+async function loadHistory(){
+  const r=await AuthService.api(`${API}?historico=1`);
+  const tb=document.getElementById('hist-body');
+  if(r.status!=='ok'||!r.historico.length){ tb.innerHTML='<tr><td colspan="6" class="empty">Nenhuma apuração no histórico</td></tr>'; return; }
+  tb.innerHTML=r.historico.map(h=>{
+    const t=h.total_geral||{};
+    return `<tr><td>${h.apurado_em||''}</td><td>${h.periodo.dt_ini||''} a ${h.periodo.dt_fim||''}</td>
+      <td class="money">${money(t.icms)}</td><td class="money">${money(t.pis)}</td><td class="money">${money(t.cofins)}</td><td class="money">${money(t.cbs)}</td><td class="money">${money(t.ibs)}</td></tr>`;
+  }).join('');
+}
+document.getElementById('btn-hist-refresh').onclick=loadHistory;
+</script>
+</body>
+</html>

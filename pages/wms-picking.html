@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — WMS Picking & Packing</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .pc-toolbar .grow { flex:1; min-width:160px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin:0 0 16px; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .pc-form .field { margin:0; }
+    .pc-form .actions { display:flex; gap:8px; flex-wrap:wrap; grid-column:1/-1; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; vertical-align:top; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .badge-sa { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); white-space:nowrap; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 10px; }
+    .sub { font-size:12px; opacity:.75; }
+    .act-btns { display:flex; flex-wrap:wrap; gap:4px; }
+    .tabs { display:flex; gap:8px; margin-bottom:14px; }
+    .tab-btn { border:1px solid rgba(255,255,255,.15); background:transparent; color:inherit; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .tab-btn.active { background:rgba(20,184,166,.18); border-color:rgba(20,184,166,.45); }
+    .panel { display:none; }
+    .panel.active { display:block; }
+    .detail { margin-top:12px; padding:12px; border:1px dashed rgba(255,255,255,.15); border-radius:8px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item active" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="page-header">
+      <h1>WMS Picking & Packing</h1>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="pick">Picking</button>
+      <button class="tab-btn" data-tab="pack">Packages</button>
+      <button class="tab-btn" data-tab="venda">Gerar da Venda</button>
+    </div>
+
+    <div id="panel-pick" class="panel active">
+      <div class="pc-toolbar">
+        <div class="field grow"><input id="q-pick" type="text" placeholder="buscar..." class="input"></div>
+        <div class="field">
+          <select id="status-pick" class="input"><option value="">Status</option></select>
+        </div>
+        <button class="btn" onclick="loadPicks()">Buscar</button>
+        <button class="btn btn-secondary" onclick="refreshPick()">Atualizar</button>
+      </div>
+      <div id="msg-pick" class="pc-msg"></div>
+      <div class="pc-meta" id="meta-pick"></div>
+      <table class="pc-table">
+        <thead><tr><th>ID</th><th>Armazém</th><th>Parceiro</th><th>Status</th><th>Itens</th><th>Ações</th></tr></thead>
+        <tbody id="tb-pick"></tbody>
+      </table>
+      <div id="detail-pick" class="detail"></div>
+    </div>
+
+    <div id="panel-pack" class="panel">
+      <div class="pc-toolbar">
+        <div class="field grow"><input id="q-pack" type="text" placeholder="buscar..." class="input"></div>
+        <div class="field">
+          <select id="status-pack" class="input"><option value="">Status</option></select>
+        </div>
+        <button class="btn" onclick="loadPackages()">Buscar</button>
+      </div>
+      <div id="msg-pack" class="pc-msg"></div>
+      <div class="pc-meta" id="meta-pack"></div>
+      <table class="pc-table">
+        <thead><tr><th>ID</th><th>Pick</th><th>Etiqueta</th><th>Status</th><th>Peso</th><th>Volume</th><th>Ações</th></tr></thead>
+        <tbody id="tb-pack"></tbody>
+      </table>
+    </div>
+
+    <div id="panel-venda" class="panel">
+      <div class="pc-form">
+        <div class="field">
+          <label>Pedido de Venda (ID)</label>
+          <input id="venda-id" type="text" class="input" placeholder="PV-...">
+        </div>
+        <div class="actions">
+          <button class="btn" onclick="gerarDaVenda()">Gerar operação + picking + expedição</button>
+        </div>
+      </div>
+      <div id="msg-venda" class="pc-msg"></div>
+      <div id="result-venda"></div>
+    </div>
+  </main>
+</div>
+
+<script src="../js/utils.js"></script>
+<script>
+const API = window.location.origin + '/api';
+const token = localStorage.getItem('auth_token') || '';
+
+async function api(path, method='GET', body) {
+  const opts = { method, headers: { 'X-Auth-Token': token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+function msg(id, txt, err) {
+  const el = document.getElementById(id);
+  el.textContent = txt;
+  el.className = 'pc-msg ' + (err ? 'err' : 'ok');
+}
+
+function fillSelect(id, opts) {
+  const sel = document.getElementById(id);
+  sel.innerHTML = '<option value="">Status</option>' + Object.entries(opts).map(([k,v]) => `<option value="${k}">${v}</option>`).join('');
+}
+
+function tabs() {
+  document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('panel-' + b.dataset.tab).classList.add('active');
+  }));
+}
+
+async function loadPicks() {
+  const q = document.getElementById('q-pick').value;
+  const status = document.getElementById('status-pick').value;
+  const r = await api('/wms/picking?q=' + encodeURIComponent(q) + (status ? '&status=' + status : ''));
+  if (r.status !== 'ok') return msg('msg-pick', r.message, true);
+  fillSelect('status-pick', r.status_opcoes || {});
+  document.getElementById('meta-pick').textContent = `Filtrado: ${r.filtrado || 0} / Total: ${r.total || 0}`;
+  const tb = document.getElementById('tb-pick');
+  tb.innerHTML = (r.pick_lists || []).map(p => {
+    const acoes = (p.acoes || []).map(a => `<button class="btn btn-sm" onclick="actPick('${p.id}', '${a}')">${a}</button>`).join('');
+    return `<tr>
+      <td><a href="#" onclick="openPick('${p.id}'); return false">${p.id}</a></td>
+      <td>${p.armazem} ${p.armazem_nome ? '('+p.armazem_nome+')' : ''}</td>
+      <td>${p.parceiro || ''}</td>
+      <td><span class="badge-sa">${p.status_label || p.status}</span></td>
+      <td>${p.linhas_count || 0}</td>
+      <td class="act-btns">${acoes}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function openPick(id) {
+  const r = await api('/wms/picking/' + id);
+  if (r.status !== 'ok') return msg('msg-pick', r.message, true);
+  const p = r.pick_list;
+  const lines = (p.linhas || []).map(l => `<tr><td>${l.linha}</td><td>${l.produto}</td><td>${l.qtd}</td><td>${l.qtd_feita || 0}</td><td>${l.status_label || l.status}</td><td>${l.loc_origem || ''}</td><td><input type="number" id="qf-${l.linha}" class="input" style="width:80px" value="${l.qtd}"></td><td><button class="btn btn-sm" onclick="confirmPick('${p.id}', ${l.linha})">Confirmar</button></td></tr>`).join('');
+  document.getElementById('detail-pick').innerHTML = `
+    <h3>${p.id}</h3>
+    <p>Operação: ${p.operacao_ids || ''} | Armazém: ${p.armazem} | Operador: ${p.operador || ''}</p>
+    <table class="pc-table"><thead><tr><th>Linha</th><th>Produto</th><th>Qtd</th><th>Feita</th><th>Status</th><th>Loc</th><th>Qtd</th><th></th></tr></thead><tbody>${lines}</tbody></table>
+    <div class="act-btns" style="margin-top:10px">
+      ${(p.acoes || []).map(a => `<button class="btn" onclick="actPick('${p.id}', '${a}')">${a}</button>`).join('')}
+    </div>`;
+}
+
+async function confirmPick(id, linha) {
+  const qtd = document.getElementById('qf-' + linha).value;
+  const r = await api('/admin/wms/picking/' + id, 'POST', { action: 'confirm_line', linha, qtd_feita: qtd });
+  if (r.status !== 'ok') return msg('msg-pick', r.message, true);
+  msg('msg-pick', 'Linha confirmada');
+  openPick(id); loadPicks();
+}
+
+async function actPick(id, action) {
+  const r = await api('/admin/wms/picking/' + id, 'POST', { action });
+  if (r.status !== 'ok') return msg('msg-pick', r.message, true);
+  msg('msg-pick', 'Ação ' + action + ' ok');
+  openPick(id); loadPicks();
+}
+
+async function refreshPick() { loadPicks(); }
+
+async function loadPackages() {
+  const q = document.getElementById('q-pack').value;
+  const status = document.getElementById('status-pack').value;
+  const r = await api('/wms/packages?q=' + encodeURIComponent(q) + (status ? '&status=' + status : ''));
+  if (r.status !== 'ok') return msg('msg-pack', r.message, true);
+  fillSelect('status-pack', r.status_opcoes || {});
+  document.getElementById('meta-pack').textContent = `Filtrado: ${r.filtrado || 0} / Total: ${r.total || 0}`;
+  document.getElementById('tb-pack').innerHTML = (r.packages || []).map(p => {
+    const acoes = (p.acoes || []).map(a => `<button class="btn btn-sm" onclick="actPack('${p.id}', '${a}')">${a}</button>`).join('');
+    return `<tr><td>${p.id}</td><td>${p.pick_list_id}</td><td>${p.etiqueta}</td><td><span class="badge-sa">${p.status_label || p.status}</span></td><td>${p.peso_kg}</td><td>${p.volume_m3}</td><td class="act-btns">${acoes}</td></tr>`;
+  }).join('');
+}
+
+async function actPack(id, action) {
+  const r = await api('/admin/wms/packages/' + id, 'POST', { action });
+  if (r.status !== 'ok') return msg('msg-pack', r.message, true);
+  msg('msg-pack', 'Ação ' + action + ' ok'); loadPackages();
+}
+
+async function gerarDaVenda() {
+  const id = document.getElementById('venda-id').value.trim();
+  if (!id) return msg('msg-venda', 'Informe o ID do pedido de venda', true);
+  const r = await api('/admin/wms/picking/from-venda', 'POST', { venda_id: id });
+  if (r.status !== 'ok') return msg('msg-venda', r.message, true);
+  msg('msg-venda', 'WMS gerado: operação ' + r.operacao_id + ', picking ' + r.pick_list_id + ', expedição ' + r.expedicao_id);
+  document.getElementById('result-venda').innerHTML = `<pre class="detail">${JSON.stringify(r, null, 2)}</pre>`;
+  loadPicks();
+}
+
+(function init() {
+  tabs();
+  loadPicks();
+  loadPackages();
+})();
+</script>
+</body>
+</html>

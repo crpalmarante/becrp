@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Manifesto de Entrega</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .pc-toolbar .grow { flex:1; min-width:140px; }
+    .layout { display:grid; grid-template-columns: 1fr 1.2fr; gap:16px; }
+    @media (max-width:900px) { .layout { grid-template-columns:1fr; } }
+    .panel {
+      border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:12px;
+      background:rgba(0,0,0,.15);
+    }
+    .panel h3 { margin:0 0 10px; font-size:14px; }
+    .mf-row {
+      padding:10px; margin-bottom:8px; border:1px solid rgba(255,255,255,.12);
+      border-radius:6px; cursor:pointer; font-size:13px;
+    }
+    .mf-row.active { border-color:rgba(20,184,166,.5); background:rgba(20,184,166,.1); }
+    .mf-row .sub { font-size:11px; opacity:.7; }
+    .badge { font-size:10px; padding:1px 5px; border:1px solid rgba(255,255,255,.2); border-radius:3px; }
+    .chk { font-size:12px; margin:4px 0; }
+    .chk.ok { color:#4ade80; }
+    .chk.fail { color:#fbbf24; }
+    .seq {
+      display:flex; gap:8px; align-items:flex-start; padding:8px; margin-bottom:6px;
+      border:1px solid rgba(255,255,255,.1); border-radius:6px; font-size:12px;
+    }
+    .seq .n {
+      min-width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+      border:1px solid rgba(255,255,255,.25); font-size:11px;
+    }
+    .act-btns { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+    .btn-xs {
+      padding:4px 8px; font-size:11px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.25); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+    .btn-xs.primary { border-color:rgba(20,184,166,.5); }
+    .doc {
+      font-size:12px; border:1px dashed rgba(255,255,255,.2); border-radius:6px;
+      padding:12px; margin-top:12px; white-space:pre-wrap; font-family:ui-monospace,monospace;
+    }
+    .cand { font-size:12px; margin:4px 0; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="entregas-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="entregas-dashboard.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Dashboard</span></a>
+      <a class="menu-item" href="entregas-fila.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Fila</span></a>
+      <a class="menu-item" href="entregas-planejamento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Planejamento</span></a>
+      <a class="menu-item" href="entregas-calendario.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Calendário</span></a>
+      <a class="menu-item active" href="entregas-manifesto.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Manifesto</span></a>
+      <a class="menu-item" href="entregas-viagem.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Viagem</span></a>
+      <a class="menu-item" href="entregas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Pedidos</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Home</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="topbar-title">Entregas — Manifesto</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / Delivery / Manifest</div>
+          <h2 class="workspace-title">O que sai do armazém nesta viagem</h2>
+        </div>
+        <div class="workspace-content">
+          <div id="meta" class="pc-meta">Carregando…</div>
+          <p class="pc-note">RFC-18105 — manifesto = pacote de execução. Checklist antes de liberar. Sem inventário.</p>
+          <div id="msg" class="pc-msg"></div>
+          <div class="pc-toolbar">
+            <div class="field"><label>Data</label><input class="form-input" id="filtro-data" type="date"></div>
+            <div class="field"><label>Fonte</label><select class="form-input" id="filtro-fonte"><option value="">Todas</option></select></div>
+            <div class="field"><label>Status</label><select class="form-input" id="filtro-status"><option value="">Todos</option></select></div>
+            <div class="field grow"><label>Busca</label><input class="form-input" id="filtro-q" placeholder="MF / motorista / DO"></div>
+            <button class="dialog-btn dialog-btn-primary" id="btn-refresh">Atualizar</button>
+            <button class="dialog-btn" id="btn-novo" type="button">Novo</button>
+          </div>
+          <div class="layout">
+            <div class="panel">
+              <h3>Manifestos</h3>
+              <div id="lista"></div>
+            </div>
+            <div class="panel">
+              <h3>Detalhe</h3>
+              <div id="detalhe"><div class="pc-note">Selecione um manifesto</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let perms = { pode_escrever: false };
+  let selectedId = null;
+  let statusOp = {};
+
+  if (!document.getElementById("filtro-data").value) {
+    document.getElementById("filtro-data").value = new Date().toISOString().slice(0, 10);
+  }
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  const LABEL_ACT = {
+    plan: "Planejar",
+    assign: "Atribuir",
+    release: "Liberar",
+    start: "Iniciar viagem",
+    complete: "Concluir",
+    close: "Fechar",
+    archive: "Arquivar",
+    cancel: "Cancelar",
+    add_entregas: "Add DO",
+    remove_entregas: "Remover DO",
+    reorder: "Reordenar",
+  };
+
+  async function doAction(id, action, extra) {
+    if (!perms.pode_escrever) return msg("Sem permissão", false);
+    let body = Object.assign({ action: action }, extra || {});
+    if (action === "cancel") {
+      const motivo = prompt("Motivo do cancelamento:");
+      if (!motivo) return;
+      body.motivo = motivo;
+    }
+    if (action === "assign") {
+      const motorista = prompt("Motorista:", "Carlos Motorista");
+      if (motorista == null) return;
+      const veiculo = prompt("Veículo:", "ABC1D23");
+      if (veiculo == null) return;
+      body.motorista = motorista;
+      body.veiculo = veiculo;
+      body.recurso_id = "DRV-01";
+    }
+    if (action === "add_entregas") {
+      const ids = prompt("IDs das entregas (vírgula):");
+      if (!ids) return;
+      body.entrega_ids = ids;
+    }
+    if (action === "remove_entregas") {
+      const ids = prompt("IDs a remover (vírgula):");
+      if (!ids) return;
+      body.entrega_ids = ids;
+    }
+    const res = await AuthService.api("/api/admin/delivery/manifest/" + encodeURIComponent(id), {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    msg((action || "ok") + " · " + id, true);
+    selectedId = id;
+    load();
+  }
+
+  async function showDoc(id) {
+    const res = await AuthService.api("/api/delivery/manifest/" + encodeURIComponent(id) + "/document");
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    const d = res.documento || {};
+    let text = d.titulo + "\n" + d.manifesto_id + " · " + d.data + " · " + d.fonte + "\n";
+    text += "Motorista: " + (d.motorista || "—") + " · Veículo: " + (d.veiculo || "—") + "\n";
+    text += "Partida: " + (d.partida_estimada || "—") + " · Retorno: " + (d.retorno_estimado || "—") + "\n";
+    text += "Status: " + (d.status || "") + "\n\n";
+    (d.linhas || []).forEach((l) => {
+      text += l.seq + ". " + l.entrega_id + " — " + (l.cliente || "") + "\n";
+      text += "   " + (l.endereco || "") + " · " + (l.cidade || "") + "\n";
+      text += "   " + (l.contato || "") + " " + (l.telefone || "") + " · " + (l.janela || "") + "\n\n";
+    });
+    const box = document.getElementById("doc-box");
+    if (box) box.textContent = text;
+  }
+
+  function renderDetail(m) {
+    if (!m) {
+      document.getElementById("detalhe").innerHTML = '<div class="pc-note">Selecione um manifesto</div>';
+      return;
+    }
+    const chk = m.checklist || { itens: [] };
+    let html = `<div>
+      <strong>${m.id}</strong> <span class="badge">${m.status_label || m.status}</span>
+      <div class="sub">${m.data} · ${m.fonte} · ${m.motorista || "sem motorista"} · ${m.veiculo || "—"}</div>
+      <div class="sub">Dispatch ${m.dispatch_id || "—"} · ${m.entregas_count || 0} DO · ${m.paradas_count || 0} paradas</div>
+    </div>`;
+
+    html += `<div style="margin-top:10px"><strong>Checklist</strong>
+      ${chk.ok ? '<span class="badge">OK</span>' : '<span class="badge">pendente</span>'}
+      ${(chk.itens || []).map((i) =>
+        `<div class="chk ${i.ok ? "ok" : "fail"}">${i.ok ? "✓" : "·"} ${i.label}${i.detail ? " — " + i.detail : ""}</div>`
+      ).join("")}
+    </div>`;
+
+    html += `<div class="act-btns">`;
+    if (perms.pode_escrever) {
+      (m.acoes || []).filter((a) => !["reorder"].includes(a)).forEach((a) => {
+        html += `<button type="button" class="btn-xs ${a === "release" || a === "start" ? "primary" : ""}" data-act="${a}">${LABEL_ACT[a] || a}</button>`;
+      });
+    }
+    html += `<button type="button" class="btn-xs" id="btn-doc">Documento</button></div>`;
+
+    html += `<div style="margin-top:8px"><strong>Sequência</strong></div>`;
+    (m.entregas || []).forEach((e) => {
+      html += `<div class="seq">
+        <div class="n">${e.seq}</div>
+        <div>
+          <strong>${e.id}</strong> <span class="badge">${e.status_label || e.status || ""}</span>
+          <div>${e.parceiro || "—"}</div>
+          <div class="sub">${e.endereco || ""} · ${e.cidade || ""}</div>
+          <div class="sub">${e.contato || ""} ${e.telefone || ""} · ${e.janela || ""}</div>
+        </div>
+      </div>`;
+    });
+
+    html += `<div class="doc" id="doc-box" style="display:none"></div>`;
+    document.getElementById("detalhe").innerHTML = html;
+
+    document.querySelectorAll("[data-act]").forEach((btn) => {
+      btn.onclick = () => doAction(m.id, btn.dataset.act);
+    });
+    const bd = document.getElementById("btn-doc");
+    if (bd) bd.onclick = async () => {
+      const box = document.getElementById("doc-box");
+      box.style.display = "block";
+      await showDoc(m.id);
+    };
+  }
+
+  async function load() {
+    msg("");
+    const qs = new URLSearchParams();
+    const data = document.getElementById("filtro-data").value;
+    const fonte = document.getElementById("filtro-fonte").value;
+    const status = document.getElementById("filtro-status").value;
+    const q = document.getElementById("filtro-q").value.trim();
+    // lista todos do dia se data setada; permitir limpar data = todos
+    if (data) qs.set("data", data);
+    if (fonte) qs.set("fonte", fonte);
+    if (status) qs.set("status", status);
+    if (q) qs.set("q", q);
+
+    const res = await AuthService.api("/api/delivery/manifest?" + qs.toString());
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    perms = res.permissoes || perms;
+    statusOp = res.status_opcoes || {};
+
+    document.getElementById("meta").textContent =
+      (res.filtrado || 0) + " manifesto(s) · total " + (res.total || 0) +
+      " · " + ((res.meta && res.meta.atualizado_em) || "").replace("T", " ");
+
+    const fontes = res.fontes || [];
+    const selF = document.getElementById("filtro-fonte");
+    const curF = fonte;
+    selF.innerHTML = '<option value="">Todas</option>' +
+      fontes.map((f) => `<option value="${f}">${f}</option>`).join("");
+    selF.value = curF;
+
+    const selS = document.getElementById("filtro-status");
+    const curS = status;
+    selS.innerHTML = '<option value="">Todos</option>' +
+      Object.keys(statusOp).map((k) => `<option value="${k}">${statusOp[k]}</option>`).join("");
+    selS.value = curS;
+
+    const rows = res.manifests || [];
+    if (!selectedId && rows.length) selectedId = rows[0].id;
+    document.getElementById("lista").innerHTML = rows.map((m) =>
+      `<div class="mf-row ${m.id === selectedId ? "active" : ""}" data-id="${m.id}">
+        <strong>${m.id}</strong> <span class="badge">${m.status_label}</span>
+        <div class="sub">${m.motorista || "—"} · ${m.veiculo || "—"} · ${m.entregas_count} DO</div>
+        <div class="sub">${m.checklist && m.checklist.ok ? "checklist OK" : "checklist pendente"}</div>
+      </div>`
+    ).join("") || '<div class="pc-note">Nenhum manifesto</div>';
+
+    document.querySelectorAll(".mf-row[data-id]").forEach((el) => {
+      el.onclick = () => {
+        selectedId = el.dataset.id;
+        const m = rows.find((x) => x.id === selectedId);
+        document.querySelectorAll(".mf-row").forEach((r) => r.classList.toggle("active", r.dataset.id === selectedId));
+        renderDetail(m);
+      };
+    });
+
+    const cur = rows.find((x) => x.id === selectedId) || null;
+    renderDetail(cur);
+  }
+
+  async function novo() {
+    if (!perms.pode_escrever) return msg("Sem permissão", false);
+    const data = document.getElementById("filtro-data").value;
+    const fonte = document.getElementById("filtro-fonte").value || "DC-01";
+    const cand = await AuthService.api(
+      "/api/delivery/manifest/candidates?" + new URLSearchParams({ data: data || "", fonte: fonte }).toString()
+    );
+    let ids = [];
+    if (cand.status === "ok" && (cand.orders || []).length) {
+      ids = cand.orders.map((o) => o.id);
+      if (!confirm("Criar manifesto com " + ids.length + " DO(s) elegíveis?\n" + ids.join(", "))) {
+        const manual = prompt("Ou informe entrega_ids (vírgula):");
+        if (!manual) return;
+        ids = manual.split(",").map((x) => x.trim()).filter(Boolean);
+      }
+    } else {
+      const manual = prompt("Nenhuma candidata. Informe entrega_ids (vírgula) ou deixe vazio:");
+      if (manual == null) return;
+      ids = manual.split(",").map((x) => x.trim()).filter(Boolean);
+    }
+    const res = await AuthService.api("/api/admin/delivery/manifest", {
+      method: "POST",
+      body: JSON.stringify({
+        data: data || undefined,
+        fonte: fonte,
+        entrega_ids: ids,
+        motorista: "Carlos Motorista",
+        veiculo: "ABC1D23",
+        recurso_id: "DRV-01",
+        partida_estimada: "08:00",
+        retorno_estimado: "18:00",
+      }),
+    });
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    selectedId = res.manifest && res.manifest.id;
+    msg("criado · " + selectedId, true);
+    load();
+  }
+
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("btn-novo").onclick = novo;
+  document.getElementById("filtro-data").onchange = load;
+  document.getElementById("filtro-fonte").onchange = load;
+  document.getElementById("filtro-status").onchange = load;
+  document.getElementById("filtro-q").onchange = load;
+  load();
+})();
+</script>
+</body>
+</html>

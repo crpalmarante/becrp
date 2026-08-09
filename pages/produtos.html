@@ -625,6 +625,8 @@
 
   let ncmLookup = null;
   let cestLookup = null;
+  let cfopLookup = null;
+  let cstLookup = null;
   let categoriaLookup = null;
   let marcaLookup = null;
   let fabricanteLookup = null;
@@ -739,6 +741,20 @@
       minChars: 1,
       debounce: 280,
       placeholder: "preenchido pelo NCM ou digite",
+    });
+    cfopLookup = new Lookup("#f-cfop", {
+      provider: LookupService.CfopProvider,
+      minChars: 1,
+      debounce: 200,
+      placeholder: "CFOP padrão",
+    });
+    cstLookup = new Lookup("#f-cst", {
+      provider: {
+        search: (text) => LookupService.CstProvider.search(text, "icms"),
+      },
+      minChars: 1,
+      debounce: 200,
+      placeholder: "CST ICMS",
     });
     document.getElementById("cest-picker-cancel").addEventListener("click", closeCestPicker);
     document.getElementById("cest-picker-clear").addEventListener("click", () => {
@@ -955,6 +971,8 @@
     document.querySelectorAll(".pf-pane").forEach((p) => p.classList.toggle("active", p.id === "tab-geral"));
     if (ncmLookup) ncmLookup.clear();
     if (cestLookup) cestLookup.clear();
+    if (cfopLookup) cfopLookup.clear();
+    if (cstLookup) cstLookup.clear();
     if (categoriaLookup) categoriaLookup.clear();
     if (marcaLookup) marcaLookup.clear();
     if (fabricanteLookup) fabricanteLookup.clear();
@@ -1389,8 +1407,8 @@
       document.getElementById("f-cest").value = x.cest || "";
       if (ncmLookup) ncmLookup.setValue(row.ncm || "", row.ncm ? "NCM cadastrado" : "");
       if (cestLookup) cestLookup.setValue(x.cest || "", x.cest ? "CEST cadastrado" : "");
-      document.getElementById("f-cfop").value = row.cfop || "";
-      document.getElementById("f-cst").value = row.cst || "";
+      if (cfopLookup) cfopLookup.setValue(row.cfop || "", row.cfop ? "CFOP cadastrado" : "");
+      if (cstLookup) cstLookup.setValue(row.cst || "", row.cst ? "CST cadastrado" : "");
       document.getElementById("f-icms_alq").value = row.icms_alq ?? "";
       document.getElementById("f-origem").value = x.origem || "0";
       document.getElementById("f-servico").value = row.servico || "N";

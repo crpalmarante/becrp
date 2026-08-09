@@ -1,5 +1,19 @@
 # FiscalUI — Reforma Tributária: Dois Motores Simultâneos
 
+---
+
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 ## O Problema
 
 A reforma tributária (EC 132/2023) cria um novo sistema sem eliminar o antigo de imediato. Durante a **transição** (estimada em 7 anos), ambos coexistirão:

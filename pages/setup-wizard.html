@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Configuração inicial</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .wiz { max-width:640px; margin:0 auto; }
+    .wiz-note { font-size:13px; opacity:.7; margin:0 0 16px; line-height:1.45; }
+    .wiz-msg { font-size:14px; margin:0 0 12px; min-height:1.2em; }
+    .wiz-msg.ok { color:#4ade80; }
+    .wiz-msg.err { color:#f87171; }
+    .steps { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:20px; }
+    .step-chip {
+      font-size:11px; padding:4px 8px; border-radius:4px;
+      border:1px solid rgba(255,255,255,.15); opacity:.7; cursor:pointer;
+      background:transparent; color:inherit;
+    }
+    .step-chip.done { opacity:1; border-color:rgba(74,222,128,.4); }
+    .step-chip.cur { opacity:1; border-color:rgba(20,184,166,.5); background:rgba(20,184,166,.12); font-weight:600; }
+    .panel { border:1px solid rgba(255,255,255,.12); border-radius:8px; padding:16px; }
+    .panel h3 { margin:0 0 12px; font-size:16px; }
+    .field { margin-bottom:12px; }
+    .field label { display:block; font-size:12px; opacity:.75; margin-bottom:4px; }
+    .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:600px) { .row2 { grid-template-columns:1fr; } }
+    .pkg {
+      text-align:left; width:100%; margin-bottom:8px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.14); border-radius:8px;
+      padding:12px; background:transparent; color:inherit;
+    }
+    .pkg.sel { border-color:rgba(20,184,166,.5); background:rgba(20,184,166,.1); }
+    .pkg strong { display:block; margin-bottom:2px; }
+    .pkg span { font-size:12px; opacity:.7; }
+    .chk { font-size:13px; margin:6px 0; }
+    .chk.ok { color:#4ade80; }
+    .chk.warn { color:#fbbf24; }
+    .wiz-pending {
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      border:1px solid rgba(255,255,255,.12); border-radius:8px;
+      padding:10px 12px; margin:6px 0; font-size:13px; flex-wrap:wrap;
+    }
+    .wiz-pending.req { border-color:rgba(248,113,113,.5); }
+    .wiz-pending-actions { display:flex; gap:8px; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item active" href="setup-wizard.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg><span class="menu-label">Setup</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="topbar-title">Configuração inicial</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">RFC-0000 / Business Setup</div>
+          <h2 class="workspace-title">Configure o negócio</h2>
+        </div>
+        <div class="workspace-content">
+          <div class="wiz">
+            <p class="wiz-note">
+              A plataforma já existe. Agora guiamos organização, empresa e módulos.
+              Você pode sair e voltar — o progresso fica salvo.
+            </p>
+            <div id="msg" class="wiz-msg"></div>
+            <div class="steps" id="steps"></div>
+            <div class="panel" id="panel">Carregando…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/masks.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  if ((auth.user && auth.user.role) !== "admin") {
+    alert("Setup: apenas Administrador.");
+    location.href = "../index4.html";
+    return;
+  }
+  document.getElementById("user-name-display").textContent =
+    auth.user.nome || auth.user.usuario || "Admin";
+
+  let state = null;
+  let selectedPkg = "retail";
+
+  function msg(t, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = t || "";
+    el.className = "wiz-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function val(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : "";
+  }
+
+  async function load() {
+    const res = await AuthService.api("/api/platform/setup");
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    state = res;
+    if (res.go_live && !res.needs_wizard) {
+      msg("Instância em produção.", true);
+    }
+    renderSteps();
+    renderPanel();
+  }
+
+  function renderSteps() {
+    document.getElementById("steps").innerHTML = (state.steps || []).map((s) =>
+      `<button type="button" class="step-chip ${s.done ? "done" : ""} ${s.current ? "cur" : ""}" data-goto="${s.id}">${s.label}</button>`
+    ).join("");
+    document.querySelectorAll("[data-goto]").forEach((btn) => {
+      btn.onclick = async () => {
+        if (state.go_live) return;
+        const r = await AuthService.api("/api/platform/setup/goto", {
+          method: "POST",
+          body: JSON.stringify({ step: btn.dataset.goto }),
+        });
+        if (r.status !== "ok") return msg(r.message || "Falha", false);
+        state = r;
+        renderSteps();
+        renderPanel();
+      };
+    });
+  }
+
+  function renderPanel() {
+    const step = state.current_step;
+    const p = document.getElementById("panel");
+    if (state.go_live) {
+      p.innerHTML = `<h3>Pronto</h3>
+        <p class="wiz-note">Business Setup concluído. Operação liberada.</p>
+        <div class="actions">
+          <button type="button" class="dialog-btn dialog-btn-primary" id="btn-home">Ir para o BECRP</button>
+          <button type="button" class="dialog-btn" id="btn-apps">Apps</button>
+          <button type="button" class="dialog-btn" id="btn-reopen">Refazer setup de negócio</button>
+          <button type="button" class="dialog-btn" id="btn-factory" style="border-color:#f87171;color:#f87171">Instalar do zero</button>
+        </div>`;
+      document.getElementById("btn-home").onclick = () => location.href = "../index4.html";
+      document.getElementById("btn-apps").onclick = () => location.href = "apps.html";
+      document.getElementById("btn-reopen").onclick = async () => {
+        if (!confirm("Reabre o wizard de negócio (não apaga admin). Continuar?")) return;
+        const r = await AuthService.api("/api/platform/setup/reopen", {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        if (r.status !== "ok") return msg(r.message || "Falha", false);
+        state = r;
+        msg("Wizard reaberto — continue pela organização.", true);
+        renderSteps();
+        renderPanel();
+      };
+      document.getElementById("btn-factory").onclick = async () => {
+        const conf = prompt('Isto apaga admin, org e módulos. Digite REINSTALAR para confirmar:');
+        if (!conf) return;
+        const r = await AuthService.api("/api/platform/setup/factory-reset", {
+          method: "POST",
+          body: JSON.stringify({ confirm: conf }),
+        });
+        if (r.status !== "ok") return msg(r.message || "Falha", false);
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("user_data");
+        location.href = "../install.html";
+      };
+      return;
+    }
+
+    if (step === "localization") {
+      const L = state.localization || {};
+      const I = state.instance || {};
+      p.innerHTML = `<h3>Localização</h3>
+        <div class="field"><label>Nome da instância</label>
+          <input class="form-input" id="f-iname" value="${esc(I.name || "")}"></div>
+        <div class="row2">
+          <div class="field"><label>País</label>
+            <input class="form-input" id="f-country" value="${esc(L.country || "BR")}"></div>
+          <div class="field"><label>Idioma</label>
+            <input class="form-input" id="f-lang" value="${esc(L.language || "pt-BR")}"></div>
+          <div class="field"><label>Fuso</label>
+            <input class="form-input" id="f-tz" value="${esc(L.timezone || "America/Sao_Paulo")}"></div>
+          <div class="field"><label>Moeda</label>
+            <input class="form-input" id="f-cur" value="${esc(L.currency || "BRL")}"></div>
+        </div>
+        <div class="actions">
+          <button type="button" class="dialog-btn dialog-btn-primary" id="btn-next">Continuar</button>
+        </div>`;
+      document.getElementById("btn-next").onclick = () => save("localization", {
+        instance_name: val("f-iname"),
+        country: val("f-country"),
+        language: val("f-lang"),
+        timezone: val("f-tz"),
+        currency: val("f-cur"),
+      });
+      return;
+    }
+
+    if (step === "organization") {
+      const O = state.organization || {};
+      const iname = (state.instance && state.instance.name) || "";
+      p.innerHTML = `<h3>Organização</h3>
+        <p class="wiz-note">Dono legal da instância de negócio.</p>
+        <div class="field"><label>Nome</label>
+          <input class="form-input" id="f-onome" value="${esc(O.nome || iname || "")}"></div>
+        <div class="field"><label>Razão social</label>
+          <input class="form-input" id="f-orazao" value="${esc(O.razao || "")}"></div>
+        <div class="field"><label>CNPJ / Tax ID</label>
+          <input class="form-input" id="f-ocnpj" value="${esc(O.cnpj || "")}"></div>
+        <div class="field"><label>Endereço</label>
+          <input class="form-input" id="f-oend" value="${esc(O.endereco || "")}"></div>
+        <div class="actions">
+          <button type="button" class="dialog-btn dialog-btn-primary" id="btn-next">Continuar</button>
+        </div>`;
+      document.getElementById("btn-next").onclick = () => save("organization", {
+        nome: val("f-onome"),
+        razao: val("f-orazao"),
+        cnpj: val("f-ocnpj"),
+        endereco: val("f-oend"),
+      });
+      return;
+    }
+
+    if (step === "company") {
+      const C = state.company || {};
+      const S = state.structure || {};
+      p.innerHTML = `<h3>Empresa / Estrutura</h3>
+        <p class="wiz-note">Empresa obrigatória. Filial e depósito são opcionais.</p>
+        <div class="field"><label>Nome fantasia</label>
+          <input class="form-input" id="f-cnome" value="${esc(C.nome || "")}"></div>
+        <div class="field"><label>Razão social</label>
+          <input class="form-input" id="f-crazao" value="${esc(C.nome_razao || "")}"></div>
+        <div class="row2">
+          <div class="field"><label>CNPJ</label>
+            <input class="form-input" id="f-ccnpj" value="${esc(C.cnpj || "")}"></div>
+          <div class="field"><label>IE</label>
+            <input class="form-input" id="f-cie" value="${esc(C.ie || "")}"></div>
+          <div class="field"><label>Cidade</label>
+            <input class="form-input" id="f-ccidade" value="${esc(C.cidade || "")}"></div>
+          <div class="field"><label>UF</label>
+            <input class="form-input" id="f-cuf" value="${esc(C.uf || "")}" maxlength="2"></div>
+        </div>
+        <div class="field"><label>Endereço</label>
+          <input class="form-input" id="f-cend" value="${esc(C.endereco || "")}"></div>
+        <div class="field"><label>Filial (opcional)</label>
+          <input class="form-input" id="f-branch" value="${esc(S.branch_name || "")}" placeholder="Ex.: Filial Centro"></div>
+        <div class="field"><label>Depósito / Warehouse (opcional)</label>
+          <input class="form-input" id="f-wh" value="${esc(S.warehouse_name || "")}" placeholder="Deixe vazio para adiar"></div>
+        <div class="actions">
+          <button type="button" class="dialog-btn dialog-btn-primary" id="btn-next">Continuar</button>
+        </div>`;
+      document.getElementById("btn-next").onclick = () => save("company", {
+        id: C.id || "matriz",
+        nome: val("f-cnome"),
+        nome_fantasia: val("f-cnome"),
+        nome_razao: val("f-crazao"),
+        cnpj: val("f-ccnpj"),
+        ie: val("f-cie"),
+        cidade: val("f-ccidade"),
+        uf: val("f-cuf"),
+        endereco: val("f-cend"),
+        branch_name: val("f-branch"),
+        warehouse_name: val("f-wh"),
+        warehouse_postpone: !val("f-wh"),
+      });
+      return;
+    }
+
+    if (step === "users") {
+      p.innerHTML = `<h3>Usuários</h3>
+        <p class="wiz-note">Recomendado criar um usuário operacional. Você pode pular.</p>
+        <div class="field"><label>Nome</label>
+          <input class="form-input" id="f-unome" placeholder="Operador"></div>
+        <div class="field"><label>Usuário</label>
+          <input class="form-input" id="f-uuser" placeholder="operador"></div>
+        <div class="field"><label>Senha</label>
+          <input class="form-input" id="f-upass" type="password" placeholder="••••"></div>
+        <div class="field"><label>Perfil</label>
+          <select class="form-input" id="f-urole">
+            <option value="operador">Operador</option>
+            <option value="supervisor">Supervisor</option>
+            <option value="gerente">Gerente</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="button" class="dialog-btn dialog-btn-primary" id="btn-next">Criar e continuar</button>
+          <button type="button" class="dialog-btn" id="btn-skip">Pular</button>
+        </div>`;
+      document.getElementById("btn-next").onclick = () => save("users", {
+        nome: val("f-unome"),
+        usuario: val("f-uuser"),
+        senha: val("f-upass"),
+        role: document.getElementById("f-urole").value,
+      });
+      document.getElementById("btn-skip").onclick = () => save("users", { skip: true });
+      return;
+    }
+
+    if (step === "modules") {
+      const pkgs = (state.modules && state.modules.packages) || [];
+      selectedPkg = state.modules && state.modules.package_id || "retail";
+      const pending = state.setup_pending || [];
+      const pendingBlock = pending.length
+        ? `<h4 style="margin-top:18px">Setup dos módulos instalados</h4>
+           <p class="wiz-note">Conclua o setup de cada módulo (obrigatórios em vermelho). Depois clique Continuar.</p>
+           <div id="mods-pending"></div>`
+        : `<p class="wiz-note" style="margin-top:14px">✓ Todos os módulos instalados já estão configurados.</p>`;
+      p.innerHTML = `<h3>Módulos</h3>
+        <p class="wiz-note">Escolha um pacote. Depois você pode instalar mais apps.</p>
+        <div id="pkgs"></div>
+        ${pendingBlock}
+        <div class="actions">
+          <button type="button" class="dialog-btn dialog-btn-primary" id="btn-next">Continuar</button>
+          <button type="button" class="dialog-btn" id="btn-apps">Abrir Apps</button>
+        </div>`;
+      const box = document.getElementById("pkgs");
+      box.innerHTML = pkgs.filter((x) => x.id !== "custom").map((x) =>
+        `<button type="button" class="pkg ${x.id === selectedPkg ? "sel" : ""}" data-pkg="${x.id}">
+          <strong>${x.name}${x.recommended ? " · recomendado" : ""}</strong>
+          <span>${x.summary || ""}</span>
+        </button>`
+      ).join("");
+      box.querySelectorAll("[data-pkg]").forEach((btn) => {
+        btn.onclick = () => {
+          selectedPkg = btn.dataset.pkg;
+          box.querySelectorAll(".pkg").forEach((b) => b.classList.toggle("sel", b.dataset.pkg === selectedPkg));
+        };
+      });
+      const pbox = document.getElementById("mods-pending");
+      if (pbox) {
+        pbox.innerHTML = pending.map((m) =>
+          `<div class="wiz-pending ${m.required ? "req" : ""}">
+             <span>${esc(m.name)} — ${esc(m.label || "")}${m.required ? " (obrigatório)" : ""}</span>
+             <span class="wiz-pending-actions">
+               <a class="dialog-btn" href="${esc(m.url || "#")}">Configurar</a>
+               <button type="button" class="dialog-btn dialog-btn-primary" data-done="${esc(m.app_id)}">Concluído</button>
+             </span>
+           </div>`
+        ).join("");
+        pbox.querySelectorAll("[data-done]").forEach((btn) => {
+          btn.onclick = async () => {
+            const r = await AuthService.api("/api/apps/setup/done", {
+              method: "POST",
+              body: JSON.stringify({ app_id: btn.dataset.done }),
+            });
+            if (r.status !== "ok") return msg(r.message || "Falha", false);
+            msg("Setup concluído.", true);
+            refresh();
+          };
+        });
+      }
+      document.getElementById("btn-next").onclick = () => save("modules", { package_id: selectedPkg });
+      document.getElementById("btn-apps").onclick = () => location.href = "apps.html";
+      return;
+    }
+
+    if (step === "validation" || step === "go_live") {
+      const list = (state.checklist || []).map((c) =>
+        `<div class="chk ${c.ok ? "ok" : c.warn ? "warn" : ""}">${c.ok ? "✓" : c.warn ? "⚠" : "·"} ${c.label}</div>`
+      ).join("");
+      p.innerHTML = `<h3>Validação</h3>
+        <p class="wiz-note">Checklist antes de entrar em produção.</p>
+        ${list}
+        <div class="actions">
+          <button type="button" class="dialog-btn dialog-btn-primary" id="btn-live">Ativar produção</button>
+        </div>`;
+      document.getElementById("btn-live").onclick = async () => {
+        const r = await AuthService.api("/api/platform/setup/go-live", {
+          method: "POST",
+          body: JSON.stringify({}),
+        });
+        if (r.status !== "ok") return msg(r.message || "Falha", false);
+        msg("Produção ativada. Abrindo o BECRP…", true);
+        setTimeout(() => { location.href = "../index4.html"; }, 600);
+      };
+      return;
+    }
+
+    p.innerHTML = `<h3>${step}</h3><p class="wiz-note">Passo em construção.</p>`;
+  }
+
+  function esc(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/"/g, "&quot;")
+      .replace(/</g, "&lt;");
+  }
+
+  async function save(step, data) {
+    msg("Salvando…", true);
+    const r = await AuthService.api("/api/platform/setup/step", {
+      method: "POST",
+      body: JSON.stringify({ step, data }),
+    });
+    if (r.status !== "ok") return msg(r.message || "Falha", false);
+    state = r;
+    msg("Salvo.", true);
+    renderSteps();
+    renderPanel();
+  }
+
+  async function refresh() {
+    const res = await AuthService.api("/api/platform/setup");
+    if (res.status !== "ok") return msg(res.message || "Falha", false);
+    state = res;
+    renderSteps();
+    renderPanel();
+  }
+
+  load();
+})();
+</script>
+</body>
+</html>
