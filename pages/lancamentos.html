@@ -209,6 +209,7 @@
   </div>
 </div>
 
+<script src="../js/masks.js"></script>
 <script src="../js/services/AuthService.js"></script>
 <script>
 (function () {
@@ -252,8 +253,8 @@
     const d = data || {};
     tr.innerHTML = `
       <td><input class="form-input ln-conta" list="contas-sugestao" value="${d.conta || ""}" placeholder="classificação"></td>
-      <td><input class="form-input ln-deb num" type="number" min="0" step="0.01" value="${d.debito || ""}"></td>
-      <td><input class="form-input ln-cred num" type="number" min="0" step="0.01" value="${d.credito || ""}"></td>
+      <td><input class="form-input ln-deb num" type="text" data-mask="moeda" inputmode="decimal" min="0" value="${d.debito ? Number(d.debito).toFixed(2) : ""}"></td>
+      <td><input class="form-input ln-cred num" type="text" data-mask="moeda" inputmode="decimal" min="0" value="${d.credito ? Number(d.credito).toFixed(2) : ""}"></td>
       <td><input class="form-input ln-hist" value="${d.historico || ""}"></td>
       <td><button type="button" class="dialog-btn dialog-btn-secondary ln-del" style="padding:3px 8px;font-size:11px">×</button></td>`;
     tr.querySelector(".ln-del").onclick = () => {
@@ -268,8 +269,8 @@
   function readLines() {
     return Array.from(document.querySelectorAll("#lines tr")).map((tr) => ({
       conta: tr.querySelector(".ln-conta").value.trim(),
-      debito: parseFloat(tr.querySelector(".ln-deb").value || "0") || 0,
-      credito: parseFloat(tr.querySelector(".ln-cred").value || "0") || 0,
+      debito: parseFloat(Mascaras.limparMoeda(tr.querySelector(".ln-deb").value || "0")) || 0,
+      credito: parseFloat(Mascaras.limparMoeda(tr.querySelector(".ln-cred").value || "0")) || 0,
       historico: tr.querySelector(".ln-hist").value.trim(),
     }));
   }

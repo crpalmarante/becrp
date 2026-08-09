@@ -85,7 +85,7 @@ table.data tr{cursor:pointer}
           <label style="font-size:12px;color:var(--text-muted)">Fornecedor ID<input class="form-input" id="f-forn-id"></label>
           <label style="font-size:12px;color:var(--text-muted)">Fornecedor<input class="form-input" id="f-forn"></label>
           <label style="font-size:12px;color:var(--text-muted)">Código Fornecedor<input class="form-input" id="f-cod-forn"></label>
-          <label style="font-size:12px;color:var(--text-muted)">Preço<input class="form-input" id="f-preco" type="number" step="0.01"></label>
+          <label style="font-size:12px;color:var(--text-muted)">Preço<input class="form-input" id="f-preco" type="text" data-mask="moeda" inputmode="decimal"></label>
           <label style="font-size:12px;color:var(--text-muted)">Moeda<input class="form-input" id="f-moeda" value="BRL"></label>
           <label style="font-size:12px;color:var(--text-muted)">Lead Time (dias)<input class="form-input" id="f-lead" type="number" value="0"></label>
           <label style="font-size:12px;color:var(--text-muted)">Qtd Mínima<input class="form-input" id="f-qtd-min" type="number" step="0.001" value="0"></label>
@@ -105,6 +105,7 @@ table.data tr{cursor:pointer}
     </div>
   </div>
 </div>
+<script src="../js/masks.js"></script>
 <script src="../js/services/AuthService.js"></script>
 <script src="../js/auth/page-boot.js"></script>
 <script>
@@ -153,7 +154,7 @@ table.data tr{cursor:pointer}
     document.getElementById("f-forn-id").value = r.fornecedor_id || "";
     document.getElementById("f-forn").value = r.fornecedor || "";
     document.getElementById("f-cod-forn").value = r.codigo_fornecedor || "";
-    document.getElementById("f-preco").value = r.preco || "";
+    document.getElementById("f-preco").value = r.preco ? Mascaras.fmtMoeda(String(Math.round(Number(r.preco) * 100))) : "";
     document.getElementById("f-moeda").value = r.moeda || "BRL";
     document.getElementById("f-lead").value = r.lead_time || 0;
     document.getElementById("f-qtd-min").value = r.qtd_minima || 0;
@@ -172,7 +173,7 @@ table.data tr{cursor:pointer}
       fornecedor_id: document.getElementById("f-forn-id").value,
       fornecedor: document.getElementById("f-forn").value,
       codigo_fornecedor: document.getElementById("f-cod-forn").value,
-      preco: Number(document.getElementById("f-preco").value)||0,
+      preco: Number(Mascaras.limparMoeda(document.getElementById("f-preco").value)) || 0,
       moeda: document.getElementById("f-moeda").value || "BRL",
       lead_time: Number(document.getElementById("f-lead").value)||0,
       qtd_minima: Number(document.getElementById("f-qtd-min").value)||0,

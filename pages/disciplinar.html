@@ -69,7 +69,7 @@ tr:hover{background:#f0f0f0}
 <div class="form-row"><label>Data:</label><input type="date" id="ac-data" required></div>
 <div class="form-row"><label>Descricao:</label><textarea id="ac-descricao" rows="2"></textarea></div>
 <div class="form-row"><label>Dias Desconto:</label><input type="number" id="ac-dias" min="0" value="0"></div>
-<div class="form-row"><label>Valor Desconto (R$):</label><input type="number" id="ac-valor" step="0.01" min="0" value="0"></div>
+<div class="form-row"><label>Valor Desconto (R$):</label><input type="text" id="ac-valor" data-mask="moeda" inputmode="decimal" min="0" value="R$ 0,00"></div>
 <div class="form-row"><label>Status:</label><select id="ac-status"><option value="A">Ativo</option><option value="I">Inativo</option></select></div>
 <div style="display:flex;gap:8px;margin-top:8px;">
 <button type="submit" class="btn btn-success" id="btn-ac-salvar">Incluir</button>
@@ -87,6 +87,7 @@ tr:hover{background:#f0f0f0}
 </div>
 </div>
 
+<script src="../js/masks.js"></script>
 <script>
 function $(id){return document.getElementById(id)}
 function fmt(v){return (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})}
@@ -194,7 +195,7 @@ if(!a)return;
 editandoAcao=true;
 $('ac-id').value=a.id;$('ac-funcionario-id').value=a.funcionario_id;$('ac-categoria-id').value=a.categoria_id;
 $('ac-data').value=a.data;$('ac-descricao').value=a.descricao||'';
-$('ac-dias').value=a.dias_desconto||0;$('ac-valor').value=a.valor_desconto||0;
+$('ac-dias').value=a.dias_desconto||0;$('ac-valor').value=a.valor_desconto?Mascaras.fmtMoeda(String(Math.round(Number(a.valor_desconto)*100))):'R$ 0,00';
 $('ac-status').value=a.status||'A';
 $('btn-ac-salvar').textContent='Alterar';
 $('btn-ac-cancelar').style.display='inline-block';
@@ -202,7 +203,7 @@ $('btn-ac-cancelar').style.display='inline-block';
 function cancelarEdicaoAcao(){
 editandoAcao=false;
 $('ac-id').value='';$('ac-funcionario-id').value='';$('ac-categoria-id').value='';
-$('ac-data').value='';$('ac-descricao').value='';$('ac-dias').value=0;$('ac-valor').value=0;
+$('ac-data').value='';$('ac-descricao').value='';$('ac-dias').value=0;$('ac-valor').value='R$ 0,00';
 $('ac-status').value='A';
 $('btn-ac-salvar').textContent='Incluir';
 $('btn-ac-cancelar').style.display='none';
@@ -216,7 +217,7 @@ params.set('categoria_id',$('ac-categoria-id').value);
 params.set('data',$('ac-data').value);
 params.set('descricao',$('ac-descricao').value);
 params.set('dias_desconto',$('ac-dias').value);
-params.set('valor_desconto',$('ac-valor').value);
+params.set('valor_desconto',Mascaras.limparMoeda($('ac-valor').value));
 params.set('status',$('ac-status').value);
 if(!params.get('funcionario_id')){mostrarToast('Selecione funcionario','error');return;}
 if(!params.get('categoria_id')){mostrarToast('Selecione categoria','error');return;}

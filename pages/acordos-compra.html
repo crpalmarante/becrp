@@ -272,7 +272,7 @@ table.data tr{cursor:pointer}
             <div id="blanket-saldo"></div>
             ${a.status==="fechado"?`
               <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px">
-                <input class="form-input" id="lib-valor" type="number" step="0.01" placeholder="Valor a liberar">
+                <input class="form-input" id="lib-valor" type="text" data-mask="moeda" inputmode="decimal" placeholder="Valor a liberar">
                 <input class="form-input" id="lib-qtd" type="number" step="0.001" placeholder="Qtd a liberar">
                 <input class="form-input" id="lib-forn" placeholder="Fornecedor" value="${escapeHtml(a.vencedor?a.vencedor.fornecedor:a.fornecedor||"")}">
               </div>
@@ -286,7 +286,7 @@ table.data tr{cursor:pointer}
               <input class="form-input" id="cot-forn" placeholder="Fornecedor">
               <input class="form-input" id="cot-cnpj" placeholder="CNPJ">
               <input class="form-input" id="cot-prazo" placeholder="Prazo (dias)">
-              <input class="form-input" id="cot-frete" type="number" step="0.01" value="0" placeholder="Frete">
+              <input class="form-input" id="cot-frete" type="text" data-mask="moeda" inputmode="decimal" value="R$ 0,00" placeholder="Frete">
             </div>
             <div id="cot-lines"></div>
             <button type="button" class="so-btn" id="btn-cot-add" style="margin:8px 0">+ Item da proposta</button>
@@ -317,7 +317,7 @@ table.data tr{cursor:pointer}
     if(!b || (!b.valor_total && !b.qtd_total)){
       box.innerHTML = `<p class="muted">Blanket sem saldo configurado.</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px">
-          <input class="form-input" id="setup-valor" type="number" step="0.01" placeholder="Valor total">
+          <input class="form-input" id="setup-valor" type="text" data-mask="moeda" inputmode="decimal" placeholder="Valor total">
           <input class="form-input" id="setup-qtd" type="number" step="0.001" placeholder="Qtd total">
         </div>
         <button type="button" class="so-btn" id="btn-setup-blanket" style="margin-top:8px">Configurar saldo</button>`;
@@ -337,7 +337,7 @@ table.data tr{cursor:pointer}
 
   async function setupBlanket(){
     if(!current) return;
-    const valor = Number(document.getElementById("setup-valor").value)||0;
+    const valor = Number(Mascaras.limparMoeda(document.getElementById("setup-valor").value))||0;
     const qtd = Number(document.getElementById("setup-qtd").value)||0;
     if(!valor && !qtd) return alert("Informe valor ou quantidade total");
     const res = await api(API, {method:"POST", body: JSON.stringify({action:"blanket_setup", id: current.id, valor_total: valor||undefined, qtd_total: qtd||undefined})});
@@ -348,7 +348,7 @@ table.data tr{cursor:pointer}
 
   async function liberarBlanket(){
     if(!current) return;
-    const valor = Number(document.getElementById("lib-valor").value)||0;
+    const valor = Number(Mascaras.limparMoeda(document.getElementById("lib-valor").value))||0;
     const qtd = Number(document.getElementById("lib-qtd").value)||0;
     if(!valor && !qtd) return alert("Informe valor ou quantidade a liberar");
     const res = await api(API, {method:"POST", body: JSON.stringify({action:"liberar_blanket", id: current.id, valor, qtd, fornecedor: document.getElementById("lib-forn").value})});
@@ -371,7 +371,7 @@ table.data tr{cursor:pointer}
       <div class="cot-line">
         <input class="form-input" id="cot-prod-${i}" value="${escapeHtml(l.produto||"")}" placeholder="Produto">
         <input class="form-input" id="cot-qtd-${i}" type="number" step="0.001" value="${l.qtd||""}" placeholder="Qtd">
-        <input class="form-input" id="cot-preco-${i}" type="number" step="0.01" value="${l.preco||""}" placeholder="Preço">
+        <input class="form-input" id="cot-preco-${i}" type="text" data-mask="moeda" inputmode="decimal" value="${l.preco ? Mascaras.fmtMoeda(String(Math.round(Number(l.preco) * 100))) : ""}" placeholder="Preço">
         <button type="button" class="so-btn danger" data-cot-del="${i}" style="padding:4px 8px">×</button>
       </div>`).join("");
     box.querySelectorAll("[data-cot-del]").forEach(b=>{ b.onclick=()=>{ cotLines.splice(Number(b.dataset.cotDel),1); if(!cotLines.length) cotLines.push({produto:"",qtd:1,preco:0}); renderCotLines(baseItems); }; });
@@ -406,8 +406,8 @@ table.data tr{cursor:pointer}
     cotLines = cotLines.map((l,i)=>({
       produto: document.getElementById(`cot-prod-${i}`).value,
       qtd: Number(document.getElementById(`cot-qtd-${i}`).value)||0,
-      preco: Number(document.getElementById(`cot-preco-${i}`).value)||0,
-      subtotal: (Number(document.getElementById(`cot-qtd-${i}`).value)||0) * (Number(document.getElementById(`cot-preco-${i}`).value)||0),
+      preco: Number(Mascaras.limparMoeda(document.getElementById(`cot-preco-${i}`).value))||0,
+      subtotal: (Number(document.getElementById(`cot-qtd-${i}`).value)||0) * (Number(Mascaras.limparMoeda(document.getElementById(`cot-preco-${i}`).value))||0),
     })).filter(l=>l.produto.trim());
     const payload = {
       action: "add_cotacao",
@@ -415,7 +415,7 @@ table.data tr{cursor:pointer}
       fornecedor: document.getElementById("cot-forn").value,
       cnpj: document.getElementById("cot-cnpj").value,
       prazo: document.getElementById("cot-prazo").value,
-      frete: Number(document.getElementById("cot-frete").value)||0,
+      frete: Number(Mascaras.limparMoeda(document.getElementById("cot-frete").value))||0,
       itens: cotLines,
     };
     const res = await api(API, {method:"POST", body: JSON.stringify(payload)});

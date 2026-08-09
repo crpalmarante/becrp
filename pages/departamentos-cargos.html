@@ -85,7 +85,7 @@ tr:hover td { background:#f5f5f5; }
 <div class="form-row"><label>Codigo:</label><input type="text" id="car-codigo" maxlength="10" placeholder="Ex: DEV"></div>
 <div class="form-row"><label>Descricao:</label><input type="text" id="car-descricao" maxlength="50" placeholder="Ex: Analista de Sistemas"></div>
 <div class="form-row"><label>CBO:</label><input type="text" id="car-cbo" maxlength="6" placeholder="Ex: 2124-05"></div>
-<div class="form-row"><label>Sal. Referencia:</label><input type="number" id="car-salario-ref" step="0.01" min="0" placeholder="0.00"></div>
+<div class="form-row"><label>Sal. Referencia:</label><input type="text" id="car-salario-ref" data-mask="moeda" inputmode="decimal" min="0" placeholder="R$ 0,00"></div>
 </div>
 <div style="margin-top:6px;display:flex;gap:8px;">
 <input type="hidden" id="car-id" value="">
@@ -103,6 +103,7 @@ tr:hover td { background:#f5f5f5; }
 
 <div id="toast" class="toast"></div>
 
+<script src="../js/masks.js"></script>
 <script>
 function mostrarToast(msg, tipo) {
 const t = document.getElementById('toast');
@@ -219,7 +220,7 @@ const params = new URLSearchParams();
 params.set('codigo', codigo);
 params.set('descricao', descricao);
 params.set('cbo', document.getElementById('car-cbo').value.trim());
-params.set('salario_referencia', document.getElementById('car-salario-ref').value || '0');
+params.set('salario_referencia', Mascaras.limparMoeda(document.getElementById('car-salario-ref').value) || '0');
 if (isEdit) params.set('id', id);
 const endpoint = isEdit ? '/api/cargo/alterar' : '/api/cargo/incluir';
 try {
@@ -238,7 +239,7 @@ document.getElementById('car-id').value = c.id;
 document.getElementById('car-codigo').value = c.codigo || '';
 document.getElementById('car-descricao').value = c.descricao || '';
 document.getElementById('car-cbo').value = c.cbo || '';
-document.getElementById('car-salario-ref').value = c.salario_referencia || '';
+document.getElementById('car-salario-ref').value = c.salario_referencia ? Mascaras.fmtMoeda(String(Math.round(Number(c.salario_referencia) * 100))) : '';
 document.getElementById('car-cancelar').style.display = 'inline-block';
 window.scrollTo({ top: 0, behavior: 'smooth' });
 });

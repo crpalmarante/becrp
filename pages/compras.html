@@ -264,7 +264,7 @@ table.data tr{cursor:pointer}
     let total=0;
     lines.forEach((l,i)=>{
       l.qtd = Number(document.getElementById(`ln-qtd-${i}`).value)||0;
-      l.preco = Number(document.getElementById(`ln-preco-${i}`).value)||0;
+      l.preco = Number(Mascaras.limparMoeda(document.getElementById(`ln-preco-${i}`).value))||0;
       l.desconto = Number(document.getElementById(`ln-desc-${i}`).value)||0;
       l.subtotal = l.qtd * l.preco * (1 - l.desconto/100);
       total += l.subtotal;
@@ -284,7 +284,7 @@ table.data tr{cursor:pointer}
         <button type="button" class="so-btn" data-hist="${i}" style="padding:4px 8px" title="Histórico de preços">$</button>
         <input class="form-input ln-qtd" id="ln-qtd-${i}" type="number" step="0.001" value="${l.qtd||""}" placeholder="Qtd">
         <input class="form-input ln-uom" id="ln-uom-${i}" value="${escapeHtml(l.uom||"UN")}" placeholder="UN">
-        <input class="form-input ln-preco" id="ln-preco-${i}" type="number" step="0.01" value="${l.preco||""}" placeholder="Preço">
+        <input class="form-input ln-preco" id="ln-preco-${i}" type="text" data-mask="moeda" inputmode="decimal" value="${l.preco ? Number(l.preco).toFixed(2) : ""}" placeholder="Preço">
         <input class="form-input ln-desc" id="ln-desc-${i}" type="number" step="0.01" value="${l.desconto||""}" placeholder="Desc %">
         <span class="money" id="ln-sub-${i}">${money(l.subtotal||0)}</span>
         <button type="button" class="so-btn danger" data-del="${i}" style="padding:4px 8px">×</button>
@@ -316,7 +316,7 @@ table.data tr{cursor:pointer}
     const prod = inp.value.trim();
     if(!prod) return;
     const precoEl = document.getElementById(`ln-preco-${idx}`);
-    if(precoEl.value && Number(precoEl.value) > 0) return;
+    if(precoEl.value && Number(Mascaras.limparMoeda(precoEl.value)) > 0) return;
     const fornId = document.getElementById("f-cnpj").value.trim() || document.getElementById("f-razao").value.trim();
     const qtd = Number(document.getElementById(`ln-qtd-${idx}`).value)||1;
     // tenta pricelist primeiro
@@ -325,7 +325,7 @@ table.data tr{cursor:pointer}
       body: JSON.stringify({action: "melhor_preco", produto_id: prod, fornecedor_id: fornId, qtd}),
     });
     if(plRes.status === "ok" && plRes.pricelist && plRes.pricelist.preco > 0){
-      precoEl.value = plRes.pricelist.preco;
+      precoEl.value = Number(plRes.pricelist.preco).toFixed(2);
       recalc();
       updateSubs();
       return;
@@ -352,9 +352,9 @@ table.data tr{cursor:pointer}
       produto: document.getElementById(`ln-prod-${i}`).value,
       qtd: Number(document.getElementById(`ln-qtd-${i}`).value)||0,
       uom: document.getElementById(`ln-uom-${i}`).value || "UN",
-      preco: Number(document.getElementById(`ln-preco-${i}`).value)||0,
+      preco: Number(Mascaras.limparMoeda(document.getElementById(`ln-preco-${i}`).value))||0,
       desconto: Number(document.getElementById(`ln-desc-${i}`).value)||0,
-      subtotal: (Number(document.getElementById(`ln-qtd-${i}`).value)||0) * (Number(document.getElementById(`ln-preco-${i}`).value)||0) * (1 - (Number(document.getElementById(`ln-desc-${i}`).value)||0)/100),
+      subtotal: (Number(document.getElementById(`ln-qtd-${i}`).value)||0) * (Number(Mascaras.limparMoeda(document.getElementById(`ln-preco-${i}`).value))||0) * (1 - (Number(document.getElementById(`ln-desc-${i}`).value)||0)/100),
     }));
     return {
       id: current ? current.id : undefined,

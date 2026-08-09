@@ -332,10 +332,10 @@
                     </select>
                     <div class="field-hint" id="modo-preco-hint"></div>
                   </div>
-                  <div class="field"><label for="f-preco_custo">Custo</label><input class="form-input" id="f-preco_custo" type="number" step="0.01" min="0"></div>
+                  <div class="field"><label for="f-preco_custo">Custo</label><input class="form-input" id="f-preco_custo" type="text" data-mask="moeda" inputmode="decimal" min="0"></div>
                   <div class="field price-despesa" hidden>
                     <label for="f-despesa_fixa">Despesa fixa (R$/un)</label>
-                    <input class="form-input" id="f-despesa_fixa" type="number" step="0.01" min="0" placeholder="0,00">
+                    <input class="form-input" id="f-despesa_fixa" type="text" data-mask="moeda" inputmode="decimal" min="0" placeholder="R$ 0,00">
                   </div>
                   <div class="field price-despesa" hidden>
                     <label for="f-despesa_pct">Despesa %</label>
@@ -346,10 +346,10 @@
                     <input class="form-input" id="f-custo_base" type="number" step="0.01" min="0" readonly title="Custo + despesa fixa + % sobre custo">
                   </div>
                   <div class="field"><label for="f-margem">Margem %</label><input class="form-input" id="f-margem" type="number" step="0.01"></div>
-                  <div class="field"><label for="f-preco">Preço de Venda</label><input class="form-input" id="f-preco" type="number" step="0.01" min="0"></div>
-                  <div class="field"><label for="f-preco_promo">Preço Promocional</label><input class="form-input" id="f-preco_promo" type="number" step="0.01"></div>
-                  <div class="field"><label for="f-preco_min">Preço Mínimo</label><input class="form-input" id="f-preco_min" type="number" step="0.01"></div>
-                  <div class="field"><label for="f-preco_max">Preço Máximo</label><input class="form-input" id="f-preco_max" type="number" step="0.01"></div>
+                  <div class="field"><label for="f-preco">Preço de Venda</label><input class="form-input" id="f-preco" type="text" data-mask="moeda" inputmode="decimal" min="0"></div>
+                  <div class="field"><label for="f-preco_promo">Preço Promocional</label><input class="form-input" id="f-preco_promo" type="text" data-mask="moeda" inputmode="decimal"></div>
+                  <div class="field"><label for="f-preco_min">Preço Mínimo</label><input class="form-input" id="f-preco_min" type="text" data-mask="moeda" inputmode="decimal"></div>
+                  <div class="field"><label for="f-preco_max">Preço Máximo</label><input class="form-input" id="f-preco_max" type="text" data-mask="moeda" inputmode="decimal"></div>
                   <div class="field"><label for="f-comissao">Comissão %</label><input class="form-input" id="f-comissao" type="number" step="0.01"></div>
                 </div>
                 <p class="soon-note" id="preco-formula-note">Modo margem: venda = custo × (1 + margem%).</p>
@@ -594,6 +594,7 @@
   </div>
 </div>
 
+<script src="../js/masks.js"></script>
 <script src="../js/services/AuthService.js"></script>
 <script src="../js/auth/page-boot.js"></script>
 <script src="../js/services/ProdutoCadastro.js"></script>
@@ -1002,17 +1003,27 @@
     document.getElementById("f-nome_reduzido").value = shortName(document.getElementById("f-nome").value, 30);
   }
 
+  function isMoeda(id) {
+    const el = document.getElementById(id);
+    return el ? (el.getAttribute("data-mask") || "").toLowerCase() === "moeda" : false;
+  }
+
   function num(id) {
-    const v = parseFloat(document.getElementById(id).value);
-    return isNaN(v) ? null : v;
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const v = isMoeda(id) ? Mascaras.limparMoeda(el.value) : el.value;
+    const n = parseFloat(v);
+    return isNaN(n) ? null : n;
   }
 
   function setNum(id, value) {
+    const el = document.getElementById(id);
     if (value == null || isNaN(value) || !isFinite(value)) {
-      document.getElementById(id).value = "";
+      el.value = "";
       return;
     }
-    document.getElementById(id).value = Math.round(value * 100) / 100;
+    const n = Math.round(value * 100) / 100;
+    el.value = isMoeda(id) ? Mascaras.fmtMoeda(String(Math.round(n * 100))) : n;
   }
 
   /** lastEdited: 'custo' | 'preco' | 'margem' | 'despesa' | 'modo' */
@@ -1163,7 +1174,9 @@
   }
 
   function moneyNum(v) {
-    const n = parseFloat(v);
+    if (v == null || v === "") return 0;
+    const s = String(v);
+    const n = /[R$,\s]/.test(s) ? parseFloat(Mascaras.limparMoeda(s)) : parseFloat(s);
     return isNaN(n) ? 0 : n;
   }
 
@@ -1205,7 +1218,7 @@
         atributo: (tr.querySelector("[data-f=atributo]") || {}).value || "",
         valor: (tr.querySelector("[data-f=valor]") || {}).value || "",
         tipo_preco: (tr.querySelector("[data-f=tipo_preco]") || {}).value || "delta",
-        valor_preco: (tr.querySelector("[data-f=valor_preco]") || {}).value || "",
+        valor_preco: Mascaras.limparMoeda((tr.querySelector("[data-f=valor_preco]") || {}).value || ""),
         ean: (tr.querySelector("[data-f=ean]") || {}).value || "",
         estoque: (tr.querySelector("[data-f=estoque]") || {}).value || "",
         ativo: true,
@@ -1238,7 +1251,7 @@
               <option value="absoluto"${v.tipo_preco === "absoluto" ? " selected" : ""}>Absoluto</option>
             </select>
           </td>
-          <td><input class="form-input" data-f="valor_preco" type="number" step="0.01" value="${escAttr(v.valor_preco)}" placeholder="0,00"></td>
+          <td><input class="form-input" data-f="valor_preco" type="text" data-mask="moeda" inputmode="decimal" value="${v.valor_preco ? Mascaras.fmtMoeda(String(Math.round(Number(v.valor_preco) * 100))) : ""}" placeholder="R$ 0,00"></td>
           <td><span class="var-final" data-final>${fmtMoney(final)}</span></td>
           <td><input class="form-input" data-f="ean" value="${escAttr(v.ean)}" placeholder="opcional"></td>
           <td><input class="form-input" data-f="estoque" type="number" step="1" value="${escAttr(v.estoque)}" placeholder="—"></td>
@@ -1376,15 +1389,15 @@
       document.getElementById("f-modelo").value = x.modelo || "";
       document.getElementById("f-tags").value = x.tags || "";
       document.getElementById("f-descricao").value = x.descricao || "";
-      document.getElementById("f-preco").value = row.preco ?? "";
-      document.getElementById("f-preco_custo").value = row.preco_custo ?? "";
+      document.getElementById("f-preco").value = row.preco ? Mascaras.fmtMoeda(String(Math.round(Number(row.preco) * 100))) : "";
+      document.getElementById("f-preco_custo").value = row.preco_custo ? Mascaras.fmtMoeda(String(Math.round(Number(row.preco_custo) * 100))) : "";
       document.getElementById("f-margem").value = row.margem ?? "";
       document.getElementById("f-modo_preco").value = x.modo_preco || "margem";
-      document.getElementById("f-despesa_fixa").value = x.despesa_fixa ?? "";
+      document.getElementById("f-despesa_fixa").value = x.despesa_fixa ? Mascaras.fmtMoeda(String(Math.round(Number(x.despesa_fixa) * 100))) : "";
       document.getElementById("f-despesa_pct").value = x.despesa_pct ?? "";
-      document.getElementById("f-preco_promo").value = x.preco_promo ?? "";
-      document.getElementById("f-preco_min").value = x.preco_min ?? "";
-      document.getElementById("f-preco_max").value = x.preco_max ?? "";
+      document.getElementById("f-preco_promo").value = x.preco_promo ? Mascaras.fmtMoeda(String(Math.round(Number(x.preco_promo) * 100))) : "";
+      document.getElementById("f-preco_min").value = x.preco_min ? Mascaras.fmtMoeda(String(Math.round(Number(x.preco_min) * 100))) : "";
+      document.getElementById("f-preco_max").value = x.preco_max ? Mascaras.fmtMoeda(String(Math.round(Number(x.preco_max) * 100))) : "";
       document.getElementById("f-comissao").value = x.comissao ?? "";
       applyModoPrecoUi();
       variacoes = Array.isArray(x.variacoes)
@@ -1484,14 +1497,14 @@
       modelo: document.getElementById("f-modelo").value.trim(),
       tags: document.getElementById("f-tags").value.trim(),
       descricao: document.getElementById("f-descricao").value.trim(),
-      preco_promo: document.getElementById("f-preco_promo").value,
-      preco_min: document.getElementById("f-preco_min").value,
-      preco_max: document.getElementById("f-preco_max").value,
+      preco_promo: num("f-preco_promo"),
+      preco_min: num("f-preco_min"),
+      preco_max: num("f-preco_max"),
       comissao: document.getElementById("f-comissao").value,
       modo_preco: document.getElementById("f-modo_preco").value,
-      despesa_fixa: document.getElementById("f-despesa_fixa").value,
+      despesa_fixa: num("f-despesa_fixa"),
       despesa_pct: document.getElementById("f-despesa_pct").value,
-      custo_base: document.getElementById("f-custo_base").value,
+      custo_base: num("f-custo_base"),
       variacoes: variacoes.filter((v) => (v.atributo || v.valor || v.valor_preco || v.ean).toString().trim()),
       estoque_min: document.getElementById("f-estoque_min").value,
       estoque_max: document.getElementById("f-estoque_max").value,
@@ -1550,8 +1563,8 @@
       extra: collectExtra(),
     };
     ["preco","preco_custo","margem","stock","filial_id","icms_alq","iss_alq"].forEach((f) => {
-      const v = parseFloat(document.getElementById("f-" + f).value);
-      if (!isNaN(v)) body[f] = v;
+      const v = num("f-" + f);
+      if (v != null) body[f] = v;
     });
     return body;
   }

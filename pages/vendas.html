@@ -1142,7 +1142,7 @@ table.pivot td.col-total{font-weight:600;background:rgba(255,255,255,.03)}
         <td><input type="text" class="ln-descricao" value="${escapeHtml(i.descricao || "")}" ${locked ? "disabled" : ""}></td>
         <td><input type="number" class="ln-qtd" value="${i.qtd}" ${locked ? "disabled" : ""}></td>
         <td><input type="text" class="ln-uom" value="${escapeHtml(i.uom || "UN")}" ${locked ? "disabled" : ""}></td>
-        <td><input type="number" class="ln-preco" step="0.01" value="${i.preco}" ${locked ? "disabled" : ""}></td>
+        <td><input type="text" class="ln-preco" data-mask="moeda" inputmode="decimal" value="${i.preco ? Mascaras.fmtMoeda(String(Math.round(Number(i.preco) * 100))) : ""}" ${locked ? "disabled" : ""}></td>
         <td><input type="number" class="ln-desconto" value="${Number(i.desconto) || 0}" ${locked ? "disabled" : ""}></td>
         <td><input type="number" class="ln-imposto" value="${Number(i.imposto) || 0}" ${locked ? "disabled" : ""}></td>
         <td class="money ln-subtotal">${money(calcLine(i))}</td>
@@ -1154,7 +1154,7 @@ table.pivot td.col-total{font-weight:600;background:rgba(255,255,255,.03)}
       const p = catalogProdutos.find((x) => String(x.nome) === String(nome));
       if (p) {
         el.closest("tr").querySelector(".ln-preco").value =
-          resolveLinePrice(nome, p.id, currentDoc.lista_precos_id || "");
+          Mascaras.fmtMoeda(String(Math.round(Number(resolveLinePrice(nome, p.id, currentDoc.lista_precos_id || "")) * 100)));
       }
       syncLines();
     }));
@@ -1173,7 +1173,7 @@ table.pivot td.col-total{font-weight:600;background:rgba(255,255,255,.03)}
       const produto = row.querySelector(".ln-produto").value.trim();
       const qtd = Number(row.querySelector(".ln-qtd").value) || 0;
       if (!produto && qtd === 0) return;
-      const preco = Number(row.querySelector(".ln-preco").value) || 0;
+      const preco = Number(Mascaras.limparMoeda(row.querySelector(".ln-preco").value)) || 0;
       itens.push({
         prod_id: produtoIdForName(produto) || currentDoc.itens[Number(row.dataset.idx)]?.prod_id || "",
         produto,
@@ -1635,7 +1635,7 @@ table.pivot td.col-total{font-weight:600;background:rgba(255,255,255,.03)}
           <option value="automatica">Automática</option>
           <option value="nao">Não renova</option>
         </select></label>
-        <label>Valor (R$)<input class="form-input" id="ct-f-valor" type="number" step="0.01" min="0" value="0"></label>
+        <label>Valor (R$)<input class="form-input" id="ct-f-valor" type="text" data-mask="moeda" inputmode="decimal" value="0"></label>
         <label>Condição<input class="form-input" id="ct-f-terms" value="30"></label>
         <label>Item (descrição)<input class="form-input" id="ct-f-item" placeholder="Serviço / produto"></label>
         <label>Qtd item<input class="form-input" id="ct-f-qtd" type="number" step="0.001" min="0" value="1"></label>
@@ -1656,7 +1656,7 @@ table.pivot td.col-total{font-weight:600;background:rgba(255,255,255,.03)}
       const cnpj = onlyDigits(document.getElementById("ct-f-cnpj").value);
       if (!razao) return alert("Informe a razão social");
       if (cnpj && cnpj.length !== 14) return alert("CNPJ deve ter 14 dígitos");
-      const valor = Number(document.getElementById("ct-f-valor").value) || 0;
+      const valor = Number(Mascaras.limparMoeda(document.getElementById("ct-f-valor").value)) || 0;
       const itemDesc = document.getElementById("ct-f-item").value.trim();
       const qtd = Number(document.getElementById("ct-f-qtd").value) || 1;
       const itens = itemDesc ? [{

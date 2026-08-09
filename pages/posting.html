@@ -132,7 +132,7 @@
           <div class="panel" id="panel-aplicar">
             <div class="pc-form" style="display:grid">
               <div class="field span2"><label>Regra / evento</label><select class="form-input" id="a-regra"></select></div>
-              <div class="field"><label>Valor</label><input class="form-input" id="a-valor" type="number" min="0.01" step="0.01" value="100"></div>
+              <div class="field"><label>Valor</label><input class="form-input" id="a-valor" type="text" data-mask="moeda" inputmode="decimal" value="R$ 100,00"></div>
               <div class="field"><label>Data</label><input class="form-input" id="a-data" type="date"></div>
               <div class="field span2"><label>Referência</label><input class="form-input" id="a-ref" placeholder="DOC-001"></div>
               <div class="field span2"><label>Histórico</label><input class="form-input" id="a-hist" placeholder="opcional"></div>
@@ -162,6 +162,7 @@
   </div>
 </div>
 
+<script src="../js/masks.js"></script>
 <script src="../js/services/AuthService.js"></script>
 <script>
 (function () {
@@ -334,7 +335,7 @@
   document.getElementById("btn-apply").onclick = async () => {
     const body = {
       regra: document.getElementById("a-regra").value,
-      valor: parseFloat(document.getElementById("a-valor").value || "0"),
+      valor: parseFloat(Mascaras.limparMoeda(document.getElementById("a-valor").value || "0")),
       data: document.getElementById("a-data").value,
       referencia: document.getElementById("a-ref").value.trim(),
       historico: document.getElementById("a-hist").value.trim(),

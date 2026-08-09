@@ -265,6 +265,7 @@
   </div>
 </div>
 
+<script src="../js/masks.js"></script>
 <script src="../js/services/AuthService.js"></script>
 <script>
 (function () {
@@ -772,7 +773,7 @@
       <input class="form-input item-pid" placeholder="produto_id" value="${pid || ""}">
       <input class="form-input item-nome" placeholder="nome (opc.)">
       <input class="form-input item-qty" type="number" min="1" placeholder="qty" value="${qty || 1}">
-      <input class="form-input item-preco" type="number" step="0.01" placeholder="preço/custo" value="${preco || ""}">
+      <input class="form-input item-preco" type="text" data-mask="moeda" inputmode="decimal" placeholder="preço/custo" value="${preco ? Number(preco).toFixed(2) : ""}">
       <button type="button" class="dialog-btn dialog-btn-secondary item-rm">×</button>`;
     row.querySelector(".item-rm").onclick = () => row.remove();
     wrap.appendChild(row);
@@ -861,7 +862,7 @@
       produto_id: row.querySelector(".item-pid").value.trim(),
       produto_nome: row.querySelector(".item-nome").value.trim(),
       qty: Number(row.querySelector(".item-qty").value || 0),
-      preco: Number(row.querySelector(".item-preco").value || 0),
+      preco: Number(Mascaras.limparMoeda(row.querySelector(".item-preco").value)) || 0,
     })).filter((i) => i.produto_id && i.qty > 0);
     const body = {
       estabelecimento_id: document.getElementById("new-estab").value,

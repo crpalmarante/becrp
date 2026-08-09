@@ -95,6 +95,7 @@
   </div>
 </div>
 
+<script src="../js/masks.js"></script>
 <script src="../js/services/AuthService.js"></script>
 <script>
 (function () {
@@ -203,7 +204,7 @@
         <div class="field" style="flex:1;min-width:220px"><label>Produto</label>
           <select class="form-input" id="item-prod">${prodOpts}</select>
         </div>
-        <div class="field"><label>Preço fixo</label><input class="form-input" id="item-preco" type="number" step="0.01" min="0" placeholder="0.00"></div>
+        <div class="field"><label>Preço fixo</label><input class="form-input" id="item-preco" type="text" data-mask="moeda" inputmode="decimal" min="0" placeholder="0,00"></div>
         <button class="dialog-btn dialog-btn-primary" id="btn-add-item">Incluir / atualizar</button>
       </div>
       <table class="pl-table">
@@ -249,7 +250,7 @@
 
     document.getElementById("btn-add-item").onclick = async () => {
       const pid = document.getElementById("item-prod").value;
-      const preco = document.getElementById("item-preco").value;
+      const preco = Mascaras.limparMoeda(document.getElementById("item-preco").value);
       const res = await api("/api/admin/price-lists/" + pl.id + "/set-item", {
         method: "POST",
         body: JSON.stringify({ produto_id: pid, preco }),

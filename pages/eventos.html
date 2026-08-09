@@ -108,7 +108,7 @@ tr:hover td { background:#f5f5f5; }
 <option value="ferias">Ferias</option>
 <option value="todos">Todos</option>
 </select></div>
-<div class="form-row"><label>Teto (R$):</label><input type="number" id="ev-teto" step="0.01" min="0" value="0" placeholder="0 = sem teto"></div>
+<div class="form-row"><label>Teto (R$):</label><input type="text" id="ev-teto" data-mask="moeda" inputmode="decimal" min="0" value="R$ 0,00" placeholder="0 = sem teto"></div>
 <div class="form-row full"><label>Formula / regra de calculo:</label><input type="text" id="ev-formula" maxlength="60" placeholder="Ex: Valor da hora normal x quantidade x 1,50"></div>
 <div class="form-row full">
 <label>Incidencia (compoe base de):</label>
@@ -144,6 +144,7 @@ tr:hover td { background:#f5f5f5; }
 
 <div id="toast" class="toast"></div>
 
+<script src="../js/masks.js"></script>
 <script>
 function mostrarToast(msg, tipo) {
 const t = document.getElementById('toast');
@@ -213,7 +214,7 @@ document.getElementById('ev-referencia').value = '';
 document.getElementById('ev-formula').value = '';
 document.getElementById('ev-ordem').value = '';
 document.getElementById('ev-uso').value = '';
-document.getElementById('ev-teto').value = '0';
+document.getElementById('ev-teto').value = 'R$ 0,00';
 document.getElementById('ev-incide-inss').checked = false;
 document.getElementById('ev-incide-irrf').checked = false;
 document.getElementById('ev-incide-fgts').checked = false;
@@ -238,7 +239,7 @@ params.set('referencia', document.getElementById('ev-referencia').value);
 params.set('formula', document.getElementById('ev-formula').value.trim());
 params.set('ordem', document.getElementById('ev-ordem').value || '0');
 params.set('uso', document.getElementById('ev-uso').value);
-params.set('teto', document.getElementById('ev-teto').value || '0');
+params.set('teto', Mascaras.limparMoeda(document.getElementById('ev-teto').value) || '0');
 params.set('incide_inss', document.getElementById('ev-incide-inss').checked ? 'S' : 'N');
 params.set('incide_irrf', document.getElementById('ev-incide-irrf').checked ? 'S' : 'N');
 params.set('incide_fgts', document.getElementById('ev-incide-fgts').checked ? 'S' : 'N');
@@ -265,7 +266,7 @@ document.getElementById('ev-referencia').value = ev.referencia || '';
 document.getElementById('ev-formula').value = ev.formula || '';
 document.getElementById('ev-ordem').value = ev.ordem || '';
 document.getElementById('ev-uso').value = ev.uso || '';
-document.getElementById('ev-teto').value = ev.teto ? String(ev.teto) : '0';
+document.getElementById('ev-teto').value = ev.teto ? Mascaras.fmtMoeda(String(Math.round(Number(ev.teto) * 100))) : 'R$ 0,00';
 document.getElementById('ev-incide-inss').checked = ev.incide_inss === 'S';
 document.getElementById('ev-incide-irrf').checked = ev.incide_irrf === 'S';
 document.getElementById('ev-incide-fgts').checked = ev.incide_fgts === 'S';
