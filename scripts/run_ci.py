@@ -206,6 +206,15 @@ def main():
         else:
             FAIL += 1
             print(f"  └─ ❌ review_tela_folha (exit {code})")
+
+        step("5. Review da tela Funcionários (máscaras CPF/moeda)")
+        code = run([sys.executable, "scripts/review_tela_funcionarios.py", "--port", "8138"])
+        if code == 0:
+            PASS += 1
+            print("  └─ ✅ review_tela_funcionarios")
+        else:
+            FAIL += 1
+            print(f"  └─ ❌ review_tela_funcionarios (exit {code})")
     finally:
         restore_seed()
 

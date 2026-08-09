@@ -226,21 +226,25 @@
     }, 80);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", scan);
-  } else {
-    scan();
+  if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", scan);
+    } else {
+      scan();
+    }
+    /* Campos criados dinamicamente (ex.: f-cad-* do faturamento). */
+    if (typeof MutationObserver !== "undefined") {
+      new MutationObserver(scanDebounced).observe(document.documentElement, {
+        childList: true,
+        subtree: true,
+      });
+    }
   }
 
-  /* Campos criados dinamicamente (ex.: f-cad-* do faturamento). */
-  if (typeof MutationObserver !== "undefined") {
-    new MutationObserver(scanDebounced).observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-    });
-  }
-
-  window.Mascaras = {
+  /* Node (testes de CI): expõe as funções puras para require(). */
+  var raiz = (typeof window !== "undefined") ? window
+           : (typeof globalThis !== "undefined") ? globalThis : this;
+  raiz.Mascaras = {
     soDigitos: soDigitos,
     onlyDigits: soDigitos,
     fmtCPF: fmtCPF,
@@ -260,5 +264,8 @@
     aplicarEl: aplicar,
     scan: scan,
   };
-  if (typeof window.onlyDigits === "undefined") window.onlyDigits = soDigitos;
+  if (typeof raiz.onlyDigits === "undefined") raiz.onlyDigits = soDigitos;
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = raiz.Mascaras;
+  }
 })();
