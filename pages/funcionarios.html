@@ -89,7 +89,7 @@ tr:hover td { background:#f5f5f5; }
 </div>
 </div>
 <div class="form-row"><label>Nome:</label><input type="text" id="f-nome" placeholder="Nome completo"></div>
-<div class="form-row"><label>CPF:</label><input type="text" id="f-cpf" placeholder="000.000.000-00" maxlength="14"></div>
+<div class="form-row"><label>CPF:</label><input type="text" id="f-cpf" data-mask="cpf" placeholder="000.000.000-00" maxlength="14"></div>
 <div class="form-row"><label>RG:</label><input type="text" id="f-rg" placeholder="RG / Identidade"></div>
 <div class="form-row"><label>RG Orgao Emissor:</label><input type="text" id="f-rg-orgao" placeholder="Ex: SSP/SP"></div>
 <div class="form-row" style="grid-column:1/-1;display:flex;gap:10px;">
@@ -116,16 +116,16 @@ tr:hover td { background:#f5f5f5; }
 <option value="AB+">AB+</option><option value="AB-">AB-</option>
 <option value="O+">O+</option><option value="O-">O-</option>
 </select></div>
-<div class="form-row"><label>Celular:</label><input type="text" id="f-celular" placeholder="(11) 99999-9999"></div>
-<div class="form-row"><label>Tel. Comercial:</label><input type="text" id="f-tel-comercial" placeholder="(11) 3333-4444"></div>
+<div class="form-row"><label>Celular:</label><input type="text" id="f-celular" data-mask="tel" placeholder="(11) 99999-9999"></div>
+<div class="form-row"><label>Tel. Comercial:</label><input type="text" id="f-tel-comercial" data-mask="tel" placeholder="(11) 3333-4444"></div>
 <div class="form-row"><label>Email Particular:</label><input type="email" id="f-email-particular" placeholder="pessoal@email.com"></div>
 <div class="form-row"><label>Email Comercial:</label><input type="email" id="f-email" placeholder="comercial@empresa.com"></div>
 <div class="form-row"><label>Endereco:</label><input type="text" id="f-endereco" placeholder="Rua, numero, bairro"></div>
-<div class="form-row"><label>CEP:</label><input type="text" id="f-cep" maxlength="9" placeholder="00000-000"></div>
+<div class="form-row"><label>CEP:</label><input type="text" id="f-cep" data-mask="cep" maxlength="9" placeholder="00000-000"></div>
 <div class="form-row"><label>Cidade:</label><input type="text" id="f-cidade" placeholder="Cidade"></div>
 <div class="form-row"><label>UF:</label><input type="text" id="f-uf" maxlength="2" placeholder="SP"></div>
 <div class="form-row"><label>Emerg. Nome:</label><input type="text" id="f-contato-emerg-nome" placeholder="Nome do contato"></div>
-<div class="form-row"><label>Emerg. Tel.:</label><input type="text" id="f-contato-emerg-tel" placeholder="(11) 99999-9999"></div>
+<div class="form-row"><label>Emerg. Tel.:</label><input type="text" id="f-contato-emerg-tel" data-mask="tel" placeholder="(11) 99999-9999"></div>
 <div class="form-row"><label>Curriculo:</label>
 <div style="display:flex;gap:6px;flex:1;align-items:center;">
 <input type="file" id="f-curriculo-input" accept=".pdf,.doc,.docx" onchange="uploadCurriculo(this)">
@@ -351,7 +351,7 @@ tr:hover td { background:#f5f5f5; }
 <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;" id="dp-form">
 <input type="hidden" id="dp-id" value="">
 <input type="text" id="dp-nome" placeholder="Nome" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
-<input type="text" id="dp-cpf" placeholder="CPF" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:140px;">
+<input type="text" id="dp-cpf" data-mask="cpf" placeholder="CPF" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:140px;">
 <input type="date" id="dp-data-nasc" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
 <select id="dp-tipo" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
 <option value="">Grau</option><option value="filho">Filho(a)</option><option value="conjuge">Conjuge</option><option value="pai">Pai</option><option value="mae">Mae</option><option value="outro">Outro</option>
@@ -783,7 +783,7 @@ document.getElementById('f-empresa').value = func.empresa_nome || (func.empresa_
 document.getElementById('f-supervisor-id').value = func.supervisor_id || '';
 document.getElementById('f-data-adm').value = func.data_adm || '';
 document.getElementById('f-data-dem').value = func.data_dem || '';
-document.getElementById('f-salario').value = func.salario || '';
+document.getElementById('f-salario').value = func.salario ? Mascaras.fmtMoeda(String(Math.round(Number(func.salario) * 100))) : '';
 document.getElementById('f-foto').value = func.foto || '';
 document.getElementById('f-contato-emerg-nome').value = func.contato_emerg_nome || '';
 document.getElementById('f-contato-emerg-tel').value = func.contato_emerg_tel || '';
@@ -803,12 +803,12 @@ document.getElementById('f-cbo').value = func.cbo || '';
 document.getElementById('f-grau-instrucao').value = func.grau_instrucao || '';
 document.getElementById('f-tipo-contrato').value = func.tipo_contrato || '';
 document.getElementById('f-motivo-deslig').value = func.motivo_deslig || '';
-document.getElementById('f-vt-desconto').value = func.vt_desconto || '';
+document.getElementById('f-vt-desconto').value = func.vt_desconto ? Mascaras.fmtMoeda(String(Math.round(Number(func.vt_desconto) * 100))) : 'R$ 0,00';
 document.getElementById('f-vt-dias').value = func.vt_dias || '22';
 document.getElementById('f-vt-optante').value = func.vt_optante || '';
-document.getElementById('f-vr').value = func.vr || '';
+document.getElementById('f-vr').value = func.vr ? Mascaras.fmtMoeda(String(Math.round(Number(func.vr) * 100))) : 'R$ 0,00';
 document.getElementById('f-plano-saude').value = func.plano_saude || '';
-document.getElementById('f-plano-saude-valor').value = func.plano_saude_valor || '';
+document.getElementById('f-plano-saude-valor').value = func.plano_saude_valor ? Mascaras.fmtMoeda(String(Math.round(Number(func.plano_saude_valor) * 100))) : 'R$ 0,00';
 document.getElementById('f-rg-orgao').value = func.rg_orgao || '';
 document.getElementById('f-rg-uf').value = func.rg_uf || '';
 document.getElementById('f-titulo-eleitor').value = func.titulo_eleitor || '';

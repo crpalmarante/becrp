@@ -49,7 +49,7 @@ Todas as telas do módulo que têm campos monetários usam `data-mask="moeda"` +
 
 | Página | Campos mascarados |
 |---|---|
-| `funcionarios.html` | CPF/CNPJ, moedas do cadastro |
+| `funcionarios.html` | CPF (f-cpf, dp-cpf), CEP, telefones (f-celular, f-tel-comercial, f-contato-emerg-tel), moedas (f-salario, f-vt-desconto, f-vr, f-plano-saude-valor) |
 | `folha.html` | `c-salario-minimo`, tetos e deduções INSS (f1–f4) e IRRF (f1–f5), `irrf-ded-dep` |
 | `eventos.html` | `ev-teto` |
 | `departamentos-cargos.html` | `car-salario-ref` |
