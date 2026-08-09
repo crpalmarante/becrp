@@ -10,6 +10,18 @@ Gerador automático de documentação a partir do código fonte e comentários J
 
 ---
 
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 ```bash
 fiscalui docs                   # Gera docs da aplicação
 fiscalui docs --serve           # Gera + servidor local

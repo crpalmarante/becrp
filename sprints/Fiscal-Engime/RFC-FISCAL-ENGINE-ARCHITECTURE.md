@@ -10,19 +10,32 @@
 
 **Prioridade:** Arquitetura Fundamental
 
-**Versão:** 1.0
+**Versão:** 2.0
 
 **Dependências:**
 
 * RFC-BUSINESS-REFERENCE-COMPONENT.md
 * RFC-BUSINESS-PARTNER-MODEL.md
+* RFC-0040 (Tax Engine)
 
 **Dependências Futuras:**
 
 * RFC-FISCAL-ENGINE-API.md
-* RFC-FISCAL-ENGINE-RESOLVER.md
-* RFC-FISCAL-RULE-ENGINE.md
-* RFC-FISCAL-CALCULATION-PIPELINE.md
+* RFC-FISCAL-ENGINE-DOCUMENT-BUILDER.md
+* RFC-FISCAL-ENGINE-TRANSMISSION.md
+* RFC-FISCAL-ENGINE-EVENTS.md
+
+---
+
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
 
 ---
 
@@ -30,11 +43,15 @@
 
 Definir a arquitetura oficial do Fiscal Engine.
 
-O Fiscal Engine é um componente independente responsável por interpretar regras tributárias, calcular tributos, validar operações fiscais e produzir informações utilizadas por documentos fiscais.
+O Fiscal Engine é um componente independente responsável pelo **ciclo de vida do documento fiscal**: montagem, assinatura, transmissão, retorno, contingência e eventos.
+
+Ele **nunca calcula tributos**. O cálculo é responsabilidade exclusiva do Tax Engine (RFC-0040), cuja saída (bloco "tributos calculados") é consumida pelo Fiscal Engine para montar o documento.
 
 Ele não pertence ao ERP.
 
 Ele pode ser utilizado por qualquer aplicação.
+
+> **Nota de versão:** a versão 2.0 separa as responsabilidades que antes estavam misturadas. Todo o conteúdo de cálculo tributário migrou para a RFC-0040 (Tax Engine).
 
 ---
 
@@ -122,6 +139,18 @@ Toda saída é independente do consumidor.
 
 ---
 
+## P9
+
+Nunca calcula tributos. Consome o bloco "tributos calculados" do Tax Engine (RFC-0040).
+
+---
+
+## P10
+
+Toda operação documental é auditável (trilha de eventos, BC-006).
+
+---
+
 # 4. Arquitetura
 
 ```text
@@ -153,17 +182,19 @@ Toda saída é independente do consumidor.
 
 ──────────────────────────────────────
 
- Rule Engine
+ Document Builder
 
- Calculation Engine
+ Signer
 
- Validation Engine
+ Transmission Engine
 
- Simulation Engine
+ Receipt / Return Processor
 
- Document Model
+ Contingency Engine
 
- Audit Engine
+ Event Registry
+
+ Status / Tracking
 
 ──────────────────────────────────────
 
@@ -173,11 +204,13 @@ Toda saída é independente do consumidor.
 
 ──────────────────────────────────────
 
+ Tax Result Provider     (Tax Engine)
+
+ Certificate Provider
+
+ SEFAZ / Portal Provider
+
  Reference Resolver
-
- Rule Provider
-
- Tax Provider
 
  Event Publisher
 
@@ -200,6 +233,8 @@ Toda saída é independente do consumidor.
  REST
 
  JSON
+
+ SEFAZ (WebServices)
 
  Banco de Dados
 
@@ -229,14 +264,14 @@ Ele apenas solicita informações através das interfaces definidas.
 
 O Fiscal Engine deve:
 
-* calcular tributos;
-* validar regras fiscais;
-* determinar bases de cálculo;
-* aplicar benefícios fiscais;
-* produzir memória de cálculo;
-* simular cenários;
-* gerar eventos fiscais;
-* validar consistência.
+* montar o documento fiscal (NF-e, NFC-e, CT-e, MDF-e, NFS-e, SAT, CF-e);
+* assinar digitalmente o documento (certificado digital);
+* transmitir e processar o retorno (autorização, denegação, contingência);
+* gerenciar eventos: cancelamento, carta de correção, inutilização, manifestação;
+* manter o rastreamento de status do documento;
+* operar em contingência (offline → retransmissão);
+* validar consistência estrutural do documento;
+* registrar trilha de auditoria de cada operação.
 
 ---
 
@@ -244,14 +279,13 @@ O Fiscal Engine deve:
 
 O Fiscal Engine não deve:
 
-* emitir NF-e;
-* transmitir documentos;
-* acessar SEFAZ;
+* **calcular tributos** (responsabilidade do Tax Engine, RFC-0040);
+* decidir regra tributária ou benefício fiscal;
+* emitir lançamentos contábeis;
+* gerar títulos financeiros;
 * armazenar cadastros;
-* consultar banco;
 * autenticar usuários;
-* controlar permissões;
-* imprimir DANFE.
+* controlar permissões.
 
 Essas funções pertencem a outros componentes.
 
@@ -273,6 +307,8 @@ FiscalPartner
 FiscalCompany
 
 FiscalItem
+
+TaxBreakdown      → bloco de tributos calculados (Tax Engine)
 ```
 
 Nunca modelos específicos do ERP.
@@ -284,11 +320,13 @@ Nunca modelos específicos do ERP.
 O motor produz.
 
 ```text
-FiscalCalculation
+FiscalDocument
 
-FiscalResult
+FiscalDocumentStatus
 
-TaxBreakdown
+AuthorizationResult
+
+EventResult (cancelamento, CCe, inutilização, manifestação)
 
 Messages
 
@@ -310,9 +348,13 @@ Toda dependência externa deve ser abstraída.
 Interfaces previstas.
 
 ```text
-ReferenceResolver
+TaxResultProvider
 
-TaxRuleProvider
+CertificateProvider
+
+SEFAZProvider
+
+ReferenceResolver
 
 FiscalConfigurationProvider
 
@@ -327,180 +369,157 @@ LoggerProvider
 
 ---
 
-# 11. Reference Resolver
+# 11. Tax Result Provider
 
-Responsável por localizar informações necessárias ao cálculo.
+Consome a saída do Tax Engine (RFC-0040).
 
-Exemplos.
+O Fiscal Engine solicita e recebe o bloco "tributos calculados" para o documento e o incorpora ao XML sem re-calcular.
 
-```text
-resolver.resolveNCM()
-
-resolver.resolveCEST()
-
-resolver.resolveCFOP()
-
-resolver.resolveOperation()
-
-resolver.resolvePartner()
-
-resolver.resolveCompany()
-```
-
-O Fiscal Engine desconhece a origem dessas informações.
+O Fiscal Engine desconhece como o tributo foi calculado.
 
 ---
 
-# 12. Rule Provider
+# 12. Certificate Provider
 
-Fornece regras tributárias.
-
-Exemplos.
-
-* ICMS
-* IPI
-* PIS
-* COFINS
-* IBS
-* CBS
-* Benefícios Fiscais
-
-As regras podem estar em:
-
-* banco;
-* arquivo;
-* serviço remoto;
-* cache;
-* memória.
-
----
-
-# 13. Calculation Pipeline
-
-O cálculo ocorre em etapas.
-
-```text
-Validação
-
-↓
-
-Resolução de referências
-
-↓
-
-Identificação da operação
-
-↓
-
-Carregamento das regras
-
-↓
-
-Determinação da tributação
-
-↓
-
-Cálculo
-
-↓
-
-Validação
-
-↓
-
-Resultado
-```
-
-Cada etapa é isolada.
-
----
-
-# 14. Rule Engine
-
-Responsável apenas por interpretar regras.
-
-Não realiza cálculos diretamente.
-
----
-
-# 15. Calculation Engine
-
-Executa os cálculos matemáticos.
+Fornece o certificado digital.
 
 Responsável por:
 
-* bases;
-* alíquotas;
-* reduções;
-* arredondamentos;
-* totais.
+* localizar o certificado por estabelecimento;
+* validar vigência e senha;
+* fornecer a chave para assinatura.
 
 ---
 
-# 16. Validation Engine
+# 13. SEFAZ Provider
 
-Executa validações.
-
-Exemplos.
-
-* NCM inexistente.
-* CEST incompatível.
-* CFOP inválido.
-* CST incompatível.
-* Benefício vencido.
-
----
-
-# 17. Simulation Engine
-
-Permite simulações.
-
-Exemplo.
+Abstrai os WebServices de autorização e recepção de eventos.
 
 ```text
-Trocar NCM
+autorizarDocumento()
 
-↓
+consultarStatus()
 
-Novo ICMS
+consultarRecibo()
 
-↓
+recepcionarEvento()
 
-Novo IBS
-
-↓
-
-Nova CBS
+inutilizarNumeracao()
 ```
 
-Sem alterar documentos.
+O Fiscal Engine desconhece o transportador (SEFAZ, Portal, integrador).
 
 ---
 
-# 18. Audit Engine
+# 14. Document Builder
 
-Toda decisão fiscal deve ser auditável.
+Monta o documento fiscal a partir do objeto de domínio e do bloco de tributos.
 
-Registrar.
+Etapas.
 
-* regra utilizada;
-* versão;
-* parâmetros;
-* memória de cálculo;
-* horário;
-* origem.
+```text
+Montagem da estrutura
+
+↓
+
+Inclusão dos tributos (TaxBreakdown)
+
+↓
+
+Serialização (XML / DFe)
+
+↓
+
+Assinatura
+
+↓
+
+Validação estrutural
+```
 
 ---
 
-# 19. Extensibilidade
+# 15. Transmission Engine
 
-Novos tributos podem ser adicionados sem alterar o núcleo.
+Executa a transmissão.
 
-Exemplos.
+```text
+Enviar
 
-* imposto ambiental;
-* tributos municipais;
-* taxas estaduais.
+↓
+
+Aguardar recibo
+
+↓
+
+Consultar resultado
+
+↓
+
+Autorizado / Denegado / Contingência
+```
+
+---
+
+# 16. Receipt / Return Processor
+
+Processa o retorno do fisco.
+
+* protocolo de autorização;
+* mensagens (cStat, xMotivo);
+* rejeições;
+* contingência.
+
+---
+
+# 17. Contingency Engine
+
+Opera quando a autorização não é possível.
+
+```text
+Offline (EPEC / FS-DA)
+
+↓
+
+Autorização posterior
+
+↓
+
+Retransmissão / validação
+```
+
+---
+
+# 18. Event Registry
+
+Gerencia eventos do documento.
+
+* cancelamento;
+* carta de correção;
+* inutilização;
+* manifestação do destinatário.
+
+Cada evento é um registro de auditoria imutável.
+
+---
+
+# 19. Status / Tracking
+
+Mantém o estado do documento ao longo do ciclo.
+
+```text
+Rascunho
+
+→ Em validação
+
+→ Assinado
+
+→ Transmitido
+
+→ Autorizado / Denegado / Contingência
+
+→ Cancelado / Substituído
+```
 
 ---
 
@@ -508,15 +527,15 @@ Exemplos.
 
 Metas.
 
-Cálculo de item:
+Montagem de documento com 100 itens:
 
-< 2 ms
+< 150 ms
 
-Documento com 100 itens:
+Transmissão + processamento de retorno:
 
-< 250 ms
+< 2 s
 
-Simulação:
+Evento (cancelamento, CCe):
 
 < 500 ms
 
@@ -527,12 +546,10 @@ Simulação:
 Métricas.
 
 * tempo por etapa;
-* cache hit;
-* cache miss;
-* regras carregadas;
-* validações executadas;
-* erros;
-* avisos.
+* transmissões por status;
+* erros e rejeições por motivo;
+* tempo de contingência;
+* certificados expirados.
 
 ---
 
@@ -553,7 +570,7 @@ Todas compartilham o mesmo núcleo lógico.
 
 # 23. Roadmap
 
-## Sprint FE-01
+## Sprint FD-01
 
 Arquitetura.
 
@@ -563,43 +580,35 @@ Modelos básicos.
 
 ---
 
-## Sprint FE-02
+## Sprint FD-02
 
-Reference Resolver.
+Document Builder.
 
-Calculation Pipeline.
+Signer.
 
-Rule Engine.
-
----
-
-## Sprint FE-03
-
-ICMS.
-
-IPI.
-
-PIS.
-
-COFINS.
+Validação estrutural.
 
 ---
 
-## Sprint FE-04
+## Sprint FD-03
 
-IBS.
+Transmission Engine.
 
-CBS.
-
-Benefícios Fiscais.
+Receipt / Return Processor.
 
 ---
 
-## Sprint FE-05
+## Sprint FD-04
 
-Document Model.
+Event Registry (cancelamento, CCe, inutilização, manifestação).
 
-Simulation.
+---
+
+## Sprint FD-05
+
+Contingency Engine.
+
+Status / Tracking.
 
 Audit.
 
@@ -609,4 +618,4 @@ Audit.
 
 O Fiscal Engine deve ser capaz de ser utilizado por qualquer sistema, independentemente de sua tecnologia.
 
-Ele deve ser distribuído como um componente independente, consumindo apenas interfaces públicas e objetos de domínio, sem dependência direta de bancos de dados, frameworks ou implementações específicas de ERP.
+Ele deve ser distribuído como um componente independente, consumindo apenas interfaces públicas e objetos de domínio, sem dependência direta de bancos de dados, frameworks ou implementações específicas de ERP — e sem jamais calcular tributos, que é responsabilidade do Tax Engine (RFC-0040).

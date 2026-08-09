@@ -10,6 +10,18 @@ Ficha resumo do cliente com dados cadastrais, contato, classificação fiscal e 
 
 ---
 
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 ```html
 <div class="ui-customer-card">
     <div class="ui-customer-card__header">

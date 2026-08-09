@@ -29,11 +29,15 @@ def _digits(val):
 
 
 def _load_partners():
-    if not os.path.exists(PARTNERS_FILE):
-        return {}
-    with open(PARTNERS_FILE, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data if isinstance(data, dict) else {}
+    try:
+        import partners_store
+        return partners_store.as_dict()
+    except Exception:
+        if not os.path.exists(PARTNERS_FILE):
+            return {}
+        with open(PARTNERS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return data if isinstance(data, dict) else {}
 
 
 def _audit(entry):
@@ -270,3 +274,90 @@ def search(query, *, role=None, limit=20):
         scored.append(row)
     scored.sort(key=lambda x: (-x["score"], x.get("display_name") or ""))
     return scored[: max(1, int(limit or 20))]
+
+
+def _preferred_address(p, prefer_types=("BILLING", "HEADQUARTERS", "SHIPPING")):
+    addrs = p.get("addresses") if isinstance(p.get("addresses"), list) else []
+    if not addrs:
+        return {}
+    preferred = next((a for a in addrs if isinstance(a, dict) and a.get("preferred")), None)
+    if preferred:
+        return preferred
+    for t in prefer_types:
+        hit = next(
+            (a for a in addrs if isinstance(a, dict) and str(a.get("address_type") or "").upper() == t),
+            None,
+        )
+        if hit:
+            return hit
+    return addrs[0] if isinstance(addrs[0], dict) else {}
+
+
+def _preferred_contact(p):
+    contacts = p.get("contacts") if isinstance(p.get("contacts"), list) else []
+    if not contacts:
+        return {}
+    preferred = next((c for c in contacts if isinstance(c, dict) and c.get("preferred")), None)
+    if preferred:
+        return preferred
+    return contacts[0] if isinstance(contacts[0], dict) else {}
+
+
+def _format_address(addr):
+    if not isinstance(addr, dict):
+        return ""
+    line = " ".join(filter(None, [
+        addr.get("street") or addr.get("endereco"),
+        addr.get("number") or addr.get("numero"),
+        addr.get("district") or addr.get("bairro"),
+    ]))
+    city_uf = "/".join(filter(None, [addr.get("city") or addr.get("cidade"), addr.get("state") or addr.get("uf")]))
+    end = line
+    if city_uf:
+        end += (" — " if line else "") + city_uf
+    cep = addr.get("zip_code") or addr.get("cep")
+    if cep:
+        end += (" — CEP " + str(cep)) if end else ("CEP " + str(cep))
+    return end
+
+
+def as_b2b_cliente(pid, p):
+    """Shape compatível com /api/vendas/b2b/clientes (UI vendas.html)."""
+    docs = _partner_docs(p)
+    addr = _preferred_address(p)
+    contact = _preferred_contact(p)
+    person = str(p.get("person_type") or "COMPANY").upper()
+    razao = p.get("legal_name") or p.get("display_name") or p.get("trade_name") or ""
+    return {
+        "id": pid,
+        "partner_code": p.get("partner_code") or "",
+        "razao_social": razao,
+        "nome_fantasia": p.get("trade_name") or p.get("display_name") or "",
+        "cnpj": docs.get("cnpj") or docs.get("cpf") or "",
+        "pessoa": "PF" if person == "PERSON" else "PJ",
+        "ie": docs.get("ie") or "",
+        "cidade": addr.get("city") or addr.get("cidade") or "",
+        "uf": addr.get("state") or addr.get("uf") or "",
+        "endereco_cobranca": _format_address(addr),
+        "telefone": contact.get("phone") or contact.get("mobile") or p.get("telefone") or "",
+        "email": contact.get("email") or p.get("email") or "",
+        "default_price_list_id": str(p.get("default_price_list_id") or "").strip(),
+        "credit_limit": float(p.get("credit_limit") or 0),
+        "payment_terms": str(p.get("payment_terms") or "30").strip() or "30",
+        "credit_blocked": bool(p.get("credit_blocked")),
+        "source": "partners",
+    }
+
+
+def list_customers_b2b(role="CUSTOMER"):
+    """Lista parceiros ativos com papel CUSTOMER para Vendas B2B."""
+    data = _load_partners()
+    out = []
+    for pid, p in data.items():
+        if not isinstance(p, dict) or not _active(p):
+            continue
+        if not _has_role(p, role):
+            continue
+        out.append(as_b2b_cliente(pid, p))
+    out.sort(key=lambda x: (x.get("razao_social") or "").lower())
+    return out

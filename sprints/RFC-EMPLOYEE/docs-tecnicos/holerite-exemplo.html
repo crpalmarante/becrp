@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Holerite — Maria da Silva · 08/2026</title>
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     DESIGN SYSTEM CASEIRO (PLAN_ERP §5) — zero dependências, zero CDN
+     ═══════════════════════════════════════════════════════════════ */
+  :root {
+    /* Cores */
+    --cor-tinta:        #1f2937;   /* texto principal              */
+    --cor-tinta-suave:  #6b7280;   /* texto secundário             */
+    --cor-fundo:        #f3f4f6;   /* fundo de tela                */
+    --cor-papel:        #ffffff;   /* papel do holerite            */
+    --cor-linha:        #d1d5db;   /* bordas                       */
+    --cor-linha-suave:  #e5e7eb;   /* bordas internas              */
+    --cor-acento:       #1d4ed8;   /* azul institucional           */
+    --cor-acento-claro: #eff6ff;   /* fundo de destaque            */
+    --cor-liquido:      #047857;   /* verde do líquido             */
+    --cor-liquido-claro:#ecfdf5;   /* fundo do líquido             */
+    --cor-negativo:     #991b1b;   /* descontos                    */
+    --cor-negativo-claro:#fef2f2;  /* fundo de descontos           */
+    --cor-provento:     #065f46;   /* proventos                    */
+    --cor-provento-claro:#ecfdf5;  /* fundo de proventos           */
+
+    /* Tipografia */
+    --fonte:      "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    --fonte-mono: "Cascadia Mono", "Consolas", "Liberation Mono", monospace;
+    --texto-xxs: 0.6875rem;  /* 11px */
+    --texto-xs:  0.75rem;    /* 12px */
+    --texto-sm:  0.8125rem;  /* 13px */
+    --texto-md:  0.9375rem;  /* 15px */
+    --texto-lg:  1.125rem;   /* 18px */
+    --texto-xl:  1.5rem;     /* 24px */
+
+    /* Espaçamento (escala de 4px) */
+    --esp-1: 0.25rem;  --esp-2: 0.5rem;  --esp-3: 0.75rem;
+    --esp-4: 1rem;     --esp-5: 1.5rem;  --esp-6: 2rem;
+
+    /* Raios e sombras */
+    --raio: 8px;
+    --sombra: 0 1px 3px rgba(0,0,0,.12), 0 4px 12px rgba(0,0,0,.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--fonte);
+    color: var(--cor-tinta);
+    background: var(--cor-fundo);
+    font-size: var(--texto-sm);
+    line-height: 1.45;
+    padding: var(--esp-5);
+  }
+
+  /* ── Tela: cartão A4 centralizado ─────────────────────────────── */
+  .folha {
+    max-width: 210mm;
+    margin: 0 auto;
+    background: var(--cor-papel);
+    border-radius: var(--raio);
+    box-shadow: var(--sombra);
+    padding: var(--esp-6) var(--esp-6) var(--esp-5);
+  }
+
+  /* ── Cabeçalho ────────────────────────────────────────────────── */
+  .cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--esp-4);
+    padding-bottom: var(--esp-4);
+    border-bottom: 3px solid var(--cor-acento);
+  }
+  .cabecalho .empresa { flex: 1 1 auto; }
+  .cabecalho .empresa h1 {
+    font-size: var(--texto-lg);
+    letter-spacing: .02em;
+  }
+  .cabecalho .empresa .cnpj {
+    font-size: var(--texto-xs);
+    color: var(--cor-tinta-suave);
+    margin-top: var(--esp-1);
+  }
+  .cabecalho .titulo-doc { text-align: right; }
+  .cabecalho .titulo-doc .rotulo {
+    font-size: var(--texto-xxs);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--cor-tinta-suave);
+  }
+  .cabecalho .titulo-doc .competencia {
+    font-size: var(--texto-xl);
+    font-weight: 700;
+    color: var(--cor-acento);
+    margin-top: var(--esp-1);
+  }
+
+  /* ── Identificação do funcionário ─────────────────────────────── */
+  .funcionario {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--esp-2) var(--esp-4);
+    padding: var(--esp-3) 0;
+    border-bottom: 1px solid var(--cor-linha);
+    margin-bottom: var(--esp-4);
+  }
+  .campo { min-width: 0; }
+  .campo .rotulo {
+    display: block;
+    font-size: var(--texto-xxs);
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--cor-tinta-suave);
+  }
+  .campo .valor {
+    display: block;
+    font-size: var(--texto-md);
+    font-weight: 600;
+    margin-top: 2px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* ── Tabelas de eventos ───────────────────────────────────────── */
+  .bloco-tabelas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--esp-4);
+    margin-bottom: var(--esp-4);
+  }
+  @media (max-width: 640px) { .bloco-tabelas { grid-template-columns: 1fr; } }
+
+  .tabela h2 {
+    font-size: var(--texto-sm);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    padding: var(--esp-2) var(--esp-3);
+    border-radius: var(--raio) var(--raio) 0 0;
+  }
+  .tabela, .bases { break-inside: avoid; }
+  .tabela.proventos h2 { background: var(--cor-provento-claro); color: var(--cor-provento); }
+  .tabela.descontos h2 { background: var(--cor-negativo-claro); color: var(--cor-negativo); }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--texto-sm);
+  }
+  thead th {
+    font-size: var(--texto-xxs);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--cor-tinta-suave);
+    text-align: right;
+    padding: var(--esp-2) var(--esp-3);
+    border-bottom: 1px solid var(--cor-linha);
+    white-space: nowrap;
+  }
+  thead th:first-child, tbody td:first-child { text-align: left; }
+  tbody td {
+    padding: var(--esp-2) var(--esp-3);
+    border-bottom: 1px solid var(--cor-linha-suave);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  tbody td:first-child { text-align: left; }
+  tbody td.codigo { font-family: var(--fonte-mono); font-size: var(--texto-xs); }
+  tbody td.descricao { text-align: left; }
+  tbody tr:last-child td { border-bottom: none; }
+  tfoot td {
+    padding: var(--esp-2) var(--esp-3);
+    font-weight: 700;
+    border-top: 2px solid var(--cor-linha);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  tfoot td:first-child { text-align: right; }
+  .tabela.proventos tfoot { color: var(--cor-provento); }
+  .tabela.descontos tfoot { color: var(--cor-negativo); }
+
+  /* ── Bases de cálculo ─────────────────────────────────────────── */
+  .bases {
+    margin-bottom: var(--esp-4);
+  }
+  .bases h2 {
+    font-size: var(--texto-sm);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    padding: var(--esp-2) var(--esp-3);
+    background: var(--cor-acento-claro);
+    color: var(--cor-acento);
+    border-radius: var(--raio) var(--raio) 0 0;
+  }
+  .bases .grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: var(--esp-3);
+    padding: var(--esp-3);
+    border: 1px solid var(--cor-linha);
+    border-top: none;
+    border-radius: 0 0 var(--raio) var(--raio);
+  }
+  .bases .item .rotulo {
+    font-size: var(--texto-xxs);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--cor-tinta-suave);
+  }
+  .bases .item .valor {
+    font-size: var(--texto-md);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    margin-top: 2px;
+  }
+
+  /* ── Rodapé / líquido ─────────────────────────────────────────── */
+  .rodape {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: var(--esp-4);
+    align-items: end;
+  }
+  @media (max-width: 640px) { .rodape { grid-template-columns: 1fr; } }
+  .rodape .pagamento {
+    font-size: var(--texto-xs);
+    color: var(--cor-tinta-suave);
+    padding-bottom: var(--esp-2);
+  }
+  .rodape .pagamento .rotulo {
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    display: block;
+    margin-bottom: var(--esp-1);
+  }
+  .rodape .liquido {
+    background: var(--cor-liquido-claro);
+    border: 2px solid var(--cor-liquido);
+    border-radius: var(--raio);
+    padding: var(--esp-3) var(--esp-4);
+    text-align: right;
+  }
+  .rodape .liquido .rotulo {
+    font-size: var(--texto-xxs);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--cor-liquido);
+    font-weight: 700;
+  }
+  .rodape .liquido .valor {
+    font-size: var(--texto-xl);
+    font-weight: 700;
+    color: var(--cor-liquido);
+    font-variant-numeric: tabular-nums;
+    margin-top: var(--esp-1);
+  }
+
+  .observacoes {
+    margin-top: var(--esp-4);
+    padding-top: var(--esp-3);
+    border-top: 1px dashed var(--cor-linha);
+    font-size: var(--texto-xs);
+    color: var(--cor-tinta-suave);
+  }
+  .observacoes .rotulo {
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-size: var(--texto-xxs);
+    color: var(--cor-tinta-suave);
+  }
+
+  .rodape-legal {
+    margin-top: var(--esp-4);
+    padding-top: var(--esp-3);
+    border-top: 1px solid var(--cor-linha);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--esp-3);
+    font-size: var(--texto-xxs);
+    color: var(--cor-tinta-suave);
+  }
+
+  /* ── Classe utilitária para conteúdo só-leitor ────────────────── */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* ── Botão de impressão (apenas tela) ─────────────────────────── */
+  .barra-acoes {
+    max-width: 210mm;
+    margin: 0 auto var(--esp-4);
+    text-align: right;
+  }
+  .botao-imprimir {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--esp-2);
+    font-family: var(--fonte);
+    font-size: var(--texto-sm);
+    font-weight: 600;
+    color: #fff;
+    background: var(--cor-acento);
+    border: none;
+    border-radius: var(--raio);
+    padding: var(--esp-2) var(--esp-4);
+    cursor: pointer;
+    box-shadow: var(--sombra);
+    transition: background .15s ease, transform .1s ease;
+  }
+  .botao-imprimir svg { width: 1em; height: 1em; fill: currentColor; }
+  .botao-imprimir:hover { background: #1e40af; }
+  .botao-imprimir:active { transform: translateY(1px); }
+
+  /* ═══════════════════════════════════════════════════════════════
+     IMPRESSÃO (RFC-007 §3.5 — entrega impressa ou eletrônica)
+     ═══════════════════════════════════════════════════════════════ */
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    body {
+      background: #fff;
+      padding: 0;
+      font-size: 11pt;
+    }
+    .folha {
+      max-width: 100%;
+      box-shadow: none;
+      border-radius: 0;
+      padding: 0;
+    }
+    .barra-acoes { display: none; }
+    .cabecalho { border-bottom-width: 2px; }
+    .rodape .liquido {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .tabela h2, .bases h2 {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .observacoes, .rodape-legal { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="barra-acoes">
+  <button class="botao-imprimir" type="button" onclick="window.print()" aria-label="Imprimir holerite">
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 2h9l3 3v3h-2V6h-7v4H6zm13 5v5h2V9l-3-3h-2V3H6v4zm-13 3H4a3 3 0 0 0-3 3v6h5v-2H3v-4h18v4h-3v2h5v-6a3 3 0 0 0-3-3h-2zm3 5h8v6H9z"/></svg>
+    Imprimir holerite
+  </button>
+</div>
+
+<main class="folha">
+
+  <!-- Cabeçalho (RFC-007 §2.1) -->
+  <header class="cabecalho">
+    <div class="empresa">
+      <h1>EMPRESA LTDA</h1>
+      <p class="cnpj">CNPJ 00.000.000/0001-00</p>
+    </div>
+    <div class="titulo-doc">
+      <span class="rotulo">Demonstrativo de pagamento</span>
+      <div class="competencia">08/2026</div>
+    </div>
+  </header>
+
+  <!-- Identificação (RFC-007 §2.1) -->
+  <section class="funcionario">
+    <div class="campo"><span class="rotulo">Funcionário</span><span class="valor">Maria da Silva</span></div>
+    <div class="campo"><span class="rotulo">Matrícula</span><span class="valor">0042</span></div>
+    <div class="campo"><span class="rotulo">Cargo</span><span class="valor">Analista</span></div>
+    <div class="campo"><span class="rotulo">Departamento</span><span class="valor">Financeiro</span></div>
+    <div class="campo"><span class="rotulo">CPF</span><span class="valor">000.000.000-00</span></div>
+    <div class="campo"><span class="rotulo">Admissão</span><span class="valor">10/03/2023</span></div>
+  </section>
+
+  <!-- Corpo: proventos e descontos (RFC-007 §2.2 / §2.3) -->
+  <section class="bloco-tabelas">
+    <div class="tabela proventos">
+      <h2>Proventos</h2>
+      <table aria-labelledby="titulo-proventos">
+        <caption id="titulo-proventos" class="sr-only">Tabela de proventos</caption>
+        <thead>
+          <tr><th scope="col">Cód</th><th scope="col">Descrição</th><th scope="col">Ref.</th><th scope="col">Valor (R$)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="codigo">001</td><td class="descricao">Salário Base</td><td>—</td><td>4.500,00</td></tr>
+          <tr><td class="codigo">002</td><td class="descricao">Horas Extras 50%</td><td>10,0 h</td><td>306,82</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="3">Total de proventos</td><td>4.806,82</td></tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="tabela descontos">
+      <h2>Descontos</h2>
+      <table aria-labelledby="titulo-descontos">
+        <caption id="titulo-descontos" class="sr-only">Tabela de descontos</caption>
+        <thead>
+          <tr><th scope="col">Cód</th><th scope="col">Descrição</th><th scope="col">Ref.</th><th scope="col">Valor (R$)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="codigo">020</td><td class="descricao">INSS</td><td>12% faixa</td><td>464,32</td></tr>
+          <tr><td class="codigo">021</td><td class="descricao">IRRF</td><td>15% faixa</td><td>322,94</td></tr>
+          <tr><td class="codigo">025</td><td class="descricao">Faltas</td><td>2,0 dias</td><td>300,00</td></tr>
+        </tbody>
+        <tfoot>
+          <tr><td colspan="3">Total de descontos</td><td>1.087,26</td></tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- Bases de cálculo (RFC-007 §2.4) -->
+  <section class="bases">
+    <h2>Bases de cálculo</h2>
+    <div class="grade">
+      <div class="item"><span class="rotulo">Base INSS</span><span class="valor">R$ 4.806,82</span></div>
+      <div class="item"><span class="rotulo">Base IRRF</span><span class="valor">R$ 4.152,91</span></div>
+      <div class="item"><span class="rotulo">Base FGTS</span><span class="valor">R$ 4.806,82</span></div>
+      <div class="item"><span class="rotulo">Salário de referência</span><span class="valor">R$ 4.500,00</span></div>
+    </div>
+  </section>
+
+  <!-- Rodapé: líquido + pagamento (RFC-007 §2.5) -->
+  <section class="rodape">
+    <div class="pagamento">
+      <span class="rotulo">Forma de pagamento</span>
+      Banco 001 · Agência 1234 · Conta 567890-1
+    </div>
+    <div class="liquido">
+      <span class="rotulo">Líquido a receber</span>
+      <div class="valor">R$ 3.719,56</div>
+    </div>
+  </section>
+
+  <!-- Observações (RFC-007, decisão 2 — campo opcional) -->
+  <section class="observacoes">
+    <span class="rotulo">Observações</span>
+    <p>—</p>
+  </section>
+
+  <footer class="rodape-legal">
+    <span>Documento gerado eletronicamente a partir do processamento da competência (RFC-006).</span>
+    <span>Competência fechada — valores imutáveis (RFC-006 §4).</span>
+  </footer>
+
+  <!--
+    NOTA DE ARQUITETURA: artefato demonstrativo hospedado em docs-tecnicos/.
+    Quando a camada static/ do PLAN_ERP (§6) for criada, migrar este template
+    para static/holerite.html — sem alterar o CSS print nem os dados.
+  -->
+
+</main>
+
+</body>
+</html>

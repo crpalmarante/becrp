@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instala GnuCOBOL (cobc) + libs do sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnucobol \
+            libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 \
+            libffi-dev shared-mime-info
+
+      - name: Instala dependências Python
+        run: pip install -r requirements.txt
+
+      - name: Suíte completa (build COBOL + smokes + review da tela)
+        # --force-build: o git não preserva mtimes no checkout — recompila tudo
+        run: python3 scripts/run_ci.py --force-build

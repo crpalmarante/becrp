@@ -88,29 +88,58 @@ def save_transit(data):
     _save(TRANSIT_FILE, data)
 
 
-def inventory_balance(estabelecimento_id, produto_id, balances=None):
+QTY_DECIMALS = 3
+
+
+def _as_qty(val, default=0.0):
+    try:
+        q = float(val)
+    except (TypeError, ValueError):
+        return float(default)
+    return round(q, QTY_DECIMALS)
+
+
+def inventory_balance(estabelecimento_id, produto_id, balances=None, *, location_id=None):
     balances = balances if balances is not None else load_balances()
     eid = str(estabelecimento_id or "").strip()
     pid = str(produto_id)
+    if location_id:
+        loc = str(location_id)
+        locs = (balances.get("por_localizacao") or {}).get(eid) or {}
+        prod_locs = locs.get(loc) or {}
+        try:
+            return _as_qty(prod_locs.get(pid, 0) or 0)
+        except (TypeError, ValueError):
+            return 0.0
     loja = (balances.get("por_estabelecimento") or {}).get(eid) or {}
     try:
-        return int(loja.get(pid, 0) or 0)
+        return _as_qty(loja.get(pid, 0) or 0)
     except (TypeError, ValueError):
-        return 0
+        return 0.0
 
 
-def _set_balance(balances, estabelecimento_id, produto_id, qty):
+def _set_balance(balances, estabelecimento_id, produto_id, qty, *, location_id=None):
     eid = str(estabelecimento_id or "").strip()
     pid = str(produto_id)
+    q = max(0.0, _as_qty(qty))
+    # total por estabelecimento
     lojas = balances.setdefault("por_estabelecimento", {})
     loja = dict(lojas.get(eid) or {})
-    loja[pid] = max(0, int(qty))
+    loja[pid] = q
     lojas[eid] = loja
+    if location_id:
+        loc = str(location_id)
+        locs = balances.setdefault("por_localizacao", {})
+        loc_map = dict(locs.get(eid) or {})
+        prod_map = dict(loc_map.get(loc) or {})
+        prod_map[pid] = q
+        loc_map[loc] = prod_map
+        locs[eid] = loc_map
 
 
-def _apply_delta(balances, estabelecimento_id, produto_id, delta):
-    atual = inventory_balance(estabelecimento_id, produto_id, balances=balances)
-    _set_balance(balances, estabelecimento_id, produto_id, atual + int(delta))
+def _apply_delta(balances, estabelecimento_id, produto_id, delta, *, location_id=None):
+    atual = inventory_balance(estabelecimento_id, produto_id, balances=balances, location_id=location_id)
+    _set_balance(balances, estabelecimento_id, produto_id, atual + _as_qty(delta), location_id=location_id)
 
 
 def rebuild_balances_from_ledger():
@@ -118,6 +147,7 @@ def rebuild_balances_from_ledger():
     mov = load_movements()
     balances = {
         "por_estabelecimento": {},
+        "por_localizacao": {},
         "sla_transferencia_horas": SLA_TRANSFERENCIA_HORAS,
         "atualizado_em": None,
     }
@@ -130,10 +160,11 @@ def rebuild_balances_from_ledger():
             continue
         eid = m.get("estabelecimento_id")
         pid = m.get("produto_id")
-        qty = int(m.get("qty") or 0)
+        qty = _as_qty(m.get("qty") or 0)
+        loc = m.get("location_id")
         if not eid or not pid or qty <= 0:
             continue
-        _apply_delta(balances, eid, pid, sign * qty)
+        _apply_delta(balances, eid, pid, sign * qty, location_id=loc)
     save_balances(balances)
     return balances
 
@@ -151,6 +182,7 @@ def inventory_apply_movement(
     user_id=None,
     sign=None,
     transit_meta=None,
+    location_id=None,
     movements=None,
     balances=None,
     transit=None,
@@ -166,10 +198,7 @@ def inventory_apply_movement(
         raise ValueError(f"tipo de movimento inválido: {tipo}")
     eid = str(estabelecimento_id or "").strip()
     pid = str(produto_id)
-    try:
-        q = int(round(float(qty)))
-    except (TypeError, ValueError):
-        q = 0
+    q = _as_qty(qty)
     if q <= 0:
         raise ValueError("qty deve ser positiva")
     if tipo != "transit" and not eid:
@@ -198,6 +227,7 @@ def inventory_apply_movement(
         "group_id": group_id,
         "nota": nota,
         "user_id": user_id,
+        "location_id": location_id,
     }
     if tipo == "adjust":
         entry["sign"] = dir_sign
@@ -206,7 +236,7 @@ def inventory_apply_movement(
     movements["next_id"] = mid + 1
 
     if dir_sign != 0 and eid:
-        _apply_delta(balances, eid, pid, dir_sign * q)
+        _apply_delta(balances, eid, pid, dir_sign * q, location_id=location_id)
 
     transit_id = None
     if tipo == "transit":
@@ -232,7 +262,7 @@ def inventory_apply_movement(
     return {
         "movement_id": mid,
         "transit_id": transit_id,
-        "balance": inventory_balance(eid, pid, balances=balances) if eid else None,
+        "balance": inventory_balance(eid, pid, balances=balances, location_id=location_id) if eid else None,
     }
 
 
@@ -332,10 +362,7 @@ def inventory_apply_receive(request):
         if not isinstance(it, dict):
             continue
         pid = str(it.get("produto_id") or it.get("id") or "")
-        try:
-            q = int(round(float(it.get("qty") or it.get("quantidade") or 0)))
-        except (TypeError, ValueError):
-            q = 0
+        q = _as_qty(it.get("qty") or it.get("quantidade") or 0)
         if not pid or q <= 0:
             errors.append(f"item inválido: {it}")
             continue
@@ -347,6 +374,7 @@ def inventory_apply_receive(request):
             ref_tipo="receiving",
             ref_id=receiving_id,
             user_id=user_id,
+            location_id=it.get("location_id"),
             movements=movements,
             balances=balances,
             transit=transit,

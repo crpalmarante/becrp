@@ -22,6 +22,9 @@
            05 dp-cpf             PIC X(14).
            05 dp-data-nasc       PIC X(10).
            05 dp-tipo            PIC X(15).
+           05 dp-grau-parentesco PIC X(20).
+           05 dp-irrf            PIC X.
+           05 dp-sal-familia     PIC X.
 
        FD temp-file.
        01 temp-reg.
@@ -31,6 +34,9 @@
            05 tl-cpf             PIC X(14).
            05 tl-data-nasc       PIC X(10).
            05 tl-tipo            PIC X(15).
+           05 tl-grau-parentesco PIC X(20).
+           05 tl-irrf            PIC X.
+           05 tl-sal-familia     PIC X.
 
        WORKING-STORAGE SECTION.
        01 ws-acao           PIC X(20).
@@ -49,6 +55,9 @@
        01 ws-cpf            PIC X(14).
        01 ws-data-in        PIC X(10).
        01 ws-tipo           PIC X(15).
+       01 ws-grau-parentesco PIC X(20).
+       01 ws-irrf           PIC X.
+       01 ws-sal-familia    PIC X.
        01 ws-json-linha     PIC X(500).
 
        PROCEDURE DIVISION.
@@ -73,6 +82,9 @@
            ACCEPT ws-cpf FROM ENVIRONMENT "CPF"
            ACCEPT ws-data-in FROM ENVIRONMENT "DATA_NASC"
            ACCEPT ws-tipo FROM ENVIRONMENT "TIPO"
+           ACCEPT ws-grau-parentesco FROM ENVIRONMENT "GRAU_PARENTESCO"
+           ACCEPT ws-irrf FROM ENVIRONMENT "TIPO_IRRF"
+           ACCEPT ws-sal-familia FROM ENVIRONMENT "TIPO_SAL_FAMILIA"
 
            MOVE 0 TO ws-prox-id
            OPEN INPUT dp-file
@@ -95,6 +107,9 @@
            MOVE ws-cpf TO dp-cpf
            MOVE ws-data-in TO dp-data-nasc
            MOVE ws-tipo TO dp-tipo
+           MOVE ws-grau-parentesco TO dp-grau-parentesco
+           MOVE ws-irrf TO dp-irrf
+           MOVE ws-sal-familia TO dp-sal-familia
            WRITE dp-reg
            CLOSE dp-file
            DISPLAY ws-prox-id.
@@ -109,6 +124,9 @@
            ACCEPT ws-cpf FROM ENVIRONMENT "CPF"
            ACCEPT ws-data-in FROM ENVIRONMENT "DATA_NASC"
            ACCEPT ws-tipo FROM ENVIRONMENT "TIPO"
+           ACCEPT ws-grau-parentesco FROM ENVIRONMENT "GRAU_PARENTESCO"
+           ACCEPT ws-irrf FROM ENVIRONMENT "TIPO_IRRF"
+           ACCEPT ws-sal-familia FROM ENVIRONMENT "TIPO_SAL_FAMILIA"
 
            MOVE "N" TO ws-encontrou
            OPEN INPUT dp-file
@@ -131,6 +149,12 @@
                        MOVE ws-data-in TO dp-data-nasc END-IF
                    IF ws-tipo NOT = SPACES THEN
                        MOVE ws-tipo TO dp-tipo END-IF
+                   IF ws-grau-parentesco NOT = SPACES THEN
+                       MOVE ws-grau-parentesco TO dp-grau-parentesco END-IF
+                   IF ws-irrf NOT = SPACES THEN
+                       MOVE ws-irrf TO dp-irrf END-IF
+                   IF ws-sal-familia NOT = SPACES THEN
+                       MOVE ws-sal-familia TO dp-sal-familia END-IF
                END-IF
                MOVE dp-id TO tl-id
                MOVE dp-funcionario-id TO tl-funcionario-id
@@ -138,6 +162,9 @@
                MOVE dp-cpf TO tl-cpf
                MOVE dp-data-nasc TO tl-data-nasc
                MOVE dp-tipo TO tl-tipo
+               MOVE dp-grau-parentesco TO tl-grau-parentesco
+               MOVE dp-irrf TO tl-irrf
+               MOVE dp-sal-familia TO tl-sal-familia
                WRITE temp-reg
            END-PERFORM
            CLOSE dp-file CLOSE temp-file
@@ -166,6 +193,9 @@
                    MOVE dp-cpf TO tl-cpf
                    MOVE dp-data-nasc TO tl-data-nasc
                    MOVE dp-tipo TO tl-tipo
+                   MOVE dp-grau-parentesco TO tl-grau-parentesco
+                   MOVE dp-irrf TO tl-irrf
+                   MOVE dp-sal-familia TO tl-sal-familia
                    WRITE temp-reg
                ELSE MOVE "S" TO ws-encontrou
                END-IF
@@ -199,7 +229,10 @@
                       ',"nome":"' FUNCTION TRIM(dp-nome) '"'
                       ',"cpf":"' FUNCTION TRIM(dp-cpf) '"'
                       ',"data_nasc":"' FUNCTION TRIM(dp-data-nasc) '"'
-                      ',"tipo":"' FUNCTION TRIM(dp-tipo) '"}'
+                      ',"tipo":"' FUNCTION TRIM(dp-tipo) '"'
+                      ',"grau_parentesco":"' FUNCTION TRIM(dp-grau-parentesco) '"'
+                      ',"irrf":"' FUNCTION TRIM(dp-irrf) '"'
+                      ',"sal_familia":"' FUNCTION TRIM(dp-sal-familia) '"}'
                   INTO ws-json-linha
                 DISPLAY FUNCTION TRIM(ws-json-linha)
             END-PERFORM
@@ -234,7 +267,10 @@
                           ',"nome":"' FUNCTION TRIM(dp-nome) '"'
                           ',"cpf":"' FUNCTION TRIM(dp-cpf) '"'
                           ',"data_nasc":"' FUNCTION TRIM(dp-data-nasc) '"'
-                          ',"tipo":"' FUNCTION TRIM(dp-tipo) '"}'
+                          ',"tipo":"' FUNCTION TRIM(dp-tipo) '"'
+                          ',"grau_parentesco":"' FUNCTION TRIM(dp-grau-parentesco) '"'
+                          ',"irrf":"' FUNCTION TRIM(dp-irrf) '"'
+                          ',"sal_familia":"' FUNCTION TRIM(dp-sal-familia) '"}'
                       INTO ws-json-linha
                     DISPLAY FUNCTION TRIM(ws-json-linha)
                END-IF

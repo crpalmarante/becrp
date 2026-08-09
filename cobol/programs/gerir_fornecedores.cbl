@@ -1,5 +1,6 @@
        >>SOURCE FORMAT IS FREE
-       *> gerir_fornecedores.cbl - CRUD fornecedores
+       *> gerir_fornecedores.cbl — CRUD fornecedores (fonte da verdade)
+       *> ORGANIZATION SEQUENTIAL: registro fixo.
        IDENTIFICATION DIVISION.
        PROGRAM-ID. GerirFornecedores.
 
@@ -7,10 +8,13 @@
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT forn-file ASSIGN TO "dados/fornecedores.dat"
-               ORGANIZATION IS LINE SEQUENTIAL
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE IS SEQUENTIAL
                FILE STATUS IS ws-file-status.
            SELECT temp-file ASSIGN TO "dados/fornecedores.tmp"
-               ORGANIZATION IS LINE SEQUENTIAL.
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE IS SEQUENTIAL
+               FILE STATUS IS ws-file-status.
 
        DATA DIVISION.
        FILE SECTION.
@@ -52,16 +56,15 @@
        01 ws-email           PIC X(40).
        01 ws-ie              PIC X(20).
        01 ws-inscricao-mun   PIC X(20).
-        01 ws-encontrou       PIC X(1).
-        01 ws-prox-id         PIC 9(5).
-        01 ws-cnpj-trim       PIC X(18).
-        01 ws-cnpj-arq        PIC X(18).
-        01 ws-i               PIC 9(2).
+       01 ws-encontrou       PIC X(1).
+       01 ws-prox-id         PIC 9(5).
+       01 ws-cnpj-trim       PIC X(18).
+       01 ws-cnpj-arq        PIC X(18).
+       01 ws-i               PIC 9(2).
 
        PROCEDURE DIVISION.
            ACCEPT ws-acao FROM ENVIRONMENT "ACAO"
            IF ws-acao = SPACES THEN MOVE "listar" TO ws-acao END-IF
-
            EVALUATE ws-acao
                WHEN "incluir"  PERFORM incluir
                WHEN "alterar"  PERFORM alterar
@@ -72,6 +75,15 @@
            END-EVALUATE
            STOP RUN.
 
+       ensure-file.
+           OPEN INPUT forn-file
+           IF ws-file-status = "35" THEN
+               OPEN OUTPUT forn-file
+               CLOSE forn-file
+           ELSE
+               CLOSE forn-file
+           END-IF.
+
        incluir.
            ACCEPT ws-nome FROM ENVIRONMENT "NOME"
            ACCEPT ws-cnpj FROM ENVIRONMENT "CNPJ"
@@ -80,23 +92,31 @@
            ACCEPT ws-email FROM ENVIRONMENT "EMAIL"
            ACCEPT ws-ie FROM ENVIRONMENT "IE"
            ACCEPT ws-inscricao-mun FROM ENVIRONMENT "INSCRICAO_MUN"
+           ACCEPT ws-id-in FROM ENVIRONMENT "ID"
            IF ws-nome = SPACES THEN
                DISPLAY "ERRO: nome obrigatorio" STOP RUN END-IF
 
-           MOVE 0 TO ws-prox-id
-           OPEN INPUT forn-file
-           IF ws-file-status = "35" THEN
-               OPEN OUTPUT forn-file CLOSE forn-file
-               OPEN INPUT forn-file END-IF
-           PERFORM UNTIL 1 = 2
-               READ forn-file NEXT RECORD
-                   AT END EXIT PERFORM
-               END-READ
-               IF fn-id > ws-prox-id THEN MOVE fn-id TO ws-prox-id END-IF
-           END-PERFORM
-           CLOSE forn-file
+           IF ws-id-in NOT = SPACES THEN
+               COMPUTE ws-prox-id = FUNCTION NUMVAL(ws-id-in)
+           ELSE
+               MOVE 0 TO ws-prox-id
+               OPEN INPUT forn-file
+               IF ws-file-status = "35" THEN
+                   MOVE 1 TO ws-prox-id
+               ELSE
+                   PERFORM UNTIL 1 = 2
+                       READ forn-file NEXT RECORD
+                           AT END EXIT PERFORM
+                       END-READ
+                       IF fn-id > ws-prox-id THEN
+                           MOVE fn-id TO ws-prox-id END-IF
+                   END-PERFORM
+                   CLOSE forn-file
+                   ADD 1 TO ws-prox-id
+               END-IF
+           END-IF
 
-           ADD 1 TO ws-prox-id
+           PERFORM ensure-file
            OPEN EXTEND forn-file
            MOVE ws-prox-id TO fn-id
            MOVE ws-nome TO fn-nome
@@ -108,7 +128,8 @@
            MOVE ws-inscricao-mun TO fn-inscricao-mun
            WRITE forn-reg
            CLOSE forn-file
-           DISPLAY ws-prox-id.
+           MOVE ws-prox-id TO ws-id-ed
+           DISPLAY FUNCTION TRIM(ws-id-ed).
 
        alterar.
            ACCEPT ws-id-in FROM ENVIRONMENT "ID"
@@ -132,26 +153,27 @@
                END-READ
                IF fn-id = ws-id THEN
                    MOVE "S" TO ws-encontrou
-                   IF ws-nome NOT = SPACES THEN MOVE ws-nome TO fn-nome END-IF
-                   IF ws-cnpj NOT = SPACES THEN MOVE ws-cnpj TO fn-cnpj END-IF
-                   IF ws-endereco NOT = SPACES THEN MOVE ws-endereco TO fn-endereco END-IF
-                   IF ws-telefone NOT = SPACES THEN MOVE ws-telefone TO fn-telefone END-IF
-                   IF ws-email NOT = SPACES THEN MOVE ws-email TO fn-email END-IF
-                   IF ws-ie NOT = SPACES THEN MOVE ws-ie TO fn-ie END-IF
-                   IF ws-inscricao-mun NOT = SPACES THEN MOVE ws-inscricao-mun TO fn-inscricao-mun END-IF
+                   IF ws-nome NOT = SPACES THEN
+                       MOVE ws-nome TO fn-nome END-IF
+                   IF ws-cnpj NOT = SPACES THEN
+                       MOVE ws-cnpj TO fn-cnpj END-IF
+                   IF ws-endereco NOT = SPACES THEN
+                       MOVE ws-endereco TO fn-endereco END-IF
+                   IF ws-telefone NOT = SPACES THEN
+                       MOVE ws-telefone TO fn-telefone END-IF
+                   IF ws-email NOT = SPACES THEN
+                       MOVE ws-email TO fn-email END-IF
+                   IF ws-ie NOT = SPACES THEN
+                       MOVE ws-ie TO fn-ie END-IF
+                   IF ws-inscricao-mun NOT = SPACES THEN
+                       MOVE ws-inscricao-mun TO fn-inscricao-mun END-IF
                END-IF
-               MOVE fn-id TO tn-id
-               MOVE fn-nome TO tn-nome
-               MOVE fn-cnpj TO tn-cnpj
-               MOVE fn-endereco TO tn-endereco
-               MOVE fn-telefone TO tn-telefone
-               MOVE fn-email TO tn-email
-               MOVE fn-ie TO tn-ie
-               MOVE fn-inscricao-mun TO tn-inscricao-mun
+               MOVE forn-reg TO temp-reg
                WRITE temp-reg
            END-PERFORM
            CLOSE forn-file CLOSE temp-file
-           CALL "system" USING "mv dados/fornecedores.tmp dados/fornecedores.dat"
+           CALL "system" USING
+               "mv dados/fornecedores.tmp dados/fornecedores.dat"
            END-CALL
            IF ws-encontrou = "S" THEN DISPLAY "OK"
            ELSE DISPLAY "ERRO: fornecedor nao encontrado".
@@ -169,20 +191,15 @@
                    AT END EXIT PERFORM
                END-READ
                IF fn-id NOT = ws-id THEN
-                   MOVE fn-id TO tn-id
-                   MOVE fn-nome TO tn-nome
-                   MOVE fn-cnpj TO tn-cnpj
-                   MOVE fn-endereco TO tn-endereco
-                   MOVE fn-telefone TO tn-telefone
-                   MOVE fn-email TO tn-email
-                   MOVE fn-ie TO tn-ie
-                   MOVE fn-inscricao-mun TO tn-inscricao-mun
+                   MOVE forn-reg TO temp-reg
                    WRITE temp-reg
-               ELSE MOVE "S" TO ws-encontrou
+               ELSE
+                   MOVE "S" TO ws-encontrou
                END-IF
            END-PERFORM
            CLOSE forn-file CLOSE temp-file
-           CALL "system" USING "mv dados/fornecedores.tmp dados/fornecedores.dat"
+           CALL "system" USING
+               "mv dados/fornecedores.tmp dados/fornecedores.dat"
            END-CALL
            IF ws-encontrou = "S" THEN DISPLAY "OK"
            ELSE DISPLAY "ERRO: fornecedor nao encontrado".
@@ -193,15 +210,15 @@
                DISPLAY '{"fornecedores":[],"total":0}'
                STOP RUN END-IF
            DISPLAY '{"fornecedores":['
-           MOVE "S" TO ws-encontrou
+           MOVE "S" TO ws-existe
            MOVE 0 TO ws-prox-id
            PERFORM UNTIL 1 = 2
                READ forn-file NEXT RECORD
                    AT END EXIT PERFORM
                END-READ
                ADD 1 TO ws-prox-id
-               IF ws-encontrou = "S" THEN
-                   MOVE "N" TO ws-encontrou
+               IF ws-existe = "S" THEN
+                   MOVE "N" TO ws-existe
                ELSE
                    DISPLAY ","
                END-IF
@@ -222,51 +239,51 @@
            DISPLAY '],"total":' FUNCTION TRIM(ws-total-ed) '}'
            CLOSE forn-file.
 
-        buscar-cnpj.
-            ACCEPT ws-cnpj FROM ENVIRONMENT "CNPJ"
-            MOVE SPACES TO ws-cnpj-trim
-            MOVE 1 TO ws-i
-            PERFORM VARYING ws-i FROM 1 BY 1 UNTIL ws-i > 18
-                IF ws-cnpj(ws-i:1) NOT = SPACE
-                    STRING ws-cnpj-trim DELIMITED BY SPACES
-                           ws-cnpj(ws-i:1) DELIMITED BY SIZE
-                           INTO ws-cnpj-trim
-                END-IF
-            END-PERFORM
-            OPEN INPUT forn-file
-            IF ws-file-status = "35" THEN
-                DISPLAY '{"status":"erro","mensagem":"nao encontrado"}'
-                STOP RUN END-IF
-            MOVE "N" TO ws-encontrou
-            PERFORM UNTIL 1 = 2
-                READ forn-file NEXT RECORD
-                    AT END EXIT PERFORM
-                END-READ
-                MOVE SPACES TO ws-cnpj-arq
-                MOVE 1 TO ws-i
-                PERFORM VARYING ws-i FROM 1 BY 1 UNTIL ws-i > 18
-                    IF fn-cnpj(ws-i:1) NOT = SPACE
-                        STRING ws-cnpj-arq DELIMITED BY SPACES
-                               fn-cnpj(ws-i:1) DELIMITED BY SIZE
-                               INTO ws-cnpj-arq
-                    END-IF
-                END-PERFORM
-                IF ws-cnpj-trim = ws-cnpj-arq
-                    MOVE SPACES TO ws-json-linha
-                    MOVE fn-id TO ws-id-ed
-                    STRING '{"status":"ok","id":' FUNCTION TRIM(ws-id-ed)
-                           ',"cnpj":"' FUNCTION TRIM(fn-cnpj) '"'
-                           ',"nome":"' FUNCTION TRIM(fn-nome) '"'
-                           ',"endereco":"' FUNCTION TRIM(fn-endereco) '"'
-                           ',"telefone":"' FUNCTION TRIM(fn-telefone) '"'
-                           ',"email":"' FUNCTION TRIM(fn-email) '"'
-                           ',"ie":"' FUNCTION TRIM(fn-ie) '"'
-                           ',"inscricao_mun":"' FUNCTION TRIM(fn-inscricao-mun) '"}'
-                        INTO ws-json-linha
-                    DISPLAY FUNCTION TRIM(ws-json-linha)
-                    MOVE "S" TO ws-encontrou
-                END-IF
-            END-PERFORM
-            CLOSE forn-file
-            IF ws-encontrou = "N" THEN
-                DISPLAY '{"status":"erro","mensagem":"nao encontrado"}' END-IF.
+       buscar-cnpj.
+           ACCEPT ws-cnpj FROM ENVIRONMENT "CNPJ"
+           MOVE SPACES TO ws-cnpj-trim
+           PERFORM VARYING ws-i FROM 1 BY 1 UNTIL ws-i > 18
+               IF ws-cnpj(ws-i:1) NOT = SPACE
+                   STRING ws-cnpj-trim DELIMITED BY SPACES
+                          ws-cnpj(ws-i:1) DELIMITED BY SIZE
+                          INTO ws-cnpj-trim
+               END-IF
+           END-PERFORM
+           OPEN INPUT forn-file
+           IF ws-file-status = "35" THEN
+               DISPLAY '{"status":"erro","mensagem":"nao encontrado"}'
+               STOP RUN END-IF
+           MOVE "N" TO ws-encontrou
+           PERFORM UNTIL 1 = 2
+               READ forn-file NEXT RECORD
+                   AT END EXIT PERFORM
+               END-READ
+               MOVE SPACES TO ws-cnpj-arq
+               PERFORM VARYING ws-i FROM 1 BY 1 UNTIL ws-i > 18
+                   IF fn-cnpj(ws-i:1) NOT = SPACE
+                       STRING ws-cnpj-arq DELIMITED BY SPACES
+                              fn-cnpj(ws-i:1) DELIMITED BY SIZE
+                              INTO ws-cnpj-arq
+                   END-IF
+               END-PERFORM
+               IF ws-cnpj-trim = ws-cnpj-arq
+                   MOVE SPACES TO ws-json-linha
+                   MOVE fn-id TO ws-id-ed
+                   STRING '{"status":"ok","id":' FUNCTION TRIM(ws-id-ed)
+                          ',"cnpj":"' FUNCTION TRIM(fn-cnpj) '"'
+                          ',"nome":"' FUNCTION TRIM(fn-nome) '"'
+                          ',"endereco":"' FUNCTION TRIM(fn-endereco) '"'
+                          ',"telefone":"' FUNCTION TRIM(fn-telefone) '"'
+                          ',"email":"' FUNCTION TRIM(fn-email) '"'
+                          ',"ie":"' FUNCTION TRIM(fn-ie) '"'
+                          ',"inscricao_mun":"'
+                              FUNCTION TRIM(fn-inscricao-mun) '"}'
+                       INTO ws-json-linha
+                   DISPLAY FUNCTION TRIM(ws-json-linha)
+                   MOVE "S" TO ws-encontrou
+               END-IF
+           END-PERFORM
+           CLOSE forn-file
+           IF ws-encontrou = "N" THEN
+               DISPLAY '{"status":"erro","mensagem":"nao encontrado"}'
+           END-IF.

@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 from datetime import datetime
+import jsonio
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -48,8 +49,7 @@ def _load(path, default):
 
 def _save(path, data):
     os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    jsonio.save(path, data)
 
 
 def digits(val):
@@ -121,6 +121,7 @@ def resolve_empresa_fiscal(estabelecimento_id=None):
     )
     if razao:
         out["nome"] = razao
+        out["nome_razao"] = razao
     if fantasia:
         out["nome_fantasia"] = fantasia
     cnpj = overlay.get("cnpj") or estab.get("cnpj")
@@ -130,23 +131,24 @@ def resolve_empresa_fiscal(estabelecimento_id=None):
     if ie:
         out["inscricao_est"] = ie
         out["ie"] = ie
-    municipio = overlay.get("municipio") or estab.get("municipio") or estab.get("cidade")
+    # overlay com chave presente (mesmo vazia) é autoritativo = limpeza explícita
+    municipio = overlay["municipio"] if "municipio" in overlay else (estab.get("municipio") or estab.get("cidade"))
     if municipio:
         out["municipio"] = municipio
     if estab.get("cidade") and not out.get("municipio"):
         out["municipio"] = estab["cidade"]
     for key in ("endereco", "cep", "telefone", "email", "cod_municipio"):
-        val = overlay.get(key) if overlay.get(key) not in (None, "") else estab.get(key)
+        val = overlay[key] if key in overlay else estab.get(key)
         if val not in (None, ""):
             out[key] = val
 
-    uf = overlay.get("uf") if overlay.get("uf") not in (None, "") else estab.get("uf")
+    uf = overlay["uf"] if "uf" in overlay else estab.get("uf")
     if uf not in (None, ""):
         out["uf"] = uf
 
     # overlay fiscal / demais
     for k, v in overlay.items():
-        if v is None or v == "":
+        if v is None:
             continue
         if k == "cnpj":
             out[k] = digits(v) or out.get(k)
@@ -204,6 +206,7 @@ def update_estabelecimento(eid, updates, also_fiscal=True):
     for key, val in body.items():
         if val is None:
             continue
+        # vazio explícito = limpar o campo (RFC-008 §2: tirar regime/CNAE desativa a folha)
         if key in ("ie",):
             estab["ie"] = val
             overlay["inscricao_est"] = val
@@ -217,7 +220,7 @@ def update_estabelecimento(eid, updates, also_fiscal=True):
             else:
                 estab[key] = val
             if key in ("nome_razao", "cnpj", "endereco", "cep", "telefone", "email", "cod_municipio", "municipio"):
-                overlay[key if key != "nome_razao" else "nome"] = val if key != "nome_razao" else val
+                overlay[key if key != "nome_razao" else "nome"] = val
             if key == "cidade" and not body.get("municipio"):
                 overlay.setdefault("municipio", val)
             continue
@@ -243,6 +246,37 @@ def update_estabelecimento(eid, updates, also_fiscal=True):
     if eid == estabelecimento_padrao_id():
         sync_legacy_empresa_json(eid)
     return resolve_empresa_fiscal(eid)
+
+
+# ── RFC-008 §5.3 — prontidão da folha (CNAE + regime tributário obrigatórios) ──
+
+FOLHA_REQUIRED = ("nome_razao", "cnpj", "cnae_prim_codigo", "tipo_fiscal", "uf")
+
+
+def folha_prontida(estabelecimento_id=None):
+    """
+    Valida os dados da empresa para a folha (RFC-008 §5.3 / decisão 1):
+    razão social, CNPJ, CNAE principal e regime tributário são obrigatórios.
+    Retorna (pronta, faltantes).
+    """
+    emp = resolve_empresa_fiscal(estabelecimento_id)
+    faltantes = []
+    for campo in FOLHA_REQUIRED:
+        val = emp.get(campo)
+        if not val or str(val).strip() == "":
+            faltantes.append(campo)
+    return (len(faltantes) == 0), faltantes
+
+
+def salvar_empresa_folha(updates):
+    """
+    Grava os dados da empresa (RFC-008 §2) no estabelecimento padrão e
+    devolve o estado pós-gravação com o status de prontidão da folha.
+    Regra 3: CNAE e regime tributário são obrigatórios.
+    """
+    emp = save_emitente_padrao(updates)
+    pronta, faltantes = folha_prontida(emp.get("estabelecimento_id"))
+    return emp, pronta, faltantes
 
 
 def migrate_if_needed(force=False):

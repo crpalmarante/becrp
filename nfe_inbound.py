@@ -1,8 +1,9 @@
 """
 NF-e inbound (RFC-4002) — parse fiscal leve + criação de receiving draft.
 
-Não move estoque. Não cria produto/fornecedor.
-Fluxo: XML → validar → draft Receiving (itens com match opcional).
+Não move estoque.
+Fluxo: XML → validar → draft Receiving (itens com match).
+Auto-cria fornecedor (parceiro SUPPLIER) e produto quando sem match.
 """
 
 from __future__ import annotations
@@ -16,6 +17,18 @@ from xml.etree import ElementTree as ET
 import org_store
 import receiving_mvp
 import product_localization
+
+QTY_DECIMALS = 3
+
+
+def _as_qty(val, default=0.0):
+    try:
+        q = float(val)
+    except (TypeError, ValueError):
+        return float(default)
+    if q < 0:
+        return 0.0
+    return round(q, QTY_DECIMALS)
 
 try:
     from lxml import etree as LET
@@ -145,12 +158,42 @@ def parse_nfe_xml(xml_text_or_bytes):
     dest_nome = _text(_find(dest, "xNome")) if dest is not None else ""
 
     vNF = 0.0
+    total_dict = {}
     if total is not None:
         icms_tot = _find(total, "ICMSTot")
+        if icms_tot is not None:
+            for tag in ("vBC", "vICMS", "vICMSDeson", "vFCP", "vBCST", "vST",
+                        "vFCPST", "vFCPSTRet", "vProd", "vFrete", "vSeg",
+                        "vDesc", "vII", "vIPI", "vIPIDevol", "vPIS", "vCOFINS",
+                        "vOutro", "vNF"):
+                val = _text(_find(icms_tot, tag))
+                if val:
+                    total_dict[tag] = val
         try:
-            vNF = float(_text(_find(icms_tot, "vNF") if icms_tot is not None else None) or 0)
+            vNF = float(total_dict.get("vNF") or 0)
         except ValueError:
             vNF = 0.0
+
+    # cobrança / duplicatas
+    duplicatas = []
+    cobr = _find_direct(inf, "cobr")
+    if cobr is None:
+        cobr = _find(inf, "cobr")
+    if cobr is not None:
+        for dup in cobr:
+            if _local(dup.tag) != "dup":
+                continue
+            n_dup = _text(_find(dup, "nDup"))
+            d_venc = _text(_find(dup, "dVenc"))
+            try:
+                v_dup = float(_text(_find(dup, "vDup")) or 0)
+            except ValueError:
+                v_dup = 0.0
+            duplicatas.append({
+                "n_dup": n_dup,
+                "vencimento": d_venc[:10] if d_venc else "",
+                "valor": v_dup,
+            })
 
     itens = []
     for det in inf.iter():
@@ -185,7 +228,7 @@ def parse_nfe_xml(xml_text_or_bytes):
             "ncm": _digits(_text(_find(prod, "NCM"))),
             "cfop": _text(_find(prod, "CFOP")),
             "unidade": _text(_find(prod, "uCom")) or "UN",
-            "qty": qcom,
+            "qty": _as_qty(qcom),
             "preco_unit": vun,
             "valor": vprod,
         })
@@ -204,6 +247,8 @@ def parse_nfe_xml(xml_text_or_bytes):
         "destinatario_cnpj": dest_cnpj,
         "destinatario_nome": dest_nome,
         "valor_total": vNF,
+        "total": total_dict,
+        "duplicatas": duplicatas,
         "itens": itens,
         "xml_sha256": hashlib.sha256(raw).hexdigest(),
     }
@@ -246,6 +291,108 @@ def match_produto(item, catalog, supplier_cnpj=None):
     )
 
 
+def _ensure_supplier(parsed, user_id=None):
+    """
+    Localiza fornecedor; se not_found e CNPJ válido, cria parceiro SUPPLIER.
+    Retorna (partner_id|None, partner_lookup dict, created bool).
+    """
+    import partner_lookup
+
+    cnpj = _digits(parsed.get("fornecedor_cnpj"))
+    nome = (parsed.get("fornecedor_nome") or "").strip() or f"Fornecedor {cnpj}"
+    pl = partner_lookup.lookup(cnpj=cnpj, role="SUPPLIER", module="receiving.nfe")
+    info = {
+        "status": pl.get("status"),
+        "match": pl.get("match"),
+        "criteria": pl.get("criteria"),
+        "partners": pl.get("partners") or [],
+        "partner": pl.get("partner"),
+        "auto_created": False,
+    }
+    if pl.get("status") == "found" and pl.get("partner"):
+        return pl["partner"]["id"], info, False
+    if pl.get("status") == "multiple":
+        info["partner"] = None
+        return None, info, False
+    if len(cnpj) != 14:
+        info["partner"] = None
+        return None, info, False
+
+    import partners_store
+    created = partners_store.save(
+        {
+            "display_name": nome[:40],
+            "legal_name": nome[:60],
+            "trade_name": nome[:40],
+            "person_type": "COMPANY",
+            "roles": ["SUPPLIER"],
+            "status": "ACTIVE",
+            "documents": [{"document_type": "CNPJ", "document_number": cnpj}],
+            "observacao": f"auto NF-e {_digits(parsed.get('chave'))[:14]}",
+            "ativo": True,
+        },
+        is_new=True,
+    )
+    pid = created.get("id") if created else None
+    info["status"] = "found"
+    info["match"] = "auto_created"
+    info["auto_created"] = True
+    info["partner"] = {
+        "id": pid,
+        "display_name": nome,
+        "legal_name": nome,
+        "documents": [{"document_type": "CNPJ", "document_number": cnpj}],
+    }
+    return pid, info, True
+
+
+def _ensure_product(it, supplier_cnpj, catalog, user_id=None):
+    """Cria produto COBOL + referência fornecedor quando sem match."""
+    import cobol_bridge
+
+    nome = (it.get("descricao") or "Produto NF-e")[:60]
+    ean = _digits(it.get("ean"))
+    ncm = _digits(it.get("ncm"))
+    custo = float(it.get("preco_unit") or 0)
+    pid = cobol_bridge.produtos_incluir({
+        "nome": nome,
+        "preco": custo,
+        "preco_custo": custo,
+        "stock": 0,
+        "ativo": True,
+        "codigo_barras": ean[:14] if ean else "",
+        "unidade": (it.get("unidade") or "UN")[:6],
+        "ncm": ncm[:8] if ncm else "",
+        "fornecedor": _digits(supplier_cnpj)[:18],
+        "fracionado": True,
+    })
+    pid_s = str(pid)
+    try:
+        product_localization.upsert_ref(
+            supplier_cnpj=supplier_cnpj,
+            product_id=pid_s,
+            supplier_code=it.get("codigo_fornecedor"),
+            supplier_description=it.get("descricao"),
+            gtin=ean,
+            product_nome=nome,
+            source="nfe_auto",
+            user_id=user_id,
+        )
+    except Exception:
+        pass
+    catalog.append({
+        "id": pid,
+        "nome": nome,
+        "codigo_barras": ean,
+        "ncm": ncm,
+    })
+    return {
+        "produto_id": pid_s,
+        "produto_nome": nome,
+        "match": "auto_created",
+    }
+
+
 def _store_xml(chave, raw: bytes):
     os.makedirs(XML_STORE, exist_ok=True)
     path = os.path.join(XML_STORE, f"{chave}.xml")
@@ -264,9 +411,17 @@ def find_by_chave(chave):
     return None
 
 
-def create_receiving_from_nfe(xml_text_or_bytes, *, estabelecimento_id=None, user_id=None, catalog=None):
+def create_receiving_from_nfe(
+    xml_text_or_bytes,
+    *,
+    estabelecimento_id=None,
+    user_id=None,
+    catalog=None,
+    auto_create=True,
+):
     """
     Valida XML, resolve loja, faz match de produtos, cria draft origem=nfe.
+    auto_create=True: cria fornecedor e produtos sem match.
     """
     if isinstance(xml_text_or_bytes, str):
         raw = xml_text_or_bytes.encode("utf-8", errors="replace")
@@ -291,38 +446,65 @@ def create_receiving_from_nfe(xml_text_or_bytes, *, estabelecimento_id=None, use
             catalog = cobol_bridge.produtos_listar() or []
         except Exception:
             catalog = []
+    else:
+        catalog = list(catalog)
+
+    supplier_cnpj = parsed.get("fornecedor_cnpj") or ""
+    fornecedor_id = None
+    partner_info = {}
+    auto_supplier = False
+    try:
+        if auto_create:
+            fornecedor_id, partner_info, auto_supplier = _ensure_supplier(parsed, user_id=user_id)
+        else:
+            import partner_lookup
+            pl = partner_lookup.lookup(
+                cnpj=supplier_cnpj, role="SUPPLIER", module="receiving.nfe"
+            )
+            partner_info = {
+                "status": pl.get("status"),
+                "match": pl.get("match"),
+                "criteria": pl.get("criteria"),
+                "partners": pl.get("partners") or [],
+                "partner": pl.get("partner"),
+                "auto_created": False,
+            }
+            if pl.get("status") == "found" and pl.get("partner"):
+                fornecedor_id = pl["partner"]["id"]
+    except Exception as e:
+        partner_info = {"status": "error", "error": str(e), "auto_created": False}
 
     items = []
     pending = 0
-    supplier_cnpj = parsed.get("fornecedor_cnpj") or ""
+    auto_products = 0
     for it in parsed["itens"]:
-        m = match_produto(it, catalog, supplier_cnpj=supplier_cnpj)
-        qty = it.get("qty") or 0
-        try:
-            qty_i = int(round(float(qty)))
-        except (TypeError, ValueError):
-            qty_i = 0
-        if qty_i <= 0 and float(qty or 0) > 0:
-            # fracionado: arredonda para cima mínimo 1 se <1? keep round
-            qty_i = max(1, int(round(float(qty)))) if float(qty) >= 0.5 else 0
-        if qty_i <= 0:
+        qty = _as_qty(it.get("qty"))
+        if qty <= 0:
             continue
-        if m["match"] == "none":
+        m = match_produto(it, catalog, supplier_cnpj=supplier_cnpj)
+        if m["match"] == "none" and auto_create:
+            try:
+                m = _ensure_product(it, supplier_cnpj, catalog, user_id=user_id)
+                auto_products += 1
+            except Exception:
+                pending += 1
+        elif m["match"] == "none":
             pending += 1
         row = {
-            "produto_id": m["produto_id"] or "",
-            "produto_nome": m["produto_nome"] or it.get("descricao") or "",
-            "qty_expected": qty_i,
+            "produto_id": m.get("produto_id") or "",
+            "produto_nome": m.get("produto_nome") or it.get("descricao") or "",
+            "qty_expected": qty,
             "qty_verified": None,
             "unidade": it.get("unidade") or "UN",
-            "match": m["match"],
+            "match": m.get("match") or "none",
             "nfe_item": {
                 "n_item": it.get("n_item"),
                 "codigo_fornecedor": it.get("codigo_fornecedor"),
                 "ean": it.get("ean"),
                 "descricao": it.get("descricao"),
                 "ncm": it.get("ncm"),
-                "qty_xml": it.get("qty"),
+                "cfop": it.get("cfop"),
+                "qty_xml": qty,
                 "preco_unit": it.get("preco_unit"),
             },
         }
@@ -334,18 +516,25 @@ def create_receiving_from_nfe(xml_text_or_bytes, *, estabelecimento_id=None, use
         raise ValueError("nenhum item com quantidade válida")
 
     xml_path = _store_xml(parsed["chave"], raw)
+    fornecedor_nome = parsed.get("fornecedor_nome") or ""
+    if partner_info.get("partner"):
+        fornecedor_nome = (
+            partner_info["partner"].get("display_name")
+            or partner_info["partner"].get("legal_name")
+            or fornecedor_nome
+        )
 
-    # create via receiving_mvp with relaxed items (allow empty produto_id)
     payload = {
         "estabelecimento_id": eid,
         "origem": "nfe",
-        "fornecedor_nome": parsed.get("fornecedor_nome") or "",
-        "fornecedor_cnpj": parsed.get("fornecedor_cnpj") or "",
-        "fornecedor_id": None,
+        "fornecedor_nome": fornecedor_nome,
+        "fornecedor_cnpj": supplier_cnpj,
+        "fornecedor_id": fornecedor_id,
         "documento_ref": parsed["chave"],
         "nota": f"NF-e {parsed.get('numero')}/{parsed.get('serie')} · {parsed.get('emissao')}",
         "items": items,
         "allow_unmatched": True,
+        "partner_lookup": partner_info,
         "nfe": {
             "chave": parsed["chave"],
             "modelo": parsed["modelo"],
@@ -353,43 +542,18 @@ def create_receiving_from_nfe(xml_text_or_bytes, *, estabelecimento_id=None, use
             "serie": parsed.get("serie"),
             "emissao": parsed.get("emissao"),
             "valor_total": parsed.get("valor_total"),
+            "total": parsed.get("total") or {},
+            "duplicatas": parsed.get("duplicatas") or [],
             "destinatario_cnpj": parsed.get("destinatario_cnpj"),
-            "fornecedor_cnpj": parsed.get("fornecedor_cnpj"),
+            "fornecedor_cnpj": supplier_cnpj,
             "xml_path": xml_path,
             "xml_sha256": parsed.get("xml_sha256"),
             "resolve_estabelecimento": resolve_status,
             "itens_sem_match": pending,
+            "auto_created_supplier": auto_supplier,
+            "auto_created_products": auto_products,
         },
     }
-
-    # RFC-4005: localiza fornecedor (não cria)
-    try:
-        import partner_lookup
-        pl = partner_lookup.lookup(
-            cnpj=parsed.get("fornecedor_cnpj"),
-            role="SUPPLIER",
-            module="receiving.nfe",
-        )
-        payload["partner_lookup"] = {
-            "status": pl.get("status"),
-            "match": pl.get("match"),
-            "criteria": pl.get("criteria"),
-            "partners": pl.get("partners") or [],
-        }
-        if pl.get("status") == "found" and pl.get("partner"):
-            payload["fornecedor_id"] = pl["partner"]["id"]
-            payload["fornecedor_nome"] = (
-                pl["partner"].get("display_name")
-                or pl["partner"].get("legal_name")
-                or payload["fornecedor_nome"]
-            )
-            payload["partner_lookup"]["partner"] = pl["partner"]
-        elif pl.get("status") == "multiple":
-            payload["partner_lookup"]["partner"] = None
-        else:
-            payload["partner_lookup"]["partner"] = None
-    except Exception as e:
-        payload["partner_lookup"] = {"status": "error", "error": str(e)}
 
     rec = receiving_mvp.create_receiving(payload, user_id=user_id)
     return rec

@@ -21,6 +21,18 @@
 
 ---
 
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 # 1. Objetivo
 
 Definir o modelo de dados do **Business Partner (BP)**, a entidade central responsável por representar qualquer pessoa física, pessoa jurídica ou organização com a qual a empresa mantém relacionamento.

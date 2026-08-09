@@ -10,6 +10,18 @@ Botão que mantém estado ligado/desligado. Usado em toolbars, filtros e grupos 
 
 ---
 
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 # 1. Visão Geral
 
 Toggle Button é um botão que alterna entre dois estados: ativo e inativo. Diferente do checkbox, ele é visual e imediatamente perceptível como botão.

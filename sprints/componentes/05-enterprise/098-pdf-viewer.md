@@ -10,6 +10,18 @@ Visualizador de PDF embutido via PDF.js. Suporta navegação de páginas, zoom e
 
 ---
 
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 ```js
 class UIPDFViewer extends UIComponent {
     constructor(options = {}) {

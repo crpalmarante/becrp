@@ -81,10 +81,29 @@ def calcular_iss(valor_base: float, uf: str = "", alq: float = 0) -> dict:
     return {"vBC": valor_base, "pISS": alq, "vISS": valor_base * alq / 100}
 
 
+def calcular_ibs_cbs(valor_base: float, ncm: str = "") -> dict:
+    """Calcula IBS/CBS (Reforma Tributária) via COBOL."""
+    try:
+        import fiscal_reforma_store
+        result = fiscal_reforma_store.calcular(valor_base, ncm=ncm, contexto="tributos")
+        return {
+            "vBC_ibs_cbs": result.get("valor_operacao", valor_base),
+            "pCBS": result.get("aliquota_cbs", 0.6),
+            "vCBS": result.get("cbs", 0),
+            "pIBS": result.get("aliquota_ibs", 17.0),
+            "vIBS": result.get("ibs", 0),
+            "reducao_base": result.get("reducao_base", 0),
+        }
+    except Exception:
+        return {"vBC_ibs_cbs": valor_base, "pCBS": 0.6, "vCBS": 0, "pIBS": 17.0, "vIBS": 0, "reducao_base": 0}
+
+
 def calcular_tributos(item: dict, uf_origem: str, uf_destino: str, regime: str = "SN",
                        regime_pis: str = "cumulativo") -> dict:
     valor = float(item.get("subtotal", float(item.get("preco", 0)) * float(item.get("qtd", 1))))
+    ncm = item.get("ncm") or ""
     icms = calcular_icms(valor, uf_origem, uf_destino, regime)
     pis_cofins = calcular_pis_cofins(valor, regime_pis)
     ipi = calcular_ipi(valor)
-    return {**icms, **pis_cofins, **ipi}
+    ibs_cbs = calcular_ibs_cbs(valor, ncm=ncm)
+    return {**icms, **pis_cofins, **ipi, **ibs_cbs}

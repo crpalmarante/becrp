@@ -12,6 +12,7 @@ import os
 from datetime import datetime
 
 import inventory_mvp
+import quality_checks_store
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
@@ -56,25 +57,36 @@ def _now():
     return datetime.now().isoformat(timespec="seconds")
 
 
+QTY_DECIMALS = 3
+
+
+def _as_qty(val, default=0.0):
+    try:
+        q = float(val)
+    except (TypeError, ValueError):
+        return float(default)
+    if q < 0:
+        return 0.0
+    return round(q, QTY_DECIMALS)
+
+
+def _qty_eq(a, b, eps=0.0005):
+    return abs(float(a) - float(b)) <= eps
+
+
 def _normalize_items(items, allow_unmatched=False):
     out = []
     for it in items or []:
         if not isinstance(it, dict):
             continue
         pid = str(it.get("produto_id") or it.get("id") or "").strip()
-        try:
-            expected = int(round(float(it.get("qty_expected") or it.get("qty") or it.get("quantidade") or 0)))
-        except (TypeError, ValueError):
-            expected = 0
+        expected = _as_qty(it.get("qty_expected") or it.get("qty") or it.get("quantidade") or 0)
         if expected <= 0:
             continue
         if not pid and not allow_unmatched:
             continue
         verified_raw = it.get("qty_verified")
-        try:
-            verified = int(round(float(verified_raw))) if verified_raw is not None else None
-        except (TypeError, ValueError):
-            verified = None
+        verified = _as_qty(verified_raw) if verified_raw is not None else None
         row = {
             "produto_id": pid,
             "produto_nome": (it.get("produto_nome") or it.get("nome") or "").strip(),
@@ -82,6 +94,7 @@ def _normalize_items(items, allow_unmatched=False):
             "qty_verified": verified,
             "unidade": (it.get("unidade") or "UN").strip() or "UN",
             "match": it.get("match") or ("ok" if pid else "none"),
+            "preco": float(it.get("preco") or it.get("custo") or 0),
         }
         if isinstance(it.get("nfe_item"), dict):
             row["nfe_item"] = it["nfe_item"]
@@ -145,6 +158,7 @@ def create_receiving(payload, user_id=None):
         "fornecedor_cnpj": (body.get("fornecedor_cnpj") or "").strip(),
         "documento_ref": (body.get("documento_ref") or body.get("document_ref") or "").strip(),
         "nota": (body.get("nota") or body.get("notes") or "").strip(),
+        "pedido_compra_id": body.get("pedido_compra_id") or body.get("pedido_id") or None,
         "items": items,
         "nfe": body.get("nfe") if isinstance(body.get("nfe"), dict) else None,
         "partner_lookup": body.get("partner_lookup") if isinstance(body.get("partner_lookup"), dict) else None,
@@ -338,6 +352,7 @@ def resolve_partner_on_receiving(rid, user_id=None):
 
 
 def _as_int(val, default=0):
+    """Compat: inteiro arredondado (IDs, contagens). Preferir _as_qty para quantidades."""
     try:
         return int(round(float(val)))
     except (TypeError, ValueError):
@@ -350,9 +365,9 @@ def _digits(val):
 
 def classify_item_result(it):
     """RFC-4008: classifica resultado físico do item (não move estoque)."""
-    expected = _as_int(it.get("qty_expected"))
-    good = _as_int(it.get("qty_verified"))
-    damaged = max(0, _as_int(it.get("qty_damaged")))
+    expected = _as_qty(it.get("qty_expected"))
+    good = _as_qty(it.get("qty_verified"))
+    damaged = max(0.0, _as_qty(it.get("qty_damaged")))
     rejected = bool(it.get("rejected"))
     if rejected:
         return "rejected"
@@ -360,10 +375,10 @@ def classify_item_result(it):
         return "missing"
     if damaged > 0 and good == 0 and expected > 0:
         return "damaged"
-    if good != expected or damaged > 0:
-        if damaged > 0 and good == expected:
+    if not _qty_eq(good, expected) or damaged > 0:
+        if damaged > 0 and _qty_eq(good, expected):
             return "damaged"
-        return "quantity_difference" if good != expected else "damaged"
+        return "quantity_difference" if not _qty_eq(good, expected) else "damaged"
     return "verified"
 
 
@@ -371,9 +386,9 @@ def _build_verification_summary(rec, user_id=None, method="manual"):
     items_out = []
     diffs = 0
     for it in rec.get("items") or []:
-        expected = _as_int(it.get("qty_expected"))
-        good = _as_int(it.get("qty_verified"))
-        damaged = max(0, _as_int(it.get("qty_damaged")))
+        expected = _as_qty(it.get("qty_expected"))
+        good = _as_qty(it.get("qty_verified"))
+        damaged = max(0.0, _as_qty(it.get("qty_damaged")))
         result = classify_item_result(it)
         if result != "verified":
             diffs += 1
@@ -501,11 +516,11 @@ def verify_receiving(rid, payload=None, user_id=None):
             key = ("pid", pid)
         entry = {}
         if it.get("qty_verified") is not None or it.get("qty") is not None:
-            entry["qty_verified"] = max(0, _as_int(
+            entry["qty_verified"] = max(0.0, _as_qty(
                 it.get("qty_verified") if it.get("qty_verified") is not None else it.get("qty")
             ))
         if it.get("qty_damaged") is not None:
-            entry["qty_damaged"] = max(0, _as_int(it.get("qty_damaged")))
+            entry["qty_damaged"] = max(0.0, _as_qty(it.get("qty_damaged")))
         if "notes" in it:
             entry["notes"] = str(it.get("notes") or "").strip()
         if "rejected" in it:
@@ -518,28 +533,31 @@ def verify_receiving(rid, payload=None, user_id=None):
         if "qty_verified" in ov:
             it["qty_verified"] = ov["qty_verified"]
         elif it.get("qty_verified") is None:
-            it["qty_verified"] = _as_int(it.get("qty_expected"))
+            it["qty_verified"] = _as_qty(it.get("qty_expected"))
         if "qty_damaged" in ov:
             it["qty_damaged"] = ov["qty_damaged"]
         elif it.get("qty_damaged") is None:
-            it["qty_damaged"] = 0
+            it["qty_damaged"] = 0.0
         if "notes" in ov:
             it["notes"] = ov["notes"]
         if "rejected" in ov:
             it["rejected"] = ov["rejected"]
         it["verify_result"] = classify_item_result(it)
-        it["qty_difference"] = _as_int(it.get("qty_verified")) - _as_int(it.get("qty_expected"))
+        it["qty_difference"] = round(
+            _as_qty(it.get("qty_verified")) - _as_qty(it.get("qty_expected")),
+            QTY_DECIMALS,
+        )
 
     # permite concluir só com divergências (faltando tudo) se allow_empty
     has_any = any(
-        _as_int(it.get("qty_verified")) > 0 or bool(it.get("rejected"))
-        or _as_int(it.get("qty_damaged")) > 0
+        _as_qty(it.get("qty_verified")) > 0 or bool(it.get("rejected"))
+        or _as_qty(it.get("qty_damaged")) > 0
         or classify_item_result(it) == "missing"
         for it in rec.get("items") or []
     )
     if not has_any:
         raise ValueError("nenhum item conferido")
-    if not any(_as_int(it.get("qty_verified")) > 0 for it in rec.get("items") or []):
+    if not any(_as_qty(it.get("qty_verified")) > 0 for it in rec.get("items") or []):
         if not body.get("allow_zero_receive"):
             raise ValueError(
                 "nenhum item com qty boa > 0 — use allow_zero_receive=true para registrar só faltas/avarias"
@@ -586,7 +604,9 @@ def scan_receiving_item(rid, barcode, qty=1, user_id=None):
     code = _digits(barcode) or str(barcode or "").strip()
     if not code:
         raise ValueError("código de barras vazio")
-    add = max(1, _as_int(qty, 1))
+    add = _as_qty(qty, 1.0)
+    if add <= 0:
+        add = 1.0
 
     data = _load()
     rec = None
@@ -658,12 +678,15 @@ def scan_receiving_item(rid, barcode, qty=1, user_id=None):
         raise ValueError(f"código não encontrado neste recebimento: {code}")
 
     it = rec["items"][hit_idx]
-    cur = _as_int(it.get("qty_verified")) if it.get("qty_verified") is not None else 0
-    it["qty_verified"] = cur + add
+    cur = _as_qty(it.get("qty_verified")) if it.get("qty_verified") is not None else 0.0
+    it["qty_verified"] = round(cur + add, QTY_DECIMALS)
     if it.get("qty_damaged") is None:
-        it["qty_damaged"] = 0
+        it["qty_damaged"] = 0.0
     it["verify_result"] = classify_item_result(it)
-    it["qty_difference"] = _as_int(it.get("qty_verified")) - _as_int(it.get("qty_expected"))
+    it["qty_difference"] = round(
+        _as_qty(it.get("qty_verified")) - _as_qty(it.get("qty_expected")),
+        QTY_DECIMALS,
+    )
     rec.setdefault("events", []).append({
         "at": _now(),
         "tipo": "verification_item_scanned",
@@ -709,10 +732,12 @@ def reopen_verification(rid, user_id=None):
     return rec
 
 
-def complete_receiving(rid, user_id=None, auto_verify=False):
+def complete_receiving(rid, user_id=None, auto_verify=False, quality_respostas=None, force_quality=None):
     """
     Confirma recebimento e pede entrada ao Inventário.
     Se auto_verify=True e ainda draft, confere qty_expected automaticamente.
+    quality_respostas: respostas do quality check; se omitido, usa aprovado se nenhum crítico exigir.
+    force_quality: ignora resultado rejected e conclui mesmo assim (supervisor).
     """
     data = _load()
     rec = None
@@ -734,14 +759,25 @@ def complete_receiving(rid, user_id=None, auto_verify=False):
         data = _load()
         rec = next(r for r in data["receivings"] if str(r.get("id")) == str(rid))
 
-    if rec.get("status") != "verified":
+    if rec.get("status") not in ("verified", "quality_rejected"):
         raise ValueError(f"status inválido para conclusão: {rec.get('status')}")
+    if rec.get("status") == "quality_rejected" and not force_quality:
+        raise ValueError("recebimento rejeitado por qualidade — use force_quality para concluir")
     if unmatched_count(rec):
         raise ValueError("há itens sem produto — não conclui inventário")
 
+    # Quality check
+    qc = quality_checks_store.avaliar(rec["id"], quality_respostas or {}, usuario=user_id or "")
+    rec["quality_check"] = qc
+    if qc["resultado"] == "rejected" and not force_quality:
+        rec["status"] = "quality_rejected"
+        rec.setdefault("events", []).append({"at": _now(), "tipo": "quality_rejected", "by": user_id, "qc": qc})
+        _save(data)
+        raise ValueError(f"quality check REJEITADO: {qc['ok_count']}/{qc['total']} aprovado(s)")
+
     items = []
     for it in rec.get("items") or []:
-        q = int(it.get("qty_verified") or 0)
+        q = _as_qty(it.get("qty_verified"))
         pid = str(it.get("produto_id") or "").strip()
         if q <= 0 or not pid:
             continue
@@ -776,6 +812,84 @@ def complete_receiving(rid, user_id=None, auto_verify=False):
         "movement_ids": inv.get("movement_ids") or [],
         "completed_at": inv.get("completed_at"),
     }
+
+    # RFC-4011 / escrituração + RFC-4010 AP
+    if (rec.get("origem") == "nfe" or (rec.get("nfe") or {}).get("chave")):
+        try:
+            import nfe_entrada_store
+            parsed = None
+            xml_path = (rec.get("nfe") or {}).get("xml_path")
+            if xml_path and os.path.exists(xml_path):
+                try:
+                    import nfe_inbound
+                    with open(xml_path, "rb") as xf:
+                        parsed = nfe_inbound.parse_nfe_xml(xf.read())
+                except Exception:
+                    parsed = None
+            entrada = nfe_entrada_store.upsert_from_receiving(rec, parsed=parsed)
+            rec["nfe_entrada"] = {"chave": entrada.get("chave"), "status": entrada.get("status")}
+        except Exception as e:
+            rec["nfe_entrada"] = {"ok": False, "error": str(e)}
+        try:
+            import purchase_finance
+            ap = purchase_finance.create_from_receiving(rec, usuario=user_id or "")
+            rec["accounts_payable"] = {
+                "already": ap.get("already"),
+                "titulos": [t.get("id") for t in (ap.get("titulos") or [])],
+                "count": len(ap.get("titulos") or []),
+            }
+        except Exception as e:
+            rec["accounts_payable"] = {"ok": False, "error": str(e)}
+
+    # Gera recebimento WMS a partir do recebimento fiscal
+    try:
+        import wms_receiving
+        import wms_warehouses
+        armazem = wms_warehouses.map_estabelecimento_to_armazem(rec.get("estabelecimento_id"))
+        if armazem:
+            wms_lines = []
+            for i, it in enumerate(rec.get("items") or [], start=1):
+                if not str(it.get("produto_id") or "").strip():
+                    continue
+                wms_lines.append({
+                    "linha": i,
+                    "produto_id": str(it.get("produto_id")),
+                    "produto": it.get("produto_nome") or "",
+                    "qtd_esperada": float(it.get("qty_verified") or it.get("qty_expected") or 0),
+                    "qtd_recebida": float(it.get("qty_verified") or 0),
+                    "qtd_aprovada": float(it.get("qty_verified") or 0),
+                    "loc_destino": "",
+                    "inspecao": "approved",
+                })
+            if wms_lines:
+                loc_receb = wms_warehouses.get_default_receiving_location(armazem)
+                wms_rec = wms_receiving.create_recebimento({
+                    "armazem": armazem,
+                    "origem": "compra" if rec.get("origem") in ("manual", "nfe") else (rec.get("origem") or "supplier"),
+                    "documento_tipo": "receiving",
+                    "documento_ref": f"RCV-{rec['id']}",
+                    "parceiro": rec.get("fornecedor_nome") or "",
+                    "loc_recebimento": loc_receb,
+                    "linhas": wms_lines,
+                }, usuario=user_id or "")
+                rec["wms_recebimento_id"] = wms_rec.get("id")
+    except Exception:
+        pass
+
+    # Atualiza pedido de compra vinculado, se houver
+    if rec.get("pedido_compra_id"):
+        try:
+            import compras_store
+            pid = rec["pedido_compra_id"]
+            pedido = compras_store.get(pid)
+            if pedido:
+                pedido["recebimento_id"] = str(rec["id"])
+                pedido["recebimento_num"] = f"RCV-{rec['id']}"
+                pedido["status"] = "recebido"
+                compras_store.save(pedido)
+        except Exception:
+            pass
+
     rec.setdefault("events", []).append({
         "at": _now(),
         "tipo": "completed",

@@ -10,6 +10,18 @@ Toggle switch (ligado/desligado). Alternativa visual ao checkbox para valores bo
 
 ---
 
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 ```js
 class UISwitch extends UIComponent {
     constructor(options = {}) {

@@ -5,6 +5,8 @@ from datetime import datetime
 from typing import Optional
 from lxml import etree
 
+from .tributos import calcular_ibs_cbs
+
 NS_NFE = "http://www.portalfiscal.inf.br/nfe"
 
 
@@ -226,6 +228,10 @@ def montar_envi_nfe(
 
     total_prod = 0.0
     total_desc = 0.0
+    total_ipi = 0.0
+    total_trib = 0.0
+    total_cbs = 0.0
+    total_ibs = 0.0
 
     for idx, item in enumerate(venda.get("itens", []), 1):
         prod_id = item.get("prod_id", idx)
@@ -347,8 +353,37 @@ def montar_envi_nfe(
             _add_d(cof_outr, "pCOFINS", 0)
             _add_d(cof_outr, "vCOFINS", 0)
 
+        if item.get("ipi_cst") or item.get("ipi_alq") or item.get("ipi"):
+            ipi_alq = float(item.get("ipi_alq") or item.get("ipi") or 0)
+            ipi = etree.SubElement(imp, _tag("IPI"))
+            _add(ipi, "cEnq", str(item.get("ipi_enquadramento", "999")))
+            if ipi_alq > 0:
+                trib = etree.SubElement(ipi, _tag("IPITrib"))
+                _add(trib, "CST", str(item.get("ipi_cst", "50")))
+                _add_d(trib, "vBC", valor_liquido)
+                _add_d(trib, "pIPI", ipi_alq)
+                valor_ipi = valor_liquido * ipi_alq / 100
+                _add_d(trib, "vIPI", valor_ipi)
+                total_ipi += valor_ipi
+            else:
+                pin = etree.SubElement(ipi, _tag("IPINT"))
+                _add(pin, "CST", str(item.get("ipi_cst", "53")))
+
+        # Reforma Tributária: IBS/CBS (informado em infAdProd)
+        ibs_cbs = calcular_ibs_cbs(valor_liquido, ncm=ncm_raw)
+        total_cbs += float(ibs_cbs.get("vCBS", 0))
+        total_ibs += float(ibs_cbs.get("vIBS", 0))
+        total_trib += float(ibs_cbs.get("vCBS", 0)) + float(ibs_cbs.get("vIBS", 0))
+        inf_ad_prod = etree.SubElement(det, _tag("infAdProd"))
+        inf_ad_prod.text = (
+            f"IBS/CBS: BC {ibs_cbs['vBC_ibs_cbs']:.2f}; "
+            f"CBS {ibs_cbs['pCBS']:.2f}% = {ibs_cbs['vCBS']:.2f}; "
+            f"IBS {ibs_cbs['pIBS']:.2f}% = {ibs_cbs['vIBS']:.2f}"
+        )
+
         total_prod += subtotal
         total_desc += desconto_item
+        total_trib += float(item.get("vTotTrib", 0))
 
     total = etree.SubElement(nfe, _tag("total"))
     it = etree.SubElement(total, _tag("ICMSTot"))
@@ -358,18 +393,30 @@ def montar_envi_nfe(
     _add_d(it, "vFCP", 0)
     _add_d(it, "vBCST", 0)
     _add_d(it, "vST", 0)
+    _add_d(it, "vFCPST", float(venda.get("vFCPST", 0)))
+    _add_d(it, "vFCPSTRet", float(venda.get("vFCPSTRet", 0)))
     _add_d(it, "vProd", total_prod)
     _add_d(it, "vFrete", float(venda.get("frete", 0)))
     _add_d(it, "vSeg", float(venda.get("seguro", 0)))
     _add_d(it, "vDesc", total_desc)
     _add_d(it, "vII", 0)
-    _add_d(it, "vIPI", 0)
+    _add_d(it, "vIPI", total_ipi)
     _add_d(it, "vIPIDevol", 0)
     _add_d(it, "vPIS", 0)
     _add_d(it, "vCOFINS", 0)
     _add_d(it, "vOutro", float(venda.get("outras_despesas", 0)))
     vnf = total_prod - total_desc + float(venda.get("frete", 0)) + float(venda.get("seguro", 0)) + float(venda.get("outras_despesas", 0))
     _add_d(it, "vNF", vnf)
+    _add_d(it, "vTotTrib", total_trib)
+
+    # Armazena IBS/CBS em extensão do total para consumo interno (não enviado ao SEFAZ como tag oficial)
+    venda["_ibs_cbs"] = {
+        "vBC_ibs_cbs": round(vnf, 2),
+        "vCBS": round(total_cbs, 2),
+        "vIBS": round(total_ibs, 2),
+        "pCBS": ibs_cbs.get("pCBS", 0.6),
+        "pIBS": ibs_cbs.get("pIBS", 17.0),
+    }
 
     transp = etree.SubElement(nfe, _tag("transp"))
     _add(transp, "modFrete", str(venda.get("modFrete", "9")))
@@ -404,7 +451,6 @@ def montar_envi_nfe(
 
     pag = etree.SubElement(nfe, _tag("pag"))
     dp = etree.SubElement(pag, _tag("detPag"))
-    _add(dp, "indPag", "0")
     tpag = "01"
     fp = venda.get("forma_pg", "")
     mapa_pag = {"DINHEIRO":"01","CHEQUE":"02","CARTAO":"03","CREDITO":"03","DEBITO":"03",
@@ -414,12 +460,19 @@ def montar_envi_nfe(
             tpag = cod
             break
     _add(dp, "tPag", tpag)
+    if tpag == "17" and venda.get("pix_chave"):
+        _add(dp, "xPag", str(venda["pix_chave"])[:60])
     _add_d(dp, "vPag", vnf)
 
     inf_adic = etree.SubElement(nfe, _tag("infAdic"))
     inf_cpl = f"Venda #{venda.get('id', '')} - {fp}"
     if venda.get("infCpl"):
         inf_cpl += f" - {venda['infCpl']}"
+    inf_cpl += (
+        f" | IBS/CBS: BC {venda['_ibs_cbs']['vBC_ibs_cbs']:.2f};"
+        f" CBS {venda['_ibs_cbs']['pCBS']:.2f}%={venda['_ibs_cbs']['vCBS']:.2f};"
+        f" IBS {venda['_ibs_cbs']['pIBS']:.2f}%={venda['_ibs_cbs']['vIBS']:.2f}"
+    )
     _add(inf_adic, "infCpl", inf_cpl[:5000])
     if venda.get("infAdFisco"):
         _add(inf_adic, "infAdFisco", venda["infAdFisco"][:2000])

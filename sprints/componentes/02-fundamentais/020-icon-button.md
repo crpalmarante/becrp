@@ -10,6 +10,18 @@ Botão composto apenas por ícone. Usado para ações compactas em toolbars, tab
 
 ---
 
+## Platform Philosophy
+
+> **Simple is always better than complex.**
+> Simples é sempre melhor do que complexo.
+
+Design systems that are easy to understand, easy to maintain, easy to extend, and easy to use.
+Avoid unnecessary abstractions. Prefer explicit behavior over hidden magic.
+Every feature should solve a real business problem.
+Performance and maintainability always come first.
+
+---
+
 # 1. Visão Geral
 
 O Icon Button é um botão que exibe apenas um ícone (sem label). Leva menos espaço e é usado em contextos onde a ação é evidente pelo ícone (lixeira = excluir, lápis = editar).

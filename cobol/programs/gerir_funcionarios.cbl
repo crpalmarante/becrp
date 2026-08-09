@@ -11,9 +11,33 @@
                FILE STATUS IS ws-file-status.
            SELECT temp-file ASSIGN TO "dados/funcionarios.tmp"
                ORGANIZATION IS LINE SEQUENTIAL.
+           SELECT dep-file ASSIGN TO "dados/departamentos.dat"
+               ORGANIZATION IS LINE SEQUENTIAL
+               FILE STATUS IS ws-ref-status.
+           SELECT cr-file ASSIGN TO "dados/cargos.dat"
+               ORGANIZATION IS LINE SEQUENTIAL
+               FILE STATUS IS ws-ref-status.
 
        DATA DIVISION.
        FILE SECTION.
+       FD dep-file.
+       01 dep-reg.
+           05 dep-id              PIC 9(3).
+           05 dep-codigo          PIC X(10).
+           05 dep-descricao       PIC X(50).
+           05 dep-centro-custo    PIC X(20).
+           05 dep-responsavel     PIC X(40).
+           05 dep-status          PIC X(8).
+
+       FD cr-file.
+       01 cr-reg.
+           05 cr-id               PIC 9(3).
+           05 cr-codigo           PIC X(10).
+           05 cr-descricao        PIC X(50).
+           05 cr-cbo              PIC X(6).
+           05 cr-salario-ref      PIC 9(7)V99.
+           05 cr-status           PIC X(8).
+
        FD fn-file.
        01 fn-reg.
            05 fn-id              PIC 9(3).
@@ -74,11 +98,34 @@
             05 fn-grau-instrucao  PIC X(25).
             05 fn-tipo-contrato   PIC X(20).
             05 fn-motivo-deslig   PIC X(30).
-            05 fn-vt-desconto     PIC 9(3)V99.
-            05 fn-vt-dias         PIC 9(2).
-            05 fn-vr              PIC 9(5)V99.
+             05 fn-vt-desconto     PIC 9(3)V99.
+             05 fn-vt-dias         PIC 9(2).
+             05 fn-vt-optante      PIC X.
+             05 fn-vr              PIC 9(5)V99.
             05 fn-plano-saude     PIC X(30).
             05 fn-plano-saude-valor PIC 9(5)V99.
+            05 fn-supervisor-id   PIC 9(3).
+            05 fn-sexo            PIC X.
+            05 fn-estado-civil    PIC X(20).
+            05 fn-nacionalidade   PIC X(30).
+            05 fn-rg-orgao        PIC X(20).
+            05 fn-rg-uf           PIC X(2).
+            05 fn-titulo-eleitor  PIC X(15).
+            05 fn-cep             PIC X(9).
+            05 fn-cidade          PIC X(40).
+            05 fn-uf              PIC X(2).
+            05 fn-situacao-vinculo PIC X(20).
+            05 fn-departamento    PIC X(30).
+            05 fn-data-posse-cargo PIC X(10).
+            05 fn-forma-pagamento PIC X(15).
+            05 fn-meio-pagamento  PIC X(20).
+            05 fn-carga-horaria-mensal PIC 9(3).
+            05 fn-exame-adm-venc  PIC X(10).
+            05 fn-observacoes     PIC X(120).
+            05 fn-pensao-tipo     PIC X.
+            05 fn-pensao-valor    PIC 9(5)V99.
+           05 fn-departamento-id  PIC 9(3).
+           05 fn-cargo-id         PIC 9(3).
 
        FD temp-file.
        01 temp-reg.
@@ -140,21 +187,60 @@
             05 tl-grau-instrucao  PIC X(25).
             05 tl-tipo-contrato   PIC X(20).
             05 tl-motivo-deslig   PIC X(30).
-            05 tl-vt-desconto     PIC 9(3)V99.
-            05 tl-vt-dias         PIC 9(2).
-            05 tl-vr              PIC 9(5)V99.
-            05 tl-plano-saude     PIC X(30).
-            05 tl-plano-saude-valor PIC 9(5)V99.
+             05 tl-vt-desconto     PIC 9(3)V99.
+             05 tl-vt-dias         PIC 9(2).
+             05 tl-vt-optante      PIC X.
+             05 tl-vr              PIC 9(5)V99.
+             05 tl-plano-saude     PIC X(30).
+             05 tl-plano-saude-valor PIC 9(5)V99.
+             05 tl-supervisor-id   PIC 9(3).
+             05 tl-sexo            PIC X.
+             05 tl-estado-civil    PIC X(20).
+             05 tl-nacionalidade   PIC X(30).
+             05 tl-rg-orgao        PIC X(20).
+             05 tl-rg-uf           PIC X(2).
+             05 tl-titulo-eleitor  PIC X(15).
+             05 tl-cep             PIC X(9).
+             05 tl-cidade          PIC X(40).
+             05 tl-uf              PIC X(2).
+             05 tl-situacao-vinculo PIC X(20).
+             05 tl-departamento    PIC X(30).
+             05 tl-data-posse-cargo PIC X(10).
+             05 tl-forma-pagamento PIC X(15).
+             05 tl-meio-pagamento  PIC X(20).
+             05 tl-carga-horaria-mensal PIC 9(3).
+             05 tl-exame-adm-venc  PIC X(10).
+             05 tl-observacoes     PIC X(120).
+             05 tl-pensao-tipo     PIC X.
+             05 tl-pensao-valor    PIC 9(5)V99.
+           05 tl-departamento-id  PIC 9(3).
+           05 tl-cargo-id         PIC 9(3).
 
        WORKING-STORAGE SECTION.
        01 ws-acao            PIC X(15).
        01 ws-file-status     PIC X(2).
        01 ws-encontrou       PIC X(1).
-       01 ws-json-linha      PIC X(1200).
-       01 ws-id-ed           PIC ZZZ9.
-       01 ws-total-ed        PIC ZZZ9.
+        01 ws-json-linha      PIC X(2400).
+        01 ws-id-ed           PIC ZZZ9.
+        01 ws-total-ed        PIC ZZZ9.
+        01 ws-salario-j       PIC Z(6)9.99.
+        01 ws-filial-j        PIC ZZ9.
+        01 ws-vt-desc-j       PIC Z(2)9.99.
+        01 ws-vt-dias-j       PIC Z9.
+        01 ws-vr-j            PIC Z(4)9.99.
+        01 ws-plano-val-j     PIC Z(4)9.99.
+        01 ws-supervisor-j    PIC ZZZ9.
+        01 ws-carga-horaria-j PIC ZZ9.
+        01 ws-pensao-valor-j  PIC Z(4)9.99.
        01 ws-id              PIC 9(3).
        01 ws-id-in           PIC X(5).
+       01 ws-data-edit       PIC 9(8).
+       01 FILLER REDEFINES ws-data-edit.
+           05 ws-dt-ano      PIC 9(4).
+           05 ws-dt-mes      PIC 9(2).
+           05 ws-dt-dia      PIC 9(2).
+       01 ws-ref-status      PIC X(2).
+       01 ws-achou-ref       PIC X.
        01 ws-nome            PIC X(50).
        01 ws-usuario         PIC X(20).
        01 ws-senha           PIC X(30).
@@ -215,14 +301,49 @@
          01 ws-motivo-deslig    PIC X(30).
          01 ws-vt-desconto-ed   PIC X(12).
          01 ws-vt-desconto      PIC 9(3)V99.
-         01 ws-vt-dias-ed       PIC X(12).
-         01 ws-vt-dias          PIC 9(2).
-         01 ws-vr-ed            PIC X(12).
-         01 ws-vr               PIC 9(5)V99.
-         01 ws-plano-saude      PIC X(30).
-         01 ws-plano-saude-valor-ed PIC X(12).
-         01 ws-plano-saude-valor PIC 9(5)V99.
-         01 ws-prox-id         PIC 9(3).
+          01 ws-vt-dias-ed       PIC X(12).
+           01 ws-vt-dias          PIC 9(2).
+           01 ws-vt-optante       PIC X.
+           01 ws-vr-ed            PIC X(12).
+          01 ws-vr               PIC 9(5)V99.
+          01 ws-plano-saude      PIC X(30).
+          01 ws-plano-saude-valor-ed PIC X(12).
+          01 ws-plano-saude-valor PIC 9(5)V99.
+           01 ws-supervisor-id    PIC X(5).
+           01 ws-supervisor-id-num PIC 9(3).
+           01 ws-sexo             PIC X.
+           01 ws-estado-civil     PIC X(20).
+           01 ws-nacionalidade    PIC X(30).
+           01 ws-rg-orgao         PIC X(20).
+           01 ws-rg-uf            PIC X(2).
+           01 ws-titulo-eleitor   PIC X(15).
+           01 ws-cep              PIC X(9).
+           01 ws-cidade           PIC X(40).
+           01 ws-uf               PIC X(2).
+           01 ws-situacao-vinculo PIC X(20).
+           01 ws-departamento     PIC X(30).
+           01 ws-data-posse-cargo PIC X(10).
+           01 ws-forma-pagamento  PIC X(15).
+           01 ws-meio-pagamento   PIC X(20).
+           01 ws-carga-horaria-ed PIC X(5).
+           01 ws-carga-horaria    PIC 9(3).
+           01 ws-exame-adm-venc   PIC X(10).
+           01 ws-observacoes      PIC X(120).
+           01 ws-pensao-tipo      PIC X.
+           01 ws-pensao-valor-ed  PIC X(12).
+           01 ws-pensao-valor     PIC 9(5)V99.
+       01 ws-departamento-id  PIC X(5).
+       01 ws-departamento-num PIC 9(3).
+       01 ws-cargo-id         PIC X(5).
+       01 ws-cargo-num        PIC 9(3).
+       01 ws-dept-j           PIC ZZ9.
+       01 ws-cargo-j          PIC ZZ9.
+       01 ws-cpf-limpo        PIC X(11).
+       01 ws-cpf-lido-limpo   PIC X(11).
+       01 ws-temp-cpf         PIC X(14).
+       01 ws-i                PIC 99.
+       01 ws-idx              PIC 99.
+           01 ws-prox-id         PIC 9(3).
 
        PROCEDURE DIVISION.
            ACCEPT ws-acao FROM ENVIRONMENT "ACAO"
@@ -234,6 +355,8 @@
                WHEN "excluir"  PERFORM excluir
                WHEN "listar"   PERFORM listar
                WHEN "login"    PERFORM login
+               WHEN "desligar" PERFORM desligar
+               WHEN "reativar" PERFORM reativar
                WHEN OTHER      DISPLAY "ERRO: acao invalida"
            END-EVALUATE
            STOP RUN.
@@ -294,14 +417,37 @@
             ACCEPT ws-cbo FROM ENVIRONMENT "CBO"
             ACCEPT ws-grau-instrucao FROM ENVIRONMENT "GRAU_INSTRUCAO"
             ACCEPT ws-tipo-contrato FROM ENVIRONMENT "TIPO_CONTRATO"
-            ACCEPT ws-motivo-deslig FROM ENVIRONMENT "MOTIVO_DESLIG"
-            ACCEPT ws-vt-desconto-ed FROM ENVIRONMENT "VT_DESCONTO"
-            ACCEPT ws-vt-dias-ed FROM ENVIRONMENT "VT_DIAS"
-            ACCEPT ws-vr-ed FROM ENVIRONMENT "VR"
-            ACCEPT ws-plano-saude FROM ENVIRONMENT "PLANO_SAUDE"
-            ACCEPT ws-plano-saude-valor-ed FROM ENVIRONMENT "PLANO_SAUDE_VALOR"
-            IF ws-nome = SPACES THEN
-               DISPLAY "ERRO: nome obrigatorio" STOP RUN END-IF
+             ACCEPT ws-motivo-deslig FROM ENVIRONMENT "MOTIVO_DESLIG"
+             ACCEPT ws-vt-desconto-ed FROM ENVIRONMENT "VT_DESCONTO"
+             ACCEPT ws-vt-dias-ed FROM ENVIRONMENT "VT_DIAS"
+             ACCEPT ws-vt-optante FROM ENVIRONMENT "VT_OPTANTE"
+             ACCEPT ws-vr-ed FROM ENVIRONMENT "VR"
+             ACCEPT ws-plano-saude FROM ENVIRONMENT "PLANO_SAUDE"
+             ACCEPT ws-plano-saude-valor-ed FROM ENVIRONMENT "PLANO_SAUDE_VALOR"
+             ACCEPT ws-supervisor-id FROM ENVIRONMENT "SUPERVISOR_ID"
+             ACCEPT ws-sexo FROM ENVIRONMENT "SEXO"
+             ACCEPT ws-estado-civil FROM ENVIRONMENT "ESTADO_CIVIL"
+             ACCEPT ws-nacionalidade FROM ENVIRONMENT "NACIONALIDADE"
+             ACCEPT ws-rg-orgao FROM ENVIRONMENT "RG_ORGAO"
+             ACCEPT ws-rg-uf FROM ENVIRONMENT "RG_UF"
+             ACCEPT ws-titulo-eleitor FROM ENVIRONMENT "TITULO_ELEITOR"
+             ACCEPT ws-cep FROM ENVIRONMENT "CEP"
+             ACCEPT ws-cidade FROM ENVIRONMENT "CIDADE"
+             ACCEPT ws-uf FROM ENVIRONMENT "UF"
+             ACCEPT ws-situacao-vinculo FROM ENVIRONMENT "SITUACAO_VINCULO"
+             ACCEPT ws-departamento FROM ENVIRONMENT "DEPARTAMENTO"
+             ACCEPT ws-data-posse-cargo FROM ENVIRONMENT "DATA_POSSE_CARGO"
+             ACCEPT ws-forma-pagamento FROM ENVIRONMENT "FORMA_PAGAMENTO"
+             ACCEPT ws-meio-pagamento FROM ENVIRONMENT "MEIO_PAGAMENTO"
+             ACCEPT ws-carga-horaria-ed FROM ENVIRONMENT "CARGA_HORARIA"
+             ACCEPT ws-exame-adm-venc FROM ENVIRONMENT "EXAME_ADM_VENC"
+             ACCEPT ws-observacoes FROM ENVIRONMENT "OBSERVACOES"
+             ACCEPT ws-pensao-tipo FROM ENVIRONMENT "PENSAO_TIPO"
+             ACCEPT ws-pensao-valor-ed FROM ENVIRONMENT "PENSAO_VALOR"
+             ACCEPT ws-departamento-id FROM ENVIRONMENT "DEPARTAMENTO_ID"
+             ACCEPT ws-cargo-id FROM ENVIRONMENT "CARGO_ID"
+             IF ws-nome = SPACES THEN
+                DISPLAY "ERRO: nome obrigatorio" STOP RUN END-IF
            IF ws-usuario = SPACES THEN
                DISPLAY "ERRO: usuario obrigatorio" STOP RUN END-IF
            IF ws-senha = SPACES THEN
@@ -318,9 +464,22 @@
                 COMPUTE ws-vr = FUNCTION NUMVAL(ws-vr-ed) END-IF
             IF ws-plano-saude-valor-ed NOT = SPACES THEN
                 COMPUTE ws-plano-saude-valor = FUNCTION NUMVAL(ws-plano-saude-valor-ed) END-IF
+             IF ws-supervisor-id NOT = SPACES THEN
+                 COMPUTE ws-supervisor-id-num = FUNCTION NUMVAL(ws-supervisor-id) END-IF
+             IF ws-carga-horaria-ed NOT = SPACES THEN
+                 COMPUTE ws-carga-horaria = FUNCTION NUMVAL(ws-carga-horaria-ed) END-IF
+             IF ws-pensao-valor-ed NOT = SPACES THEN
+                 COMPUTE ws-pensao-valor = FUNCTION NUMVAL(ws-pensao-valor-ed) END-IF
+             IF ws-departamento-id NOT = SPACES THEN
+                 COMPUTE ws-departamento-num = FUNCTION NUMVAL(ws-departamento-id)
+                 PERFORM validar-departamento END-IF
+             IF ws-cargo-id NOT = SPACES THEN
+                 COMPUTE ws-cargo-num = FUNCTION NUMVAL(ws-cargo-id)
+                 PERFORM validar-cargo END-IF
+             PERFORM normaliza-cpf
 
-            MOVE 0 TO ws-prox-id
-           OPEN INPUT fn-file
+             MOVE 0 TO ws-prox-id
+            OPEN INPUT fn-file
            IF ws-file-status = "35" THEN
                OPEN OUTPUT fn-file CLOSE fn-file
                OPEN INPUT fn-file END-IF
@@ -329,6 +488,11 @@
                    AT END EXIT PERFORM
                END-READ
                IF fn-id > ws-prox-id THEN MOVE fn-id TO ws-prox-id END-IF
+               IF fn-cpf NOT = SPACES AND ws-cpf-limpo NOT = SPACES THEN
+                   PERFORM normaliza-cpf-lido
+                   IF ws-cpf-limpo = ws-cpf-lido-limpo THEN
+                       DISPLAY "ERRO: CPF ja cadastrado" STOP RUN END-IF
+               END-IF
            END-PERFORM
            CLOSE fn-file
            ADD 1 TO ws-prox-id
@@ -394,9 +558,32 @@
             MOVE ws-motivo-deslig TO fn-motivo-deslig
             MOVE ws-vt-desconto TO fn-vt-desconto
             MOVE ws-vt-dias TO fn-vt-dias
+            MOVE ws-vt-optante TO fn-vt-optante
             MOVE ws-vr TO fn-vr
             MOVE ws-plano-saude TO fn-plano-saude
             MOVE ws-plano-saude-valor TO fn-plano-saude-valor
+            MOVE ws-supervisor-id-num TO fn-supervisor-id
+            MOVE ws-sexo TO fn-sexo
+            MOVE ws-estado-civil TO fn-estado-civil
+            MOVE ws-nacionalidade TO fn-nacionalidade
+            MOVE ws-rg-orgao TO fn-rg-orgao
+            MOVE ws-rg-uf TO fn-rg-uf
+            MOVE ws-titulo-eleitor TO fn-titulo-eleitor
+            MOVE ws-cep TO fn-cep
+            MOVE ws-cidade TO fn-cidade
+            MOVE ws-uf TO fn-uf
+            MOVE ws-situacao-vinculo TO fn-situacao-vinculo
+            MOVE ws-departamento TO fn-departamento
+            MOVE ws-data-posse-cargo TO fn-data-posse-cargo
+            MOVE ws-forma-pagamento TO fn-forma-pagamento
+            MOVE ws-meio-pagamento TO fn-meio-pagamento
+            MOVE ws-carga-horaria TO fn-carga-horaria-mensal
+            MOVE ws-exame-adm-venc TO fn-exame-adm-venc
+            MOVE ws-observacoes TO fn-observacoes
+            MOVE ws-pensao-tipo TO fn-pensao-tipo
+            MOVE ws-pensao-valor TO fn-pensao-valor
+            MOVE ws-departamento-num TO fn-departamento-id
+            MOVE ws-cargo-num TO fn-cargo-id
             WRITE fn-reg
            CLOSE fn-file
            DISPLAY ws-prox-id.
@@ -460,13 +647,46 @@
             ACCEPT ws-grau-instrucao FROM ENVIRONMENT "GRAU_INSTRUCAO"
             ACCEPT ws-tipo-contrato FROM ENVIRONMENT "TIPO_CONTRATO"
             ACCEPT ws-motivo-deslig FROM ENVIRONMENT "MOTIVO_DESLIG"
-            ACCEPT ws-vt-desconto-ed FROM ENVIRONMENT "VT_DESCONTO"
-            ACCEPT ws-vt-dias-ed FROM ENVIRONMENT "VT_DIAS"
-            ACCEPT ws-vr-ed FROM ENVIRONMENT "VR"
-            ACCEPT ws-plano-saude FROM ENVIRONMENT "PLANO_SAUDE"
-            ACCEPT ws-plano-saude-valor-ed FROM ENVIRONMENT "PLANO_SAUDE_VALOR"
+             ACCEPT ws-vt-desconto-ed FROM ENVIRONMENT "VT_DESCONTO"
+             ACCEPT ws-vt-dias-ed FROM ENVIRONMENT "VT_DIAS"
+             ACCEPT ws-vt-optante FROM ENVIRONMENT "VT_OPTANTE"
+             ACCEPT ws-vr-ed FROM ENVIRONMENT "VR"
+             ACCEPT ws-plano-saude FROM ENVIRONMENT "PLANO_SAUDE"
+             ACCEPT ws-plano-saude-valor-ed FROM ENVIRONMENT "PLANO_SAUDE_VALOR"
+             ACCEPT ws-supervisor-id FROM ENVIRONMENT "SUPERVISOR_ID"
+             ACCEPT ws-sexo FROM ENVIRONMENT "SEXO"
+             ACCEPT ws-estado-civil FROM ENVIRONMENT "ESTADO_CIVIL"
+             ACCEPT ws-nacionalidade FROM ENVIRONMENT "NACIONALIDADE"
+             ACCEPT ws-rg-orgao FROM ENVIRONMENT "RG_ORGAO"
+             ACCEPT ws-rg-uf FROM ENVIRONMENT "RG_UF"
+             ACCEPT ws-titulo-eleitor FROM ENVIRONMENT "TITULO_ELEITOR"
+             ACCEPT ws-cep FROM ENVIRONMENT "CEP"
+             ACCEPT ws-cidade FROM ENVIRONMENT "CIDADE"
+             ACCEPT ws-uf FROM ENVIRONMENT "UF"
+             ACCEPT ws-situacao-vinculo FROM ENVIRONMENT "SITUACAO_VINCULO"
+             ACCEPT ws-departamento FROM ENVIRONMENT "DEPARTAMENTO"
+             ACCEPT ws-data-posse-cargo FROM ENVIRONMENT "DATA_POSSE_CARGO"
+             ACCEPT ws-forma-pagamento FROM ENVIRONMENT "FORMA_PAGAMENTO"
+             ACCEPT ws-meio-pagamento FROM ENVIRONMENT "MEIO_PAGAMENTO"
+             ACCEPT ws-carga-horaria-ed FROM ENVIRONMENT "CARGA_HORARIA"
+             ACCEPT ws-exame-adm-venc FROM ENVIRONMENT "EXAME_ADM_VENC"
+             ACCEPT ws-observacoes FROM ENVIRONMENT "OBSERVACOES"
+             ACCEPT ws-pensao-tipo FROM ENVIRONMENT "PENSAO_TIPO"
+             ACCEPT ws-pensao-valor-ed FROM ENVIRONMENT "PENSAO_VALOR"
+             ACCEPT ws-departamento-id FROM ENVIRONMENT "DEPARTAMENTO_ID"
+             ACCEPT ws-cargo-id FROM ENVIRONMENT "CARGO_ID"
 
-            MOVE "N" TO ws-encontrou
+             IF ws-pensao-valor-ed NOT = SPACES THEN
+                 COMPUTE ws-pensao-valor = FUNCTION NUMVAL(ws-pensao-valor-ed) END-IF
+             IF ws-departamento-id NOT = SPACES THEN
+                 COMPUTE ws-departamento-num = FUNCTION NUMVAL(ws-departamento-id)
+                 PERFORM validar-departamento END-IF
+             IF ws-cargo-id NOT = SPACES THEN
+                 COMPUTE ws-cargo-num = FUNCTION NUMVAL(ws-cargo-id)
+                 PERFORM validar-cargo END-IF
+             IF ws-cpf NOT = SPACES THEN PERFORM normaliza-cpf END-IF
+
+             MOVE "N" TO ws-encontrou
            OPEN INPUT fn-file
            IF ws-file-status = "35" THEN
                DISPLAY "ERRO: funcionario nao encontrado" STOP RUN END-IF
@@ -475,6 +695,12 @@
                READ fn-file NEXT RECORD
                    AT END EXIT PERFORM
                END-READ
+               IF fn-id NOT = ws-id AND fn-cpf NOT = SPACES
+                  AND ws-cpf-limpo NOT = SPACES THEN
+                   PERFORM normaliza-cpf-lido
+                   IF ws-cpf-limpo = ws-cpf-lido-limpo THEN
+                       DISPLAY "ERRO: CPF ja cadastrado" STOP RUN END-IF
+               END-IF
                IF fn-id = ws-id THEN
                    MOVE "S" TO ws-encontrou
                    IF ws-nome NOT = SPACES THEN MOVE ws-nome TO fn-nome END-IF
@@ -582,9 +808,11 @@
                     IF ws-vt-desconto-ed NOT = SPACES THEN
                          COMPUTE ws-vt-desconto = FUNCTION NUMVAL(ws-vt-desconto-ed)
                          MOVE ws-vt-desconto TO fn-vt-desconto END-IF
-                    IF ws-vt-dias-ed NOT = SPACES THEN
-                         COMPUTE ws-vt-dias = FUNCTION NUMVAL(ws-vt-dias-ed)
-                         MOVE ws-vt-dias TO fn-vt-dias END-IF
+                     IF ws-vt-dias-ed NOT = SPACES THEN
+                          COMPUTE ws-vt-dias = FUNCTION NUMVAL(ws-vt-dias-ed)
+                          MOVE ws-vt-dias TO fn-vt-dias END-IF
+                     IF ws-vt-optante NOT = SPACES THEN
+                          MOVE ws-vt-optante TO fn-vt-optante END-IF
                     IF ws-vr-ed NOT = SPACES THEN
                          COMPUTE ws-vr = FUNCTION NUMVAL(ws-vr-ed)
                          MOVE ws-vr TO fn-vr END-IF
@@ -593,6 +821,53 @@
                     IF ws-plano-saude-valor-ed NOT = SPACES THEN
                          COMPUTE ws-plano-saude-valor = FUNCTION NUMVAL(ws-plano-saude-valor-ed)
                          MOVE ws-plano-saude-valor TO fn-plano-saude-valor END-IF
+                     IF ws-supervisor-id NOT = SPACES THEN
+                          COMPUTE ws-supervisor-id-num = FUNCTION NUMVAL(ws-supervisor-id)
+                          MOVE ws-supervisor-id-num TO fn-supervisor-id END-IF
+                     IF ws-sexo NOT = SPACES THEN
+                          MOVE ws-sexo TO fn-sexo END-IF
+                     IF ws-estado-civil NOT = SPACES THEN
+                          MOVE ws-estado-civil TO fn-estado-civil END-IF
+                     IF ws-nacionalidade NOT = SPACES THEN
+                          MOVE ws-nacionalidade TO fn-nacionalidade END-IF
+                     IF ws-rg-orgao NOT = SPACES THEN
+                          MOVE ws-rg-orgao TO fn-rg-orgao END-IF
+                     IF ws-rg-uf NOT = SPACES THEN
+                          MOVE ws-rg-uf TO fn-rg-uf END-IF
+                     IF ws-titulo-eleitor NOT = SPACES THEN
+                          MOVE ws-titulo-eleitor TO fn-titulo-eleitor END-IF
+                     IF ws-cep NOT = SPACES THEN
+                          MOVE ws-cep TO fn-cep END-IF
+                     IF ws-cidade NOT = SPACES THEN
+                          MOVE ws-cidade TO fn-cidade END-IF
+                     IF ws-uf NOT = SPACES THEN
+                          MOVE ws-uf TO fn-uf END-IF
+                     IF ws-situacao-vinculo NOT = SPACES THEN
+                          MOVE ws-situacao-vinculo TO fn-situacao-vinculo END-IF
+                     IF ws-departamento NOT = SPACES THEN
+                          MOVE ws-departamento TO fn-departamento END-IF
+                     IF ws-data-posse-cargo NOT = SPACES THEN
+                          MOVE ws-data-posse-cargo TO fn-data-posse-cargo END-IF
+                     IF ws-forma-pagamento NOT = SPACES THEN
+                          MOVE ws-forma-pagamento TO fn-forma-pagamento END-IF
+                     IF ws-meio-pagamento NOT = SPACES THEN
+                          MOVE ws-meio-pagamento TO fn-meio-pagamento END-IF
+                     IF ws-carga-horaria-ed NOT = SPACES THEN
+                          COMPUTE ws-carga-horaria = FUNCTION NUMVAL(ws-carga-horaria-ed)
+                          MOVE ws-carga-horaria TO fn-carga-horaria-mensal END-IF
+                     IF ws-exame-adm-venc NOT = SPACES THEN
+                          MOVE ws-exame-adm-venc TO fn-exame-adm-venc END-IF
+                     IF ws-observacoes NOT = SPACES THEN
+                          MOVE ws-observacoes TO fn-observacoes END-IF
+                     IF ws-pensao-tipo NOT = SPACES THEN
+                          MOVE ws-pensao-tipo TO fn-pensao-tipo END-IF
+                     IF ws-pensao-valor-ed NOT = SPACES THEN
+                          COMPUTE ws-pensao-valor = FUNCTION NUMVAL(ws-pensao-valor-ed)
+                          MOVE ws-pensao-valor TO fn-pensao-valor END-IF
+                     IF ws-departamento-id NOT = SPACES THEN
+                          MOVE ws-departamento-num TO fn-departamento-id END-IF
+                     IF ws-cargo-id NOT = SPACES THEN
+                          MOVE ws-cargo-num TO fn-cargo-id END-IF
                  END-IF
                 MOVE fn-id TO tl-id
                 MOVE fn-nome TO tl-nome
@@ -652,11 +927,34 @@
                  MOVE fn-grau-instrucao TO tl-grau-instrucao
                  MOVE fn-tipo-contrato TO tl-tipo-contrato
                  MOVE fn-motivo-deslig TO tl-motivo-deslig
-                 MOVE fn-vt-desconto TO tl-vt-desconto
-                 MOVE fn-vt-dias TO tl-vt-dias
-                 MOVE fn-vr TO tl-vr
-                 MOVE fn-plano-saude TO tl-plano-saude
+                  MOVE fn-vt-desconto TO tl-vt-desconto
+                  MOVE fn-vt-dias TO tl-vt-dias
+                  MOVE fn-vt-optante TO tl-vt-optante
+                  MOVE fn-vr TO tl-vr
+                  MOVE fn-plano-saude TO tl-plano-saude
                  MOVE fn-plano-saude-valor TO tl-plano-saude-valor
+                 MOVE fn-supervisor-id TO tl-supervisor-id
+                 MOVE fn-sexo TO tl-sexo
+                 MOVE fn-estado-civil TO tl-estado-civil
+                 MOVE fn-nacionalidade TO tl-nacionalidade
+                 MOVE fn-rg-orgao TO tl-rg-orgao
+                 MOVE fn-rg-uf TO tl-rg-uf
+                 MOVE fn-titulo-eleitor TO tl-titulo-eleitor
+                 MOVE fn-cep TO tl-cep
+                 MOVE fn-cidade TO tl-cidade
+                 MOVE fn-uf TO tl-uf
+                 MOVE fn-situacao-vinculo TO tl-situacao-vinculo
+                 MOVE fn-departamento TO tl-departamento
+                 MOVE fn-data-posse-cargo TO tl-data-posse-cargo
+                 MOVE fn-forma-pagamento TO tl-forma-pagamento
+                 MOVE fn-meio-pagamento TO tl-meio-pagamento
+                 MOVE fn-carga-horaria-mensal TO tl-carga-horaria-mensal
+                 MOVE fn-exame-adm-venc TO tl-exame-adm-venc
+                 MOVE fn-observacoes TO tl-observacoes
+                 MOVE fn-pensao-tipo TO tl-pensao-tipo
+                 MOVE fn-pensao-valor TO tl-pensao-valor
+                 MOVE fn-departamento-id TO tl-departamento-id
+                 MOVE fn-cargo-id TO tl-cargo-id
                  WRITE temp-reg
              END-PERFORM
              CLOSE fn-file CLOSE temp-file
@@ -737,11 +1035,34 @@
                      MOVE fn-grau-instrucao TO tl-grau-instrucao
                      MOVE fn-tipo-contrato TO tl-tipo-contrato
                      MOVE fn-motivo-deslig TO tl-motivo-deslig
-                     MOVE fn-vt-desconto TO tl-vt-desconto
-                     MOVE fn-vt-dias TO tl-vt-dias
-                     MOVE fn-vr TO tl-vr
-                     MOVE fn-plano-saude TO tl-plano-saude
+                      MOVE fn-vt-desconto TO tl-vt-desconto
+                      MOVE fn-vt-dias TO tl-vt-dias
+                      MOVE fn-vt-optante TO tl-vt-optante
+                      MOVE fn-vr TO tl-vr
+                      MOVE fn-plano-saude TO tl-plano-saude
                      MOVE fn-plano-saude-valor TO tl-plano-saude-valor
+                     MOVE fn-supervisor-id TO tl-supervisor-id
+                     MOVE fn-sexo TO tl-sexo
+                     MOVE fn-estado-civil TO tl-estado-civil
+                     MOVE fn-nacionalidade TO tl-nacionalidade
+                     MOVE fn-rg-orgao TO tl-rg-orgao
+                     MOVE fn-rg-uf TO tl-rg-uf
+                     MOVE fn-titulo-eleitor TO tl-titulo-eleitor
+                     MOVE fn-cep TO tl-cep
+                     MOVE fn-cidade TO tl-cidade
+                     MOVE fn-uf TO tl-uf
+                     MOVE fn-situacao-vinculo TO tl-situacao-vinculo
+                     MOVE fn-departamento TO tl-departamento
+                     MOVE fn-data-posse-cargo TO tl-data-posse-cargo
+                     MOVE fn-forma-pagamento TO tl-forma-pagamento
+                     MOVE fn-meio-pagamento TO tl-meio-pagamento
+                     MOVE fn-carga-horaria-mensal TO tl-carga-horaria-mensal
+                     MOVE fn-exame-adm-venc TO tl-exame-adm-venc
+                     MOVE fn-observacoes TO tl-observacoes
+                     MOVE fn-pensao-tipo TO tl-pensao-tipo
+                     MOVE fn-pensao-valor TO tl-pensao-valor
+                     MOVE fn-departamento-id TO tl-departamento-id
+                     MOVE fn-cargo-id TO tl-cargo-id
                      WRITE temp-reg
                  ELSE MOVE "S" TO ws-encontrou
                 END-IF
@@ -751,6 +1072,63 @@
             END-CALL
             IF ws-encontrou = "S" THEN DISPLAY "OK"
             ELSE DISPLAY "ERRO: funcionario nao encontrado".
+
+       normaliza-cpf.
+           MOVE SPACES TO ws-cpf-limpo
+           MOVE 1 TO ws-idx
+           PERFORM VARYING ws-i FROM 1 BY 1 UNTIL ws-i > 14
+               IF ws-cpf(ws-i:1) >= "0" AND ws-cpf(ws-i:1) <= "9"
+                  AND ws-idx < 12 THEN
+                   MOVE ws-cpf(ws-i:1) TO ws-cpf-limpo(ws-idx:1)
+                   ADD 1 TO ws-idx
+               END-IF
+           END-PERFORM.
+
+       normaliza-cpf-lido.
+           MOVE fn-cpf TO ws-temp-cpf
+           MOVE SPACES TO ws-cpf-lido-limpo
+           MOVE 1 TO ws-idx
+           PERFORM VARYING ws-i FROM 1 BY 1 UNTIL ws-i > 14
+               IF ws-temp-cpf(ws-i:1) >= "0" AND ws-temp-cpf(ws-i:1) <= "9"
+                  AND ws-idx < 12 THEN
+                   MOVE ws-temp-cpf(ws-i:1) TO ws-cpf-lido-limpo(ws-idx:1)
+                   ADD 1 TO ws-idx
+               END-IF
+           END-PERFORM.
+
+       validar-departamento.
+           OPEN INPUT dep-file
+           IF ws-ref-status = "35" THEN
+               DISPLAY "ERRO: departamento nao cadastrado" STOP RUN END-IF
+           MOVE "N" TO ws-achou-ref
+           PERFORM UNTIL 1 = 2
+               READ dep-file NEXT RECORD
+                   AT END EXIT PERFORM
+               END-READ
+               IF dep-id = ws-departamento-num AND dep-status = "ativo" THEN
+                   MOVE "S" TO ws-achou-ref
+               END-IF
+           END-PERFORM
+           CLOSE dep-file
+           IF ws-achou-ref = "N" THEN
+               DISPLAY "ERRO: departamento invalido ou inativo" STOP RUN END-IF.
+
+       validar-cargo.
+           OPEN INPUT cr-file
+           IF ws-ref-status = "35" THEN
+               DISPLAY "ERRO: cargo nao cadastrado" STOP RUN END-IF
+           MOVE "N" TO ws-achou-ref
+           PERFORM UNTIL 1 = 2
+               READ cr-file NEXT RECORD
+                   AT END EXIT PERFORM
+               END-READ
+               IF cr-id = ws-cargo-num AND cr-status = "ativo" THEN
+                   MOVE "S" TO ws-achou-ref
+               END-IF
+           END-PERFORM
+           CLOSE cr-file
+           IF ws-achou-ref = "N" THEN
+               DISPLAY "ERRO: cargo invalido ou inativo" STOP RUN END-IF.
 
        login.
            ACCEPT ws-usuario FROM ENVIRONMENT "USUARIO"
@@ -785,6 +1163,243 @@
                DISPLAY '{"status":"erro","mensagem":"usuario ou senha incorretos"}'
            END-IF.
 
+       desligar.
+           ACCEPT ws-id-in FROM ENVIRONMENT "ID"
+           COMPUTE ws-id = FUNCTION NUMVAL(ws-id-in)
+           ACCEPT ws-data-dem FROM ENVIRONMENT "DATA_DEM"
+           ACCEPT ws-motivo-deslig FROM ENVIRONMENT "MOTIVO_DESLIG"
+           IF ws-data-dem = SPACES THEN
+               MOVE FUNCTION CURRENT-DATE(1:8) TO ws-data-edit
+               STRING ws-dt-ano "-" ws-dt-mes "-" ws-dt-dia
+                   DELIMITED BY SIZE INTO ws-data-dem
+           END-IF
+           IF ws-motivo-deslig = SPACES THEN
+               DISPLAY "ERRO: motivo de desligamento obrigatorio"
+               STOP RUN END-IF
+           MOVE "N" TO ws-encontrou
+           OPEN INPUT fn-file
+           IF ws-file-status = "35" THEN
+               DISPLAY "ERRO: funcionario nao encontrado" STOP RUN END-IF
+           OPEN OUTPUT temp-file
+           PERFORM UNTIL 1 = 2
+               READ fn-file NEXT RECORD
+                   AT END EXIT PERFORM
+               END-READ
+               IF fn-id = ws-id THEN
+                   MOVE "S" TO ws-encontrou
+                   IF fn-situacao-vinculo = "desligado" THEN
+                       DISPLAY "ERRO: funcionario ja desligado"
+                       STOP RUN END-IF
+                   MOVE "desligado" TO fn-situacao-vinculo
+                   MOVE ws-data-dem TO fn-data-dem
+                   MOVE ws-motivo-deslig TO fn-motivo-deslig
+               END-IF
+               MOVE fn-id TO tl-id
+               MOVE fn-nome TO tl-nome
+               MOVE fn-usuario TO tl-usuario
+               MOVE fn-senha TO tl-senha
+               MOVE fn-permissoes TO tl-permissoes
+               MOVE fn-ativo TO tl-ativo
+               MOVE fn-cpf TO tl-cpf
+               MOVE fn-rg TO tl-rg
+               MOVE fn-data-nasc TO tl-data-nasc
+               MOVE fn-celular TO tl-celular
+               MOVE fn-email TO tl-email
+               MOVE fn-endereco TO tl-endereco
+               MOVE fn-data-adm TO tl-data-adm
+               MOVE fn-data-dem TO tl-data-dem
+               MOVE fn-salario TO tl-salario
+               MOVE fn-filial-id TO tl-filial-id
+               MOVE fn-trab-sab TO tl-trab-sab
+               MOVE fn-trab-dom TO tl-trab-dom
+               MOVE fn-seg-ent TO tl-seg-ent
+               MOVE fn-seg-alm TO tl-seg-alm
+               MOVE fn-seg-sai TO tl-seg-sai
+               MOVE fn-ter-ent TO tl-ter-ent
+               MOVE fn-ter-alm TO tl-ter-alm
+               MOVE fn-ter-sai TO tl-ter-sai
+               MOVE fn-qua-ent TO tl-qua-ent
+               MOVE fn-qua-alm TO tl-qua-alm
+               MOVE fn-qua-sai TO tl-qua-sai
+               MOVE fn-qui-ent TO tl-qui-ent
+               MOVE fn-qui-alm TO tl-qui-alm
+               MOVE fn-qui-sai TO tl-qui-sai
+               MOVE fn-sex-ent TO tl-sex-ent
+               MOVE fn-sex-alm TO tl-sex-alm
+               MOVE fn-sex-sai TO tl-sex-sai
+               MOVE fn-sab-ent TO tl-sab-ent
+               MOVE fn-sab-sai TO tl-sab-sai
+               MOVE fn-dom-ent TO tl-dom-ent
+               MOVE fn-dom-sai TO tl-dom-sai
+               MOVE fn-foto TO tl-foto
+               MOVE fn-contato-emerg-nome TO tl-contato-emerg-nome
+               MOVE fn-contato-emerg-tel TO tl-contato-emerg-tel
+               MOVE fn-curriculo TO tl-curriculo
+               MOVE fn-tipo-sanguineo TO tl-tipo-sanguineo
+               MOVE fn-email-particular TO tl-email-particular
+               MOVE fn-tel-comercial TO tl-tel-comercial
+               MOVE fn-banco TO tl-banco
+               MOVE fn-agencia TO tl-agencia
+               MOVE fn-conta TO tl-conta
+               MOVE fn-conta-digito TO tl-conta-digito
+               MOVE fn-conta-tipo TO tl-conta-tipo
+               MOVE fn-pix TO tl-pix
+               MOVE fn-pis TO tl-pis
+               MOVE fn-ctps TO tl-ctps
+               MOVE fn-ctps-serie TO tl-ctps-serie
+               MOVE fn-ctps-uf TO tl-ctps-uf
+               MOVE fn-cbo TO tl-cbo
+               MOVE fn-grau-instrucao TO tl-grau-instrucao
+               MOVE fn-tipo-contrato TO tl-tipo-contrato
+               MOVE fn-motivo-deslig TO tl-motivo-deslig
+               MOVE fn-vt-desconto TO tl-vt-desconto
+               MOVE fn-vt-dias TO tl-vt-dias
+               MOVE fn-vt-optante TO tl-vt-optante
+               MOVE fn-vr TO tl-vr
+               MOVE fn-plano-saude TO tl-plano-saude
+               MOVE fn-plano-saude-valor TO tl-plano-saude-valor
+               MOVE fn-supervisor-id TO tl-supervisor-id
+               MOVE fn-sexo TO tl-sexo
+               MOVE fn-estado-civil TO tl-estado-civil
+               MOVE fn-nacionalidade TO tl-nacionalidade
+               MOVE fn-rg-orgao TO tl-rg-orgao
+               MOVE fn-rg-uf TO tl-rg-uf
+               MOVE fn-titulo-eleitor TO tl-titulo-eleitor
+               MOVE fn-cep TO tl-cep
+               MOVE fn-cidade TO tl-cidade
+               MOVE fn-uf TO tl-uf
+               MOVE fn-situacao-vinculo TO tl-situacao-vinculo
+               MOVE fn-departamento TO tl-departamento
+               MOVE fn-data-posse-cargo TO tl-data-posse-cargo
+               MOVE fn-forma-pagamento TO tl-forma-pagamento
+               MOVE fn-meio-pagamento TO tl-meio-pagamento
+               MOVE fn-carga-horaria-mensal TO tl-carga-horaria-mensal
+               MOVE fn-exame-adm-venc TO tl-exame-adm-venc
+               MOVE fn-observacoes TO tl-observacoes
+               MOVE fn-pensao-tipo TO tl-pensao-tipo
+               MOVE fn-pensao-valor TO tl-pensao-valor
+               MOVE fn-departamento-id TO tl-departamento-id
+               MOVE fn-cargo-id TO tl-cargo-id
+               WRITE temp-reg
+           END-PERFORM
+           CLOSE fn-file CLOSE temp-file
+           CALL "system" USING "mv dados/funcionarios.tmp dados/funcionarios.dat"
+           END-CALL
+           IF ws-encontrou = "S" THEN DISPLAY "OK"
+           ELSE DISPLAY "ERRO: funcionario nao encontrado".
+
+       reativar.
+           ACCEPT ws-id-in FROM ENVIRONMENT "ID"
+           COMPUTE ws-id = FUNCTION NUMVAL(ws-id-in)
+           MOVE "N" TO ws-encontrou
+           OPEN INPUT fn-file
+           IF ws-file-status = "35" THEN
+               DISPLAY "ERRO: funcionario nao encontrado" STOP RUN END-IF
+           OPEN OUTPUT temp-file
+           PERFORM UNTIL 1 = 2
+               READ fn-file NEXT RECORD
+                   AT END EXIT PERFORM
+               END-READ
+               IF fn-id = ws-id THEN
+                   MOVE "S" TO ws-encontrou
+                   MOVE "ativo" TO fn-situacao-vinculo
+                   MOVE SPACES TO fn-data-dem
+                   MOVE SPACES TO fn-motivo-deslig
+               END-IF
+               MOVE fn-id TO tl-id
+               MOVE fn-nome TO tl-nome
+               MOVE fn-usuario TO tl-usuario
+               MOVE fn-senha TO tl-senha
+               MOVE fn-permissoes TO tl-permissoes
+               MOVE fn-ativo TO tl-ativo
+               MOVE fn-cpf TO tl-cpf
+               MOVE fn-rg TO tl-rg
+               MOVE fn-data-nasc TO tl-data-nasc
+               MOVE fn-celular TO tl-celular
+               MOVE fn-email TO tl-email
+               MOVE fn-endereco TO tl-endereco
+               MOVE fn-data-adm TO tl-data-adm
+               MOVE fn-data-dem TO tl-data-dem
+               MOVE fn-salario TO tl-salario
+               MOVE fn-filial-id TO tl-filial-id
+               MOVE fn-trab-sab TO tl-trab-sab
+               MOVE fn-trab-dom TO tl-trab-dom
+               MOVE fn-seg-ent TO tl-seg-ent
+               MOVE fn-seg-alm TO tl-seg-alm
+               MOVE fn-seg-sai TO tl-seg-sai
+               MOVE fn-ter-ent TO tl-ter-ent
+               MOVE fn-ter-alm TO tl-ter-alm
+               MOVE fn-ter-sai TO tl-ter-sai
+               MOVE fn-qua-ent TO tl-qua-ent
+               MOVE fn-qua-alm TO tl-qua-alm
+               MOVE fn-qua-sai TO tl-qua-sai
+               MOVE fn-qui-ent TO tl-qui-ent
+               MOVE fn-qui-alm TO tl-qui-alm
+               MOVE fn-qui-sai TO tl-qui-sai
+               MOVE fn-sex-ent TO tl-sex-ent
+               MOVE fn-sex-alm TO tl-sex-alm
+               MOVE fn-sex-sai TO tl-sex-sai
+               MOVE fn-sab-ent TO tl-sab-ent
+               MOVE fn-sab-sai TO tl-sab-sai
+               MOVE fn-dom-ent TO tl-dom-ent
+               MOVE fn-dom-sai TO tl-dom-sai
+               MOVE fn-foto TO tl-foto
+               MOVE fn-contato-emerg-nome TO tl-contato-emerg-nome
+               MOVE fn-contato-emerg-tel TO tl-contato-emerg-tel
+               MOVE fn-curriculo TO tl-curriculo
+               MOVE fn-tipo-sanguineo TO tl-tipo-sanguineo
+               MOVE fn-email-particular TO tl-email-particular
+               MOVE fn-tel-comercial TO tl-tel-comercial
+               MOVE fn-banco TO tl-banco
+               MOVE fn-agencia TO tl-agencia
+               MOVE fn-conta TO tl-conta
+               MOVE fn-conta-digito TO tl-conta-digito
+               MOVE fn-conta-tipo TO tl-conta-tipo
+               MOVE fn-pix TO tl-pix
+               MOVE fn-pis TO tl-pis
+               MOVE fn-ctps TO tl-ctps
+               MOVE fn-ctps-serie TO tl-ctps-serie
+               MOVE fn-ctps-uf TO tl-ctps-uf
+               MOVE fn-cbo TO tl-cbo
+               MOVE fn-grau-instrucao TO tl-grau-instrucao
+               MOVE fn-tipo-contrato TO tl-tipo-contrato
+               MOVE fn-motivo-deslig TO tl-motivo-deslig
+               MOVE fn-vt-desconto TO tl-vt-desconto
+               MOVE fn-vt-dias TO tl-vt-dias
+               MOVE fn-vt-optante TO tl-vt-optante
+               MOVE fn-vr TO tl-vr
+               MOVE fn-plano-saude TO tl-plano-saude
+               MOVE fn-plano-saude-valor TO tl-plano-saude-valor
+               MOVE fn-supervisor-id TO tl-supervisor-id
+               MOVE fn-sexo TO tl-sexo
+               MOVE fn-estado-civil TO tl-estado-civil
+               MOVE fn-nacionalidade TO tl-nacionalidade
+               MOVE fn-rg-orgao TO tl-rg-orgao
+               MOVE fn-rg-uf TO tl-rg-uf
+               MOVE fn-titulo-eleitor TO tl-titulo-eleitor
+               MOVE fn-cep TO tl-cep
+               MOVE fn-cidade TO tl-cidade
+               MOVE fn-uf TO tl-uf
+               MOVE fn-situacao-vinculo TO tl-situacao-vinculo
+               MOVE fn-departamento TO tl-departamento
+               MOVE fn-data-posse-cargo TO tl-data-posse-cargo
+               MOVE fn-forma-pagamento TO tl-forma-pagamento
+               MOVE fn-meio-pagamento TO tl-meio-pagamento
+               MOVE fn-carga-horaria-mensal TO tl-carga-horaria-mensal
+               MOVE fn-exame-adm-venc TO tl-exame-adm-venc
+               MOVE fn-observacoes TO tl-observacoes
+               MOVE fn-pensao-tipo TO tl-pensao-tipo
+               MOVE fn-pensao-valor TO tl-pensao-valor
+               MOVE fn-departamento-id TO tl-departamento-id
+               MOVE fn-cargo-id TO tl-cargo-id
+               WRITE temp-reg
+           END-PERFORM
+           CLOSE fn-file CLOSE temp-file
+           CALL "system" USING "mv dados/funcionarios.tmp dados/funcionarios.dat"
+           END-CALL
+           IF ws-encontrou = "S" THEN DISPLAY "OK"
+           ELSE DISPLAY "ERRO: funcionario nao encontrado".
+
        listar.
            OPEN INPUT fn-file
            IF ws-file-status = "35" THEN
@@ -802,7 +1417,20 @@
                    MOVE "N" TO ws-encontrou
                ELSE DISPLAY "," END-IF
                MOVE fn-id TO ws-id-ed
-               MOVE SPACES TO ws-json-linha
+               MOVE fn-salario TO ws-salario-j
+               MOVE fn-filial-id TO ws-filial-j
+                MOVE fn-vt-desconto TO ws-vt-desc-j
+                MOVE fn-vt-dias TO ws-vt-dias-j
+                MOVE fn-vr TO ws-vr-j
+                MOVE fn-plano-saude-valor TO ws-plano-val-j
+                MOVE fn-supervisor-id TO ws-supervisor-j
+                MOVE fn-carga-horaria-mensal TO ws-carga-horaria-j
+                MOVE fn-pensao-valor TO ws-pensao-valor-j
+                IF fn-departamento-id = SPACES THEN MOVE 0 TO ws-dept-j
+                ELSE MOVE fn-departamento-id TO ws-dept-j END-IF
+                IF fn-cargo-id = SPACES THEN MOVE 0 TO ws-cargo-j
+                ELSE MOVE fn-cargo-id TO ws-cargo-j END-IF
+                MOVE SPACES TO ws-json-linha
                STRING '{"id":' FUNCTION TRIM(ws-id-ed)
                       ',"nome":"' FUNCTION TRIM(fn-nome) '"'
                       ',"usuario":"' FUNCTION TRIM(fn-usuario) '"'
@@ -815,8 +1443,8 @@
                       ',"endereco":"' FUNCTION TRIM(fn-endereco) '"'
                       ',"data_adm":"' FUNCTION TRIM(fn-data-adm) '"'
                       ',"data_dem":"' FUNCTION TRIM(fn-data-dem) '"'
-                       ',"salario":' FUNCTION TRIM(fn-salario)
-                       ',"filial_id":' FUNCTION TRIM(fn-filial-id)
+                       ',"salario":' FUNCTION TRIM(ws-salario-j)
+                       ',"filial_id":' FUNCTION TRIM(ws-filial-j)
                        ',"trab_sab":"' FUNCTION TRIM(fn-trab-sab) '"'
                        ',"trab_dom":"' FUNCTION TRIM(fn-trab-dom) '"'
                        ',"seg_ent":"' FUNCTION TRIM(fn-seg-ent) '"'
@@ -858,12 +1486,35 @@
                         ',"cbo":"' FUNCTION TRIM(fn-cbo) '"'
                         ',"grau_instrucao":"' FUNCTION TRIM(fn-grau-instrucao) '"'
                         ',"tipo_contrato":"' FUNCTION TRIM(fn-tipo-contrato) '"'
-                        ',"motivo_deslig":"' FUNCTION TRIM(fn-motivo-deslig) '"'
-                        ',"vt_desconto":' FUNCTION TRIM(fn-vt-desconto)
-                        ',"vt_dias":' FUNCTION TRIM(fn-vt-dias)
-                        ',"vr":' FUNCTION TRIM(fn-vr)
-                        ',"plano_saude":"' FUNCTION TRIM(fn-plano-saude) '"'
-                        ',"plano_saude_valor":' FUNCTION TRIM(fn-plano-saude-valor) '}'
+                         ',"motivo_deslig":"' FUNCTION TRIM(fn-motivo-deslig) '"'
+                          ',"vt_desconto":' FUNCTION TRIM(ws-vt-desc-j)
+                          ',"vt_dias":' FUNCTION TRIM(ws-vt-dias-j)
+                          ',"vt_optante":"' FUNCTION TRIM(fn-vt-optante) '"'
+                          ',"vr":' FUNCTION TRIM(ws-vr-j)
+                          ',"plano_saude":"' FUNCTION TRIM(fn-plano-saude) '"'
+                          ',"plano_saude_valor":' FUNCTION TRIM(ws-plano-val-j)
+                          ',"supervisor_id":' FUNCTION TRIM(ws-supervisor-j)
+                          ',"sexo":"' FUNCTION TRIM(fn-sexo) '"'
+                          ',"estado_civil":"' FUNCTION TRIM(fn-estado-civil) '"'
+                          ',"nacionalidade":"' FUNCTION TRIM(fn-nacionalidade) '"'
+                          ',"rg_orgao":"' FUNCTION TRIM(fn-rg-orgao) '"'
+                          ',"rg_uf":"' FUNCTION TRIM(fn-rg-uf) '"'
+                          ',"titulo_eleitor":"' FUNCTION TRIM(fn-titulo-eleitor) '"'
+                          ',"cep":"' FUNCTION TRIM(fn-cep) '"'
+                          ',"cidade":"' FUNCTION TRIM(fn-cidade) '"'
+                          ',"uf":"' FUNCTION TRIM(fn-uf) '"'
+                          ',"situacao_vinculo":"' FUNCTION TRIM(fn-situacao-vinculo) '"'
+                          ',"departamento":"' FUNCTION TRIM(fn-departamento) '"'
+                          ',"data_posse_cargo":"' FUNCTION TRIM(fn-data-posse-cargo) '"'
+                          ',"forma_pagamento":"' FUNCTION TRIM(fn-forma-pagamento) '"'
+                          ',"meio_pagamento":"' FUNCTION TRIM(fn-meio-pagamento) '"'
+                          ',"carga_horaria":' FUNCTION TRIM(ws-carga-horaria-j)
+                          ',"exame_adm_venc":"' FUNCTION TRIM(fn-exame-adm-venc) '"'
+                          ',"observacoes":"' FUNCTION TRIM(fn-observacoes) '"'
+                          ',"pensao_tipo":"' FUNCTION TRIM(fn-pensao-tipo) '"'
+                          ',"pensao_valor":' FUNCTION TRIM(ws-pensao-valor-j)
+                          ',"departamento_id":' FUNCTION TRIM(ws-dept-j)
+                          ',"cargo_id":' FUNCTION TRIM(ws-cargo-j) '}'
                     INTO ws-json-linha
                DISPLAY FUNCTION TRIM(ws-json-linha)
            END-PERFORM

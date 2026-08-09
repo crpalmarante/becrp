@@ -1,5 +1,5 @@
        >>SOURCE FORMAT IS FREE
-       *> batch_json_fornecedores.cbl - Fornecedores .dat -> .json
+       *> batch_json_fornecedores.cbl — fornecedores.dat (SEQUENTIAL) → stdout JSON
        IDENTIFICATION DIVISION.
        PROGRAM-ID. BatchJSONFornecedores.
 
@@ -7,7 +7,8 @@
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT forn-file ASSIGN TO "dados/fornecedores.dat"
-               ORGANIZATION IS LINE SEQUENTIAL
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE IS SEQUENTIAL
                FILE STATUS IS ws-file-status.
 
        DATA DIVISION.
@@ -30,12 +31,12 @@
        01 ws-total-ed        PIC ZZZZ9.
        01 ws-total           PIC 9(5).
        01 ws-i               PIC 9(5).
-       01 ws-qtd-arq         PIC 9(5).
        01 ws-existe          PIC X(1).
 
        PROCEDURE DIVISION.
            OPEN INPUT forn-file
            IF ws-file-status = "35" THEN
+               DISPLAY '{"fornecedores":[],"total":0}'
                DISPLAY "JSON fornecedores gerado: 0 fornecedores"
                STOP RUN END-IF
 
@@ -49,6 +50,7 @@
            CLOSE forn-file
 
            IF ws-total = 0 THEN
+               DISPLAY '{"fornecedores":[],"total":0}'
                DISPLAY "JSON fornecedores gerado: 0 fornecedores"
                STOP RUN END-IF
 
@@ -81,6 +83,7 @@
            END-PERFORM
            MOVE ws-total TO ws-total-ed
            DISPLAY '],"total":' FUNCTION TRIM(ws-total-ed) '}'
-           CLOSE forn-file.
-           DISPLAY "JSON fornecedores gerado: " FUNCTION TRIM(ws-total-ed) " fornecedores"
+           CLOSE forn-file
+           DISPLAY "JSON fornecedores gerado: "
+                   FUNCTION TRIM(ws-total-ed) " fornecedores"
            STOP RUN.

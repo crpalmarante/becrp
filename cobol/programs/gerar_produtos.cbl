@@ -7,7 +7,8 @@
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT prod-file ASSIGN TO "dados/produtos.dat"
-               ORGANIZATION IS LINE SEQUENTIAL.
+               ORGANIZATION IS SEQUENTIAL
+               ACCESS MODE IS SEQUENTIAL.
            SELECT vendas-file ASSIGN TO "dados/vendas.dat"
                ORGANIZATION IS LINE SEQUENTIAL.
            SELECT itens-file ASSIGN TO "dados/itens_venda.dat"
@@ -19,25 +20,25 @@
        01 prod-reg.
            05 pr-id              PIC 9(6).
            05 pr-nome            PIC X(50).
-           05 pr-preco           PIC 9(7)V99.
-           05 pr-preco-custo     PIC 9(7)V99.
-           05 pr-stock           PIC 9(6).
-           05 pr-margem          PIC 9(3)V99.
+           05 pr-preco           PIC S9(7)V99 COMP-3.
+           05 pr-preco-custo     PIC S9(7)V99 COMP-3.
+           05 pr-stock           PIC S9(6) COMP-3.
+           05 pr-margem          PIC S9(3)V99 COMP-3.
            05 pr-ativo           PIC X(1).
            05 pr-codigo-barras   PIC X(14).
-            05 pr-categoria       PIC X(20).
-            05 pr-sub-categoria   PIC X(20).
-            05 pr-unidade         PIC X(4).
+           05 pr-categoria       PIC X(20).
+           05 pr-sub-categoria   PIC X(20).
+           05 pr-unidade         PIC X(4).
            05 pr-ncm             PIC X(8).
-            05 pr-fornecedor      PIC X(30).
-            05 pr-localizacao     PIC X(15).
-             05 pr-filial-id       PIC 9(3).
-             05 pr-cst            PIC X(3).
-             05 pr-cfop           PIC X(4).
-             05 pr-icms-alq       PIC 9(3)V99.
-             05 pr-servico        PIC X(1).
-             05 pr-iss-alq        PIC 9(3)V99.
-             05 pr-cod-serv-mun   PIC X(20).
+           05 pr-fornecedor      PIC X(30).
+           05 pr-localizacao     PIC X(15).
+           05 pr-filial-id       PIC 9(3).
+           05 pr-cst             PIC X(3).
+           05 pr-cfop            PIC X(4).
+           05 pr-icms-alq        PIC S9(3)V99 COMP-3.
+           05 pr-servico         PIC X(1).
+           05 pr-iss-alq         PIC S9(3)V99 COMP-3.
+           05 pr-cod-serv-mun    PIC X(20).
 
         FD vendas-file.
        01 venda-reg.
