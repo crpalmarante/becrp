@@ -321,8 +321,12 @@ class DataGrid{
                 return;
             }
 
-            const cell=e.target.closest(".dg-cell");
-            if(cell&&cell.dataset.idx!=null){
+                // if the click happened inside the selection checkbox cell, ignore here
+                // selection is handled by the change handler for the checkbox input
+                if (e.target.closest('.dg-cell-select')) return;
+
+                const cell=e.target.closest(".dg-cell");
+                if(cell&&cell.dataset.idx!=null){
                 const idx=parseInt(cell.dataset.idx);
                 const row=this._allData[idx];
                 const field=cell.dataset.field;
