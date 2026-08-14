@@ -1264,18 +1264,6 @@
       { field: "pdv_lbl", label: "PDV", width: 60, align: "center" },
       { field: "balanca_lbl", label: "Balança", width: 70, align: "center" },
     ];
-    // actions column with icons
-    columns.push({ field: "actions", label: "", width: 110, align: "center", formatter: (v, row) => {
-      return `
-        <div class="row-actions" style="display:flex;gap:6px;justify-content:center">
-          <button type="button" class="so-btn ghost" data-action="edit" title="Editar">
-            <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1.003 1.003 0 000-1.42l-2.34-2.34a1.003 1.003 0 00-1.42 0l-1.83 1.83 3.75 3.75 1.84-1.82z"/></svg></span>
-          </button>
-          <button type="button" class="so-btn ghost" data-action="delete" title="Excluir">
-            <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7zm3-4h6l1 1H8l1-1zM9 9h2v9H9V9zm4 0h2v9h-2V9z"/></svg></span>
-          </button>
-        </div>`;
-    }});
     const rows = applyProductFilters(buildProductRows(allData));
 
     if (!grid) {
@@ -1287,40 +1275,9 @@
         filterable: true,
         striped: true,
       });
-      // default cell click opens form; but actions are handled via delegated clicks below
-      grid.on("cellClick", ({ row, field }) => {
-        if (field && field !== "actions") {
-          selectedRow = row;
-          openForm(row);
-        }
-      });
-
-      // delegated handler for action buttons inside grid rows
-      el.addEventListener("click", async (e) => {
-        const btn = e.target.closest("[data-action]");
-        if (!btn) return;
-        const action = btn.dataset.action;
-        const tr = btn.closest("tr");
-        const idx = tr && tr.dataset.idx ? parseInt(tr.dataset.idx) : null;
-        const row = idx != null ? grid._allData[idx] : null;
-        if (!row) return;
-        if (action === "edit") {
-          openForm(row);
-          return;
-        }
-        if (action === "delete") {
-          if (!confirm('Excluir o produto "' + (row.nome || row.descricao || row.sku || row.id) + '"?')) return;
-          try {
-            const res = await window.api('/api/admin/produtos/' + encodeURIComponent(row.id), { method: 'DELETE' });
-            if (res && res.status === 'ok') {
-              // remove locally and refresh grid
-              allData = allData.filter(p => String(p.id) !== String(row.id));
-              renderGrid();
-            } else {
-              alert('Erro ao excluir: ' + (res && res.error ? res.error : JSON.stringify(res)));
-            }
-          } catch (err) { alert('Erro ao excluir: ' + err); }
-        }
+      grid.on("cellClick", ({ row }) => {
+        selectedRow = row;
+        openForm(row);
       });
     } else {
       grid.setData(rows);
