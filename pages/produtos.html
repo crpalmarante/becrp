@@ -1271,6 +1271,8 @@
         columns,
         data: rows,
         pageSize: 10,
+        selectable: true,
+        pageSizeOptions: [10,25,50],
         sortable: true,
         filterable: true,
         striped: true,
@@ -1898,6 +1900,17 @@
   }
 
   function duplicarDaLista() {
+    const sel = grid ? grid.selected() : [];
+    if (sel && sel.length) {
+      if (sel.length === 1) {
+        openForm(sel[0], { asCopy: true });
+        return;
+      }
+      // múltiplos selecionados: abrir primeiro como cópia e avisar usuário
+      openForm(sel[0], { asCopy: true });
+      alert(`Foram selecionados ${sel.length} itens. Abrindo primeiro selecionado para duplicar. Para duplicação em lote, peça para eu implementar.`);
+      return;
+    }
     if (!selectedRow) {
       alert("Abra um produto na lista (clique na linha) ou use Duplicar dentro do formulário.");
       return;
@@ -2122,7 +2135,24 @@
   document.getElementById("btn-novo").addEventListener("click", () => openForm(null));
   document.getElementById("btn-cancel").addEventListener("click", goBack);
   document.getElementById("btn-save").addEventListener("click", save);
-  document.getElementById("btn-refresh").addEventListener("click", load);
+  document.getElementById("btn-refresh").addEventListener("click", async () => {
+    const sel = grid ? grid.selected() : [];
+    if (sel && sel.length) {
+      const firstId = sel[0].id;
+      await load();
+      // após recarregar, navegar para o primeiro selecionado e destacar
+      const idx = allData.findIndex((p) => String(p.id) === String(firstId));
+      if (idx >= 0 && grid) {
+        const page = Math.floor(idx / (grid._pageSize || 10)) + 1;
+        grid.setPage(page);
+        grid.scrollTo("id", firstId);
+        grid.highlight("id", firstId, "edit");
+        setTimeout(() => grid && grid.clearHighlight(), 4000);
+      }
+      return;
+    }
+    await load();
+  });
   document.getElementById("btn-duplicar").addEventListener("click", duplicarAtual);
 
   async function excluirAtual() {
