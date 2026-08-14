@@ -15,17 +15,69 @@
 <link rel="stylesheet" href="../css/motion.css">
 <link rel="stylesheet" href="../css/responsive.css">
 <link rel="stylesheet" href="../css/themes.css">
-<link rel="stylesheet" href="../css/style.css">
+<link rel="stylesheet" href="../css/style.css?v=2">
 <style>
 .view{display:none}.view.active{display:flex;flex-direction:column;flex:1;min-height:0}
 .workspace-content{flex:1;overflow:auto}
-.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
-.toolbar .so-btn.primary{margin-left:auto}
+.toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;margin:0 auto var(--space-4);max-width:920px;width:100%}
+.workspace-header{margin-bottom:15px}
+.toolbar-center{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.toolbar .so-btn.primary{margin-left:0}
+.toolbar-left{display:flex;align-items:center;gap:8px}
 .so-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
   border:1px solid var(--border-color);background:var(--surface-panel);
-  color:var(--text-primary);padding:8px 14px;border-radius:8px;
-  cursor:pointer;font-size:13px;font-weight:600;
+  color:var(--text-primary);padding:0 12px;width:120px;height:40px;line-height:1;
+  border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;
 }
+.so-btn .icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px}
+.so-btn .icon svg{width:18px;height:18px;fill:currentColor}
+.pull-menu{
+  position:absolute;top:calc(100% + 6px);right:0;min-width:160px;
+  background:var(--surface-panel); border:1px solid var(--border-color);
+  border-radius:10px; box-shadow:0 12px 28px rgba(0,0,0,.32);
+  padding:8px; display:none; z-index:30;
+}
+.pull-menu.open{display:block}
+.pull-menu-item{
+  display:block;width:100%;text-align:left;border:0;background:transparent;
+  color:var(--text-primary);padding:10px 12px;border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;
+}
+.pull-menu-item:hover{background:rgba(255,255,255,.06)}
+
+.prod-modal{position:fixed;inset:0;background:rgba(2,6,23,1);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px;}
+.prod-modal.hidden{display:none}
+.prod-modal-panel{
+  width:min(720px,100%);background:var(--surface-panel);border:1px solid var(--border-color);border-radius:18px;
+  box-shadow:0 24px 60px rgba(0,0,0,.45);overflow:hidden;
+}
+
+@media(min-width:900px){
+  .prod-modal-panel{margin-left:260px}
+}
+.prod-modal-header,
+.prod-modal-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border-color)}
+.prod-modal-footer{border-top:1px solid var(--border-color);border-bottom:0}
+.prod-modal-body{padding:18px}
+.prod-modal-tabs{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 12px;border-bottom:1px solid var(--border-color)}
+.prod-modal-tab{border:1px solid var(--border-color);background:transparent;color:var(--text-muted);padding:8px 12px;border-radius:999px;cursor:pointer;font-weight:700;font-size:12px}
+.prod-modal-tab.active{background:rgba(20,184,166,.12);border-color:rgba(20,184,166,.45);color:#5eead4}
+.prod-panel{display:none;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));}
+.prod-panel.active{display:grid}
+.prod-field{display:flex;flex-direction:column;gap:6px}
+.prod-field label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);font-weight:700}
+.prod-field input,.prod-field select,.prod-field textarea{
+  width:100%;background:rgba(0,0,0,.2);border:1px solid var(--border-color);border-radius:8px;padding:8px 10px;
+  color:var(--text-primary);font-size:13px;
+}
+.prod-field textarea{min-height:88px;resize:vertical}
+.prod-report-list{display:grid;gap:10px}
+.prod-report-item{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--border-color);border-radius:10px;padding:12px 14px;background:rgba(255,255,255,.02)
+}
+.prod-report-item strong{font-size:13px}
+.prod-report-item small{color:var(--text-muted)}
 .so-btn:hover{background:rgba(255,255,255,.08)}
 .so-btn.primary{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
 .so-btn.ghost{opacity:.85}
@@ -38,7 +90,7 @@
 .field-hint.bad{color:#fca5a5}
 .field-with-action{display:flex;gap:8px;align-items:end}
 .field-with-action .form-input{flex:1}
-.field-with-action .so-btn{white-space:nowrap;padding:8px 10px}
+.field-with-action .so-btn{white-space:nowrap}
 .avail-at-grid{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:6px}
 .avail-at-item{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-primary);cursor:pointer}
 
@@ -180,16 +232,136 @@
         <!-- LISTA (Data Grid) -->
         <div class="view active" id="view-list">
           <div class="workspace-header">
-            <div class="workspace-breadcrumb">BECRP / Produtos · tela única do sistema</div>
             <h2 class="workspace-title">Cadastro de Produtos</h2>
           </div>
           <div class="workspace-content">
             <div class="toolbar">
-              <button type="button" class="so-btn" id="btn-refresh">Atualizar</button>
-              <button type="button" class="so-btn" id="btn-duplicar-lista" title="Abra um produto e use Duplicar, ou selecione na grade">Duplicar</button>
-              <button type="button" class="so-btn primary" id="btn-novo">+ Novo Produto</button>
+              <div class="toolbar-left">
+                <button type="button" class="so-btn" id="btn-refresh"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.65 6.35A7.95 7.95 0 0012 4V1l-4 4 4 4V5c2.76 0 5 2.24 5 5 0 .65-.12 1.27-.35 1.85l1.5.65C18.9 11.1 19 10.06 19 9c0-2.76-2.24-5-5-5-1.06 0-2.1.1-3.05.35l1.7 1.7A6 6 0 0117.65 6.35z"/></svg></span>Atualizar</button>
+                <button type="button" class="so-btn" id="btn-duplicar-lista" title="Abra um produto e use Duplicar, ou selecione na grade"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H4c-1.1 0-2 .9-2 2v12h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg></span>Duplicar</button>
+              </div>
+
+              <div class="toolbar-center">
+                <button type="button" class="so-btn" id="btn-relatorios" data-action="relatorios"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.1 0-2 .9-2 2v14l4-4h12c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7 9h10v2H7V9zM7 13h7v2H7v-2z"/></svg></span>Relatórios</button>
+                <button type="button" class="so-btn" id="btn-filtros" data-action="filtros"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 18h4v-2h-4v2zm-7-8v2h18V10H3zm3 6h12v-2H6v2z"/></svg></span>Filtros</button>
+              </div>
+
+              <button type="button" class="so-btn primary" id="btn-novo"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></span>+ Novo</button>
             </div>
             <div id="grid-container"></div>
+          </div>
+
+          <!-- Modal apenas de filtros -->
+          <div id="prod-filters-modal" class="prod-modal hidden" aria-hidden="true">
+            <div class="prod-modal-panel" role="dialog" aria-modal="true" aria-labelledby="prod-filters-title">
+              <div class="prod-modal-header">
+                <h3 id="prod-filters-title">Filtros</h3>
+                <button type="button" class="so-btn ghost" data-close-modal>Fechar</button>
+              </div>
+
+              <div class="prod-modal-body">
+                <div id="prod-panel-filtros" class="prod-panel active">
+                  <div class="prod-field">
+                    <label for="filter-status">Status</label>
+                    <select id="filter-status">
+                      <option value="todos">Todos</option>
+                      <option value="ativos">Ativos</option>
+                      <option value="inativos">Inativos</option>
+                    </select>
+                  </div>
+                  <div class="prod-field">
+                    <label for="filter-categoria">Categoria</label>
+                    <input id="filter-categoria" placeholder="Todos">
+                  </div>
+                  <div class="prod-field">
+                    <label for="filter-estoque">Estoque</label>
+                    <select id="filter-estoque">
+                      <option value="todos">Qualquer</option>
+                      <option value="acima">Acima de zero</option>
+                      <option value="zero">Zerados</option>
+                    </select>
+                  </div>
+                  <div class="prod-field">
+                    <label for="filter-peso">Tipo</label>
+                    <select id="filter-peso">
+                      <option value="todos">Todos</option>
+                      <option value="produto">Produto</option>
+                      <option value="servico">Serviço</option>
+                    </select>
+                  </div>
+                  <div class="prod-field full-span" style="grid-column:1/-1">
+                    <label for="filter-obs">Observações</label>
+                    <textarea id="filter-obs" placeholder="Ex.: produtos para revisão de preço, estoque baixo, SKU com pendência..."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:12px;">
+                <label style="font-weight:600">Colunas para exportar</label>
+                <div id="report-cols" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+                  <label><input type="checkbox" value="id" checked> ID</label>
+                  <label><input type="checkbox" value="sku" checked> SKU</label>
+                  <label><input type="checkbox" value="descricao" checked> Descrição</label>
+                  <label><input type="checkbox" value="categoria" checked> Categoria</label>
+                  <label><input type="checkbox" value="ncm"> NCM</label>
+                  <label><input type="checkbox" value="preco" checked> Preço</label>
+                  <label><input type="checkbox" value="stock" checked> Estoque</label>
+                </div>
+              </div>
+
+              <div class="prod-modal-footer">
+                <button type="button" class="so-btn ghost" data-close-modal>Cancelar</button>
+                <button type="button" class="so-btn primary" id="prod-modal-apply">Aplicar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Modal apenas de relatórios -->
+          <div id="prod-reports-modal" class="prod-modal hidden" aria-hidden="true">
+            <div class="prod-modal-panel" role="dialog" aria-modal="true" aria-labelledby="prod-reports-title">
+              <div class="prod-modal-header">
+                <h3 id="prod-reports-title">Relatórios</h3>
+                <button type="button" class="so-btn ghost" data-close-modal>Fechar</button>
+              </div>
+
+              <div class="prod-modal-body">
+                <div id="prod-panel-relatorios" class="prod-panel active">
+                  <div class="prod-report-list">
+                    <div class="prod-report-item">
+                      <div>
+                        <strong>Resumo por categoria</strong><br>
+                        <small>Agrega produtos por classificação e valor total.</small>
+                      </div>
+                      <button type="button" class="so-btn ghost" data-report="resumo_categoria">Gerar</button>
+                        <button type="button" class="so-btn ghost" data-report-pdf="resumo_categoria">Gerar PDF</button>
+                        <button type="button" class="so-btn ghost" data-report-html="resumo_categoria">Abrir HTML</button>
+                    </div>
+                    <div class="prod-report-item">
+                      <div>
+                        <strong>Produtos sem NCM</strong><br>
+                        <small>Lista itens pendentes de classificação fiscal.</small>
+                      </div>
+                      <button type="button" class="so-btn ghost" data-report="sem_ncm">Gerar</button>
+                      <button type="button" class="so-btn ghost" data-report-pdf="sem_ncm">Gerar PDF</button>
+                      <button type="button" class="so-btn ghost" data-report-html="sem_ncm">Abrir HTML</button>
+                    </div>
+                    <div class="prod-report-item">
+                      <div>
+                        <strong>Estoque crítico</strong><br>
+                        <small>Mostra SKU com nível de estoque abaixo do mínimo.</small>
+                      </div>
+                      <button type="button" class="so-btn ghost" data-report="estoque_critico">Gerar</button>
+                      <button type="button" class="so-btn ghost" data-report-pdf="estoque_critico">Gerar PDF</button>
+                      <button type="button" class="so-btn ghost" data-report-html="estoque_critico">Abrir HTML</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="prod-modal-footer">
+                <button type="button" class="so-btn ghost" data-close-modal>Fechar</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -201,6 +373,7 @@
               <div class="pf-actions">
                 <button type="button" class="so-btn ghost" id="btn-cancel">Cancelar</button>
                 <button type="button" class="so-btn" id="btn-duplicar" hidden>Duplicar</button>
+                <button type="button" class="so-btn danger" id="btn-excluir" hidden title="Excluir este produto">Excluir</button>
                 <button type="button" class="so-btn primary" id="btn-save" title="Ctrl+S">Salvar</button>
               </div>
             </div>
@@ -425,6 +598,7 @@
                   <div class="field"><label><input type="checkbox" id="f-estoque_negativo"> Permite estoque negativo</label></div>
                   <div class="field"><label><input type="checkbox" id="f-controla_lote"> Controla Lote</label></div>
                   <div class="field"><label><input type="checkbox" id="f-controla_serie"> Controla Série</label></div>
+                  <div class="field"><label for="f-validade_dias">Validade (dias)</label><input class="form-input" id="f-validade_dias" type="number" step="1" min="0" placeholder="ex: 365"></div>
                 </div>
                 <p class="soon-note">Sugerir: mínimo ≈ 20% do estoque · máximo ≈ 3× (mínimo 1). Atalhos: Ctrl+S salvar · Esc cancelar.</p>
               </div>
@@ -593,15 +767,56 @@
     </div>
   </div>
 </div>
-
-<script src="../js/masks.js"></script>
+    <script src="../js/masks.js"></script>
 <script src="../js/services/AuthService.js"></script>
 <script src="../js/auth/page-boot.js"></script>
 <script src="../js/services/ProdutoCadastro.js"></script>
 <script src="../js/services/LookupService.js"></script>
-<script src="../js/components/DataGrid.js"></script>
+<script src="../js/components/DataGrid.js?v=4"></script>
 <script src="../js/components/Lookup.js"></script>
 <script src="../js/components/EntityQuickModal.js"></script>
+
+    <script>
+    // Relatórios: envia filtros atuais e baixa CSV do servidor; PDF abre versão imprimível
+    document.addEventListener('click', async (e) => {
+      const csvBtn = e.target.closest('[data-report]');
+      if (csvBtn) {
+        const report = csvBtn.getAttribute('data-report');
+        const cols = Array.from(document.querySelectorAll('#report-cols input:checked')).map(i=>i.value).join(',');
+        const qs = new URLSearchParams({ ...productModalFilters, cols }).toString();
+        try {
+          const res = await fetch(`/api/reports/produtos?report=${encodeURIComponent(report)}&${qs}`, { headers: { 'X-Auth-Token': window.localStorage.getItem('becrp_token') || '' } });
+          if (!res.ok) throw new Error('Falha no servidor');
+          const blob = await res.blob();
+          const name = `report-${report}.csv`;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+          URL.revokeObjectURL(url);
+        } catch (err) {
+          alert('Erro ao gerar relatório: ' + err.message);
+        }
+        return;
+      }
+
+      const pdfBtn = e.target.closest('[data-report-pdf]');
+      if (pdfBtn) {
+        const report = pdfBtn.getAttribute('data-report-pdf');
+        const qs = new URLSearchParams({ ...productModalFilters, format: 'html' }).toString();
+        const url = `/api/reports/produtos?report=${encodeURIComponent(report)}&format=pdf&${new URLSearchParams(productModalFilters).toString()}`;
+        window.open(url, '_blank');
+        return;
+      }
+      const htmlBtn = e.target.closest('[data-report-html]');
+      if (htmlBtn) {
+        const report = htmlBtn.getAttribute('data-report-html');
+        const qs = new URLSearchParams({ ...productModalFilters, format: 'html' }).toString();
+        const url = `/api/reports/produtos?report=${encodeURIComponent(report)}&${qs}`;
+        window.open(url, '_blank');
+        return;
+      }
+    });
+    </script>
 
 <div id="cest-picker" class="lookup-cest-dialog" hidden>
   <div class="lookup-cest-panel" role="dialog" aria-modal="true" aria-labelledby="cest-picker-title">
@@ -636,8 +851,16 @@
   let nomeReduzidoManual = false;
   let priceLock = false;
   let selectedRow = null;
+  let suppressAutoOpen = false;
   let estoqueLimitesManual = false;
   let variacoes = []; // [{id, atributo, valor, tipo_preco, valor_preco, ean, estoque, ativo}]
+  let productModalFilters = {
+    status: "todos",
+    categoria: "",
+    estoque: "todos",
+    tipo: "todos",
+    obs: "",
+  };
 
   function currentNcmCode() {
     return (ncmLookup && ncmLookup.getCode()) || document.getElementById("f-ncm").value.trim();
@@ -822,8 +1045,209 @@
     });
   }
 
+  function openFiltersModal() {
+    const modal = document.getElementById("prod-filters-modal");
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function openReportsModal() {
+    const modal = document.getElementById("prod-reports-modal");
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+  }
+
+  function closeAllProductModals() {
+    ["prod-filters-modal", "prod-reports-modal"].forEach((id) => {
+      const m = document.getElementById(id);
+      if (!m) return;
+      m.classList.add("hidden");
+      m.setAttribute("aria-hidden", "true");
+    });
+  }
+
+  function generateProductReport(kind) {
+    const rows = buildProductRows(allData);
+    const visible = applyProductFilters(rows);
+    const total = visible.length;
+    const valor = visible.reduce((sum, row) => sum + (Number(row.preco) || 0), 0);
+    const estoque = visible.reduce((sum, row) => sum + (Number(row.stock) || 0), 0);
+    const label = kind === "categoria" ? "Resumo por categoria" : kind === "sem-ncm" ? "Produtos sem NCM" : "Estoque crítico";
+    alert(`${label}\n\nProdutos: ${total}\nEstoque total: ${estoque}\nValor estimado: ${money(valor)}`);
+  }
+
+  function bindDuplicarMenu() {
+    const duplicarBtn = document.getElementById("btn-duplicar-lista");
+    const relatoriosBtn = document.getElementById("btn-relatorios");
+    const filtrosBtn = document.getElementById("btn-filtros");
+
+    if (duplicarBtn) {
+      duplicarBtn.addEventListener("click", duplicarDaLista);
+    }
+
+
+    if (relatoriosBtn) {
+      relatoriosBtn.addEventListener("click", () => openReportsModal());
+    }
+
+    if (filtrosBtn) {
+      filtrosBtn.addEventListener("click", () => openFiltersModal());
+    }
+
+    document.querySelectorAll("[data-close-modal]").forEach((btn) => {
+      btn.addEventListener("click", closeAllProductModals);
+    });
+
+    const applyBtn = document.getElementById("prod-modal-apply");
+    if (applyBtn) {
+      applyBtn.addEventListener("click", () => {
+        const cur = getProductModalValues();
+        productModalFilters = cur;
+        renderGrid();
+        closeAllProductModals();
+      });
+    }
+
+    ["prod-filters-modal", "prod-reports-modal"].forEach((id) => {
+      const m = document.getElementById(id);
+      if (!m) return;
+      m.addEventListener("click", (e) => {
+        if (e.target && e.target.id === id) closeAllProductModals();
+      });
+    });
+
+    document.querySelectorAll(".prod-report-item .so-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const item = btn.closest(".prod-report-item");
+        const kind = item && item.querySelector("strong")?.textContent || "relatorio";
+        const normalized = kind.includes("categoria") ? "categoria" : kind.includes("NCM") ? "sem-ncm" : "estoque";
+        generateProductReport(normalized);
+      });
+    });
+
+    // report export buttons (CSV/PDF/HTML) that include selected columns
+    document.getElementById('prod-reports-modal')?.addEventListener('click', (e) => {
+      const reportBtn = e.target.closest('[data-report]');
+      if (reportBtn) {
+        const report = reportBtn.getAttribute('data-report');
+        const cols = Array.from(document.querySelectorAll('#report-cols input:checked')).map(i => i.value).join(',');
+        const qs = new URLSearchParams({ report, format: 'csv', cols, ...productModalFilters }).toString();
+        const url = `/api/reports/produtos?${qs}`;
+        window.location = url; // download CSV
+        return;
+      }
+
+      const pdfBtn = e.target.closest('[data-report-pdf]');
+      if (pdfBtn) {
+        const report = pdfBtn.getAttribute('data-report-pdf');
+        const cols = Array.from(document.querySelectorAll('#report-cols input:checked')).map(i => i.value).join(',');
+        const url = `/api/reports/produtos?report=${encodeURIComponent(report)}&format=pdf&cols=${encodeURIComponent(cols)}&${new URLSearchParams(productModalFilters).toString()}`;
+        window.open(url, '_blank');
+        return;
+      }
+
+      const htmlBtn = e.target.closest('[data-report-html]');
+      if (htmlBtn) {
+        const report = htmlBtn.getAttribute('data-report-html');
+        const cols = Array.from(document.querySelectorAll('#report-cols input:checked')).map(i => i.value).join(',');
+        const url = `/api/reports/produtos?report=${encodeURIComponent(report)}&format=html&cols=${encodeURIComponent(cols)}&${new URLSearchParams(productModalFilters).toString()}`;
+        window.open(url, '_blank');
+        return;
+      }
+    });
+  }
+
+  // Ajusta deslocamento do painel do modal de acordo com o #sidebar (responsivo)
+  function adjustModalOffset() {
+    const sidebar = document.getElementById('sidebar');
+    const panels = document.querySelectorAll('.prod-modal-panel');
+    if (!sidebar || panels.length === 0) return;
+    const isWide = window.innerWidth >= 900;
+    if (!isWide) {
+      panels.forEach(p => p.style.marginLeft = '');
+      return;
+    }
+    const collapsed = sidebar.classList.contains('collapsed');
+    let w = collapsed ? getComputedStyle(sidebar).width || '64px' : getComputedStyle(sidebar).width || '260px';
+    if (!w || w === 'auto') w = collapsed ? '64px' : '260px';
+    panels.forEach(p => p.style.marginLeft = w);
+  }
+
+  // Observe mudanças na classe do sidebar e resize da janela
+  (function () {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    const mo = new MutationObserver(() => adjustModalOffset());
+    mo.observe(sidebar, { attributes: true, attributeFilter: ['class'] });
+    window.addEventListener('resize', adjustModalOffset);
+    // inicializa
+    setTimeout(adjustModalOffset, 30);
+  })();
+
   function fillDatalist(produtos) {
     /* categorias agora vêm do Lookup + API /api/admin/categorias */
+  }
+
+  function buildProductRows(data) {
+    return (data || []).map((p) => {
+      const x = getExtra(p);
+      return {
+        ...p,
+        sku: sku(p.id),
+        preco_fmt: money(p.preco),
+        pdv_lbl: x.pdv === false ? "Não" : "Sim",
+        balanca_lbl: x.usa_balanca || x.por_peso ? "Sim" : "—",
+        _status: p.ativo === false ? "inativo" : "ativo",
+        _tipo: p.servico === "S" || x.tipo === "servico" ? "servico" : "produto",
+        _categoria_raw: (p.categoria || "").trim(),
+       };
+    });
+  }
+
+  function getProductModalValues() {
+    return {
+      status: document.getElementById("filter-status")?.value || "todos",
+      categoria: (document.getElementById("filter-categoria")?.value || "").trim(),
+      estoque: document.getElementById("filter-estoque")?.value || "todos",
+      tipo: document.getElementById("filter-peso")?.value || "todos",
+      obs: (document.getElementById("filter-obs")?.value || "").trim(),
+    };
+  }
+
+  function applyProductFilters(rows) {
+    const filters = getProductModalValues();
+    productModalFilters = filters;
+
+    return rows.filter((row) => {
+      if (filters.status !== "todos") {
+        const ok = filters.status === "ativos" ? row._status === "ativo" : row._status === "inativo";
+        if (!ok) return false;
+      }
+
+      if (filters.categoria) {
+        const cat = (row._categoria_raw || row.categoria || "").toLowerCase();
+        if (!cat.includes(filters.categoria.toLowerCase())) return false;
+      }
+
+      if (filters.estoque !== "todos") {
+        const stock = Number(row.stock || 0);
+        if (filters.estoque === "acima" && stock <= 0) return false;
+        if (filters.estoque === "zero" && stock !== 0) return false;
+      }
+
+      if (filters.tipo !== "todos" && row._tipo !== filters.tipo) return false;
+
+      if (filters.obs) {
+        const haystack = [row.nome, row.categoria, row.ncm, row.codigo_barras, row.localizacao, row.descricao]
+          .join(" ")
+          .toLowerCase();
+        if (!haystack.includes(filters.obs.toLowerCase())) return false;
+      }
+
+      return true;
+    });
   }
 
   function renderGrid() {
@@ -840,16 +1264,7 @@
       { field: "pdv_lbl", label: "PDV", width: 60, align: "center" },
       { field: "balanca_lbl", label: "Balança", width: 70, align: "center" },
     ];
-    const rows = allData.map((p) => {
-      const x = getExtra(p);
-      return {
-        ...p,
-        sku: sku(p.id),
-        preco_fmt: money(p.preco),
-        pdv_lbl: x.pdv === false ? "Não" : "Sim",
-        balanca_lbl: x.usa_balanca || x.por_peso ? "Sim" : "—",
-      };
-    });
+    const rows = applyProductFilters(buildProductRows(allData));
 
     if (!grid) {
       grid = new DataGrid(el, {
@@ -983,6 +1398,7 @@
     variacoes = [];
     renderVariacoes();
     document.getElementById("btn-duplicar").hidden = true;
+    document.getElementById("btn-excluir").hidden = true;
     const eanHint = document.getElementById("ean-hint");
     if (eanHint) {
       eanHint.textContent = "";
@@ -1255,7 +1671,7 @@
           <td><span class="var-final" data-final>${fmtMoney(final)}</span></td>
           <td><input class="form-input" data-f="ean" value="${escAttr(v.ean)}" placeholder="opcional"></td>
           <td><input class="form-input" data-f="estoque" type="number" step="1" value="${escAttr(v.estoque)}" placeholder="—"></td>
-          <td class="col-act"><button type="button" class="so-btn ghost" data-var-del title="Remover">✕</button></td>
+          <td class="col-act"><button type="button" class="so-btn ghost" data-var-del title="Remover"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 7h12v13a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7zm3-4h6l1 1H8l1-1zM9 9h2v9H9V9zm4 0h2v9h-2V9z"/></svg></span></button></td>
         </tr>`;
       })
       .join("");
@@ -1412,6 +1828,7 @@
       document.getElementById("f-stock").value = asCopy ? 0 : row.stock ?? 0;
       document.getElementById("f-estoque_min").value = x.estoque_min ?? "";
       document.getElementById("f-estoque_max").value = x.estoque_max ?? "";
+      document.getElementById("f-validade_dias").value = x.validade_dias ?? "";
       estoqueLimitesManual = !!(x.estoque_min || x.estoque_max);
       document.getElementById("f-localizacao").value = row.localizacao || "";
       document.getElementById("f-filial_id").value = row.filial_id ?? 0;
@@ -1462,9 +1879,11 @@
         document.getElementById("pf-photo-placeholder").hidden = true;
       }
       document.getElementById("btn-duplicar").hidden = asCopy;
+      document.getElementById("btn-excluir").hidden = !editingId;
       updateEanHint();
     } else {
       document.getElementById("btn-duplicar").hidden = true;
+      document.getElementById("btn-excluir").hidden = true;
     }
     show("form");
     syncUrl();
@@ -1507,6 +1926,7 @@
       custo_base: num("f-custo_base"),
       variacoes: variacoes.filter((v) => (v.atributo || v.valor || v.valor_preco || v.ean).toString().trim()),
       estoque_min: document.getElementById("f-estoque_min").value,
+      validade_dias: document.getElementById("f-validade_dias").value,
       estoque_max: document.getElementById("f-estoque_max").value,
       cest: document.getElementById("f-cest").value.trim(),
       origem: document.getElementById("f-origem").value,
@@ -1620,13 +2040,34 @@
       err.classList.add("visible");
       return;
     }
+    // Alvo do destaque: produto novo (data.id) ou produto editado (editingId)
+    const alvoId = editingId || data.id;
+    if (!retornoUrl) {
+      suppressAutoOpen = true;
+      history.replaceState(null, "", location.pathname);
+    }
     await load();
     if (retornoUrl) {
       location.href = retornoUrl;
       return;
     }
-    history.replaceState(null, "", location.pathname);
     show("list");
+    suppressAutoOpen = false;
+    // Produto criado OU editado: navega para a pagina do grid onde ele aparece
+    // e aplica o destaque visual (sem isso, com paginacao ele sumiria na
+    // pagina 2+ e pareceria que nao foi salvo).
+    if (alvoId != null && grid) {
+      const idx = allData.findIndex((p) => String(p.id) === String(alvoId));
+      if (idx >= 0) {
+        const page = Math.floor(idx / 10) + 1;
+        grid.setPage(page);
+        grid.scrollTo("id", alvoId);
+        grid.highlight("id", alvoId, editingId ? "edit" : "new");
+        setTimeout(() => {
+          if (grid) grid.clearHighlight();
+        }, 6000);
+      }
+    }
   }
 
   async function load() {
@@ -1643,14 +2084,23 @@
     fillDatalist(allData);
     renderGrid();
 
-    // Entrada canônica via query (outros módulos)
-    const idParam = params.get("id");
-    if (params.get("novo") === "1") {
+    // Entrada canônica via query (outros módulos). Usa a URL atual, não o valor
+    // capturado na inicialização, para evitar reabrir o formulário após salvar.
+    const currentParams = new URLSearchParams(location.search);
+    const idParam = currentParams.get("id");
+    if (suppressAutoOpen) {
+      suppressAutoOpen = false;
+      show("list");
+      return;
+    }
+    if (currentParams.get("novo") === "1") {
       openForm(null);
     } else if (idParam) {
       const row = allData.find((p) => String(p.id) === String(idParam));
       if (row) openForm(row);
       else show("list");
+    } else {
+      show("list");
     }
   }
 
@@ -1667,12 +2117,44 @@
   });
 
   bindTabs();
+  bindDuplicarMenu();
   initLookups();
   document.getElementById("btn-novo").addEventListener("click", () => openForm(null));
   document.getElementById("btn-cancel").addEventListener("click", goBack);
   document.getElementById("btn-save").addEventListener("click", save);
   document.getElementById("btn-refresh").addEventListener("click", load);
   document.getElementById("btn-duplicar").addEventListener("click", duplicarAtual);
+
+  async function excluirAtual() {
+    if (editingId == null) return;
+    const pid = editingId;
+    const nome = (document.getElementById("f-nome") || {}).value || "este produto";
+    if (!confirm('Excluir o produto "' + nome + '"?\nEsta ação não pode ser desfeita.')) return;
+    // Volta para a lista, navega ate a linha e aplica o flash VERMELHO antes de remover
+    history.replaceState(null, "", location.pathname);
+    show("list");
+    if (grid) {
+      const idx = allData.findIndex((p) => String(p.id) === String(pid));
+      if (idx >= 0) {
+        const page = Math.floor(idx / 10) + 1;
+        grid.setPage(page);
+        grid.scrollTo("id", pid);
+        grid.highlight("id", pid, "del");
+        await new Promise((r) => setTimeout(r, 900));
+        if (grid) grid.clearHighlight();
+      }
+    }
+    const res = await window.api("/api/admin/produtos/" + pid, {
+      method: "POST",
+      body: JSON.stringify({ action: "delete" }),
+    });
+    if (res.status !== "ok") {
+      alert(res.message || "Erro ao excluir o produto");
+      return;
+    }
+    await load();
+  }
+  document.getElementById("btn-excluir").addEventListener("click", excluirAtual);
   document.getElementById("btn-duplicar-lista").addEventListener("click", duplicarDaLista);
 
   document.getElementById("f-nome").addEventListener("input", syncNomeReduzidoFromNome);
