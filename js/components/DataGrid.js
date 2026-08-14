@@ -305,6 +305,8 @@ class DataGrid{
         }
 
         wrap.addEventListener("click",e=>{
+            // Ignore clicks coming from any checkbox input (select-all or row checkboxes)
+            if (e.target.closest && e.target.closest('input[type="checkbox"]')) return;
             const th=e.target.closest(".dg-sortable");
             if(th){
                 const field=th.dataset.field;
