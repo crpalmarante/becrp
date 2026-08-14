@@ -21,6 +21,7 @@ class DataGrid{
         this._colWidths={};
         this._allData=this._data.slice();
         this._resizeStart=null;
+        this._highlight=null;
         this._render();
     }
 
@@ -45,6 +46,42 @@ class DataGrid{
     setLoading(v){
         this._loading=v;
         this._apply();
+    }
+
+    setPage(n){
+        const total=this._getFiltered().length;
+        const pages=Math.ceil(total/this._pageSize)||1;
+        this._page=Math.min(Math.max(1, Number(n)||1), pages);
+        this._apply();
+    }
+
+    /** Destaca visualmente a linha cujo campo `field` === `value`.
+        `variant` define a cor: "new" (verde), "edit" (azul) ou "del" (vermelho). */
+    highlight(field, value, variant){
+        this._highlight={field, value:String(value), variant:variant||"new"};
+        this._apply();
+    }
+
+    clearHighlight(){
+        this._highlight=null;
+        this._apply();
+    }
+
+    /** Rola a lista ate a linha cujo campo `field` === `value`, centralizando-a no .dg-scroll. */
+    scrollTo(field, value){
+        const idx=this._allData.findIndex(row=>String(this._rawValue(row,{field}))===String(value));
+        if(idx<0)return;
+        const rowEl=this._container.querySelector(`[data-idx="${idx}"]`);
+        if(!rowEl)return;
+        const scrollEl=this._container.querySelector(".dg-scroll");
+        if(scrollEl){
+            const cur=scrollEl.getBoundingClientRect();
+            const row=rowEl.getBoundingClientRect();
+            const target=scrollEl.scrollTop+(row.top-cur.top)-(cur.height-row.height)/2;
+            scrollEl.scrollTo({top:Math.max(0,target), behavior:"smooth"});
+        }
+        // garante que paginas pai (workspace) tambem rolem se a linha estiver fora da tela
+        rowEl.scrollIntoView({behavior:"smooth", block:"nearest"});
     }
 
     data(){
@@ -105,7 +142,9 @@ class DataGrid{
         return paged.map((row,ri)=>{
             const idx=this._allData.indexOf(row);
             const sel=this._selected.has(idx);
-            return `<tr class="dg-row ${sel?"dg-row-sel":""} ${this._striped&&ri%2?"dg-row-alt":""}" data-idx="${idx}">
+            const hl=this._highlight&&String(this._rawValue(row,{field:this._highlight.field}))===this._highlight.value;
+            const hlCls=hl?("dg-row-"+(this._highlight.variant||"new")):"";
+            return `<tr class="dg-row ${sel?"dg-row-sel":""} ${this._striped&&ri%2?"dg-row-alt":""} ${hlCls}" data-idx="${idx}">
                 ${this._selectable?`<td class="dg-cell dg-cell-select" data-idx="${idx}">
                     <input type="checkbox" ${sel?"checked":""}>
                 </td>`:""}
@@ -121,7 +160,9 @@ class DataGrid{
         return paged.map((row,ri)=>{
             const idx=this._allData.indexOf(row);
             const sel=this._selected.has(idx);
-            return `<div class="dg-card ${sel?"dg-card-sel":""}" data-idx="${idx}">
+            const hl=this._highlight&&String(this._rawValue(row,{field:this._highlight.field}))===this._highlight.value;
+            const hlCls=hl?("dg-row-"+(this._highlight.variant||"new")):"";
+            return `<div class="dg-card ${sel?"dg-card-sel":""} ${hlCls}" data-idx="${idx}">
                 ${this._selectable?`<div class="dg-card-select"><input type="checkbox" ${sel?"checked":""}></div>`:""}
                 ${this._columns.map(col=>{
                     const val=this._cellValue(row,col);
@@ -159,13 +200,17 @@ class DataGrid{
                 btns+="<span class=\"dg-page-dots\">…</span>";
             }
         }
+        const prevDisabled = this._page<=1;
+        const nextDisabled = this._page>=pages;
         return `
             <div class="dg-pagination">
-                <div class="dg-page-info">${start}–${end} de ${total}</div>
+                <div class="dg-page-info">${start}–${end} de ${total} (pág ${this._page}/${pages})</div>
                 <div class="dg-page-btns">
-                    <button class="dg-page-nav" data-page="prev">&lsaquo;</button>
+                    <button class="dg-page-nav" data-page="first" ${prevDisabled?"disabled":""}>&laquo;</button>
+                    <button class="dg-page-nav" data-page="prev" ${prevDisabled?"disabled":""}>&lsaquo;</button>
                     ${btns}
-                    <button class="dg-page-nav" data-page="next">&rsaquo;</button>
+                    <button class="dg-page-nav" data-page="next" ${nextDisabled?"disabled":""}>&rsaquo;</button>
+                    <button class="dg-page-nav" data-page="last" ${nextDisabled?"disabled":""}>&raquo;</button>
                 </div>
                 <select class="dg-page-size">
                     ${this._pageSizeOptions.map(s=>`<option value="${s}" ${s===this._pageSize?"selected":""}>${s}/pág</option>`).join("")}
@@ -265,9 +310,12 @@ class DataGrid{
             const pageBtn=e.target.closest("[data-page]");
             if(pageBtn){
                 const p=pageBtn.dataset.page;
-                if(p==="prev"){if(this._page>1)this._page--;}
-                else if(p==="next"){if(this._page<Math.ceil(this._getFiltered().length/this._pageSize))this._page++;}
-                else this._page=parseInt(p);
+                const pages = Math.ceil(this._getFiltered().length/this._pageSize)||1;
+                if(p==="prev"){ if(this._page>1) this._page--; }
+                else if(p==="next"){ if(this._page<pages) this._page++; }
+                else if(p==="first"){ this._page = 1; }
+                else if(p==="last"){ this._page = pages; }
+                else { this._page = parseInt(p); }
                 this._apply();
                 this._emit("page",{page:this._page,pageSize:this._pageSize});
                 return;
