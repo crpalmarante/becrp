@@ -115,7 +115,16 @@ class DataGrid{
     }
 
     _renderHeaders(){
-        return this._columns.map((col,i)=>{
+        // if selectable, prepend a header cell with a select-all checkbox
+        let prefix = "";
+        if(this._selectable){
+            const filtered=this._getFiltered();
+            const sorted=this._sortData(filtered);
+            const paged=this._paginate(sorted);
+            const allChecked = paged.length>0 && paged.every(r=> this._selected.has(this._allData.indexOf(r)));
+            prefix = `<th class="dg-th dg-th-select"><div class="dg-th-content"><input type="checkbox" class="dg-select-all" ${allChecked?"checked":""}></div></th>`;
+        }
+        return prefix + this._columns.map((col,i)=>{
             const w=this._colWidths[col.field]||col.width||"";
             const sort=this._sortField===col.field;
             return `<th class="dg-th ${this._sortable&&col.sortable!==false?"dg-sortable":""}" data-field="${col.field}" style="${w?"width:"+w+"px":""}">
@@ -343,6 +352,23 @@ class DataGrid{
                 else this._selected.delete(idx);
                 this._emit("select",{rows:this.selected()});
                 cb.closest("tr").classList.toggle("dg-row-sel",cb.checked);
+                return;
+            }
+            const selAll = e.target.closest('.dg-select-all');
+            if(selAll){
+                const checked = !!selAll.checked;
+                const filtered=this._getFiltered();
+                const sorted=this._sortData(filtered);
+                const paged=this._paginate(sorted);
+                paged.forEach(row=>{
+                    const idx=this._allData.indexOf(row);
+                    if(idx>=0){
+                        if(checked) this._selected.add(idx);
+                        else this._selected.delete(idx);
+                    }
+                });
+                this._apply();
+                this._emit("select",{rows:this.selected()});
                 return;
             }
             const sizeSelect=e.target.closest(".dg-page-size");
