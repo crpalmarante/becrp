@@ -1,0 +1,83 @@
+{
+  "next_id": 3,
+  "contratos": [
+    {
+      "id": 2,
+      "numero": "CT-00002",
+      "titulo": "Contrato ref. PV01006",
+      "status": "rascunho",
+      "cliente_id": "",
+      "razao_social": "Construtora ABC Ltda",
+      "cnpj": "12345678000190",
+      "inicio": "2026-08-04",
+      "fim": "",
+      "ciclo": "mensal",
+      "renovacao": "manual",
+      "valor": 6500.0,
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Mesa escritório",
+          "qtd": 10.0,
+          "preco": 650.0,
+          "desconto_pct": 0.0,
+          "subtotal": 6500.0
+        }
+      ],
+      "payment_terms": "30",
+      "forma_pg": "Boleto",
+      "lista_precos_id": "",
+      "vendedor": "smoke",
+      "pedido_origem_id": 1006,
+      "notas": "Gerado do documento PV01006",
+      "pedidos_gerados": [],
+      "criado_em": "2026-08-04T19:34:16",
+      "criado_por": "smoke",
+      "atualizado_em": "2026-08-04T19:34:16"
+    },
+    {
+      "id": 1,
+      "numero": "CT-00001",
+      "titulo": "Fornecimento móveis 2026",
+      "status": "ativo",
+      "cliente_id": "",
+      "razao_social": "Construtora ABC Ltda",
+      "cnpj": "12345678000190",
+      "inicio": "2026-08-01",
+      "fim": "2027-07-31",
+      "ciclo": "mensal",
+      "renovacao": "manual",
+      "valor": 6500.0,
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Mesa escritório",
+          "qtd": 10.0,
+          "preco": 650.0,
+          "desconto_pct": 0.0,
+          "subtotal": 6500.0
+        }
+      ],
+      "payment_terms": "30",
+      "forma_pg": "Boleto",
+      "lista_precos_id": "",
+      "vendedor": "smoke",
+      "pedido_origem_id": null,
+      "notas": "",
+      "pedidos_gerados": [
+        {
+          "pedido_id": 1006,
+          "numero": "PV01006",
+          "em": "2026-08-04T19:34:16",
+          "por": "smoke"
+        }
+      ],
+      "criado_em": "2026-08-04T19:34:15",
+      "criado_por": "smoke",
+      "atualizado_em": "2026-08-04T19:34:16",
+      "atualizado_por": "smoke"
+    }
+  ],
+  "atualizado_em": "2026-08-04T19:34:16",
+  "total": 2
+}

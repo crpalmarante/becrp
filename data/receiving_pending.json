@@ -1,5 +1,5 @@
 {
-  "next_id": 4,
+  "next_id": 15,
   "items": [
     {
       "id": 1,
@@ -78,7 +78,7 @@
       "category": "verification",
       "type": "quantity_difference",
       "priority": "high",
-      "status": "open",
+      "status": "resolved",
       "description": "Conferência quantity_difference: Cafe esp=3 bom=1 avaria=0",
       "assigned_to": null,
       "metadata": {
@@ -93,14 +93,394 @@
       "dedupe_key": "quantity_difference|9||item:0",
       "created_at": "2026-07-31T15:43:13",
       "created_by": "smoke",
-      "resolved_at": null,
-      "resolved_by": null,
-      "resolution": null,
+      "resolved_at": "2026-08-06T20:13:42",
+      "resolved_by": "test",
+      "resolution": "cleared",
       "events": [
         {
           "at": "2026-07-31T15:43:13",
           "tipo": "created",
           "by": "smoke"
+        },
+        {
+          "at": "2026-08-06T20:13:42",
+          "tipo": "resolved",
+          "by": "test",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: chave de acesso inválida ou ausente (44 dígitos)",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "",
+        "error": "chave de acesso inválida ou ausente (44 dígitos)"
+      },
+      "dedupe_key": "xml_error||4",
+      "created_at": "2026-09-03T08:20:55",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:23:06",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:20:55",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:23:06",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "receiving_id": null,
+      "monitor_id": 5,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #5: chave de acesso inválida ou ausente (44 dígitos)",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "",
+        "error": "chave de acesso inválida ou ausente (44 dígitos)"
+      },
+      "dedupe_key": "xml_error||5",
+      "created_at": "2026-09-03T08:20:55",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:29:39",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:20:55",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:29:39",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: NFC-e (65) ignorada no monitor de entrada — use NF-e 55",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "43260762832155000141550010000000000000000004",
+        "error": "NFC-e (65) ignorada no monitor de entrada — use NF-e 55"
+      },
+      "dedupe_key": "xml_error||4|chave:43260762832155000141550010000000000000000004",
+      "created_at": "2026-09-03T08:23:05",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:23:06",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:23:05",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:23:06",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: NFC-e (65) ignorada no monitor de entrada — use NF-e 55",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "43260762832155000141550010000000000000000004",
+        "error": "NFC-e (65) ignorada no monitor de entrada — use NF-e 55"
+      },
+      "dedupe_key": "xml_error||4|chave:43260762832155000141550010000000000000000004",
+      "created_at": "2026-09-03T08:23:17",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:23:17",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:23:17",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:23:17",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: estrutura inválida: infNFe não encontrado",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "",
+        "error": "estrutura inválida: infNFe não encontrado"
+      },
+      "dedupe_key": "xml_error||4",
+      "created_at": "2026-09-03T08:23:17",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:23:17",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:23:17",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:23:17",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: NFC-e (65) ignorada no monitor de entrada — use NF-e 55",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "43260762832155000141550010000000000000000004",
+        "error": "NFC-e (65) ignorada no monitor de entrada — use NF-e 55"
+      },
+      "dedupe_key": "xml_error||4|chave:43260762832155000141550010000000000000000004",
+      "created_at": "2026-09-03T08:23:26",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:23:26",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:23:26",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:23:26",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: estrutura inválida: infNFe não encontrado",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "",
+        "error": "estrutura inválida: infNFe não encontrado"
+      },
+      "dedupe_key": "xml_error||4",
+      "created_at": "2026-09-03T08:23:26",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:23:26",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:23:26",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:23:26",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: NFC-e (65) ignorada no monitor de entrada — use NF-e 55",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "43260762832155000141550010000000000000000004",
+        "error": "NFC-e (65) ignorada no monitor de entrada — use NF-e 55"
+      },
+      "dedupe_key": "xml_error||4|chave:43260762832155000141550010000000000000000004",
+      "created_at": "2026-09-03T08:29:39",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:29:39",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:29:39",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:29:39",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: estrutura inválida: infNFe não encontrado",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "",
+        "error": "estrutura inválida: infNFe não encontrado"
+      },
+      "dedupe_key": "xml_error||4",
+      "created_at": "2026-09-03T08:29:39",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:29:39",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:29:39",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:29:39",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: NFC-e (65) ignorada no monitor de entrada — use NF-e 55",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "43260762832155000141550010000000000000000004",
+        "error": "NFC-e (65) ignorada no monitor de entrada — use NF-e 55"
+      },
+      "dedupe_key": "xml_error||4|chave:43260762832155000141550010000000000000000004",
+      "created_at": "2026-09-03T08:29:47",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:29:47",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:29:47",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:29:47",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: estrutura inválida: infNFe não encontrado",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "",
+        "error": "estrutura inválida: infNFe não encontrado"
+      },
+      "dedupe_key": "xml_error||4",
+      "created_at": "2026-09-03T08:29:47",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:29:47",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:29:47",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:29:47",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
         }
       ]
     }

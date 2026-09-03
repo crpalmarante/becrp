@@ -1,0 +1,311 @@
+{
+  "seq": 8,
+  "atualizado_em": "2026-08-01T17:39:56",
+  "slots": [
+    {
+      "id": "SL-SEED-0001",
+      "data": "2026-08-01",
+      "periodo": "tarde",
+      "inicio": "13:00",
+      "fim": "18:00",
+      "fonte": "DC-01",
+      "tipo": "scheduled",
+      "capacidade": 10,
+      "booked": 1,
+      "disponivel": 9,
+      "status": "open",
+      "observacao": "Seed — tarde de hoje",
+      "reservas": [
+        {
+          "entrega_id": "DO-SEED-0001",
+          "parceiro": "Cliente Demo",
+          "status": "confirmed",
+          "motivo": "seed",
+          "historico": [
+            {
+              "status": "confirmed",
+              "em": "2026-08-01T17:39:56",
+              "usuario": "seed",
+              "nota": "seed"
+            }
+          ],
+          "criado_em": "2026-08-01T17:39:56",
+          "atualizado_em": "2026-08-01T17:39:56"
+        }
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "seed",
+          "nota": "criação"
+        }
+      ],
+      "criado_em": "2026-08-01T17:39:56",
+      "atualizado_em": "2026-08-01T17:39:56"
+    },
+    {
+      "id": "SL-20260801-0002",
+      "data": "2026-08-10",
+      "periodo": "manha",
+      "inicio": "08:00",
+      "fim": "12:00",
+      "fonte": "DC-01",
+      "tipo": "scheduled",
+      "capacidade": 2,
+      "booked": 0,
+      "disponivel": 2,
+      "status": "open",
+      "observacao": "",
+      "reservas": [
+        {
+          "entrega_id": "DO-20260801-0002",
+          "parceiro": "Ana",
+          "status": "cancelled",
+          "motivo": "cliente pediu",
+          "historico": [
+            {
+              "status": "scheduled",
+              "em": "2026-08-01T17:39:56",
+              "usuario": "test",
+              "nota": "reserva"
+            },
+            {
+              "status": "confirmed",
+              "em": "2026-08-01T17:39:56",
+              "usuario": "test",
+              "nota": "confirmado"
+            },
+            {
+              "status": "cancelled",
+              "em": "2026-08-01T17:39:56",
+              "usuario": "test",
+              "nota": "cliente pediu"
+            }
+          ],
+          "criado_em": "2026-08-01T17:39:56",
+          "atualizado_em": "2026-08-01T17:39:56"
+        }
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "reserva DO-20260801-0002"
+        },
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "libera DO-20260801-0002: cliente pediu"
+        }
+      ],
+      "criado_em": "2026-08-01T17:39:56",
+      "atualizado_em": "2026-08-01T17:39:56"
+    },
+    {
+      "id": "SL-20260801-0003",
+      "data": "2026-08-10",
+      "periodo": "tarde",
+      "inicio": "13:00",
+      "fim": "18:00",
+      "fonte": "DC-01",
+      "tipo": "scheduled",
+      "capacidade": 2,
+      "booked": 1,
+      "disponivel": 1,
+      "status": "open",
+      "observacao": "",
+      "reservas": [
+        {
+          "entrega_id": "DO-20260801-0002",
+          "parceiro": "Ana",
+          "status": "rescheduled",
+          "motivo": "cliente pediu",
+          "historico": [
+            {
+              "status": "rescheduled",
+              "em": "2026-08-01T17:39:56",
+              "usuario": "test",
+              "nota": "cliente pediu"
+            }
+          ],
+          "criado_em": "2026-08-01T17:39:56",
+          "atualizado_em": "2026-08-01T17:39:56"
+        }
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "reserva DO-20260801-0002"
+        }
+      ],
+      "criado_em": "2026-08-01T17:39:56",
+      "atualizado_em": "2026-08-01T17:39:56"
+    },
+    {
+      "id": "SL-20260801-0004",
+      "data": "2026-08-11",
+      "periodo": "manha",
+      "inicio": "08:00",
+      "fim": "12:00",
+      "fonte": "DC-01",
+      "tipo": "scheduled",
+      "capacidade": 2,
+      "booked": 0,
+      "disponivel": 2,
+      "status": "open",
+      "observacao": "",
+      "reservas": [],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "criado_em": "2026-08-01T17:39:56",
+      "atualizado_em": "2026-08-01T17:39:56"
+    },
+    {
+      "id": "SL-20260801-0005",
+      "data": "2026-08-11",
+      "periodo": "tarde",
+      "inicio": "13:00",
+      "fim": "18:00",
+      "fonte": "DC-01",
+      "tipo": "scheduled",
+      "capacidade": 2,
+      "booked": 0,
+      "disponivel": 2,
+      "status": "open",
+      "observacao": "",
+      "reservas": [],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "criado_em": "2026-08-01T17:39:56",
+      "atualizado_em": "2026-08-01T17:39:56"
+    },
+    {
+      "id": "SL-20260801-0006",
+      "data": "2026-08-12",
+      "periodo": "manha",
+      "inicio": "08:00",
+      "fim": "12:00",
+      "fonte": "DC-01",
+      "tipo": "scheduled",
+      "capacidade": 2,
+      "booked": 0,
+      "disponivel": 2,
+      "status": "open",
+      "observacao": "",
+      "reservas": [],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "criado_em": "2026-08-01T17:39:56",
+      "atualizado_em": "2026-08-01T17:39:56"
+    },
+    {
+      "id": "SL-20260801-0007",
+      "data": "2026-08-12",
+      "periodo": "tarde",
+      "inicio": "13:00",
+      "fim": "18:00",
+      "fonte": "DC-01",
+      "tipo": "scheduled",
+      "capacidade": 2,
+      "booked": 0,
+      "disponivel": 2,
+      "status": "open",
+      "observacao": "",
+      "reservas": [],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "criado_em": "2026-08-01T17:39:56",
+      "atualizado_em": "2026-08-01T17:39:56"
+    },
+    {
+      "id": "SL-20260801-0008",
+      "data": "2026-09-01",
+      "periodo": "manha",
+      "inicio": "08:00",
+      "fim": "12:00",
+      "fonte": "DC-01",
+      "tipo": "scheduled",
+      "capacidade": 1,
+      "booked": 1,
+      "disponivel": 0,
+      "status": "full",
+      "observacao": "",
+      "reservas": [
+        {
+          "entrega_id": "DO-20260801-0003",
+          "parceiro": "B",
+          "status": "scheduled",
+          "motivo": "",
+          "historico": [
+            {
+              "status": "scheduled",
+              "em": "2026-08-01T17:39:56",
+              "usuario": "test",
+              "nota": "reserva"
+            }
+          ],
+          "criado_em": "2026-08-01T17:39:56",
+          "atualizado_em": "2026-08-01T17:39:56"
+        }
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "full",
+          "em": "2026-08-01T17:39:56",
+          "usuario": "test",
+          "nota": "reserva DO-20260801-0003"
+        }
+      ],
+      "criado_em": "2026-08-01T17:39:56",
+      "atualizado_em": "2026-08-01T17:39:56"
+    }
+  ],
+  "total": 8
+}

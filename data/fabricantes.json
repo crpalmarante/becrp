@@ -1,3 +1,12 @@
 {
-  "nacional": { "nome": "Fabricante Nacional", "descricao": "", "ativo": true }
+  "nacional": {
+    "nome": "Fabricante Nacional",
+    "descricao": "",
+    "ativo": true
+  },
+  "d0feb031": {
+    "nome": "Electrolux do Brasil",
+    "descricao": "",
+    "ativo": true
+  }
 }

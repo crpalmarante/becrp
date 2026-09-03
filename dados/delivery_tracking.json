@@ -1,0 +1,809 @@
+{
+  "seq": 8,
+  "atualizado_em": "2026-08-04T16:51:34",
+  "tracks": [
+    {
+      "id": "TR-SEED-0001",
+      "entrega_id": "DO-SEED-0001",
+      "status": "delivered",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "last_lat": null,
+      "last_lng": null,
+      "last_location_at": "",
+      "event_seq": 8,
+      "events": [
+        {
+          "id": "EV-0001",
+          "tipo": "created",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "seed",
+          "mensagem": "Entrega seed criada",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0002",
+          "tipo": "prepared",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "seed",
+          "mensagem": "Pronta para despacho",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0003",
+          "tipo": "scheduled",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "seed",
+          "mensagem": "Agenda 2026-08-01 tarde",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0004",
+          "tipo": "assigned",
+          "em": "2026-08-02T10:48:22",
+          "usuario": "test",
+          "mensagem": "atribuído Carlos Motorista",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0005",
+          "tipo": "assigned",
+          "em": "2026-08-02T11:36:26",
+          "usuario": "test",
+          "mensagem": "atribuído Carlos",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0006",
+          "tipo": "assigned",
+          "em": "2026-08-02T11:39:35",
+          "usuario": "test",
+          "mensagem": "atribuído Carlos Motorista",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0007",
+          "tipo": "departed",
+          "em": "2026-08-02T19:52:25",
+          "usuario": "smoke",
+          "mensagem": "depart",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0008",
+          "tipo": "delivered",
+          "em": "2026-08-02T19:52:25",
+          "usuario": "smoke",
+          "mensagem": "entregue",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        }
+      ],
+      "criado_em": "2026-08-01T17:45:12",
+      "atualizado_em": "2026-08-02T19:52:25"
+    },
+    {
+      "id": "TR-20260801-0002",
+      "entrega_id": "DO-20260801-0002",
+      "status": "confirmed",
+      "motorista": "Carlos",
+      "veiculo": "ABC1D23",
+      "last_lat": -28.26,
+      "last_lng": -52.4,
+      "last_location_at": "2026-08-01T17:48:08",
+      "event_seq": 15,
+      "events": [
+        {
+          "id": "EV-0001",
+          "tipo": "created",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "Tracking iniciado (draft)",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0002",
+          "tipo": "created",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "confirm",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0003",
+          "tipo": "prepared",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "ready",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0004",
+          "tipo": "assigned",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "atribuído Carlos",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0005",
+          "tipo": "departed",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "depart",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0006",
+          "tipo": "location",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "GPS",
+          "parada": null,
+          "lat": -28.26,
+          "lng": -52.4,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0007",
+          "tipo": "arrived",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "No cliente",
+          "parada": 1,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0008",
+          "tipo": "delivered",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "entregue",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0009",
+          "tipo": "created",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "confirm",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0010",
+          "tipo": "prepared",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "ready",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0011",
+          "tipo": "assigned",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "atribuído Carlos",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0012",
+          "tipo": "departed",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "depart",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0013",
+          "tipo": "delivered",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "entregue",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0014",
+          "tipo": "delivered",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "POD POD-20260801-0002 confirmado por Maria",
+          "parada": 1,
+          "lat": -28.26,
+          "lng": -52.4,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0015",
+          "tipo": "confirmed",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "complete",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        }
+      ],
+      "criado_em": "2026-08-01T17:45:12",
+      "atualizado_em": "2026-08-01T17:48:08"
+    },
+    {
+      "id": "TR-20260801-0003",
+      "entrega_id": "DO-20260801-0003",
+      "status": "failed",
+      "motorista": "A",
+      "veiculo": "B",
+      "last_lat": null,
+      "last_lng": null,
+      "last_location_at": "",
+      "event_seq": 12,
+      "events": [
+        {
+          "id": "EV-0001",
+          "tipo": "created",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "Tracking iniciado (confirmed)",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0002",
+          "tipo": "created",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "confirm",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0003",
+          "tipo": "prepared",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "ready",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0004",
+          "tipo": "assigned",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "atribuído X",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0005",
+          "tipo": "departed",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "depart",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0006",
+          "tipo": "failed",
+          "em": "2026-08-01T17:45:12",
+          "usuario": "test",
+          "mensagem": "cliente ausente",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0007",
+          "tipo": "created",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "confirm",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0008",
+          "tipo": "prepared",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "ready",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0009",
+          "tipo": "assigned",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "atribuído A",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0010",
+          "tipo": "departed",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "depart",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0011",
+          "tipo": "delivered",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "entregue",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0012",
+          "tipo": "failed",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "mensagem": "POD POD-20260801-0003 rejeitado: cliente recusou",
+          "parada": 1,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        }
+      ],
+      "criado_em": "2026-08-01T17:45:12",
+      "atualizado_em": "2026-08-01T17:48:08"
+    },
+    {
+      "id": "TR-20260802-0004",
+      "entrega_id": "DO-20260802-0002",
+      "status": "delivered",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "last_lat": null,
+      "last_lng": null,
+      "last_location_at": "",
+      "event_seq": 7,
+      "events": [
+        {
+          "id": "EV-0001",
+          "tipo": "created",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "mensagem": "Tracking iniciado (confirmed)",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0002",
+          "tipo": "created",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "mensagem": "confirm",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0003",
+          "tipo": "prepared",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "mensagem": "ready",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0004",
+          "tipo": "assigned",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "mensagem": "atribuído Carlos Motorista",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0005",
+          "tipo": "departed",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "mensagem": "depart",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0006",
+          "tipo": "delivered",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "mensagem": "POD POD-20260802-0004 confirmado por Maria",
+          "parada": 1,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0007",
+          "tipo": "delivered",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "mensagem": "entregue",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        }
+      ],
+      "criado_em": "2026-08-02T20:30:57",
+      "atualizado_em": "2026-08-02T20:30:57"
+    },
+    {
+      "id": "TR-20260802-0005",
+      "entrega_id": "DO-20260802-0003",
+      "status": "assigned",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "last_lat": null,
+      "last_lng": null,
+      "last_location_at": "",
+      "event_seq": 4,
+      "events": [
+        {
+          "id": "EV-0001",
+          "tipo": "created",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "mensagem": "Tracking iniciado (confirmed)",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0002",
+          "tipo": "created",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "mensagem": "confirm",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0003",
+          "tipo": "prepared",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "mensagem": "ready",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0004",
+          "tipo": "assigned",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "mensagem": "atribuído Carlos Motorista",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        }
+      ],
+      "criado_em": "2026-08-02T20:31:06",
+      "atualizado_em": "2026-08-02T20:31:06"
+    },
+    {
+      "id": "TR-20260802-0006",
+      "entrega_id": "DO-20260802-0004",
+      "status": "delivered",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "last_lat": null,
+      "last_lng": null,
+      "last_location_at": "",
+      "event_seq": 7,
+      "events": [
+        {
+          "id": "EV-0001",
+          "tipo": "created",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "Tracking iniciado (confirmed)",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0002",
+          "tipo": "created",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "confirm",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0003",
+          "tipo": "prepared",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "ready",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0004",
+          "tipo": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "atribuído Carlos Motorista",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0005",
+          "tipo": "departed",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "depart",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0006",
+          "tipo": "delivered",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "POD POD-20260802-0006 confirmado por Ana",
+          "parada": 1,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0007",
+          "tipo": "delivered",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "entregue",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        }
+      ],
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    },
+    {
+      "id": "TR-20260802-0007",
+      "entrega_id": "DO-20260802-0005",
+      "status": "delivered",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "last_lat": null,
+      "last_lng": null,
+      "last_location_at": "",
+      "event_seq": 7,
+      "events": [
+        {
+          "id": "EV-0001",
+          "tipo": "created",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "Tracking iniciado (confirmed)",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0002",
+          "tipo": "created",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "confirm",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0003",
+          "tipo": "prepared",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "ready",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0004",
+          "tipo": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "atribuído Carlos Motorista",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0005",
+          "tipo": "departed",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "depart",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0006",
+          "tipo": "delivered",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "POD POD-20260802-0005 confirmado por João",
+          "parada": 1,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0007",
+          "tipo": "delivered",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "mensagem": "entregue",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        }
+      ],
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    },
+    {
+      "id": "TR-20260804-0008",
+      "entrega_id": "DO-20260804-0100",
+      "status": "created",
+      "motorista": "",
+      "veiculo": "",
+      "last_lat": null,
+      "last_lng": null,
+      "last_location_at": "",
+      "event_seq": 2,
+      "events": [
+        {
+          "id": "EV-0001",
+          "tipo": "created",
+          "em": "2026-08-04T16:51:34",
+          "usuario": "smoke",
+          "mensagem": "Tracking iniciado (confirmed)",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        },
+        {
+          "id": "EV-0002",
+          "tipo": "created",
+          "em": "2026-08-04T16:51:34",
+          "usuario": "smoke",
+          "mensagem": "confirm",
+          "parada": null,
+          "lat": null,
+          "lng": null,
+          "visivel_cliente": true
+        }
+      ],
+      "criado_em": "2026-08-04T16:51:34",
+      "atualizado_em": "2026-08-04T16:51:34"
+    }
+  ],
+  "total": 8
+}

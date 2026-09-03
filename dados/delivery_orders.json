@@ -1,0 +1,1063 @@
+{
+  "seq": 102,
+  "orders": [
+    {
+      "id": "DO-SEED-0001",
+      "origem_tipo": "pedido_venda",
+      "origem_ref": "PV-100",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "Armazém Principal",
+      "status": "delivered",
+      "prioridade": "normal",
+      "data_agendada": "2026-08-02",
+      "janela": "tarde",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "manifesto_id": "MF-SEED-0001",
+      "observacao": "Seed — entrega pronta (após WMS)",
+      "seq": 1,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Casa do cliente",
+          "address_type": "SHIPPING",
+          "endereco": "Rua das Flores, 100 — Centro",
+          "cidade": "Passo Fundo",
+          "uf": "RS",
+          "cep": "99010-000",
+          "contato": "João Silva",
+          "telefone": "(54) 99999-0001",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Produto demo",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "confirmada"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "estoque ok / WMS"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260802-0002",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "",
+      "parceiro": "Cliente Motorista Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "delivered",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "manifesto_id": "MF-20260802-0002",
+      "observacao": "",
+      "seq": 2,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Av. Brasil, 500",
+          "cidade": "Passo Fundo",
+          "uf": "",
+          "cep": "",
+          "contato": "Maria",
+          "telefone": "54999990002",
+          "status": "delivered",
+          "itens": [
+            {
+              "produto_id": "",
+              "produto": "Caixa A",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "confirm"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "ready"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "manifesto MF-20260802-0002"
+        },
+        {
+          "status": "in_transit",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "depart"
+        },
+        {
+          "status": "delivered",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "entregue"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260802-0003",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "",
+      "parceiro": "Cliente UI Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "assigned",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "manifesto_id": "MF-20260802-0003",
+      "observacao": "",
+      "seq": 3,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Rua XV, 10",
+          "cidade": "Passo Fundo",
+          "uf": "",
+          "cep": "",
+          "contato": "Pedro",
+          "telefone": "54988880001",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "",
+              "produto": "Pacote",
+              "qtd": 1.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "confirm"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "ready"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "manifesto MF-20260802-0003"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260802-0004",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "",
+      "parceiro": "Stop Cliente A",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "delivered",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "manifesto_id": "MF-20260802-0004",
+      "observacao": "",
+      "seq": 4,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Rua A, 1",
+          "cidade": "Passo Fundo",
+          "uf": "",
+          "cep": "",
+          "contato": "Contato",
+          "telefone": "54999991111",
+          "status": "delivered",
+          "itens": [
+            {
+              "produto_id": "",
+              "produto": "Item",
+              "qtd": 1.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "confirm"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "ready"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "manifesto MF-20260802-0004"
+        },
+        {
+          "status": "in_transit",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "depart"
+        },
+        {
+          "status": "delivered",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "entregue"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260802-0005",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "",
+      "parceiro": "Stop Cliente B",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "delivered",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "manifesto_id": "MF-20260802-0004",
+      "observacao": "",
+      "seq": 5,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Rua B, 2",
+          "cidade": "Passo Fundo",
+          "uf": "",
+          "cep": "",
+          "contato": "Contato",
+          "telefone": "54999991111",
+          "status": "delivered",
+          "itens": [
+            {
+              "produto_id": "",
+              "produto": "Item",
+              "qtd": 1.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "confirm"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "ready"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "manifesto MF-20260802-0004"
+        },
+        {
+          "status": "in_transit",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "depart"
+        },
+        {
+          "status": "delivered",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "entregue"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260804-0006",
+      "origem_tipo": "pedido_venda",
+      "origem_ref": "PV99001",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Smoke",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "draft",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "Handoff B2B PV99001",
+      "seq": 6,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "A combinar — Cliente Smoke",
+          "cidade": "SP",
+          "uf": "SP",
+          "cep": "",
+          "contato": "Cliente Smoke",
+          "telefone": "",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Arroz 5kg",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T14:19:31",
+          "usuario": "smoke",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260804-0007",
+      "origem_tipo": "pedido_venda",
+      "origem_ref": "PV99002",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Smoke",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "draft",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "Handoff B2B PV99002",
+      "seq": 7,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "A combinar — Cliente Smoke",
+          "cidade": "",
+          "uf": "",
+          "cep": "",
+          "contato": "Cliente Smoke",
+          "telefone": "",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Arroz 5kg",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T14:19:46",
+          "usuario": "smoke",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260804-0008",
+      "origem_tipo": "pedido_venda",
+      "origem_ref": "PV99003",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Smoke",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "draft",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "Handoff B2B PV99003",
+      "seq": 8,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "A combinar — Cliente Smoke",
+          "cidade": "",
+          "uf": "",
+          "cep": "",
+          "contato": "Cliente Smoke",
+          "telefone": "",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "X",
+              "qtd": 1.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T14:19:46",
+          "usuario": "smoke",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-SEED-0001",
+      "origem_tipo": "pedido_venda",
+      "origem_ref": "PV-100",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "Armazém Principal",
+      "status": "ready",
+      "prioridade": "normal",
+      "data_agendada": "2026-08-04",
+      "janela": "tarde",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "Seed — entrega pronta (após WMS)",
+      "seq": 9,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Casa do cliente",
+          "address_type": "SHIPPING",
+          "endereco": "Rua das Flores, 100 — Centro",
+          "cidade": "Passo Fundo",
+          "uf": "RS",
+          "cep": "99010-000",
+          "contato": "João Silva",
+          "telefone": "(54) 99999-0001",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Produto demo",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "confirmada"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "estoque ok / WMS"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-SEED-0001",
+      "origem_tipo": "pedido_venda",
+      "origem_ref": "PV-100",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "Armazém Principal",
+      "status": "ready",
+      "prioridade": "normal",
+      "data_agendada": "2026-08-04",
+      "janela": "tarde",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "Seed — entrega pronta (após WMS)",
+      "seq": 10,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Casa do cliente",
+          "address_type": "SHIPPING",
+          "endereco": "Rua das Flores, 100 — Centro",
+          "cidade": "Passo Fundo",
+          "uf": "RS",
+          "cep": "99010-000",
+          "contato": "João Silva",
+          "telefone": "(54) 99999-0001",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Produto demo",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "confirmada"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "estoque ok / WMS"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-SEED-0001",
+      "origem_tipo": "pedido_venda",
+      "origem_ref": "PV-100",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "Armazém Principal",
+      "status": "ready",
+      "prioridade": "normal",
+      "data_agendada": "2026-08-04",
+      "janela": "tarde",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "Seed — entrega pronta (após WMS)",
+      "seq": 11,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Casa do cliente",
+          "address_type": "SHIPPING",
+          "endereco": "Rua das Flores, 100 — Centro",
+          "cidade": "Passo Fundo",
+          "uf": "RS",
+          "cep": "99010-000",
+          "contato": "João Silva",
+          "telefone": "(54) 99999-0001",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Produto demo",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "confirmada"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "estoque ok / WMS"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260804-0001",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Teste DO",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "draft",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "",
+      "seq": 12,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Rua Teste 1",
+          "cidade": "SP",
+          "uf": "SP",
+          "cep": "",
+          "contato": "Cliente Teste DO",
+          "telefone": "",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Arroz",
+              "qtd": 3.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "smoke",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-SEED-0001",
+      "origem_tipo": "pedido_venda",
+      "origem_ref": "PV-100",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "Armazém Principal",
+      "status": "ready",
+      "prioridade": "normal",
+      "data_agendada": "2026-08-04",
+      "janela": "tarde",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "Seed — entrega pronta (após WMS)",
+      "seq": 13,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Casa do cliente",
+          "address_type": "SHIPPING",
+          "endereco": "Rua das Flores, 100 — Centro",
+          "cidade": "Passo Fundo",
+          "uf": "RS",
+          "cep": "99010-000",
+          "contato": "João Silva",
+          "telefone": "(54) 99999-0001",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Produto demo",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "confirmada"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-04T16:51:16",
+          "usuario": "seed",
+          "nota": "estoque ok / WMS"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-TEST-1",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "",
+      "parceiro": "Test",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "draft",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "",
+      "seq": 99,
+      "paradas": [],
+      "historico": [],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260804-0100",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Teste DO2",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "confirmed",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "expedicao_id": "",
+      "manifesto_id": "",
+      "observacao": "",
+      "seq": 100,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Rua B 2",
+          "cidade": "SP",
+          "uf": "SP",
+          "cep": "",
+          "contato": "Cliente Teste DO2",
+          "telefone": "",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Arroz",
+              "qtd": 1.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-04T16:51:34",
+          "usuario": "smoke",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-04T16:51:34",
+          "usuario": "smoke",
+          "nota": "confirm"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260806-0101",
+      "origem_tipo": "expedicao_wms",
+      "origem_ref": "PV-TEST-008",
+      "parceiro_id": "",
+      "parceiro": "Cliente Teste",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "draft",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "",
+      "motorista": "João",
+      "veiculo": "ABC-1234",
+      "expedicao_id": "SH-20260806-0008",
+      "manifesto_id": "",
+      "observacao": "Gerada de SH-20260806-0008 (WMS despacho — sem baixa de es",
+      "seq": 101,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Destino",
+          "address_type": "SHIPPING",
+          "endereco": "",
+          "cidade": "",
+          "uf": "",
+          "cep": "",
+          "contato": "Cliente Teste",
+          "telefone": "",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Produto demo",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    },
+    {
+      "id": "DO-20260806-0102",
+      "origem_tipo": "expedicao_wms",
+      "origem_ref": "PV-TEST-FINAL-001",
+      "parceiro_id": "",
+      "parceiro": "Cliente Final",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "draft",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "recurso_id": "",
+      "motorista": "M",
+      "veiculo": "XYZ-0000",
+      "expedicao_id": "SH-20260806-0009",
+      "manifesto_id": "",
+      "observacao": "Gerada de SH-20260806-0009 (WMS despacho — sem baixa de es",
+      "seq": 102,
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Destino",
+          "address_type": "SHIPPING",
+          "endereco": "",
+          "cidade": "",
+          "uf": "",
+          "cep": "",
+          "contato": "Cliente Final",
+          "telefone": "",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Produto demo",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:06:56",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "cobol",
+      "atualizado_em": "2026-08-06T21:06:56"
+    }
+  ],
+  "total": 17,
+  "source": "cobol:entregas.dat",
+  "atualizado_em": "2026-08-06T21:06:56"
+}

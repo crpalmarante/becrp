@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Encargos patronais: FGTS, INSS patronal, RAT e terceiros |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (11/08/2026 — INSS patronal (20%), RAT/SAT e terceiros calculados no COBOL com alíquotas versionadas por competência (§5); encargos consolidados no fechamento (§4.4); regime Simples Nacional zera INSS patronal/RAT/terceiros (DAS, §3); lançamentos contábeis idempotentes; relatório de encargos HTML imprimível gerado no fechamento; smoke_rfc014_encargos + review_tela_folha no CI) |
 | **Data** | 01/08/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Folha |
@@ -62,4 +62,4 @@ dos encargos deve respeitar o regime tributário da empresa.
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | _autor_ | ✅ Aprovado | 11/08/2026 |

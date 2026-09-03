@@ -1,0 +1,85 @@
+{
+  "seq": 1,
+  "atualizado_em": "2026-08-01T17:32:37",
+  "expedicoes": [
+    {
+      "id": "SH-SEED-0001",
+      "destino": "customer",
+      "operacao_id": "OP-SEED-0002",
+      "pick_list_id": "PK-SEED-0001",
+      "package_ids": [],
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-100",
+      "parceiro": "Cliente Demo",
+      "transportadora": "TX",
+      "veiculo": "VAN-1",
+      "motorista": "Carlos",
+      "rota": "",
+      "status": "dispatched",
+      "operador": "bruno",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2,
+          "qtd_conferida": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "checked"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "checking",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "conferência via linha"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "start_pack"
+        },
+        {
+          "status": "loading",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "dados de carga"
+        },
+        {
+          "status": "dispatched",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "despacho"
+        }
+      ],
+      "observacao": "Seed — expedição cliente demo",
+      "cancelamento_motivo": "",
+      "origem_dado": "seed",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    }
+  ],
+  "total": 1
+}

@@ -1,0 +1,274 @@
+{
+  "seq": 4,
+  "trips": [
+    {
+      "id": "TR-20260802-0001",
+      "manifesto_id": "MF-SEED-0001",
+      "data": "2026-08-02",
+      "fonte": "DC-01",
+      "status": "closed",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "recurso_id": "DRV-01",
+      "partida_em": "2026-08-02T19:52:25",
+      "retorno_em": "2026-08-02T19:52:25",
+      "stops": [
+        {
+          "seq": 1,
+          "entrega_id": "DO-SEED-0001",
+          "parada": 1,
+          "parceiro": "Cliente Demo",
+          "endereco": "Rua das Flores, 100 — Centro",
+          "cidade": "Passo Fundo",
+          "contato": "João Silva",
+          "telefone": "(54) 99999-0001",
+          "status": "completed",
+          "missing": false
+        }
+      ],
+      "observacao": "Seed — manifesto do dia",
+      "historico": [
+        {
+          "status": "ready",
+          "em": "2026-08-02T19:52:24",
+          "usuario": "smoke",
+          "nota": "criado do manifesto MF-SEED-0001"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T19:52:25",
+          "usuario": "smoke",
+          "nota": "partida"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T19:52:25",
+          "usuario": "smoke",
+          "nota": "chegou parada 1 · DO-SEED-0001"
+        },
+        {
+          "status": "completed",
+          "em": "2026-08-02T19:52:25",
+          "usuario": "smoke",
+          "nota": "concluiu parada 1 · DO-SEED-0001 · trip concluído"
+        },
+        {
+          "status": "closed",
+          "em": "2026-08-02T19:52:25",
+          "usuario": "smoke",
+          "nota": "fechado"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-02T19:52:24",
+      "atualizado_em": "2026-08-02T19:52:25"
+    },
+    {
+      "id": "TR-20260802-0002",
+      "manifesto_id": "MF-20260802-0002",
+      "data": "2026-08-02",
+      "fonte": "DC-01",
+      "status": "completed",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "recurso_id": "DRV-01",
+      "partida_em": "2026-08-02T20:30:57",
+      "retorno_em": "2026-08-02T20:30:57",
+      "stops": [
+        {
+          "seq": 1,
+          "entrega_id": "DO-20260802-0002",
+          "parada": 1,
+          "parceiro": "Cliente Motorista Demo",
+          "endereco": "Av. Brasil, 500",
+          "cidade": "Passo Fundo",
+          "contato": "Maria",
+          "telefone": "54999990002",
+          "status": "completed",
+          "missing": false
+        }
+      ],
+      "observacao": "",
+      "historico": [
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "criado do manifesto MF-20260802-0002"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "partida"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "chegou parada 1 · DO-20260802-0002"
+        },
+        {
+          "status": "completed",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "concluiu parada 1 · DO-20260802-0002 · trip concluído"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-02T20:30:57",
+      "atualizado_em": "2026-08-02T20:30:57"
+    },
+    {
+      "id": "TR-20260802-0003",
+      "manifesto_id": "MF-20260802-0003",
+      "data": "2026-08-02",
+      "fonte": "DC-01",
+      "status": "ready",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "recurso_id": "DRV-01",
+      "partida_em": "",
+      "retorno_em": "",
+      "stops": [
+        {
+          "seq": 1,
+          "entrega_id": "DO-20260802-0003",
+          "parada": 1,
+          "parceiro": "Cliente UI Demo",
+          "endereco": "Rua XV, 10",
+          "cidade": "Passo Fundo",
+          "contato": "Pedro",
+          "telefone": "54988880001",
+          "status": "current",
+          "missing": false
+        }
+      ],
+      "observacao": "",
+      "historico": [
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:31:07",
+          "usuario": "seed",
+          "nota": "criado do manifesto MF-20260802-0003"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-02T20:31:07",
+      "atualizado_em": "2026-08-02T20:31:07"
+    },
+    {
+      "id": "TR-20260802-0004",
+      "manifesto_id": "MF-20260802-0004",
+      "data": "2026-08-02",
+      "fonte": "DC-01",
+      "status": "completed",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "recurso_id": "DRV-01",
+      "partida_em": "2026-08-02T20:35:31",
+      "retorno_em": "2026-08-02T20:35:31",
+      "stops": [
+        {
+          "seq": 1,
+          "entrega_id": "DO-20260802-0005",
+          "parada": 1,
+          "parceiro": "Stop Cliente B",
+          "endereco": "Rua B, 2",
+          "cidade": "Passo Fundo",
+          "contato": "Contato",
+          "telefone": "54999991111",
+          "status": "completed",
+          "missing": false,
+          "chegada_em": "2026-08-02T20:35:31",
+          "servico_em": "2026-08-02T20:35:31",
+          "observacao": "portão lateral",
+          "notas": [
+            {
+              "em": "2026-08-02T20:35:31",
+              "usuario": "smoke",
+              "texto": "portão lateral"
+            }
+          ],
+          "saida_em": "2026-08-02T20:35:31"
+        },
+        {
+          "seq": 2,
+          "entrega_id": "DO-20260802-0004",
+          "parada": 1,
+          "parceiro": "Stop Cliente A",
+          "endereco": "Rua A, 1",
+          "cidade": "Passo Fundo",
+          "contato": "Contato",
+          "telefone": "54999991111",
+          "status": "completed",
+          "missing": false,
+          "chegada_em": "2026-08-02T20:35:31",
+          "saida_em": "2026-08-02T20:35:31"
+        }
+      ],
+      "observacao": "",
+      "historico": [
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "criado do manifesto MF-20260802-0004"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "paradas reordenadas"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "partida"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "chegou parada 1 · DO-20260802-0005"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "atendendo parada 1 · DO-20260802-0005"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "parada 1 atualizada"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "concluiu parada 1 · DO-20260802-0005"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "chegou parada 2 · DO-20260802-0004"
+        },
+        {
+          "status": "completed",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "concluiu parada 2 · DO-20260802-0004 · trip concluído"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    }
+  ],
+  "atualizado_em": "2026-08-02T20:35:31",
+  "total": 4
+}

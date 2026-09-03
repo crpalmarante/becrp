@@ -35,6 +35,8 @@ tr:hover td{background:#f5f5f5}
 .toast.success{background:#2e7d32}
 .toast.error{background:#c62828}
 .toast.info{background:#1565c0}
+.toast.warning{background:#ef6c00}
+.badge-vencida{display:inline-block;background:#c62828;color:#fff;font-size:.7rem;font-weight:600;padding:2px 8px;border-radius:10px;margin-right:6px}
 .tabs{display:flex;gap:2px;margin-bottom:16px;overflow-x:auto}
 .tab{padding:10px 20px;cursor:pointer;border-radius:6px 6px 0 0;font-size:.9rem;font-weight:500;background:#e0e0e0;color:#555;border:none;transition:.2s;white-space:nowrap}
 .tab.active{background:#1a237e;color:#fff}
@@ -70,8 +72,11 @@ tr:hover td{background:#f5f5f5}
 <button class="tab" onclick="ativarAba(this,'aba-ferias')">Ferias</button>
 <button class="tab" onclick="ativarAba(this,'aba-decimo')">13o Salario</button>
 <button class="tab" onclick="ativarAba(this,'aba-rescisao')">Rescisao</button>
+<button class="tab" onclick="ativarAba(this,'aba-afastamentos')">Afastamentos</button>
+<button class="tab" onclick="ativarAba(this,'aba-complementar')">Complementar</button>
 <button class="tab" onclick="ativarAba(this,'aba-contabil')">Contabil</button>
 <button class="tab" onclick="ativarAba(this,'aba-config')">Config</button>
+<button class="tab" onclick="ativarAba(this,'aba-auditoria')">Auditoria</button>
 </div>
 
 <div id="aba-gerar" class="tab-content active">
@@ -97,7 +102,7 @@ Competência única (RFC-006): <b>abrir</b> o mês → lançar funcionários →
 <h3 style="font-size:.9rem;color:#1a237e;margin:16px 0 8px;">Competências</h3>
 <div style="overflow-x:auto">
 <table>
-<thead><tr><th>Competência</th><th>Estado</th><th>Func.</th><th>Proventos</th><th>Descontos</th><th>Líquido</th><th>Ações</th></tr></thead>
+<thead><tr><th>Competência</th><th>Estado</th><th>Operador</th><th>Aprovador</th><th>Func.</th><th>Proventos</th><th>Descontos</th><th>Líquido</th><th>Ações</th></tr></thead>
 <tbody id="p-competencias"></tbody>
 </table>
 </div>
@@ -268,7 +273,7 @@ Visão do processamento (RFC-007): os holerites são gerados a partir da compet�
 <div>
 <div class="summary-grid" id="rescisao-resumo">
 <div class="summary-box"><div class="label">Saldo Salario</div><div class="value" id="rescisao-saldo">0,00</div></div>
-<div class="summary-box"><div class="label">Ferias</div><div class="value" id="rescisao-ferias">0,00</div></div>
+<div class="summary-box"><div class="label">Ferias <span id="rescisao-ferias-dobro" class="badge-vencida" style="display:none;" title="Ferias vencidas (periodo concessivo estourado) pagas em dobro - apenas o salario">EM DOBRO</span></div><div class="value" id="rescisao-ferias">0,00</div></div>
 <div class="summary-box"><div class="label">13o Proporcional</div><div class="value" id="rescisao-decimo">0,00</div></div>
 <div class="summary-box" style="border-left-color:#e65100;"><div class="label">FGTS</div><div class="value" id="rescisao-fgts" style="color:#e65100;">0,00</div></div>
 <div class="summary-box" style="border-left-color:#e65100;"><div class="label">Multa FGTS</div><div class="value" id="rescisao-multa" style="color:#e65100;">0,00</div></div>
@@ -286,6 +291,92 @@ Visão do processamento (RFC-007): os holerites são gerados a partir da compet�
 </div>
 </div>
 
+<div id="aba-afastamentos" class="tab-content">
+<h2>Afastamentos e Licencas (RFC-012)</h2>
+<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:.82rem;color:#2e7d32;">
+Afastamento mantém o vínculo e entra como <b>pró-rata por dias trabalhados</b> na competência (Decisão 3). Ao <b>aprovar</b>, o funcionário passa para a situação <b>afastado</b> (Decisão 2). Afastamento aprovado &gt;30 dias no período aquisitivo <b>suspende</b> as férias (Decisão 4).
+</div>
+<div class="form-row">
+<label>Funcionario:</label>
+<select id="af-funcionario-id"><option value="">Selecionar...</option></select>
+<label>Tipo:</label>
+<select id="af-tipo">
+<option value="licenca-maternidade">Licenca-maternidade (integral)</option>
+<option value="licenca-paternidade">Licenca-paternidade (integral)</option>
+<option value="auxilio-doenca">Auxilio-doenca (15 dias empresa + INSS)</option>
+<option value="acidente-trabalho">Acidente de trabalho (15 dias + INSS)</option>
+<option value="licenca-nao-remunerada">Licenca nao remunerada</option>
+<option value="suspensao">Suspensao disciplinar</option>
+</select>
+<label>Inicio:</label>
+<input type="date" id="af-data-inicio">
+<label>Fim:</label>
+<input type="date" id="af-data-fim">
+<label>Dias:</label>
+<input type="number" id="af-dias" min="1" max="365" style="width:90px">
+</div>
+<div class="form-row">
+<label>Motivo:</label>
+<input type="text" id="af-motivo" placeholder="Motivo do afastamento (obrigatorio)">
+<button class="btn btn-sm btn-primary" onclick="incluirAfastamento()">Registrar Afastamento</button>
+<button class="btn btn-sm" onclick="carregarAfastamentos()">Atualizar</button>
+</div>
+<div style="overflow-x:auto;margin-top:12px;">
+<table>
+<thead><tr><th>ID</th><th>Funcionario</th><th>Tipo</th><th>Inicio</th><th>Fim</th><th>Dias</th><th>Motivo</th><th>Situacao</th><th>Acoes</th></tr></thead>
+<tbody id="tabela-afastamentos"></tbody>
+</table>
+</div>
+</div>
+
+<div id="aba-complementar" class="tab-content">
+<h2>Folha Complementar (RFC-013)</h2>
+<div style="background:#e8f5e9;border:1px solid #a5d6a7;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:.82rem;color:#2e7d32;">
+Ajusta diferenças de uma competência <b>já fechada</b> sem tocar a folha original (Regra 1). <b>Motivo obrigatório</b> ao abrir (Decisão 1). Diferença <b>positiva</b> (a favor) tributa INSS/IRRF sobre a diferença; <b>negativa</b> (contra) exige motivo específico (erro comprovado, devolução, decisão judicial) e respeita o limite legal de 70% do salário (Decisão 2). Várias complementares por competência são permitidas (Decisão 3). Encargos incidem apenas sobre a diferença (Decisão 4).
+</div>
+<div class="form-row">
+<label>Funcionario:</label>
+<select id="c-funcionario-id"><option value="">Selecionar...</option></select>
+<label>Competencia (ajuste):</label>
+<input type="text" id="c-competencia" placeholder="YYYY/MM" style="width:110px">
+<label>Competencia Original:</label>
+<input type="text" id="c-competencia-ref" placeholder="YYYY/MM" style="width:110px">
+</div>
+<div class="form-row">
+<label>Motivo:</label>
+<select id="c-motivo">
+<option value="">Selecionar motivo (obrigatorio)...</option>
+<option value="hora extra nao lancada">Hora extra nao lançada</option>
+<option value="erro de calculo">Erro de calculo</option>
+<option value="diferenca de tabela">Diferenca de tabela</option>
+<option value="erro comprovado">Erro comprovado (desconto - contra)</option>
+<option value="devolucao">Devolucao (desconto - contra)</option>
+<option value="decisao judicial">Decisao judicial (desconto - contra)</option>
+</select>
+<label>Valor (R$):</label>
+<input type="number" id="c-valor" step="0.01" placeholder="0.00" style="width:130px">
+<label>Salario Base (R$):</label>
+<input type="number" id="c-salario-base" step="0.01" min="0" readonly>
+</div>
+<div class="form-row">
+<button class="btn btn-sm btn-primary" onclick="calcularComplementar()">Calcular</button>
+<button class="btn btn-sm btn-success" onclick="incluirComplementar()">Registrar</button>
+<button class="btn btn-sm" onclick="carregarComplementares()">Atualizar</button>
+</div>
+<div class="summary-grid" id="comp-resumo" style="margin:10px 0 14px;">
+<div class="summary-box"><div class="label">Valor da Diferenca</div><div class="value" id="comp-valor">0,00</div></div>
+<div class="summary-box" style="border-left-color:#c62828;"><div class="label">INSS</div><div class="value" id="comp-inss" style="color:#c62828;">0,00</div></div>
+<div class="summary-box" style="border-left-color:#c62828;"><div class="label">IRRF</div><div class="value" id="comp-irrf" style="color:#c62828;">0,00</div></div>
+<div class="summary-box" style="border-left-color:#2e7d32;"><div class="label">Liquido</div><div class="value" id="comp-liquido" style="color:#2e7d32;">0,00</div></div>
+</div>
+<div style="overflow-x:auto;margin-top:8px;">
+<table>
+<thead><tr><th>ID</th><th>Funcionario</th><th>Competencia</th><th>Origem</th><th>Motivo</th><th class="valor">Valor</th><th class="valor">INSS</th><th class="valor">IRRF</th><th class="valor">Liquido</th><th>Situacao</th><th>Operador</th><th>Aprovador</th><th>Acoes</th></tr></thead>
+<tbody id="tabela-complementares"></tbody>
+</table>
+</div>
+</div>
+
 <div id="aba-contabil" class="tab-content">
 <h2>Contabil</h2>
 <div class="form-row">
@@ -293,6 +384,7 @@ Visão do processamento (RFC-007): os holerites são gerados a partir da compet�
 <input type="month" id="c-competencia">
 <button class="btn btn-primary" onclick="calcularTotaisContabeis()">Calcular Totais</button>
 <button class="btn btn-success" onclick="gerarLancamentosContabeis()">Gerar Lancamentos Contabeis</button>
+<button class="btn btn-secondary" onclick="abrirRelatorioEncargos()" title="Relatório de encargos patronais (RFC-014)">Relatorio de Encargos</button>
 </div>
 <div class="summary-grid" id="contabil-resumo">
 <div class="summary-box"><div class="label">Holerites</div><div class="value" id="contabil-qtd">0</div></div>
@@ -322,6 +414,8 @@ Visão do processamento (RFC-007): os holerites são gerados a partir da compet�
 
 <div id="aba-config" class="tab-content">
 <h2>Configuracao da Folha</h2>
+<div class="form-row"><label>Competencia (tabela vigente):</label><input type="text" id="c-competencia" placeholder="YYYY/MM" style="max-width:120px;"></div>
+<div class="form-row" id="c-versoes-row" style="display:none;"><label>Historico de versoes:</label><span id="c-versoes" style="color:#666;font-size:.85rem;"></span></div>
 <div class="form-row"><label>Salario Minimo:</label><input type="text" id="c-salario-minimo" data-mask="moeda" inputmode="decimal" value="R$ 1.412,00"></div>
 <h3 style="font-size:.9rem;color:#1a237e;margin:14px 0 8px;">Tabela INSS</h3>
 <div class="grid-2">
@@ -354,7 +448,54 @@ Visão do processamento (RFC-007): os holerites são gerados a partir da compet�
 </div>
 <div class="form-row"><label>FGTS %:</label><input type="number" id="c-fgts-aliquota" step="0.01" value="8"></div>
 <div class="form-row"><label>Hora Extra %:</label><input type="number" id="c-hora-extra-aliq" step="0.01" value="50"></div>
+<h3 style="font-size:.9rem;color:#1a237e;margin:14px 0 8px;">Encargos Patronais (RFC-014)</h3>
+<div class="grid-2">
+<div class="form-row"><label>INSS patronal %:</label><input type="number" id="c-inss-patronal-aliq" step="0.01" value="20"></div>
+<div class="form-row"><label>RAT/SAT %:</label><input type="number" id="c-rat-aliq" step="0.01" value="2"></div>
+<div class="form-row"><label>Terceiros % (SESI/SENAI/SENAC):</label><input type="number" id="c-terceiros-aliq" step="0.01" value="0"></div>
+</div>
+<p style="color:#666;font-size:.75rem;margin:6px 0 10px;">Encargos do empregador calculados no <b>fechamento</b> e consolidados no relatório próprio — nunca aparecem no holerite (RFC-007 decisão 1). Empresa Simples Nacional não calcula INSS patronal separado (RFC-014 §3).</p>
+<h3 style="font-size:.9rem;color:#1a237e;margin:14px 0 8px;">Salario-Familia (RFC-005 §4)</h3>
+<div class="grid-2">
+<div class="form-row"><label>Faixa 1 - teto:</label><input type="text" id="c-sf-f1-teto" data-mask="moeda" value="1905.52"></div>
+<div class="form-row"><label>Faixa 1 - valor por cota:</label><input type="text" id="c-sf-f1-valor" data-mask="moeda" value="62.04"></div>
+<div class="form-row"><label>Faixa 2 - teto:</label><input type="text" id="c-sf-f2-teto" data-mask="moeda" value="3047.00"></div>
+<div class="form-row"><label>Faixa 2 - valor por cota:</label><input type="text" id="c-sf-f2-valor" data-mask="moeda" value="43.17"></div>
+</div>
+<p style="color:#666;font-size:.75rem;margin:6px 0 10px;">Cotas por funcionario = dependentes marcados como salario-familia na tela de Dependentes. Nao incide INSS/IRRF (RFC-004 §5).</p>
 <button class="btn btn-primary" onclick="salvarConfig()">Salvar Configuracao</button>
+</div>
+
+<div id="aba-auditoria" class="tab-content">
+<h2>Auditoria (RFC-009)</h2>
+<div style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:10px 14px;margin-bottom:14px;font-size:.82rem;color:#795548;">
+Trilha <b>imutável</b> (append-only) de lançamentos, cálculos, mudanças de estado, cadastros e tabelas. Fechamento exige <b>Aprovador ≠ Operador</b> da competência (RFC-009 §4.2).
+</div>
+<div class="form-row">
+<label>Competencia:</label>
+<input type="month" id="a-competencia">
+<label>Acao:</label>
+<select id="a-acao" style="max-width:220px;">
+<option value="">Todas</option>
+<option value="abrir_competencia">Abrir competencia</option>
+<option value="calcular">Calcular</option>
+<option value="concluir">Concluir</option>
+<option value="validar">Validar</option>
+<option value="fechar">Fechar</option>
+<option value="pagar">Pagar</option>
+<option value="lancar">Lancar (ferias/13o/rescisao)</option>
+<option value="alterar_tabela">Alterar tabela (config)</option>
+<option value="alterar_cadastro">Alterar cadastro</option>
+<option value="excluir">Excluir</option>
+</select>
+<button class="btn btn-sm btn-primary" onclick="carregarAuditoria()">Carregar</button>
+</div>
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>Quando</th><th>Quem</th><th>Acao</th><th>Contexto</th><th>Antes</th><th>Depois</th><th>Tabelas (RFC-005)</th></tr></thead>
+<tbody id="tabela-auditoria"></tbody>
+</table>
+</div>
 </div>
 
 </div>
@@ -362,6 +503,26 @@ Visão do processamento (RFC-007): os holerites são gerados a partir da compet�
 <div id="toast" class="toast"></div>
 
 <script>
+// Autenticação: injeta o token nas chamadas /api/* (padrão das demais telas)
+(function(){
+  const orig = window.fetch;
+  function getToken(){
+    if (window.AuthService && typeof AuthService.getToken === 'function') {
+      try { return AuthService.getToken(); } catch(e){}
+    }
+    return localStorage.getItem('auth_token') || '';
+  }
+  window.fetch = function(url, opts){
+    opts = opts || {};
+    if (String(url).indexOf('/api/') === 0) {
+      const headers = Object.assign({}, opts.headers || {});
+      const token = getToken();
+      if (token) headers['X-Auth-Token'] = token;
+      opts.headers = headers;
+    }
+    return orig(url, opts);
+  };
+})();
 function mostrarToast(msg, tipo) {
 const t=document.getElementById('toast');t.textContent=msg;
 t.className='toast '+tipo;t.style.display='block';
@@ -379,6 +540,9 @@ if(id==='aba-config'){carregarConfig()}
 if(id==='aba-ferias'){carregarFerias()}
 if(id==='aba-decimo'){carregarDecimos()}
 if(id==='aba-rescisao'){carregarRescisoes()}
+if(id==='aba-afastamentos'){carregarAfastamentos()}
+if(id==='aba-complementar'){carregarComplementares()}
+if(id==='aba-auditoria'){carregarAuditoria()}
 if(id==='aba-gerar'){renderFuncsFolha();carregarCompetencias();}
 }
 
@@ -391,7 +555,7 @@ funcionarios=data.funcionarios||[];
 const opts='<option value="">Selecionar...</option>'+funcionarios.map(f=>
 '<option value="'+f.id+'">#'+f.id+' - '+f.nome+' (R$ '+(parseFloat(f.salario||0).toFixed(2))+')</option>'
 ).join('');
-for(const id of['f-funcionario-id','d-funcionario-id','r-funcionario-id']){
+for(const id of['f-funcionario-id','d-funcionario-id','r-funcionario-id','af-funcionario-id','c-funcionario-id']){
 const sel=document.getElementById(id);
 if(sel)sel.innerHTML=opts;
 }
@@ -407,7 +571,8 @@ document.addEventListener('change',function(e){
 const map={
 'f-funcionario-id':'f-salario-base',
 'd-funcionario-id':'d-salario-base',
-'r-funcionario-id':'r-salario-base'
+'r-funcionario-id':'r-salario-base',
+'c-funcionario-id':'c-salario-base'
 };
 const inputId=map[e.target.id];
 if(inputId){
@@ -430,7 +595,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'){mostrarToast(data.gerados+' holerites gerados!','success');carregarHolerites();}
-else mostrarToast(data.mensagem||'Erro','error');
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro ao gerar holerites','error');}
 }
 
@@ -492,7 +657,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'){mostrarToast('Holerite pago!','success');carregarHolerites();}
-else mostrarToast(data.mensagem||'Erro','error');
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -505,7 +670,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'){mostrarToast('Holerite excluido!','success');carregarHolerites();}
-else mostrarToast(data.mensagem||'Erro','error');
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -524,6 +689,7 @@ async function abrirDetalhesHolerite(id){
             ['Salário Ref.', bases.salario],
             ['Base INSS', bases.base_inss],
             ['Base IRRF', bases.base_irrf],
+            ['Salário-Família', bases.salario_familia||0],
             ['FGTS', bases.fgts],
         ].map(([label, val]) =>
             '<div style="background:#e8eaf6;border:1px solid #c5cae9;border-radius:6px;padding:6px 10px;font-size:.75rem;">'+
@@ -586,7 +752,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'||data.id){
-mostrarToast('Ferias registradas!','success');
+mostrarToast(data.vencida?'ALERTA: ferias VENCIDAS registradas - salario em dobro!':'Ferias registradas!',data.vencida?'warning':'success');
 if(data.valor_base!==undefined){
 document.getElementById('ferias-valor-base').textContent=fmt(data.valor_base);
 document.getElementById('ferias-um-terco').textContent=fmt(data.um_terco);
@@ -597,7 +763,7 @@ document.getElementById('ferias-irrf').textContent=fmt(data.irrf);
 document.getElementById('ferias-liquido').textContent=fmt(data.liquido);
 }
 carregarFerias();
-}else mostrarToast(data.mensagem||'Erro','error');
+}else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -615,12 +781,12 @@ const sitLabel={C:'Calculado',P:'Pago'};
 return '<tr>'+
 '<td>'+f.id+'</td>'+
 '<td>'+(f.nome||'#'+f.funcionario_id)+'</td>'+
-'<td>'+(f.periodo_inicio||'')+' a '+(f.periodo_fim||'')+'</td>'+
-'<td>'+(f.inicio_ferias||'')+' a '+(f.fim_ferias||'')+'</td>'+
+'<td>'+(f.aquis_inicio||'')+' a '+(f.aquis_fim||'')+'</td>'+
+'<td>'+(f.inicio||'')+' a '+(f.fim||'')+'</td>'+
 '<td>'+f.dias+'</td>'+
 '<td>'+(f.dias_abono||0)+'</td>'+
 '<td class="valor"><strong>'+fmt(f.liquido)+'</strong></td>'+
-'<td>'+(sitLabel[s]||s)+'</td>'+
+'<td>'+(f.vencida?'<span class="badge-vencida" title="Gozo apos o fim do periodo concessivo - salario em dobro">VENCIDA</span>':'')+(sitLabel[s]||s)+'</td>'+
 '<td style="white-space:nowrap;">'+
 (s==='C'?'<button class="btn btn-sm btn-success" onclick="pagarFerias('+f.id+')">Pagar</button> ':'')+
 '<button class="btn btn-sm btn-danger" onclick="excluirFerias('+f.id+')">Excluir</button>'+
@@ -639,7 +805,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'){mostrarToast('Ferias pagas!','success');carregarFerias();}
-else mostrarToast(data.mensagem||'Erro','error');
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -652,7 +818,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'){mostrarToast('Ferias excluidas!','success');carregarFerias();}
-else mostrarToast(data.mensagem||'Erro','error');
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -680,7 +846,7 @@ document.getElementById('decimo-irrf').textContent=fmt(data.irrf);
 document.getElementById('decimo-liquido').textContent=fmt(data.liquido);
 }
 carregarDecimos();
-}else mostrarToast(data.mensagem||'Erro','error');
+}else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -724,7 +890,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'){mostrarToast('13o pago!','success');carregarDecimos();}
-else mostrarToast(data.mensagem||'Erro','error');
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -737,7 +903,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'){mostrarToast('13o excluido!','success');carregarDecimos();}
-else mostrarToast(data.mensagem||'Erro','error');
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -764,10 +930,13 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'||data.id){
-mostrarToast('Rescisao registrada!','success');
+if(data.ferias_venc_dobro) mostrarToast('ALERTA: ferias vencidas em DOBRO na rescisao!','warning');
+else mostrarToast('Rescisao registrada!','success');
 if(data.saldo_salario!==undefined){
 document.getElementById('rescisao-saldo').textContent=fmt(data.saldo_salario);
 document.getElementById('rescisao-ferias').textContent=fmt(data.ferias);
+const dbl=document.getElementById('rescisao-ferias-dobro');
+if(dbl) dbl.style.display=data.ferias_venc_dobro?'inline-block':'none';
 document.getElementById('rescisao-decimo').textContent=fmt(data.decimo_proporcional);
 document.getElementById('rescisao-fgts').textContent=fmt(data.fgts);
 document.getElementById('rescisao-multa').textContent=fmt(data.multa_fgts);
@@ -797,7 +966,7 @@ return '<tr>'+
 '<td>'+(motivoLabel[res.motivo]||res.motivo||'-')+'</td>'+
 '<td>'+(res.data_deslig||res.data_desligamento||'')+'</td>'+
 '<td class="valor">'+fmt(res.saldo_salario)+'</td>'+
-'<td class="valor">'+fmt(res.ferias)+'</td>'+
+'<td class="valor">'+(res.ferias_venc_dobro?'<span class="badge-vencida" title="Ferias vencidas pagas em dobro">EM DOBRO</span>':'')+fmt(res.ferias)+'</td>'+
 '<td class="valor">'+fmt(res.decimo_proporcional)+'</td>'+
 '<td class="valor">'+fmt(res.fgts)+'</td>'+
 '<td class="valor">'+fmt(res.multa_fgts)+'</td>'+
@@ -822,7 +991,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'){mostrarToast('Rescisao paga!','success');carregarRescisoes();}
-else mostrarToast(data.mensagem||'Erro','error');
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -835,7 +1004,7 @@ method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:
 });
 const data=await r.json();
 if(data.status==='ok'){mostrarToast('Rescisao excluida!','success');carregarRescisoes();}
-else mostrarToast(data.mensagem||'Erro','error');
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -855,6 +1024,13 @@ document.getElementById('contabil-fgts').textContent=fmt(data.total_fgts);
 document.getElementById('contabil-liquido').textContent=fmt(data.total_liquido);
 mostrarToast('Totais carregados!','success');
 }catch(e){mostrarToast('Erro ao carregar totais','error');}
+}
+
+function abrirRelatorioEncargos(){
+const comp=document.getElementById('c-competencia').value;
+if(!comp){mostrarToast('Selecione a competencia','error');return;}
+const mes=comp.replace('-','/');
+window.open('/api/folha/encargos/relatorio?competencia='+encodeURIComponent(mes),'_blank');
 }
 
 async function gerarLancamentosContabeis(){
@@ -948,31 +1124,41 @@ async function salvarHoleritesContabilFolha(){
 }
 
 // ---- Config ----
-const MONETARIOS=['salario_minimo','inss_f1_teto','inss_f2_teto','inss_f3_teto','inss_f4_teto','irrf_ded_dep','irrf_f1_teto','irrf_f1_ded','irrf_f2_teto','irrf_f2_ded','irrf_f3_teto','irrf_f3_ded','irrf_f4_teto','irrf_f4_ded','irrf_f5_ded'];
+const MONETARIOS=['salario_minimo','inss_f1_teto','inss_f2_teto','inss_f3_teto','inss_f4_teto','irrf_ded_dep','irrf_f1_teto','irrf_f1_ded','irrf_f2_teto','irrf_f2_ded','irrf_f3_teto','irrf_f3_ded','irrf_f4_teto','irrf_f4_ded','irrf_f5_ded','sf_f1_teto','sf_f1_valor','sf_f2_teto','sf_f2_valor'];
+const CONFIG_IDS=['salario_minimo','inss_f1_teto','inss_f1_aliq','inss_f2_teto','inss_f2_aliq','inss_f3_teto','inss_f3_aliq','inss_f4_teto','inss_f4_aliq','irrf_ded_dep','irrf_f1_teto','irrf_f1_aliq','irrf_f2_teto','irrf_f2_aliq','irrf_f3_teto','irrf_f3_aliq','irrf_f4_teto','irrf_f4_aliq','irrf_f1_ded','irrf_f2_ded','irrf_f3_ded','irrf_f4_ded','irrf_f5_aliq','irrf_f5_ded','fgts_aliquota','hora_extra_aliq','sf_f1_teto','sf_f1_valor','sf_f2_teto','sf_f2_valor','inss_patronal_aliq','rat_aliq','terceiros_aliq'];
 async function carregarConfig(){
 try{
-const r=await fetch('/api/folha/config');const data=await r.json();
+const comp=(document.getElementById('c-competencia').value||'').trim();
+const url='/api/folha/config'+(comp?'?competencia='+encodeURIComponent(comp):'');
+const r=await fetch(url);const data=await r.json();
 if(data.status!=='erro'){
-const ids=['salario_minimo','inss_f1_teto','inss_f1_aliq','inss_f2_teto','inss_f2_aliq','inss_f3_teto','inss_f3_aliq','inss_f4_teto','inss_f4_aliq','irrf_ded_dep','irrf_f1_teto','irrf_f1_aliq','irrf_f2_teto','irrf_f2_aliq','irrf_f3_teto','irrf_f3_aliq','irrf_f4_teto','irrf_f4_aliq','irrf_f1_ded','irrf_f2_ded','irrf_f3_ded','irrf_f4_ded','irrf_f5_aliq','irrf_f5_ded','fgts_aliquota','hora_extra_aliq'];
-ids.forEach(id=>{
+CONFIG_IDS.forEach(id=>{
 const el=document.getElementById('c-'+id);
 if(el&&data[id]!==undefined)el.value=MONETARIOS.includes(id)?Mascaras.fmtMoeda(String(Math.round(Number(data[id])*100))):parseFloat(data[id]).toFixed(2);
 });
+if(data.competencia)document.getElementById('c-competencia').value=data.competencia;
+const vr=document.getElementById('c-versoes-row');
+const vs=document.getElementById('c-versoes');
+if(data.versoes&&data.versoes.length){
+vs.textContent=data.versoes.map(function(v){return (v===data.competencia?('<b>'+v+'</b>'):v);}).join(' · ');
+vr.style.display='flex';
+}else vr.style.display='none';
 }
 }catch(e){}
 }
 
 async function salvarConfig(){
-const ids=['salario_minimo','inss_f1_teto','inss_f1_aliq','inss_f2_teto','inss_f2_aliq','inss_f3_teto','inss_f3_aliq','inss_f4_teto','inss_f4_aliq','irrf_ded_dep','irrf_f1_teto','irrf_f1_aliq','irrf_f2_teto','irrf_f2_aliq','irrf_f3_teto','irrf_f3_aliq','irrf_f4_teto','irrf_f4_aliq','irrf_f1_ded','irrf_f2_ded','irrf_f3_ded','irrf_f4_ded','irrf_f5_aliq','irrf_f5_ded','fgts_aliquota','hora_extra_aliq'];
 const params=new URLSearchParams();
-ids.forEach(id=>{const v=document.getElementById('c-'+id).value;params.set(id,MONETARIOS.includes(id)?Mascaras.limparMoeda(v):v);});
+const comp=(document.getElementById('c-competencia').value||'').trim();
+if(comp)params.set('competencia',comp);
+CONFIG_IDS.forEach(id=>{const v=document.getElementById('c-'+id).value;params.set(id,MONETARIOS.includes(id)?Mascaras.limparMoeda(v):v);});
 try{
 const r=await fetch('/api/folha/config/salvar',{
 method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:params
 });
 const data=await r.json();
-if(data.status==='ok')mostrarToast('Configuracao salva!','success');
-else mostrarToast(data.mensagem||'Erro','error');
+if(data.status==='ok'){mostrarToast('Configuracao salva!','success');carregarConfig();}
+else mostrarToast(data.message||data.mensagem||'Erro','error');
 }catch(e){mostrarToast('Erro','error');}
 }
 
@@ -1099,7 +1285,7 @@ try{
 const r=await fetch('/api/folha/competencias');const data=await r.json();
 const comps=data.competencias||[];
 const tbody=document.getElementById('p-competencias');
-if(comps.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#888">Nenhuma competencia processada</td></tr>';return;}
+if(comps.length===0){tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:#888">Nenhuma competencia processada</td></tr>';return;}
 tbody.innerHTML=comps.map(c=>{
 const [nome,cor]=ESTADOS[c.situacao]||[c.situacao,'#888'];
 const acoes=[];
@@ -1108,9 +1294,268 @@ if(c.situacao==='C')acoes.push('<button class="btn btn-sm" onclick="transicaoCom
 if(c.situacao==='V')acoes.push('<button class="btn btn-sm" onclick="transicaoCompetencia(\'fechar\',\''+c.competencia+'\')">Fechar</button>');
 if(c.situacao==='F')acoes.push('<button class="btn btn-sm btn-success" onclick="transicaoCompetencia(\'pagar\',\''+c.competencia+'\')">Pagar</button>');
 acoes.push('<button class="btn btn-sm" onclick="verDetalhe(\''+c.competencia+'\')">Detalhe</button>');
-return '<tr><td>'+c.competencia+'</td><td><span style="background:'+cor+';color:#fff;padding:2px 10px;border-radius:10px;font-size:.75rem">'+nome+'</span></td><td>'+c.qtde_funcionarios+'</td><td>'+fmtMoeda(c.total_proventos)+'</td><td style="color:#c62828">'+fmtMoeda(c.total_descontos)+'</td><td style="color:#2e7d32">'+fmtMoeda(c.liquido)+'</td><td>'+acoes.join(' ')+'</td></tr>';
+return '<tr><td>'+c.competencia+'</td><td><span style="background:'+cor+';color:#fff;padding:2px 10px;border-radius:10px;font-size:.75rem">'+nome+'</span></td><td style="font-size:.78rem">'+(c.operador?c.operador:'—')+'</td><td style="font-size:.78rem">'+(c.aprovador?c.aprovador:'—')+'</td><td>'+c.qtde_funcionarios+'</td><td>'+fmtMoeda(c.total_proventos)+'</td><td style="color:#c62828">'+fmtMoeda(c.total_descontos)+'</td><td style="color:#2e7d32">'+fmtMoeda(c.liquido)+'</td><td>'+acoes.join(' ')+'</td></tr>';
 }).join('');
 }catch(e){}
+}
+
+// ---- RFC-009: Trilha de auditoria (imutável, append-only) ----
+async function carregarAuditoria(){
+try{
+const comp=(document.getElementById('a-competencia').value||'').trim().replace('-','/');
+const acao=document.getElementById('a-acao').value||'';
+let url='/api/folha/auditoria';
+const params=new URLSearchParams();
+if(comp)params.set('competencia',comp);
+if(acao)params.set('acao',acao);
+const qs=params.toString();
+if(qs)url+='?'+qs;
+const r=await fetch(url);const data=await r.json();
+const evs=data.eventos||[];
+const tbody=document.getElementById('tabela-auditoria');
+if(evs.length===0){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:#888">Nenhum evento registrado</td></tr>';return;}
+tbody.innerHTML=evs.map(e=>{
+const ctx=e.contexto||{};
+const ctxTxt=Object.entries(ctx).filter(([k])=>k!=='tipo').map(([k,v])=>k+'='+v).join(', ');
+const t=ctx.tipo?ctx.tipo+((ctx.funcionario_id||ctx.id)?' #'+(ctx.funcionario_id||ctx.id):''):ctxTxt;
+return '<tr><td style="white-space:nowrap;font-size:.78rem">'+String(e.quando||'').replace('T',' ')+'</td>'+
+'<td><b>'+String(e.quem||'')+'</b></td>'+
+'<td><span style="background:#ede7f6;color:#4527a0;padding:2px 8px;border-radius:10px;font-size:.72rem">'+String(e.acao||'')+'</span></td>'+
+'<td style="font-size:.78rem">'+String(t||'')+'</td>'+
+'<td style="font-size:.75rem;color:#888;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(e.antes?JSON.stringify(e.antes):'—')+'</td>'+
+'<td style="font-size:.75rem;color:#2e7d32;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(e.depois?JSON.stringify(e.depois):'—')+'</td>'+
+'<td style="font-size:.75rem;color:#666">'+(e.tax_table_versions?JSON.stringify(e.tax_table_versions):'—')+'</td></tr>';
+}).join('');
+}catch(err){mostrarToast('Erro ao carregar auditoria','error');}
+}
+
+// ---- Afastamentos (RFC-012) ----
+const AF_STATUS = {
+P:['Pendente','badge-vencida','#c62828'],
+S:['Enviado','#ff9800','#fff'],
+A:['Aprovado','#2e7d32','#fff'],
+R:['Rejeitado','#c62828','#fff'],
+C:['Concluido','#1a237e','#fff'],
+D:['Rascunho','#9e9e9e','#fff'],
+};
+
+function badgeAf(st){
+const cfg=AF_STATUS[String(st||'P').toUpperCase()]||AF_STATUS.P;
+return '<span style="background:'+cfg[1]+';color:'+cfg[2]+';padding:2px 8px;border-radius:10px;font-size:.72rem;font-weight:600">'+cfg[0]+'</span>';
+}
+
+async function carregarAfastamentos(){
+try{
+const r=await fetch('/api/licencas');const data=await r.json();
+const licencas=data.licencas||[];
+const tbody=document.getElementById('tabela-afastamentos');
+if(licencas.length===0){
+tbody.innerHTML='<tr><td colspan="9" style="text-align:center;color:#888;padding:30px;">Nenhum afastamento registrado</td></tr>';
+return;
+}
+tbody.innerHTML=licencas.map(l=>{
+const st=String(l.status||'P').toUpperCase();
+const acoes=[];
+if(st==='S'||st==='P'||st==='D'){
+acoes.push('<button class="btn btn-sm btn-success" onclick="aprovarAfastamento('+l.id+')">Aprovar</button>');
+acoes.push('<button class="btn btn-sm btn-warning" onclick="rejeitarAfastamento('+l.id+')">Rejeitar</button>');
+}
+if(st!=='C'){
+acoes.push('<button class="btn btn-sm btn-danger" onclick="excluirAfastamento('+l.id+')">Excluir</button>');
+}
+return '<tr>'+
+'<td>'+l.id+'</td>'+
+'<td>'+(l.nome||'#'+l.funcionario_id)+'</td>'+
+'<td>'+String(l.tipo||'').replace(/-/g,' ')+'</td>'+
+'<td>'+(l.data_inicio||'-')+'</td>'+
+'<td>'+(l.data_fim||'-')+'</td>'+
+'<td>'+(l.dias||'-')+'</td>'+
+'<td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(l.motivo||'-')+'</td>'+
+'<td>'+badgeAf(st)+'</td>'+
+'<td style="white-space:nowrap">'+acoes.join(' ')+'</td></tr>';
+}).join('');
+}catch(e){mostrarToast('Erro ao carregar afastamentos','error');}
+}
+
+async function incluirAfastamento(){
+const fid=document.getElementById('af-funcionario-id').value;
+const tipo=document.getElementById('af-tipo').value;
+const ini=document.getElementById('af-data-inicio').value;
+const fim=document.getElementById('af-data-fim').value;
+const dias=document.getElementById('af-dias').value;
+const motivo=document.getElementById('af-motivo').value.trim();
+if(!fid||!tipo||!ini||!fim||!motivo){
+mostrarToast('Preencha funcionario, tipo, datas e motivo','error');return;
+}
+try{
+const r=await apiFolha('/api/licenca/incluir',{funcionario_id:fid,tipo:tipo,data_inicio:ini,data_fim:fim,dias:dias,motivo:motivo});
+mostrarToast('Afastamento registrado (#'+r.id+')','success');
+document.getElementById('af-motivo').value='';
+document.getElementById('af-dias').value='';
+carregarAfastamentos();
+}catch(e){mostrarToast(e.message||'Erro ao registrar','error');}
+}
+
+async function aprovarAfastamento(id){
+if(!confirm('Aprovar afastamento #'+id+'? O funcionario passa para a situacao afastado.'))return;
+try{
+await apiFolha('/api/licenca/aprovar',{id:id});
+mostrarToast('Afastamento aprovado','success');
+carregarAfastamentos();
+}catch(e){mostrarToast(e.message||'Erro ao aprovar','error');}
+}
+
+async function rejeitarAfastamento(id){
+if(!confirm('Rejeitar afastamento #'+id+'?'))return;
+try{
+await apiFolha('/api/licenca/rejeitar',{id:id});
+mostrarToast('Afastamento rejeitado','info');
+carregarAfastamentos();
+}catch(e){mostrarToast(e.message||'Erro ao rejeitar','error');}
+}
+
+async function excluirAfastamento(id){
+if(!confirm('Excluir afastamento #'+id+'?'))return;
+try{
+await apiFolha('/api/licenca/excluir',{id:id});
+mostrarToast('Afastamento excluido','info');
+carregarAfastamentos();
+}catch(e){mostrarToast(e.message||'Erro ao excluir','error');}
+}
+
+// ---- Folha Complementar (RFC-013) ----
+async function calcularComplementar(){
+const fid=document.getElementById('c-funcionario-id').value;
+const comp=document.getElementById('c-competencia').value.trim();
+const ref=document.getElementById('c-competencia-ref').value.trim();
+const motivo=document.getElementById('c-motivo').value;
+const valor=document.getElementById('c-valor').value;
+if(!fid||!comp||!ref||!motivo||valor===''){
+mostrarToast('Preencha funcionario, competencias, motivo e valor','error');return;
+}
+try{
+const r=await apiFolha('/api/folha/complementar/calcular',{funcionario_id:fid,competencia:comp,competencia_ref:ref,motivo:motivo,valor:valor});
+renderCompResumo(r);
+}catch(e){mostrarToast(e.message||'Erro ao calcular','error');}
+}
+
+async function incluirComplementar(){
+const fid=document.getElementById('c-funcionario-id').value;
+const comp=document.getElementById('c-competencia').value.trim();
+const ref=document.getElementById('c-competencia-ref').value.trim();
+const motivo=document.getElementById('c-motivo').value;
+const valor=document.getElementById('c-valor').value;
+if(!fid||!comp||!ref||!motivo||valor===''){
+mostrarToast('Preencha funcionario, competencias, motivo e valor','error');return;
+}
+if(!confirm('Registrar folha complementar de '+comp+' (ref. '+ref+') para #'+fid+'?'))return;
+try{
+const r=await apiFolha('/api/folha/complementar/incluir',{funcionario_id:fid,competencia:comp,competencia_ref:ref,motivo:motivo,valor:valor});
+mostrarToast('Complementar registrada (#'+r.id+')','success');
+document.getElementById('c-valor').value='';
+document.getElementById('c-motivo').value='';
+carregarComplementares();
+}catch(e){mostrarToast(e.message||'Erro ao registrar','error');}
+}
+
+function renderCompResumo(r){
+document.getElementById('comp-valor').textContent=fmt(r.valor);
+document.getElementById('comp-inss').textContent=fmt(r.inss);
+document.getElementById('comp-irrf').textContent=fmt(r.irrf);
+document.getElementById('comp-liquido').textContent=fmt(r.liquido);
+}
+
+async function carregarComplementares(){
+try{
+const r=await fetch('/api/folha/complementares');const data=await r.json();
+const comps=data.complementares||[];
+const tbody=document.getElementById('tabela-complementares');
+if(comps.length===0){
+tbody.innerHTML='<tr><td colspan="13" style="text-align:center;color:#888;padding:30px;">Nenhuma folha complementar</td></tr>';
+return;
+}
+tbody.innerHTML=comps.map(x=>{
+const s=x.situacao||'C';
+const sitLabel={C:'Calculada',V:'Validada',F:'Fechada',P:'Paga'};
+const acoes=[];
+if(s==='C'){acoes.push('<button class="btn btn-sm" onclick="transicaoComplementar('+x.id+',\'validar\')">Validar</button>');}
+if(s==='V'){acoes.push('<button class="btn btn-sm btn-warning" onclick="transicaoComplementar('+x.id+',\'fechar\')">Fechar</button>');}
+if(s==='F'){acoes.push('<button class="btn btn-sm btn-success" onclick="transicaoComplementar('+x.id+',\'pagar\')">Pagar</button>');}
+acoes.push('<button class="btn btn-sm" onclick="verHoleriteComplementar('+x.id+')">Holerite</button>');
+if(s!=='P'){acoes.push('<button class="btn btn-sm btn-danger" onclick="excluirComplementar('+x.id+')">Excluir</button>');}
+return '<tr>'+
+'<td>'+x.id+'</td>'+
+'<td>'+(x.nome||'#'+x.funcionario_id)+'</td>'+
+'<td>'+String(x.competencia||'').replace('-','/')+'</td>'+
+'<td>'+String(x.competencia_ref||'').replace('-','/')+'</td>'+
+'<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+String(x.motivo||'').replace(/"/g,'&quot;')+'">'+(x.motivo||'-')+'</td>'+
+'<td class="valor">'+(parseFloat(x.valor)<0?'<span style="color:#c62828;">':'')+fmt(x.valor)+(parseFloat(x.valor)<0?'</span>':'')+'</td>'+
+'<td class="valor">'+fmt(x.inss)+'</td>'+
+'<td class="valor">'+fmt(x.irrf)+'</td>'+
+'<td class="valor"><strong>'+fmt(x.liquido)+'</strong></td>'+
+'<td>'+badgeComp(s)+'</td>'+
+'<td style="font-size:.75rem">'+(x.operador||'-')+'</td>'+
+'<td style="font-size:.75rem">'+(x.aprovador||'-')+'</td>'+
+'<td style="white-space:nowrap">'+acoes.join(' ')+'</td></tr>';
+}).join('');
+}catch(e){mostrarToast('Erro ao carregar complementares','error');}
+}
+
+function badgeComp(s){
+const map={C:'<span class="badge">CALCULADA</span>',V:'<span class="badge" style="background:#1565c0;">VALIDADA</span>',F:'<span class="badge" style="background:#6a1b9a;">FECHADA</span>',P:'<span class="badge" style="background:#2e7d32;">PAGA</span>'}
+return map[s]||'<span class="badge">'+s+'</span>';
+}
+
+async function transicaoComplementar(id,acao){
+if(acao==='fechar'&&!confirm('Fechar complementar #'+id+'? (Exige aprovador diferente do operador - RFC-009)'))return;
+if(acao==='pagar'&&!confirm('Registrar pagamento da complementar #'+id+'?'))return;
+try{
+await apiFolha('/api/folha/complementar/'+acao,{id:id});
+mostrarToast('Complementar '+(acao==='pagar'?'paga':acao==='fechar'?'fechada':'validada'),'success');
+carregarComplementares();
+}catch(e){mostrarToast(e.message||'Erro','error');}
+}
+
+async function excluirComplementar(id){
+if(!confirm('Excluir complementar #'+id+'?'))return;
+try{
+await apiFolha('/api/folha/complementar/excluir',{id:id});
+mostrarToast('Complementar excluida','info');
+carregarComplementares();
+}catch(e){mostrarToast(e.message||'Erro ao excluir','error');}
+}
+
+async function verHoleriteComplementar(id){
+try{
+const r=await fetch('/api/folha/complementar/holerite?id='+id);
+const data=await r.json();
+if(data.status!=='ok'){mostrarToast(data.message||'Erro ao carregar holerite','error');return;}
+const h=data.holerite||{};
+const linhas=[
+['Tipo','<strong>HOLERITE COMPLEMENTAR</strong>'],
+['Competencia de ajuste',String(h.competencia||'').replace('-','/')],
+['Competencia original',String(h.competencia_ref||'').replace('-','/')],
+['Funcionario',h.nome||('#'+h.funcionario_id)],
+['Motivo',h.motivo||'-'],
+['Diferenca',fmt(h.valor)],
+['INSS',fmt(h.inss)],
+['IRRF',fmt(h.irrf)],
+['Liquido','<strong>'+fmt(h.liquido)+'</strong>'],
+['Situacao',h.situacao||'-'],
+['Data pagamento',h.data_pagamento||'-']
+];
+let html='<div style="max-width:520px;margin:0 auto;padding:20px;border:1px solid #ccc;border-radius:8px;background:#fff;font-size:.85rem;">';
+html+='<h3 style="margin:0 0 12px;color:#1a237e;border-bottom:2px solid #1a237e;padding-bottom:8px;">Holerite Complementar #'+h.id+'</h3>';
+html+='<table style="width:100%;border-collapse:collapse;">';
+for(const [l,v] of linhas){
+html+='<tr><td style="padding:6px 8px;border-bottom:1px solid #eee;color:#555;width:45%;">'+l+'</td><td style="padding:6px 8px;border-bottom:1px solid #eee;">'+v+'</td></tr>';
+}
+html+='</table>';
+html+='<p style="margin-top:14px;color:#777;font-size:.72rem;">Exibe apenas as diferencas da competencia fechada (RFC-013 Regra 5) — o holerite da competencia original nao e alterado.</p>';
+html+='</div>';
+if(typeof mostrarModalGenerico==='function'){mostrarModalGenerico('Holerite Complementar #'+h.id,html);}
+else{alert(html.replace(/<[^>]*>/g,' '));}
+}catch(e){mostrarToast('Erro ao carregar holerite','error');}
 }
 
 // ---- Init ----
@@ -1127,6 +1572,27 @@ carregarHolerites();
 carregarConfig();
 </script>
 <footer style="text-align:center;padding:16px 0;margin-top:32px;font-size:.8rem;color:#999;border-top:1px solid #e0e0e0">Powered by <strong>COBOL</strong> &mdash; Palmarante Loja</footer>
+<div id="modal-generico" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center;padding:16px;">
+<div style="background:#fff;border-radius:10px;max-width:560px;width:100%;max-height:86vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.3);">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid #e0e0e0;">
+<h3 id="modal-generico-titulo" style="margin:0;color:#1a237e;">Detalhes</h3>
+<button class="btn btn-sm" onclick="fecharModalGenerico()">&times;</button>
+</div>
+<div id="modal-generico-corpo" style="padding:16px;"></div>
+</div>
+</div>
+<script>
+function mostrarModalGenerico(titulo,html){
+const m=document.getElementById('modal-generico');
+if(!m)return;
+document.getElementById('modal-generico-titulo').textContent=titulo;
+document.getElementById('modal-generico-corpo').innerHTML=html;
+m.style.display='flex';
+}
+function fecharModalGenerico(){
+document.getElementById('modal-generico').style.display='none';
+}
+</script>
 <script src="../js/masks.js"></script>
 </body>
 </html>

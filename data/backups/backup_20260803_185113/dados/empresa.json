@@ -1,0 +1,13 @@
+{
+  "nome": "Matriz Zero",
+  "nome_fantasia": "Matriz Zero",
+  "municipio": "Passo Fundo",
+  "uf": "RS",
+  "estabelecimento_id": "matriz",
+  "_meta": {
+    "deprecated": true,
+    "nota": "ESPELHO — fonte = data/empresas.json + estabelecimentos_fiscal.json + organizacao.json",
+    "synced_at": "2026-08-03T18:51:13",
+    "estabelecimento_id": "matriz"
+  }
+}

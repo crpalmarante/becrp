@@ -1,0 +1,27 @@
+{
+  "alimentacao": {
+    "nome": "Alimentacao",
+    "descricao": "Alimentos e grãos",
+    "ativo": true
+  },
+  "bebidas": {
+    "nome": "Bebidas",
+    "descricao": "Bebidas em geral",
+    "ativo": true
+  },
+  "padaria": {
+    "nome": "Padaria",
+    "descricao": "Pães e panificação",
+    "ativo": true
+  },
+  "limpeza": {
+    "nome": "Limpeza",
+    "descricao": "Produtos de limpeza",
+    "ativo": true
+  },
+  "informatica": {
+    "nome": "Informática",
+    "descricao": "Informática e periféricos",
+    "ativo": true
+  }
+}

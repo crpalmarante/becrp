@@ -1,0 +1,52 @@
+{
+  "_meta": {
+    "nota": "LEGADO — migrado para inventory_movements/balances/transit. Não gravar aqui; ver RFC-INVENTORY-MVP.",
+    "sla_transferencia_horas": 2,
+    "deprecated": true
+  },
+  "por_estabelecimento": {
+    "matriz": {
+      "1": 50,
+      "2": 80,
+      "3": 60,
+      "4": 0,
+      "6": 100,
+      "7": 200,
+      "8": 45,
+      "9": 0,
+      "10": 90
+    },
+    "filial_sp": {
+      "1": 12,
+      "2": 0,
+      "3": 8,
+      "4": 0,
+      "5": 0,
+      "6": 40,
+      "7": 50,
+      "8": 20,
+      "9": 18,
+      "10": 25
+    },
+    "filial_rj": {
+      "1": 0,
+      "2": 5,
+      "3": 0,
+      "4": 0,
+      "5": 22,
+      "6": 30,
+      "7": 80,
+      "8": 10,
+      "9": 0,
+      "10": 12
+    }
+  },
+  "transito": {
+    "4": {
+      "qty": 40,
+      "eta_horas": 24,
+      "origem": "CD Central",
+      "destino": "matriz"
+    }
+  }
+}

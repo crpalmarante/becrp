@@ -4,14 +4,48 @@
 Etapas:
   1. Build: recompila os programas COBOL (cobol/programs/*.cbl → cobol/bin/*)
      para garantir que os binários estão em dia com as fontes
-  2. Smokes: smoke_jsonio, smoke_rfc002_cobol, smoke_rfc003_rescisao,
-     smoke_rfc004_eventos, smoke_rfc006_folha, smoke_rfc007_holerite,
-     smoke_rfc008_empresa (cada um com backup/restauração própria)
-  3. Seed: usuário admin (bruno/123456 com token fixo) + departamento/cargo/
+  2. Seed: usuário admin (bruno/123456 com token fixo) + departamento/cargo/
      funcionário ativo (a tela lista os ativos)
+  3. Smokes: smoke_jsonio, smoke_rfc002_cobol, smoke_rfc003_rescisao,
+     smoke_rfc004_eventos, smoke_rfc005_tabelas, smoke_rfc006_folha,
+     smoke_rfc007_holerite, smoke_rfc008_empresa,
+     smoke_rfc010_011_ferias_decimo, smoke_rfc013_complementar (cada um com
+     backup/restauração própria)
   4. review_tela_folha.py — sobe o servidor em porta dedicada e replica o
      fluxo completo da tela Processar Folha + Holerites
-  5. Restaura os arquivos de seed e reporta o resumo
+  5. review_tela_funcionarios.py — revisão da tela de funcionários (máscaras)
+  6. review_tela_ferias_decimo.py — revisão das abas Férias e 13º Salario
+     (RFC-010/011) com a guarda do portal (role funcionario); o modo --browser
+     sobe o servidor com cenário visual (férias VENCIDA + normal) para
+     conferência em navegador real
+  7. checks de render (Node) — check_render_ferias_node.js,
+     check_render_rescisao_node.js, check_render_rh_dashboard_node.js,
+     check_render_rh_workflow_node.js e check_render_complementar_node.js
+     executam o código real das páginas (folha.html / rh_dashboard.html) com
+     DOM stub e validam os badges VENCIDA (férias) e EM DOBRO (rescisão), os
+     toasts de alerta, o wrapper de autenticação, o badge-alerta de férias
+     vencidas, o workflow (badges de role/histórico, gating de botões por role
+     e envio do user_role) no RH Dashboard e a aba Complementar (badges de
+     situação C/V/F/P e gating dos botões Validar/Fechar/Pagar/Holerite/
+     Excluir por estado — RFC-013). Requerem node no ambiente; quando ausente
+     (CI Python puro) o passo é pulado com aviso e não conta no resumo. Dica:
+     rodar com node instalado (node está pré-instalado nos runners do GitHub
+     Actions)
+  8. review_tela_rh_dashboard.py — revisão do RH Dashboard (KPIs, alerta de
+     férias vencidas, aprovações de licenças/despesas e workflow)
+  9. [opcional --browser] Cenários visuais das abas Complementar e Rescisão
+     — o cenario_complementar_browser.py sobe o servidor na porta 8141 com
+     seed de 4 complementares (estados C/V/F/P) e o cenario_rescisao_browser.py
+     na porta 8142 com seed de 2 rescisões (uma EM DOBRO e uma normal). Cada um
+     é validado via HTTP (GET /api/folha/complementares e /api/folha/rescisoes
+     com token fixo do cenário) e encerrado com SIGTERM, que restaura os dados.
+     São os mesmos cenários usados com browser-use para conferência visual em
+     navegador real (badges de situação, botões por estado, badge EM DOBRO);
+     no CI rodam como check determinístico da consistência do seed — o render
+     visual em si continua coberto pelos checks Node do passo 7 e, para
+     conferência manual, o cenário pode ser deixado vivo (Ctrl+C encerra e
+     restaura)
+  10. Restaura os arquivos de seed e reporta o resumo
 
 Os arquivos de seed (data/users.json, dados/departamentos.dat,
 dados/cargos.dat, dados/funcionarios.dat) são restaurados ao final, então é
@@ -19,18 +53,30 @@ seguro rodar localmente. Não rode com outro servidor usando os mesmos dados/
 simultaneamente.
 
 Uso:
-    python3 scripts/run_ci.py             # suíte completa
+    python3 scripts/run_ci.py             # suíte completa (passos 1–8 + 10)
     python3 scripts/run_ci.py --no-build  # pula a recompilação do COBOL
+    python3 scripts/run_ci.py --browser   # adiciona o passo 9: valida os
+                                          # cenários visuais das abas
+                                          # Complementar (4 complementares
+                                          # C/V/F/P na porta 8141) e Rescisão
+                                          # (2 rescisões — 1 EM DOBRO + 1
+                                          # normal — na porta 8142), subindo
+                                          # cada cenário, conferindo o seed via
+                                          # HTTP e encerrando com restauração
 """
 
 from __future__ import annotations
 
 import glob
 import hashlib
+import json
 import os
 import shutil
 import subprocess
 import sys
+import time
+import urllib.request
+import urllib.error
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.chdir(ROOT)
@@ -43,10 +89,17 @@ SMOKES = [
     "smoke_jsonio",
     "smoke_rfc002_cobol",
     "smoke_rfc003_rescisao",
+    "smoke_rfc003_bloqueios",
     "smoke_rfc004_eventos",
+    "smoke_rfc005_tabelas",
     "smoke_rfc006_folha",
     "smoke_rfc007_holerite",
     "smoke_rfc008_empresa",
+    "smoke_rfc010_011_ferias_decimo",
+    "smoke_rfc012_afastamentos",
+    "smoke_rfc013_complementar",
+    "smoke_rfc014_encargos",
+    "smoke_rfc009_auditoria",
 ]
 
 SEED_FILES = [
@@ -54,6 +107,7 @@ SEED_FILES = [
     "dados/departamentos.dat",
     "dados/cargos.dat",
     "dados/funcionarios.dat",
+    "dados/folha_auditoria.jsonl",
 ]
 SEED_BACKUP = "/tmp/becrp_ci_seed_backup"
 
@@ -68,6 +122,100 @@ def step(title):
 def run(cmd, **kw):
     """Roda um comando herdando a saída; devolve o exit code."""
     return subprocess.run(cmd, cwd=ROOT, **kw).returncode
+
+
+def _http_get(url, token=None):
+    """GET com timeout curto; devolve (status, dict) sem estourar o CI."""
+    req = urllib.request.Request(url)
+    if token:
+        req.add_header("X-Auth-Token", token)
+    try:
+        with urllib.request.urlopen(req, timeout=5) as r:
+            raw = r.read().decode("utf-8", "replace")
+            try:
+                return r.status, json.loads(raw)
+            except ValueError:
+                return r.status, {}
+    except urllib.error.HTTPError as e:
+        return e.code, {}
+    except Exception:
+        return None, {}
+
+
+def _cenario_visual(script, port, token, path, valida):
+    """Sobe um cenario_*_browser.py em background, valida o seed via HTTP e
+    encerra com SIGTERM (o script restaura os dados). `valida` recebe o dict
+    do GET <path> e devolve bool. Modo opcional --browser. Em falha, imprime
+    o tail do log do cenário (arquivo em /tmp, fora do backup que é varrido)."""
+    proc = None
+    logf = None
+    try:
+        logf = open(os.path.join("/tmp", f"ci_cenario_{script}.log"), "w")
+        proc = subprocess.Popen(
+            [sys.executable, "-B", os.path.join("scripts", script),
+             "--port", str(port)],
+            cwd=ROOT, stdout=logf, stderr=subprocess.STDOUT)
+        # aguarda o servidor subir (o script seeda depois de servir)
+        up = False
+        for _ in range(45):
+            if proc.poll() is not None:
+                break
+            code, _d = _http_get(f"http://127.0.0.1:{port}/api/auth/check-setup")
+            if code == 200:
+                up = True
+                break
+            time.sleep(1)
+        if not up:
+            print(f"  ❌ {script}: servidor não subiu em {port} "
+                  f"(exit {proc.poll()})")
+            _print_cenario_log(logf, script)
+            return False
+        # o seed roda DEPOIS do check-setup (servidor no ar) — faz poll do GET
+        # até o valida() passar ou estourar o tempo (seed leva ~1-3s)
+        ok = False
+        for _ in range(30):
+            if proc.poll() is not None:
+                break
+            code, data = _http_get(f"http://127.0.0.1:{port}{path}", token=token)
+            if code == 200 and valida(data):
+                ok = True
+                break
+            time.sleep(1)
+        if not ok:
+            exit_c = proc.poll()
+            code, data = _http_get(f"http://127.0.0.1:{port}{path}", token=token)
+            chave = path.rstrip("/").split("/")[-1]
+            print(f"  ❌ {script}: seed não validado (HTTP {code}, exit "
+                  f"{exit_c}, {chave}={len(data.get(chave, []))})")
+            _print_cenario_log(logf, script)
+            return False
+        print(f"  ✅ {script}: seed validado via HTTP")
+        return True
+    finally:
+        if proc is not None:
+            proc.terminate()
+            try:
+                proc.wait(timeout=15)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+        if logf is not None:
+            logf.close()
+
+
+def _print_cenario_log(logf, script):
+    """Imprime as últimas linhas do log do cenário em falha (ajuda a ver a
+    causa: usuário não criado, COBOL errando no seed, porta ocupada etc.)."""
+    try:
+        logf.flush()
+        with open(os.path.join("/tmp", f"ci_cenario_{script}.log"),
+                  encoding="utf-8", errors="replace") as f:
+            lines = f.read().splitlines()
+        if lines:
+            print("  ↪ log do cenário (tail):")
+            for line in lines[-10:]:
+                print(f"      {line}")
+    except OSError:
+        pass
 
 
 def build_cobol(force=False):
@@ -120,17 +268,49 @@ def seed():
     """Cria usuário admin e um funcionário ativo para a tela listar."""
     # atenção: o login responde "nome" do usuário — sem esse campo o handler
     # quebra DEPOIS de rotacionar o token e a resposta se perde (403s em cascata)
-    users = {"bruno": {
-        "usuario": "bruno",
-        "nome": "Bruno CI",
-        "email": "bruno@ci.local",
-        "senha": hashlib.sha256(b"123456").hexdigest(),
-        "role": "admin",
-        "empresas": {},
-        "ativo": True,
-        "token": "ci-token-becrp-2026",
-    }}
+    # RFC-009 §4.2/Decisão 4 (separação de funções): o CI precisa de DOIS
+    # usuários — quem opera (abre/calcula) não pode fechar. O review da tela
+    # usa 'bruno' para operar e 'aprovador' para validar/fechar.
+    users = {
+        "bruno": {
+            "usuario": "bruno",
+            "nome": "Bruno CI",
+            "email": "bruno@ci.local",
+            "senha": hashlib.sha256(b"123456").hexdigest(),
+            "role": "admin",
+            "empresas": {},
+            "ativo": True,
+            "token": "ci-token-becrp-2026",
+        },
+        "aprovador": {
+            "usuario": "aprovador",
+            "nome": "Aprovador CI",
+            "email": "aprovador@ci.local",
+            "senha": hashlib.sha256(b"654321").hexdigest(),
+            "role": "admin",
+            "empresas": {},
+            "ativo": True,
+            "token": "ci-token-aprovador-2026",
+        },
+        # RFC-009 §4.2 (Tesouraria): quem registra o pagamento não pode ser o
+        # Aprovador da competência. O CI usa 'tesouraria' para pagar.
+        "tesouraria": {
+            "usuario": "tesouraria",
+            "nome": "Tesouraria CI",
+            "email": "tesouraria@ci.local",
+            "senha": hashlib.sha256(b"123123").hexdigest(),
+            "role": "admin",
+            "empresas": {},
+            "ativo": True,
+            "token": "ci-token-tesouraria-2026",
+        },
+    }
     jsonio.save("data/users.json", users)
+    # remove a trilha de auditoria de execuções anteriores (gerada em runtime)
+    try:
+        os.remove(os.path.join(ROOT, "dados/folha_auditoria.jsonl"))
+    except OSError:
+        pass
     did = cobol_bridge.departamento_incluir({
         "codigo": "CI", "descricao": "CI Pipeline",
         "centro_custo": "CC-CI", "responsavel": "CI"})
@@ -161,7 +341,7 @@ def seed():
         raise RuntimeError(
             "seed: nenhum funcionário ativo em funcionarios_listar: "
             f"{[f.get('situacao_vinculo') for f in funcs]}")
-    print(f"  ✅ seed: admin bruno/123456 · departamento #{did} · cargo #{cid} · funcionário #{fid}")
+    print(f"  ✅ seed: admin bruno/123456 + aprovador/654321 + tesouraria/123123 (RFC-009) · departamento #{did} · cargo #{cid} · funcionário #{fid}")
 
 
 def main():
@@ -215,6 +395,97 @@ def main():
         else:
             FAIL += 1
             print(f"  └─ ❌ review_tela_funcionarios (exit {code})")
+
+        step("6. Review da tela Férias e 13º (RFC-010/011)")
+        code = run([sys.executable, "scripts/review_tela_ferias_decimo.py", "--port", "8139"])
+        if code == 0:
+            PASS += 1
+            print("  └─ ✅ review_tela_ferias_decimo")
+        else:
+            FAIL += 1
+            print(f"  └─ ❌ review_tela_ferias_decimo (exit {code})")
+
+        step("7. Check do render — badges VENCIDA/EM DOBRO, alertas e wrapper (Node)")
+        node_bin = shutil.which("node")
+        if not node_bin:
+            # CI Python puro: sem node os checks são pulados (e não contam no
+            # resumo); node está pré-instalado nos runners do GitHub Actions
+            print("  ↪ node não encontrado — checks de render pulados "
+                  "(instale node para ativá-los)")
+        else:
+            for check_js in ("check_render_ferias_node.js",
+                             "check_render_rescisao_node.js",
+                             "check_render_rh_dashboard_node.js",
+                             "check_render_rh_workflow_node.js",
+                             "check_render_complementar_node.js"):
+                try:
+                    r = subprocess.run(
+                        [node_bin, os.path.join("scripts", check_js)],
+                        cwd=ROOT, capture_output=True, text=True, timeout=60)
+                except subprocess.TimeoutExpired:
+                    FAIL += 1
+                    print(f"  └─ ❌ {check_js} (timeout 60s)")
+                    continue
+                out = (r.stdout + r.stderr).strip()
+                if r.returncode == 0:
+                    PASS += 1
+                    ultima = out.splitlines()[-1] if out else "RENDER OK"
+                    print(f"  └─ ✅ {check_js} — {ultima}")
+                else:
+                    FAIL += 1
+                    print(f"  └─ ❌ {check_js} (exit {r.returncode})")
+                    print(out[-600:])
+
+        step("8. Review do RH Dashboard (férias vencidas + aprovações + workflow)")
+        code = run([sys.executable, "scripts/review_tela_rh_dashboard.py", "--port", "8140"])
+        if code == 0:
+            PASS += 1
+            print("  └─ ✅ review_tela_rh_dashboard")
+        else:
+            FAIL += 1
+            print(f"  └─ ❌ review_tela_rh_dashboard (exit {code})")
+
+        # Modo opcional --browser: valida os cenários visuais das abas
+        # Complementar e Rescisão (os mesmos usados com browser-use para
+        # conferência em navegador real).
+        if "--browser" in sys.argv:
+            step("9. Cenários visuais das abas Complementar e Rescisão "
+                 "(--browser, opcional)")
+
+            def _valida_complementares(data):
+                comps = data.get("complementares", []) if isinstance(data, dict) else []
+                situacoes = {str(c.get("situacao")) for c in comps}
+                ok = len(comps) >= 4 and {"C", "V", "F", "P"} <= situacoes
+                if not ok:
+                    print(f"  ↪ esperado 4 complementares C/V/F/P; veio "
+                          f"{len(comps)} ({sorted(situacoes)})")
+                return ok
+
+            def _valida_rescisoes(data):
+                resc = data.get("rescisoes", []) if isinstance(data, dict) else []
+                tem_dobro = any(r.get("ferias_venc_dobro") is True for r in resc)
+                tem_normal = any(r.get("ferias_venc_dobro") is False for r in resc)
+                ok = len(resc) >= 2 and tem_dobro and tem_normal
+                if not ok:
+                    print(f"  ↪ esperado 2 rescisões (1 EM DOBRO + 1 normal); "
+                          f"veio {len(resc)} (dobro={tem_dobro}, normal={tem_normal})")
+                return ok
+
+            cenarios = (
+                ("cenario_complementar_browser.py", 8141,
+                 "tok-visual-comp", "/api/folha/complementares",
+                 _valida_complementares),
+                ("cenario_rescisao_browser.py", 8142,
+                 "tok-visual-resc", "/api/folha/rescisoes",
+                 _valida_rescisoes),
+            )
+            for script, porta, token, path, valida in cenarios:
+                if _cenario_visual(script, porta, token, path, valida):
+                    PASS += 1
+                    print(f"  └─ ✅ {script}")
+                else:
+                    FAIL += 1
+                    print(f"  └─ ❌ {script}")
     finally:
         restore_seed()
 

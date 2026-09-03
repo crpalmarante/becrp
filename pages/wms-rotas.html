@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — WMS Rotas</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:120px; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; vertical-align:top; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .pc-table tr.inactive td { opacity:.5; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); white-space:nowrap; display:inline-block; }
+    .badge-pull { border-color:rgba(20,184,166,.5); color:#2dd4bf; }
+    .badge-push { border-color:rgba(251,191,36,.5); color:#fbbf24; }
+    .badge-ok { border-color:rgba(74,222,128,.5); color:#4ade80; }
+    .badge-off { opacity:.5; }
+    .act-btns { display:flex; gap:4px; flex-wrap:wrap; }
+    .btn-xs {
+      padding:3px 8px; font-size:11px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.2); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+    .btn-xs.primary { border-color:rgba(20,184,166,.5); }
+    .btn-xs.danger { border-color:rgba(248,113,113,.4); }
+    .btn-xs:hover { border-color:rgba(20,184,166,.7); }
+    .panel { padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; margin-bottom:14px; }
+    .panel h3 { margin:0 0 10px; font-size:14px; }
+    .sec-title { font-size:11px; text-transform:uppercase; letter-spacing:.04em; opacity:.6; margin:18px 0 8px; }
+    .route { font-family:var(--font-mono, monospace); font-size:12px; }
+    .tabs { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:14px; }
+    .tab-btn {
+      padding:6px 12px; font-size:13px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.15); border-radius:6px;
+      background:transparent; color:inherit;
+    }
+    .tab-btn.active { border-color:rgba(20,184,166,.6); color:#2dd4bf; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .form-grid .span2 { grid-column:span 2; }
+    @media (max-width:640px) { .form-grid { grid-template-columns:1fr; } .form-grid .span2 { grid-column:auto; } }
+    .dialog-box.wide { max-width:600px; }
+    .etapa-row { display:flex; gap:8px; align-items:end; margin-bottom:6px; }
+    .config-chip {
+      display:inline-flex; align-items:center; gap:6px; margin-left:auto;
+      font-size:12px; padding:5px 10px; border:1px solid rgba(255,255,255,.15); border-radius:6px;
+    }
+    .config-chip a { color:#2dd4bf; text-decoration:none; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item active" href="wms-rotas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-route"/></svg><span class="menu-label">Rotas</span></a>
+      <a class="menu-item" href="wms-regras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-route"/></svg><span class="menu-label">Regras push/pull</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-route"/></svg>
+        <span class="topbar-title">WMS — Rotas</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / WMS / Rotas</div>
+          <h2 class="workspace-title">Rotas: coleção de regras push/pull</h2>
+        </div>
+        <div class="workspace-content">
+          <p class="pc-note">RFC-9013 — a rota é uma sequência de localizações que representa um fluxo de negócio (armazenagem, qualidade, pós-venda, devolução a fornecedor, fabricação ou aluguel). Cada par de etapas vira uma regra pull.</p>
+          <div id="msg" class="pc-msg"></div>          <div class="tabs">
+            <button class="tab-btn active" data-tab="rotas">Rotas</button>
+            <button class="tab-btn" data-tab="locais">Locais padrão por produto</button>
+            <button class="tab-btn" data-tab="devolucao">Aluguel / locações</button>
+            <span class="config-chip" id="config-chip"></span>
+          </div>
+
+          <!-- ── aba Rotas ── -->
+          <div id="tab-rotas">
+            <div class="pc-toolbar">
+              <div class="field"><label>Filtro</label>
+                <input class="form-input" id="filtro-q" placeholder="buscar…">
+              </div>
+              <div class="field"><label>Tipo</label>
+                <select class="form-input" id="filtro-tipo">
+                  <option value="">Todos</option>
+                  <option value="armazenagem">Armazenagem</option>
+                  <option value="qualidade">Qualidade</option>
+                  <option value="pos_venda">Pós-venda</option>
+                  <option value="devolucao_fornecedor">Devolução a fornecedor</option>
+                  <option value="fabricacao">Fabricação</option>
+                  <option value="aluguel">Aluguel</option>
+                </select>
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-nova" style="margin-left:auto">+ Nova rota</button>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="pc-table" id="rotas-table">
+                <thead><tr>
+                  <th>Rota</th><th>Tipo</th><th>Fluxo (etapas)</th><th>Produto / Categoria</th><th>Status</th><th>Ações</th>
+                </tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── aba Locais padrão ── -->
+          <div id="tab-locais" style="display:none">
+            <div class="pc-toolbar">
+              <div class="field"><label>Produto</label>
+                <input class="form-input" id="lp-produto" placeholder="id (ex.: 1)" style="width:110px">
+              </div>
+              <div class="field"><label>Armazém</label>
+                <input class="form-input" id="lp-armazem" value="DC-01" style="width:90px">
+              </div>
+              <div class="field"><label>Localização padrão</label>
+                <input class="form-input" id="lp-local" list="loc-list" placeholder="Ex.: PCK-01" style="width:150px">
+              </div>
+              <button class="dialog-btn dialog-btn-primary" id="btn-lp-salvar">Salvar local padrão</button>
+            </div>
+            <p class="pc-note">Define onde o produto costuma ficar no armazém — usado como referência para rotas e devoluções.</p>
+            <div style="overflow-x:auto">
+              <table class="pc-table" id="lp-table">
+                <thead><tr><th>Produto</th><th>Armazém</th><th>Localização padrão</th><th>Ações</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- ── aba Aluguel / locações ── -->
+          <div id="tab-devolucao" style="display:none">
+            <div class="panel">
+              <h3>Produtos alugáveis</h3>
+              <p class="pc-note">Marque no cadastro quais produtos podem ser alugados — as locações e a devolução automatizada usam essa flag.</p>
+              <div class="pc-toolbar" style="margin-bottom:10px">
+                <div class="field" style="flex:1;min-width:200px"><label>Produto</label>
+                  <select class="form-input" id="al-produto"></select>
+                </div>
+                <button class="dialog-btn dialog-btn-secondary" id="btn-al-marcar">✓ Marcar alugável</button>
+                <button class="dialog-btn dialog-btn-secondary" id="btn-al-desmarcar">✗ Desmarcar</button>
+              </div>
+              <div style="overflow-x:auto">
+                <table class="pc-table" id="alugaveis-table">
+                  <thead><tr><th>Produto</th><th>Nome</th><th>Status</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Locações</h3>
+              <p class="pc-note">Registra a saída do produto alugado. O vencimento é calculado pela data de início + prazo (dias).</p>
+              <div class="pc-toolbar" style="margin-bottom:10px">
+                <div class="field"><label>Produto</label>
+                  <input class="form-input" id="lc-produto" list="loc-list" placeholder="id" style="width:90px">
+                </div>
+                <div class="field"><label>Qtd</label>
+                  <input class="form-input" id="lc-qtd" type="number" min="1" value="1" style="width:70px">
+                </div>
+                <div class="field"><label>Cliente</label>
+                  <input class="form-input" id="lc-cliente" placeholder="Cliente" style="width:140px">
+                </div>
+                <div class="field"><label>Início</label>
+                  <input class="form-input" id="lc-inicio" type="date" style="width:130px">
+                </div>
+                <div class="field"><label>Prazo (dias)</label>
+                  <input class="form-input" id="lc-prazo" type="number" min="1" value="30" style="width:80px">
+                </div>
+                <button class="dialog-btn dialog-btn-primary" id="btn-lc-nova">+ Nova locação</button>
+              </div>
+              <div style="overflow-x:auto">
+                <table class="pc-table" id="lc-table">
+                  <thead><tr>
+                    <th>Loc.</th><th>Produto</th><th>Qtd</th><th>Cliente</th><th>Início</th><th>Prazo</th><th>Prevista</th><th>Status</th><th>Ações</th>
+                  </tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="panel">
+              <h3>Vencidas — devolução automatizada</h3>
+              <p class="pc-note">Gera as movimentações de retorno de todas as locações com prazo estourado, pela rota tipo <b>aluguel</b>, com o <b>local padrão do produto</b> como destino final. Também roda no boot do servidor (marca as vencidas).</p>
+              <div class="pc-toolbar" style="margin-bottom:10px">
+                <span class="badge" id="vencidas-count">—</span>
+                <button class="dialog-btn dialog-btn-primary" id="btn-dv-gerar">↩ Gerar devoluções das vencidas</button>
+              </div>
+              <div id="dv-result"></div>
+            </div>
+
+            <div class="panel">
+              <h3>Devolução manual</h3>
+              <p class="pc-note">Devolução pontual de um produto alugado (não precisa estar cadastrado como locação).</p>
+              <div class="pc-toolbar" style="margin-bottom:10px">
+                <div class="field"><label>Produto</label>
+                  <input class="form-input" id="dv-produto" list="loc-list" placeholder="id" style="width:100px">
+                </div>
+                <div class="field"><label>Qtd</label>
+                  <input class="form-input" id="dv-qtd" type="number" min="1" value="1" style="width:80px">
+                </div>
+                <div class="field"><label>Local atual (opcional)</label>
+                  <input class="form-input" id="dv-local" list="loc-list" placeholder="Ex.: CLIENTE" style="width:140px">
+                </div>
+                <div class="field"><label>Rota (opcional)</label>
+                  <select class="form-input" id="dv-rota" style="min-width:180px"><option value="">Automática (tipo aluguel)</option></select>
+                </div>
+                <button class="dialog-btn dialog-btn-primary" id="btn-dv-manual">↩ Gerar devolução</button>
+              </div>
+              <div id="dv-manual-result"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- modal rota -->
+<div class="dialog-overlay" id="dlg-rota">
+  <div class="dialog-box wide">
+    <div class="dialog-header">
+      <div class="dialog-title" id="dlg-title">Nova rota</div>
+      <button class="dialog-close" type="button" data-close>&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div id="dlg-msg" class="pc-msg"></div>
+      <div class="form-grid">
+        <div class="field span2"><label>Nome</label>
+          <input class="form-input" id="f-nome" placeholder="Ex.: Recebimento → Qualidade → Armazenagem">
+        </div>
+        <div class="field"><label>Tipo</label>
+          <select class="form-input" id="f-tipo">
+            <option value="armazenagem">Armazenagem</option>
+            <option value="qualidade">Controle de qualidade</option>
+            <option value="pos_venda">Pós-venda</option>
+            <option value="devolucao_fornecedor">Devolução a fornecedor</option>
+            <option value="fabricacao">Cadeia de fabricação</option>
+            <option value="aluguel">Aluguel / locação</option>
+          </select>
+        </div>
+        <div class="field"><label>Armazém</label>
+          <input class="form-input" id="f-armazem" value="DC-01">
+        </div>
+        <div class="field"><label>Produto (id, opcional)</label>
+          <input class="form-input" id="f-produto" list="prod-list" placeholder="vazio = qualquer produto">
+        </div>
+        <div class="field"><label>Categoria (opcional)</label>
+          <input class="form-input" id="f-categoria" list="cat-list" placeholder="ou use a categoria">
+        </div>
+        <div class="field span2"><label>Descrição</label>
+          <input class="form-input" id="f-descricao" placeholder="finalidade da rota…">
+        </div>
+        <datalist id="loc-list"></datalist>
+        <datalist id="prod-list"></datalist>
+        <datalist id="cat-list"></datalist>
+        <div class="span2">
+          <label>Etapas (sequência de localizações)</label>
+          <div id="f-etapas"></div>
+          <button class="btn-xs primary" type="button" id="btn-add-etapa">+ Adicionar etapa</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button class="dialog-btn dialog-btn-secondary" type="button" data-close>Cancelar</button>
+        <button class="dialog-btn dialog-btn-primary" id="btn-save">Salvar rota</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  const uname = auth.user.usuario || auth.user.nome || "";
+  document.getElementById("user-name-display").textContent = auth.user.nome || uname || "Usuário";
+
+  let perms = { pode_escrever: false };
+  let rotas = [];
+  let editId = null;
+  let config = { rotas_multiplas_etapas: false };
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+
+  function msg(t, ok) {
+    const el = $("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  const TIPO_LABEL = {
+    armazenagem: "Armazenagem", qualidade: "Qualidade", pos_venda: "Pós-venda",
+    devolucao_fornecedor: "Dev. fornecedor", fabricacao: "Fabricação", aluguel: "Aluguel",
+  };
+  const PAPEL_LABEL = {
+    recebimento: "Recebimento", qualidade: "Qualidade / inspeção", armazenagem: "Armazenagem",
+    picking: "Picking", expedicao: "Expedição", devolucao: "Devolução",
+    producao: "Produção", cliente: "Cliente (virtual)", outro: "Outro",
+  };
+
+  function badgeTipo(t) { return '<span class="badge">' + esc(TIPO_LABEL[t] || t) + "</span>"; }
+
+  function fluxo(rota) {
+    return (rota.etapas || []).map((e) => '<span class="route">' + esc(e.localizacao) + "</span>").join(" → ");
+  }
+
+  function renderConfig() {
+    $("config-chip").innerHTML = config.rotas_multiplas_etapas
+      ? "✅ Rotas com várias etapas <b>ativas</b>"
+      : "⚠ Rotas com várias etapas <b>desativadas</b> · <a href=\"configuracoes.html\">ativar nas Definições</a>";
+  }
+
+  function renderRotas() {
+    const tbody = document.querySelector("#rotas-table tbody");
+    if (!rotas.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="opacity:.6">Nenhuma rota configurada.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rotas.map((r) => {
+      const escopo = r.produto_id ? '<span class="route">' + esc(r.produto_id) + "</span>" : (esc(r.categoria) || "qualquer");
+      return `<tr class="${r.ativo ? "" : "inactive"}">
+        <td><strong>${esc(r.id)}</strong><div style="font-size:12px;opacity:.75">${esc(r.nome)}</div>
+          ${r.descricao ? `<div style="font-size:11px;opacity:.6">${esc(r.descricao)}</div>` : ""}
+        </td>
+        <td>${badgeTipo(r.tipo)}<div style="font-size:11px;opacity:.6">${esc(r.armazem)}</div></td>
+        <td>${fluxo(r)}<div style="font-size:11px;opacity:.6">${(r.etapas || []).length} etapa(s)</div></td>
+        <td>${escopo}</td>
+        <td>${r.ativo ? '<span class="badge badge-ok">ativa</span>' : '<span class="badge badge-off">pausada</span>'}</td>
+        <td><div class="act-btns">
+          <button class="btn-xs primary" data-act="gerar" data-id="${esc(r.id)}">Gerar regras</button>
+          <button class="btn-xs" data-act="editar" data-id="${esc(r.id)}">Editar</button>
+          <button class="btn-xs" data-act="toggle" data-id="${esc(r.id)}">${r.ativo ? "Pausar" : "Ativar"}</button>
+          <button class="btn-xs danger" data-act="excluir" data-id="${esc(r.id)}">Excluir</button>
+        </div></td>
+      </tr>`;
+    }).join("");
+  }
+
+  function renderLocais(locais) {
+    const tbody = document.querySelector("#lp-table tbody");
+    const entries = Object.entries(locais || {});
+    if (!entries.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="opacity:.6">Nenhum local padrão definido.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = entries.map(([pid, pad]) => `<tr>
+      <td><span class="route">${esc(pid)}</span></td>
+      <td>${esc(pad.armazem)}</td>
+      <td><span class="route">${esc(pad.localizacao)}</span></td>
+      <td><div class="act-btns"><button class="btn-xs danger" data-act="lp-del" data-id="${esc(pid)}">Remover</button></div></td>
+    </tr>`).join("");
+  }
+
+  async function load() {
+    try {
+      const qs = new URLSearchParams();
+      if ($("filtro-q").value) qs.set("q", $("filtro-q").value);
+      if ($("filtro-tipo").value) qs.set("tipo", $("filtro-tipo").value);
+      const res = await AuthService.api("/api/wms/rotas?" + qs.toString());
+      if (res.status !== "ok") { msg(res.message || "Falha ao carregar rotas"); return; }
+      rotas = res.rotas || [];
+      config = res.config || (res.meta && res.meta.config) || config;
+      perms = res.permissoes || perms;
+      renderRotas();
+      renderConfig();
+      $("btn-nova").style.display = perms.pode_escrever ? "" : "none";
+      const [lp, cf] = await Promise.all([
+        AuthService.api("/api/wms/rotas/locais-padrao"),
+        AuthService.api("/api/wms/rotas/config"),
+      ]);
+      if (lp.status === "ok") renderLocais(lp.locais);
+      if (cf.status === "ok") { config = cf.config; renderConfig(); }
+      await carregarRotasAluguel();
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  async function carregarRotasAluguel() {
+    const res = await AuthService.api("/api/wms/rotas?tipo=aluguel");
+    if (res.status !== "ok") return;
+    const sel = $("dv-rota");
+    const atuais = res.rotas || [];
+    sel.innerHTML = '<option value="">Automática (tipo aluguel)</option>' +
+      atuais.map((r) => `<option value="${esc(r.id)}">${esc(r.id)} · ${esc(r.nome)}</option>`).join("");
+  }
+
+  // ── modal rota ──
+  function etapaRow(e) {
+    const loc = e ? e.localizacao : "";
+    const papel = e ? (e.papel || "") : "";
+    return `<div class="etapa-row">
+      <div class="field" style="flex:1"><label>Localização</label>
+        <input class="form-input etapa-loc" list="loc-list" value="${esc(loc)}" placeholder="Ex.: REC-DOCK-01">
+      </div>
+      <div class="field"><label>Papel</label>
+        <select class="form-input etapa-papel">
+          ${Object.entries(PAPEL_LABEL).map(([k, v]) => `<option value="${k}" ${k === papel ? "selected" : ""}>${v}</option>`).join("")}
+        </select>
+      </div>
+      <button class="btn-xs danger" data-rm type="button">Remover</button>
+    </div>`;
+  }
+
+  function openModal(rota) {
+    editId = rota ? rota.id : null;
+    $("dlg-title").textContent = rota ? "Editar rota " + rota.id : "Nova rota";
+    $("dlg-msg").textContent = "";
+    $("f-nome").value = rota ? rota.nome : "";
+    $("f-tipo").value = rota ? rota.tipo : "armazenagem";
+    $("f-armazem").value = rota ? rota.armazem : "DC-01";
+    $("f-produto").value = rota ? (rota.produto_id || "") : "";
+    $("f-categoria").value = rota ? (rota.categoria || "") : "";
+    $("f-descricao").value = rota ? (rota.descricao || "") : "";
+    const etapas = rota ? (rota.etapas || []) : [{ localizacao: "", papel: "recebimento" }, { localizacao: "", papel: "armazenagem" }];
+    $("f-etapas").innerHTML = etapas.map(etapaRow).join("");
+    $("dlg-rota").classList.add("dialog-open");
+  }
+
+  function closeModal() { $("dlg-rota").classList.remove("dialog-open"); }
+
+  function coletarEtapas() {
+    return Array.from($("f-etapas").querySelectorAll(".etapa-row")).map((row) => ({
+      localizacao: row.querySelector(".etapa-loc").value.trim().toUpperCase(),
+      papel: row.querySelector(".etapa-papel").value,
+    })).filter((e) => e.localizacao);
+  }
+
+  async function save() {
+    const payload = {
+      nome: $("f-nome").value.trim(),
+      tipo: $("f-tipo").value,
+      armazem: $("f-armazem").value.trim().toUpperCase(),
+      produto_id: $("f-produto").value.trim(),
+      categoria: $("f-categoria").value.trim(),
+      descricao: $("f-descricao").value.trim(),
+      etapas: coletarEtapas(),
+    };
+    try {
+      const res = await AuthService.api(
+        editId ? "/api/admin/wms/rotas/" + editId : "/api/admin/wms/rotas",
+        { method: "POST", body: JSON.stringify(payload) }
+      );
+      if (res.status !== "ok") { $("dlg-msg").textContent = res.message || "Falha ao salvar"; $("dlg-msg").className = "pc-msg err"; return; }
+      closeModal();
+      msg(editId ? "Rota " + editId + " atualizada" : "Rota " + res.rota.id + " criada", true);
+      await load();
+    } catch (e) { $("dlg-msg").textContent = "Erro: " + e.message; $("dlg-msg").className = "pc-msg err"; }
+  }
+
+  async function acao(act, id) {
+    try {
+      if (act === "excluir" && !confirm("Excluir a rota " + id + "?")) return;
+      if (act === "gerar") {
+        const res = await AuthService.api("/api/admin/wms/rotas/" + id + "/gerar-regras", { method: "POST", body: "{}" });
+        if (res.status !== "ok") { msg(res.message || "Falha ao gerar regras"); return; }
+        msg("Rota " + id + ": " + res.total + " regra(s) pull criada(s)", true);
+        return;
+      }
+      const res = await AuthService.api("/api/admin/wms/rotas/" + id, {
+        method: "POST",
+        body: JSON.stringify(act === "editar" ? {} : act === "excluir" ? { action: "delete" } : { action: "toggle" }),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha na ação"); return; }
+      msg(act === "excluir" ? "Rota " + id + " excluída" : "Rota " + id + " atualizada", true);
+      await load();
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  // ── locais padrão ──
+  async function salvarLocalPadrao() {
+    try {
+      const payload = {
+        produto_id: $("lp-produto").value.trim(),
+        armazem: $("lp-armazem").value.trim().toUpperCase(),
+        localizacao: $("lp-local").value.trim().toUpperCase(),
+      };
+      const res = await AuthService.api("/api/admin/wms/rotas/locais-padrao", {
+        method: "POST", body: JSON.stringify(payload),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha ao salvar local padrão"); return; }
+      msg("Local padrão do produto " + res.produto_id + " salvo", true);
+      $("lp-produto").value = ""; $("lp-local").value = "";
+      await load();
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  // ── aluguel / locações ──
+  function renderAlugaveis(produtos) {
+    const tbody = document.querySelector("#alugaveis-table tbody");
+    if (!produtos.length) {
+      tbody.innerHTML = '<tr><td colspan="3" style="opacity:.6">Nenhum produto alugável.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = produtos.map((p) => `<tr>
+      <td><span class="route">${esc(p.produto_id)}</span></td>
+      <td>${esc(p.nome)}</td>
+      <td><span class="badge badge-ok">alugável</span></td>
+    </tr>`).join("");
+  }
+
+  async function carregarAlugaveis() {
+    const res = await AuthService.api("/api/wms/rental/produtos-alugaveis");
+    if (res.status !== "ok") return;
+    renderAlugaveis(res.produtos || []);
+  }
+
+  async function marcarAlugavel(flag) {
+    try {
+      const pid = $("al-produto").value;
+      if (!pid) { msg("Selecione um produto."); return; }
+      const res = await AuthService.api("/api/admin/wms/rental/produtos-alugaveis", {
+        method: "POST", body: JSON.stringify({ produto_id: pid, alugavel: flag }),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha ao atualizar flag"); return; }
+      msg("Produto " + pid + (flag ? " marcado como alugável" : " desmarcado"), true);
+      await Promise.all([carregarAlugaveis(), carregarLocacoes()]);
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  function badgeLocStatus(st) {
+    const map = { ativo: 'class="badge badge-pull"', vencido: 'class="badge badge-problem"', devolucao_gerada: 'class="badge badge-parcial"', devolvido: 'class="badge badge-off"' };
+    const labels = { ativo: "ativa", vencido: "vencida", devolucao_gerada: "devolução gerada", devolvido: "devolvido" };
+    return `<span ${map[st] || 'class="badge"'}>${labels[st] || st}</span>`;
+  }
+
+  async function carregarLocacoes() {
+    try {
+      const res = await AuthService.api("/api/wms/rental/locacoes");
+      if (res.status !== "ok") return;
+      const locs = res.locacoes || [];
+      const vencidas = locs.filter((l) => l.status === "vencido").length;
+      $("vencidas-count").textContent = vencidas ? vencidas + " vencida(s) · " + locs.length + " locação(ões)" : "nenhuma vencida · " + locs.length + " locação(ões)";
+      const tbody = document.querySelector("#lc-table tbody");
+      if (!locs.length) {
+        tbody.innerHTML = '<tr><td colspan="9" style="opacity:.6">Nenhuma locação registrada.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = locs.map((l) => `<tr>
+        <td><strong>${esc(l.id)}</strong></td>
+        <td><span class="route">${esc(l.produto_id)}</span><div style="font-size:11px;opacity:.65">${esc(l.produto_nome)}</div></td>
+        <td>${esc(l.qtd)}</td>
+        <td>${esc(l.cliente)}</td>
+        <td>${esc(l.data_inicio)}</td>
+        <td>${esc(l.prazo_dias)}d</td>
+        <td>${esc(l.data_prevista)}</td>
+        <td>${badgeLocStatus(l.status)}</td>
+        <td><div class="act-btns">
+          ${l.status !== "devolvido" ? `<button class="btn-xs primary" data-act="lc-dev" data-id="${esc(l.id)}">Devolver</button>` : ""}
+          <button class="btn-xs danger" data-act="lc-del" data-id="${esc(l.id)}">Excluir</button>
+        </div></td>
+      </tr>`).join("");
+    } catch (e) { /* opcional */ }
+  }
+
+  async function novaLocacao() {
+    try {
+      const payload = {
+        produto_id: $("lc-produto").value.trim(),
+        qtd: Number($("lc-qtd").value || 0),
+        cliente: $("lc-cliente").value.trim(),
+        data_inicio: $("lc-inicio").value || undefined,
+        prazo_dias: Number($("lc-prazo").value || 0),
+      };
+      const res = await AuthService.api("/api/admin/wms/rental/locacoes", {
+        method: "POST", body: JSON.stringify(payload),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha ao criar locação"); return; }
+      msg("Locação " + res.locacao.id + " criada (devolução prevista " + res.locacao.data_prevista + ")", true);
+      $("lc-produto").value = ""; $("lc-cliente").value = "";
+      await carregarLocacoes();
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  async function locacaoAcao(act, id) {
+    try {
+      const res = await AuthService.api("/api/admin/wms/rental/locacoes/" + id, {
+        method: "POST",
+        body: JSON.stringify(act === "lc-del" ? { action: "delete" } : { action: "status", status: "devolvido", nota: "devolução manual" }),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha na ação"); return; }
+      msg(act === "lc-del" ? "Locação " + id + " excluída" : "Locação " + id + " marcada como devolvida", true);
+      await carregarLocacoes();
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  function renderDevolucaoBox(boxId, res) {
+    $(boxId).innerHTML =
+      `<div style="font-size:13px;opacity:.85">Devolução gerada via <b>${esc(res.rota_id)} · ${esc(res.rota_nome)}</b> — ${res.total} movimentação(ões).</div>
+      <div style="overflow-x:auto;margin-top:8px"><table class="pc-table">
+        <thead><tr><th>#</th><th>Rota</th><th>Qtd</th><th>Operação</th></tr></thead>
+        <tbody>${(res.passos || []).map((p, i) => `<tr>
+          <td>${i + 1}</td>
+          <td><span class="route">${esc(p.origem)} → ${esc(p.destino)}</span></td>
+          <td>${esc(p.qtd)}</td>
+          <td><span class="route">${esc(p.operacao_id)}</span></td>
+        </tr>`).join("")}</tbody>
+      </table></div>`;
+  }
+
+  async function gerarVencidas() {
+    try {
+      const res = await AuthService.api("/api/admin/wms/rental/gerar-vencidas", { method: "POST", body: "{}" });
+      if (res.status !== "ok") { msg(res.message || "Falha ao gerar devoluções"); return; }
+      const r = res.resumo || {};
+      let html = `<div style="font-size:13px">Vencidas: <b>${r.vencidas}</b> · geradas: <b>${r.geradas}</b> · puladas: <b>${r.puladas}</b></div>`;
+      if ((res.geradas || []).length) {
+        html += `<div style="overflow-x:auto;margin-top:8px"><table class="pc-table">
+          <thead><tr><th>Locação</th><th>Produto</th><th>Passos</th><th>Rota</th></tr></thead>
+          <tbody>${res.geradas.map((g) => `<tr>
+            <td><strong>${esc(g.locacao_id)}</strong></td>
+            <td><span class="route">${esc(g.produto_id)}</span></td>
+            <td>${esc(g.total)}</td>
+            <td>${esc(g.rota_id)}</td>
+          </tr>`).join("")}</tbody></table></div>`;
+      }
+      if ((res.puladas || []).length) {
+        html += `<div style="margin-top:8px;font-size:12px;color:#fca5a5">` + res.puladas.map((p) => `&bull; ${esc(p.locacao_id)}: ${esc(p.motivo)}`).join("<br>") + `</div>`;
+      }
+      $("dv-result").innerHTML = html;
+      msg("Devoluções geradas: " + r.geradas + " (de " + r.vencidas + " vencidas)", r.puladas === 0);
+      await carregarLocacoes();
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  async function gerarDevolucaoManual() {
+    try {
+      const payload = {
+        produto_id: $("dv-produto").value.trim(),
+        qtd: Number($("dv-qtd").value || 0),
+        local_atual: $("dv-local").value.trim().toUpperCase() || null,
+        rota_id: $("dv-rota").value || null,
+      };
+      if (!payload.produto_id) { msg("Informe o produto."); return; }
+      const res = await AuthService.api("/api/admin/wms/rotas/devolucao-aluguel", {
+        method: "POST", body: JSON.stringify(payload),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha ao gerar devolução"); return; }
+      renderDevolucaoBox("dv-manual-result", res);
+      msg("Devolução gerada: " + res.total + " operação(ões)", true);
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  async function carregarDatalists() {
+    try {
+      const locs = await AuthService.api("/api/wms/localizacoes");
+      if (locs.status === "ok") {
+        $("loc-list").innerHTML = (locs.localizacoes || []).map((l) => `<option value="${esc(l.codigo)}">`).join("");
+      }
+      const prods = await AuthService.api("/api/admin/produtos");
+      if (prods.status === "ok") {
+        const cats = new Set();
+        $("prod-list").innerHTML = (prods.produtos || []).map((p) => {
+          if (p.categoria) cats.add(p.categoria);
+          return `<option value="${esc(p.id)}">${esc(p.nome || p.id)}</option>`;
+        }).join("");
+        $("cat-list").innerHTML = Array.from(cats).map((c) => `<option value="${esc(c)}">`).join("");
+      }
+    } catch (e) { /* opcional */ }
+  }
+
+  // eventos
+  document.querySelectorAll(".tab-btn").forEach((b) => {
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach((x) => x.classList.remove("active"));
+      b.classList.add("active");
+      ["rotas", "locais", "devolucao"].forEach((t) => {
+        $("tab-" + t).style.display = t === b.dataset.tab ? "" : "none";
+      });
+    });
+  });
+  $("btn-nova").addEventListener("click", () => openModal(null));
+  $("btn-save").addEventListener("click", save);
+  $("btn-add-etapa").addEventListener("click", () => {
+    $("f-etapas").insertAdjacentHTML("beforeend", etapaRow({ localizacao: "", papel: "armazenagem" }));
+  });
+  $("f-etapas").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-rm]");
+    if (btn) btn.closest(".etapa-row").remove();
+  });
+  document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeModal));
+  $("dlg-rota").addEventListener("click", (e) => { if (e.target === e.currentTarget) closeModal(); });
+  document.querySelector("#rotas-table tbody").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    if (btn.dataset.act === "editar") {
+      const r = rotas.find((x) => x.id === btn.dataset.id);
+      if (r) openModal(r);
+    } else acao(btn.dataset.act, btn.dataset.id);
+  });
+  document.querySelector("#lp-table tbody").addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-act='lp-del']");
+    if (!btn) return;
+    const res = await AuthService.api("/api/admin/wms/rotas/locais-padrao", {
+      method: "POST", body: JSON.stringify({ action: "delete", produto_id: btn.dataset.id }),
+    });
+    if (res.status !== "ok") { msg(res.message || "Falha ao remover"); return; }
+    msg("Local padrão removido", true);
+    await load();
+  });
+  $("btn-lp-salvar").addEventListener("click", salvarLocalPadrao);
+  $("btn-dv-gerar").addEventListener("click", gerarVencidas);
+  $("btn-dv-manual").addEventListener("click", gerarDevolucaoManual);
+  $("btn-al-marcar").addEventListener("click", () => marcarAlugavel(true));
+  $("btn-al-desmarcar").addEventListener("click", () => marcarAlugavel(false));
+  $("btn-lc-nova").addEventListener("click", novaLocacao);
+  document.querySelector("#lc-table tbody").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-act]") || e.target.closest("button[data-act='lc-dev']");
+    if (btn) locacaoAcao(btn.dataset.act, btn.dataset.id);
+  });
+  ["filtro-q", "filtro-tipo"].forEach((id) => {
+    $(id).addEventListener("input", () => load());
+    $(id).addEventListener("change", () => load());
+  });
+
+  // popula o select de produtos (para marcar alugável)
+  (async () => {
+    try {
+      const prods = await AuthService.api("/api/admin/produtos");
+      if (prods.status === "ok") {
+        $("al-produto").innerHTML = (prods.produtos || [])
+          .map((p) => `<option value="${esc(p.id)}">${esc(p.id)} · ${esc(p.nome || "")}</option>`).join("");
+      }
+    } catch (e) { /* opcional */ }
+    await carregarAlugaveis();
+    await carregarLocacoes();
+  })();
+
+  carregarDatalists();
+  load();
+})();
+</script>
+</body>
+</html>

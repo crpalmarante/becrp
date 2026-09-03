@@ -1,0 +1,134 @@
+{
+  "fornecedores": [
+    {
+      "id": 1,
+      "cnpj": "05949989000289",
+      "nome": "REISTAR INDUSTRIA E COMERCIO DE ELETRONICOS LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "068644763",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 2,
+      "cnpj": "77500049008465",
+      "nome": "MERCADOMOVEIS LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "9040774375",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 3,
+      "cnpj": "22962737000128",
+      "nome": "GAZIN ATACADO CENTRO-OESTE LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "106461141",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 4,
+      "cnpj": "44742211001228",
+      "nome": "MOVEIS LANZA LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "222009730111",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 5,
+      "cnpj": "11494894000130",
+      "nome": "MOPAR INDUSTRIA E COMERCIO DE MOVEIS LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "9051145493",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 6,
+      "cnpj": "75341800000175",
+      "nome": "ARAMOVEIS INDUSTRIA DE MOVEIS LTDA-EM REC JUDICIAL",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "6280187745",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 7,
+      "cnpj": "85074623000242",
+      "nome": "DJ-INDUSTRIA E COMERCIO DE MOVEIS LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "9038999483",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 8,
+      "cnpj": "95443594000111",
+      "nome": "FORMA STYLO COLCHOES E ESPUMAS LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "1019215497",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 9,
+      "cnpj": "01789035000114",
+      "nome": "FAIMEC - INDUSTRIA E COMERCIO DE MOVEIS LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "253461529",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 10,
+      "cnpj": "09104629000156",
+      "nome": "BEST COMERCIAL IMPORTADORA LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "255481160",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 11,
+      "cnpj": "11416589000120",
+      "nome": "CHAMALUX IND. COM. IMP. E EXP. LTDA",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "256007942",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 12,
+      "cnpj": "00.000.000/0001-99",
+      "nome": "NOVO FORNECEDOR TESTE",
+      "endereco": "",
+      "telefone": "11999999999",
+      "email": "",
+      "ie": "",
+      "inscricao_mun": ""
+    },
+    {
+      "id": 13,
+      "cnpj": "12345678901234",
+      "nome": "FORNECEDOR TESTE COBOL",
+      "endereco": "",
+      "telefone": "",
+      "email": "",
+      "ie": "",
+      "inscricao_mun": ""
+    }
+  ]
+}

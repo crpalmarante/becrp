@@ -1,0 +1,56 @@
+{
+  "versao": "1.0",
+  "payment_methods": [
+    {
+      "forma": "Dinheiro",
+      "aliases": [
+        "dinheiro",
+        "cash",
+        "caixa",
+        "especie",
+        "espécie",
+        "vista"
+      ],
+      "evento": "sale_cash",
+      "regra": "SALE_CASH",
+      "conta_debito": "1.01.01.01.01"
+    },
+    {
+      "forma": "PIX / Banco",
+      "aliases": [
+        "pix",
+        "banco",
+        "transfer",
+        "transf",
+        "ted",
+        "doc",
+        "cartao",
+        "cartão",
+        "debito",
+        "débito",
+        "credito",
+        "crédito",
+        "cart"
+      ],
+      "evento": "sale_bank",
+      "regra": "SALE_BANK",
+      "conta_debito": "1.01.01.02.01"
+    },
+    {
+      "forma": "Boleto",
+      "aliases": [
+        "boleto"
+      ],
+      "evento": "sale_bank",
+      "regra": "SALE_BANK",
+      "conta_debito": "1.01.01.02.01"
+    }
+  ],
+  "tax_accounts": {
+    "ipi": "2.01.01.09.02",
+    "icms": "2.01.01.09.03",
+    "pis": "2.01.01.09.04",
+    "cofins": "2.01.01.09.05"
+  },
+  "atualizado_em": "2026-08-04T23:54:47"
+}

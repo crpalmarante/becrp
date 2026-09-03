@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Folha complementar: ajustes de competência fechada |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (11/08/2026) |
 | **Data** | 01/08/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Processos |
@@ -70,8 +70,26 @@ em uma competência própria de ajuste.
 4. **Encargos e recolhimentos são recalculados apenas sobre a diferença**
    (RFC-014). ✅ 01/08/2026
 
-## 6. Aprovação
+## 6. Rastreabilidade da Implementação (11/08/2026)
+
+| Componente | Onde | Evidência |
+|---|---|---|
+| Cálculo no COBOL (diferença + INSS/IRRF; devolução sem tributo; limite 70%; encargos sobre a diferença — Decisão 4) | `folha_pagamento.cbl` — parágrafos `comp-*` (inclui `comp-encargos`) | FD `complementar.dat` + dispatch `WHEN "comp-*"` |
+| Bridge Python | `cobol_bridge.py` — `comp_calcular`, `comp_incluir`, `complementares_listar`, `comp_*`, `comp_encargos` e `COMP_NEGATIVO_MOTIVOS` | Field map `_COMP_FIELD_MAP` |
+| API HTTP (CRUD + fluxo + encargos + holerite) | `server.py` — `GET /api/folha/complementares`, `GET /api/folha/complementar/encargos`, `GET /api/folha/complementar/holerite` e `POST /api/folha/complementar/{calcular,incluir,validar,fechar,pagar,excluir}` | Validações Decisões 1–2; encargos no fechamento com lançamentos contábeis idempotentes (Decisão 4); separação de funções RFC-009; holerite complementar distinto (Regra 5) |
+| Tela | `pages/folha.html` — aba **Complementar** | CRUD + badges de situação + operador/aprovador + modal de holerite complementar (exibe apenas diferenças) |
+| Auditoria | `folha_auditoria.py` — `operador_da_complementar`/`aprovador_da_complementar` + eventos `incluir_complementar`/`fechar_complementar` | Trilha JSONL (RFC-009 §5) |
+| Smoke CI | `scripts/smoke_rfc013_complementar.py` + `scripts/check_render_complementar_node.js` | 35 checks E2E + 19 checks de render da aba (badges de situação C/V/F/P e gating dos botões por estado — registrados no `run_ci.py`) |
+
+> **Decisão de fluxo (Regra 3):** o `comp-incluir` já grava a complementar com
+> valores calculados e situação **C (calculada)** — os estados "aberta" e
+> "calculada" são unificados no ato da inclusão, mesmo padrão de férias/13º
+> do módulo (RFC-010/011). O fluxo efetivo é **C → V (validada) → F (fechada)
+> → P (paga)**, com separação de funções no fechamento e no pagamento
+> (RFC-009 §4.2). Complementar **paga é imutável** (exclusão bloqueada).
+
+## 7. Aprovação
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | _autor_ | ✅ Aprovado | 11/08/2026 |

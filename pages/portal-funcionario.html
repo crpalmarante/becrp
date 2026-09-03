@@ -148,6 +148,26 @@ tr:hover td{background:#f5f5f5}
 <script>
 var usuarioLogado = null;
 
+// Portal autentica via /api/auth/login: injeta o token em toda chamada /api/*
+var _portalFetch = window.fetch;
+window.fetch = function(url, opts) {
+opts = opts || {};
+if (typeof url === 'string' && url.indexOf('/api/') === 0) {
+var token = (usuarioLogado && usuarioLogado.token) || '';
+if (!token) {
+try {
+var s = sessionStorage.getItem('portal_usuario');
+if (s) token = (JSON.parse(s).token) || '';
+} catch (e) {}
+}
+if (token) {
+opts.headers = opts.headers || {};
+opts.headers['X-Auth-Token'] = token;
+}
+}
+return _portalFetch(url, opts);
+};
+
 function mostrarToast(msg, tipo) {
 var t = document.getElementById('toast');
 t.textContent = msg;
@@ -181,24 +201,20 @@ errEl.style.display = 'block';
 return;
 }
 
-var params = new URLSearchParams();
-params.set('usuario', usuario);
-params.set('senha', senha);
-
-fetch('/api/login', {
+fetch('/api/auth/login', {
 method: 'POST',
-headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-body: params
+headers: { 'Content-Type': 'application/json' },
+body: JSON.stringify({ usuario: usuario, senha: senha })
 })
 .then(function(r){ return r.json(); })
 .then(function(data){
-if (data.status === 'erro' || (!data.cargo && !data.tipo)) {
-errEl.textContent = data.mensagem || 'Usuário ou senha inválidos.';
+if (data.status === 'erro' || data.status === 'error' || !data.token) {
+errEl.textContent = data.mensagem || data.message || 'Usuário ou senha inválidos.';
 errEl.style.display = 'block';
 return;
 }
-var cargo = data.cargo || data.tipo || '';
-var cargosPermitidos = ['caixa', 'vendedor', 'gerente'];
+var cargo = data.role || data.cargo || data.tipo || '';
+var cargosPermitidos = ['funcionario', 'caixa', 'vendedor', 'gerente'];
 if (cargosPermitidos.indexOf(cargo.toLowerCase()) === -1) {
 errEl.textContent = 'Acesso restrito a funcionários.';
 errEl.style.display = 'block';
@@ -258,7 +274,7 @@ var campos = [
 { label: 'Endereço', val: func.endereco },
 { label: 'Data Admissão', val: func.data_admissao },
 { label: 'Salário Base', val: 'R$ ' + fmt(func.salario) },
-{ label: 'Cargo', val: func.cargo || usuarioLogado.cargo || usuarioLogado.tipo },
+{ label: 'Cargo', val: func.cargo || usuarioLogado.cargo || usuarioLogado.tipo || usuarioLogado.role },
 { label: 'Data Nascimento', val: func.data_nascimento },
 { label: 'Tipo Sanguíneo', val: func.tipo_sanguineo }
 ];
@@ -413,8 +429,8 @@ var stored = sessionStorage.getItem('portal_usuario');
 if (stored) {
 try {
 usuarioLogado = JSON.parse(stored);
-var cargo = (usuarioLogado.cargo || usuarioLogado.tipo || '').toLowerCase();
-var cargosPermitidos = ['caixa', 'vendedor', 'gerente'];
+var cargo = (usuarioLogado.role || usuarioLogado.cargo || usuarioLogado.tipo || '').toLowerCase();
+var cargosPermitidos = ['funcionario', 'caixa', 'vendedor', 'gerente'];
 if (cargosPermitidos.indexOf(cargo) !== -1) {
 mostrarDashboard();
 return;

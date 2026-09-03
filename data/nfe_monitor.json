@@ -1,5 +1,5 @@
 {
-  "next_id": 3,
+  "next_id": 4,
   "documents": [
     {
       "id": 1,
@@ -82,6 +82,48 @@
           "tipo": "done",
           "by": "smoke",
           "receiving_id": 7
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "status": "done",
+      "tipo": "nfe",
+      "modelo": "55",
+      "chave": "43260762832155000141550010000004441234567896",
+      "numero": "444",
+      "serie": "1",
+      "fornecedor_cnpj": "11222333000181",
+      "fornecedor_nome": "DISTRIBUIDORA DEMO LTDA",
+      "destinatario_cnpj": "62832155000141",
+      "valor_total": 401.5,
+      "xml_sha256": "fb8a5dbbf57432afb0efa1ae73b06e037150a67c42394606d8b20c4200410d8b",
+      "filename": "upload.xml",
+      "path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbox/processed/00003_upload.xml",
+      "source": "from-xml",
+      "error": "",
+      "receiving_id": 14,
+      "attempts": 1,
+      "created_at": "2026-09-03T08:14:45",
+      "created_by": "aprovador",
+      "processed_at": "2026-09-03T08:14:46",
+      "events": [
+        {
+          "at": "2026-09-03T08:14:45",
+          "tipo": "received",
+          "by": "aprovador",
+          "source": "from-xml"
+        },
+        {
+          "at": "2026-09-03T08:14:45",
+          "tipo": "processing",
+          "by": "aprovador"
+        },
+        {
+          "at": "2026-09-03T08:14:46",
+          "tipo": "done",
+          "by": "aprovador",
+          "receiving_id": 14
         }
       ]
     }

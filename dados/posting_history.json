@@ -1,4 +1,61 @@
 {
-  "atualizado_em": null,
-  "eventos": []
+  "atualizado_em": "2026-09-03T08:16:01",
+  "eventos": [
+    {
+      "id": "b75c4692-988d-4033-b7ea-fe6d97fe2539",
+      "acao": "apply_event",
+      "regra": "FOLHA_ENC_FGTS",
+      "evento": "folha_encargo_fgts",
+      "lancamento_id": "5e31b7ad-b4aa-4201-aaea-652017c88635",
+      "numero": "GER-000012",
+      "valor": 240.0,
+      "ok": true,
+      "errors": [],
+      "actor": null,
+      "source": "apply_event",
+      "em": "2026-08-11T15:24:47"
+    },
+    {
+      "id": "84c584e7-6fed-45e5-ab25-ee491e4669a8",
+      "acao": "apply_event",
+      "regra": "FOLHA_ENC_FGTS",
+      "evento": "folha_encargo_fgts",
+      "lancamento_id": "bb3ab73b-0d26-4525-9462-f02ba28037fd",
+      "numero": "GER-000013",
+      "valor": 240.0,
+      "ok": true,
+      "errors": [],
+      "actor": null,
+      "source": "apply_event",
+      "em": "2026-08-11T15:26:41"
+    },
+    {
+      "id": "730775e9-8a5e-4b13-817f-848ecd40df5d",
+      "acao": "apply_event",
+      "regra": "FOLHA_ENC_FGTS",
+      "evento": "folha_encargo_fgts",
+      "lancamento_id": "b5c51fc2-5c98-45ce-8c39-f2fc71c075cd",
+      "numero": "GER-000014",
+      "valor": 40.0,
+      "ok": true,
+      "errors": [],
+      "actor": null,
+      "source": "apply_event",
+      "em": "2026-08-11T19:46:10"
+    },
+    {
+      "id": "1f18968c-a055-40ac-93b4-6c387a36b899",
+      "acao": "apply_event",
+      "regra": "PURCHASE",
+      "evento": "purchase",
+      "lancamento_id": "d71550cc-69ee-44d4-997b-524118894fe7",
+      "numero": "COM-000001",
+      "valor": 401.5,
+      "ok": true,
+      "errors": [],
+      "actor": "aprovador",
+      "source": "apply_event",
+      "em": "2026-09-03T08:16:01"
+    }
+  ]
 }

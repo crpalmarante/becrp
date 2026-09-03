@@ -43,6 +43,325 @@
       "result": "found",
       "partner_id": "bp004",
       "count": 1
+    },
+    {
+      "at": "2026-09-03T08:14:45",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:06",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:06",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:06",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:06",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:17",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:17",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:17",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:17",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:26",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:26",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:26",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:23:26",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:39",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:39",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:39",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:39",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:39",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:39",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:39",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:39",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:47",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:47",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:47",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:47",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:47",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:47",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:47",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
+    },
+    {
+      "at": "2026-09-03T08:29:47",
+      "module": "receiving.nfe",
+      "criteria": {
+        "cnpj": "11222333000181",
+        "role": "SUPPLIER"
+      },
+      "result": "found",
+      "partner_id": "bp004",
+      "count": 1
     }
   ]
 }

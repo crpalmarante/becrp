@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "phase": "live",
+  "instance": {
+    "name": "",
+    "identifier": "",
+    "description": ""
+  },
+  "localization": {
+    "country": "BR",
+    "language": "pt-BR",
+    "timezone": "America/Sao_Paulo",
+    "currency": "BRL"
+  },
+  "structure": {
+    "branch_name": "",
+    "warehouse_name": "",
+    "warehouse_postponed": true
+  },
+  "init_progress": [],
+  "steps_done": {
+    "business": true,
+    "localization": true,
+    "modules": true,
+    "users": true
+  },
+  "current_step": "localization",
+  "go_live": true,
+  "compat_legacy": false,
+  "atualizado_em": "2026-08-03T18:50:34",
+  "reset_em": "2026-08-02T20:38:56",
+  "reset_by": "prep"
+}

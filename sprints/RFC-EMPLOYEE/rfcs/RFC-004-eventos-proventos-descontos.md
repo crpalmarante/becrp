@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Conceito de Evento: proventos, descontos e sua aplicação |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (10/08/2026 — catálogo inicial com 19 eventos (RFC-004 §3) em gerir_eventos.cbl + cobol_bridge; tipos provento/desconto/informativo (§6 decisão 1); incidências INSS/IRRF/FGTS por evento (§5, ex.: Salário-Família não incide) e teto no desconto (§6 decisão 3); CRUD com bloqueio de código duplicado/tipo inválido e inativação lógica; aplicação por funcionário via estrutura_salarial.html; smoke_rfc004_eventos no CI) |
 | **Data** | 31/07/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Folha |
@@ -103,4 +103,4 @@ Cada evento informa se **entra na base** de:
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |

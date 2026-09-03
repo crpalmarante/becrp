@@ -177,9 +177,7 @@
 <script>
     let editingId = null;
     let allData = [];
-    async function api(path, opts = {}) {
-        return window.api(path, opts);
-    }
+    const api = (path, opts = {}) => window.api(path, opts);
 async function load() {
         const container = document.getElementById("data-container");
         container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem">Carregando...</div>';

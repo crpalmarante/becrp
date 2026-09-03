@@ -1,0 +1,54 @@
+{
+  "seq_pick": 1,
+  "seq_pkg": 0,
+  "atualizado_em": "2026-08-01T15:51:29",
+  "pick_lists": [
+    {
+      "id": "PK-SEED-0001",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-SEED-0002"
+      ],
+      "armazem": "DC-01",
+      "status": "picking",
+      "operador": "bruno",
+      "documento_ref": "PV-100",
+      "parceiro": "Cliente Demo",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2,
+          "qtd_feita": 0,
+          "loc_origem": "PCK-01",
+          "status": "pending"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T15:51:29",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-01T15:51:29",
+          "usuario": "seed",
+          "nota": "iniciada"
+        }
+      ],
+      "observacao": "Seed — picking da expedição demo",
+      "origem": "seed",
+      "criado_em": "2026-08-01T15:51:29",
+      "atualizado_em": "2026-08-01T15:51:29"
+    }
+  ],
+  "packages": [],
+  "total_pick": 1,
+  "total_pkg": 0
+}

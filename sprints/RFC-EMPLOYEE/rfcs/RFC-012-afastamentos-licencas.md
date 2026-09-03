@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Afastamentos, licenças e suspensões do vínculo |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (11/08/2026 — CRUD dedicado de afastamentos (incluir/alterar/excluir/aprovar/rejeitar), situação do vínculo "afastado" ao aprovar e retorno a "ativo" ao rejeitar (§4.1/Decisão 2); pró-rata por dias trabalhados no processamento (Decisão 3): licença não remunerada e excedente de auxílio-doença entram como faltas na competência; maternidade/paternidade pagamento integral; suspensão do período aquisitivo de férias com aviso quando afastamento aprovado >30 dias (Decisão 4); aba Afastamentos em folha.html; smoke_rfc012_afastamentos no CI) |
 | **Data** | 01/08/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Processos |
@@ -70,4 +70,14 @@ pagamento ou com pagamento por terceiro (ex.: INSS). **Não é desligamento.**
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | _autor_ | ✅ Aprovado | 11/08/2026 |
+
+## 8. Implementação (rastreabilidade)
+
+| Camada | Onde | Cobertura |
+|---|---|---|
+| COBOL | `cobol/programs/licenca.cbl` (CRUD + aprovação/rejeição/transição) | — |
+| Bridge | `cobol_bridge.py`: `licenca_incluir/alterar/excluir`, `licencas_listar/pendentes/por_funcionario`, `licenca_aprovar/rejeitar/transitar`, `dias_afastamento_na_competencia`, `dias_afastamento_no_periodo` | — |
+| Server | `server.py`: `GET /api/licencas`, `POST /api/licenca/incluir|alterar|excluir|aprovar|rejeitar`; pró-rata no `competencia/calcular`; aviso de suspensão aquisitiva em `ferias/calcular|incluir`; situação do vínculo ao aprovar/rejeitar | — |
+| Tela | `pages/folha.html` (aba **Afastamentos**: CRUD, badges P/S/A/R/C, aprovar/rejeitar/excluir) | — |
+| CI | `scripts/smoke_rfc012_afastamentos.py` (21 checks) registrado em `scripts/run_ci.py` | ✅ |

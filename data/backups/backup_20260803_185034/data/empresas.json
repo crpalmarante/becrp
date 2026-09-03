@@ -1,0 +1,12 @@
+{
+  "matriz": {
+    "nome": "Matriz",
+    "ativo": true,
+    "tipo": "matriz",
+    "nome_razao": "Matriz Zero",
+    "nome_fantasia": "Matriz Zero",
+    "cidade": "Passo Fundo",
+    "municipio": "Passo Fundo",
+    "uf": "RS"
+  }
+}

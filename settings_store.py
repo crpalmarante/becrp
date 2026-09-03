@@ -50,6 +50,7 @@ DEFAULTS = {
         "controle_lote": False,
         "controle_serie": False,
         "estoque_negativo": False,
+        "rotas_multiplas_etapas": False,
     },
     "vendas": {
         "pedido_precisa_aprovacao": False,

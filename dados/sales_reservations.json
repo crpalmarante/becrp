@@ -1,0 +1,130 @@
+{
+  "seq": 6,
+  "reservations": [
+    {
+      "id": "SR-00001",
+      "pedido_id": "99901",
+      "pedido_numero": "PV99901",
+      "estabelecimento_id": "matriz",
+      "status": "consumed",
+      "usuario": "smoke",
+      "seq": 1,
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "P1",
+          "qtd": 2,
+          "qtd_pedida": 2
+        }
+      ],
+      "warnings": [],
+      "criado_em": "2026-08-04T14:11:10",
+      "atualizado_em": "2026-08-04T16:53:49"
+    },
+    {
+      "id": "SR-00002",
+      "pedido_id": "99002",
+      "pedido_numero": "PV99002",
+      "estabelecimento_id": "matriz",
+      "status": "active",
+      "usuario": "smoke",
+      "seq": 2,
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Arroz 5kg",
+          "qtd": 2,
+          "qtd_pedida": 2
+        }
+      ],
+      "warnings": [],
+      "criado_em": "2026-08-04T14:19:46",
+      "atualizado_em": "2026-08-17T18:19:16"
+    },
+    {
+      "id": "SR-00003",
+      "pedido_id": "99003",
+      "pedido_numero": "PV99003",
+      "estabelecimento_id": "matriz",
+      "status": "released",
+      "usuario": "smoke",
+      "seq": 3,
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "X",
+          "qtd": 1,
+          "qtd_pedida": 1
+        }
+      ],
+      "warnings": [],
+      "criado_em": "2026-08-04T14:19:46",
+      "atualizado_em": "2026-08-04T16:53:49"
+    },
+    {
+      "id": "SR-00004",
+      "pedido_id": "99099",
+      "pedido_numero": "PV99099",
+      "estabelecimento_id": "matriz",
+      "status": "replaced",
+      "usuario": "smoke2",
+      "seq": 4,
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Arroz",
+          "qtd": 1,
+          "qtd_pedida": 1
+        }
+      ],
+      "warnings": [],
+      "criado_em": "2026-08-04T16:53:59",
+      "atualizado_em": "2026-08-04T16:54:00"
+    },
+    {
+      "id": "SR-00005",
+      "pedido_id": "99099",
+      "pedido_numero": "PV99099",
+      "estabelecimento_id": "matriz",
+      "status": "consumed",
+      "usuario": "smoke2",
+      "seq": 5,
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Arroz",
+          "qtd": 1,
+          "qtd_pedida": 1
+        }
+      ],
+      "warnings": [],
+      "criado_em": "2026-08-04T16:54:00",
+      "atualizado_em": "2026-08-04T16:54:00"
+    },
+    {
+      "id": "SR-00006",
+      "pedido_id": "smoke-r1",
+      "pedido_numero": "PVSMOKE1",
+      "estabelecimento_id": "matriz",
+      "status": "test",
+      "usuario": "t",
+      "seq": 6,
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Arroz",
+          "qtd": 68,
+          "qtd_pedida": 75
+        }
+      ],
+      "warnings": [
+        "1: pediu 75, reservou 68 (ATP 68)"
+      ],
+      "criado_em": "2026-08-04T17:11:32",
+      "atualizado_em": "2026-08-04T17:11:32"
+    }
+  ],
+  "total": 6,
+  "source": "cobol:reservas_venda.dat",
+  "atualizado_em": "2026-08-17T18:21:01"
+}

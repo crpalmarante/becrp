@@ -1,0 +1,48 @@
+{
+  "entries": [
+    {
+      "id": 1,
+      "module": "emprestimo",
+      "record_id": 1,
+      "from_status": "D",
+      "to_status": "S",
+      "user_name": "Joao",
+      "user_role": "employee",
+      "notes": "",
+      "timestamp": "2026-07-19 09:21:06"
+    },
+    {
+      "id": 2,
+      "module": "emprestimo",
+      "record_id": 1,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "Gestor",
+      "user_role": "manager",
+      "notes": "",
+      "timestamp": "2026-07-19 09:21:06"
+    },
+    {
+      "id": 3,
+      "module": "emprestimo",
+      "record_id": 1,
+      "from_status": "A",
+      "to_status": "B",
+      "user_name": "Financeiro",
+      "user_role": "financial",
+      "notes": "",
+      "timestamp": "2026-07-19 09:21:06"
+    },
+    {
+      "id": 4,
+      "module": "emprestimo",
+      "record_id": 1,
+      "from_status": "B",
+      "to_status": "C",
+      "user_name": "Admin",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-07-19 09:21:06"
+    }
+  ]
+}

@@ -63,7 +63,7 @@ table.data tr{cursor:pointer}
       <a class="menu-item" href="recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
       <a class="menu-item active" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
       <a class="menu-item" href="vendas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Vendas</span></a>
-      <a class="menu-item" href="parceiros.html?role=SUPPLIER"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
+      <a class="menu-item" href="fornecedores.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
       <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
     </nav>
   </aside>
@@ -252,6 +252,22 @@ table.data tr{cursor:pointer}
         <td><span class="badge badge-${escapeHtml(p.status||"rascunho")}">${escapeHtml(STATUS_LABEL[p.status]||p.status)}</span></td>
       </tr>`).join("");
     tbody.querySelectorAll("tr[data-id]").forEach(tr=>{ tr.onclick=()=>openForm(tr.dataset.id); });
+    // Destaque + scroll ate a linha salva (somente quando a lista esta visivel)
+    if (flashId != null) {
+      const viewList = document.getElementById("view-list");
+      if (viewList && viewList.classList.contains("active")) {
+        const tr = tbody.querySelector('tr[data-id="' + flashId + '"]');
+        if (tr) {
+          tr.scrollIntoView({ behavior: "smooth", block: "center" });
+          tr.classList.add(flashVariant === "edit" ? "dg-row-edit" : "dg-row-new");
+          clearTimeout(flashTimer);
+          flashTimer = setTimeout(() => {
+            flashId = null;
+            tbody.querySelectorAll(".dg-row-new, .dg-row-edit").forEach(el => el.classList.remove("dg-row-new", "dg-row-edit"));
+          }, 2600);
+        }
+      }
+    }
   }
 
   let currencies = {BRL:1};
@@ -443,6 +459,8 @@ table.data tr{cursor:pointer}
     showView("form");
   }
 
+  let flashId = null, flashVariant = "new", flashTimer = null;
+
   async function save(){
     const payload = collect();
     const action = current ? "update" : "create";
@@ -450,6 +468,9 @@ table.data tr{cursor:pointer}
     const msg = document.getElementById("form-msg");
     if(res.status !== "ok"){ msg.textContent = res.message || "Erro"; msg.style.color = "#fca5a5"; return; }
     msg.textContent = "Salvo"; msg.style.color = "#86efac";
+    // Marca a linha para destaque (verde=novo, azul=edicao) quando a lista for exibida
+    flashId = (res.pedido && res.pedido.id) || current.id;
+    flashVariant = action === "create" ? "new" : "edit";
     await load();
     if(res.pedido) openForm(res.pedido.id);
   }

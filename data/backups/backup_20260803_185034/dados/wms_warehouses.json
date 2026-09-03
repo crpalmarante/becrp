@@ -1,0 +1,78 @@
+{
+  "atualizado_em": "2026-08-01T17:32:37",
+  "armazens": [
+    {
+      "codigo": "DC-01",
+      "nome": "Armazém Principal",
+      "tipo": "distribution_center",
+      "endereco": "",
+      "responsavel": "",
+      "ativo": true,
+      "areas": [
+        {
+          "codigo": "REC",
+          "nome": "Recebimento",
+          "tipo": "receiving",
+          "ativo": true
+        },
+        {
+          "codigo": "STO",
+          "nome": "Armazenagem",
+          "tipo": "storage",
+          "ativo": true
+        },
+        {
+          "codigo": "PCK",
+          "nome": "Picking",
+          "tipo": "picking",
+          "ativo": true
+        },
+        {
+          "codigo": "PKG",
+          "nome": "Packing",
+          "tipo": "packing",
+          "ativo": true
+        },
+        {
+          "codigo": "SHP",
+          "nome": "Expedição",
+          "tipo": "shipping",
+          "ativo": true
+        },
+        {
+          "codigo": "RET",
+          "nome": "Devoluções",
+          "tipo": "returns",
+          "ativo": true
+        }
+      ],
+      "origem": "manual",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "codigo": "LJ-01",
+      "nome": "Loja Matriz",
+      "tipo": "retail_store",
+      "endereco": "",
+      "responsavel": "",
+      "ativo": true,
+      "areas": [
+        {
+          "codigo": "STO",
+          "nome": "Estoque Loja",
+          "tipo": "storage",
+          "ativo": true
+        },
+        {
+          "codigo": "SHP",
+          "nome": "Retirada / Expedição",
+          "tipo": "shipping",
+          "ativo": true
+        }
+      ],
+      "origem": "manual",
+      "atualizado_em": "2026-08-01T17:32:37"
+    }
+  ],
+  "total": 2
+}

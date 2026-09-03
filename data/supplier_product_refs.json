@@ -29,6 +29,52 @@
       "created_by": "smoke",
       "last_seen_date": "2026-07-31T15:43:13",
       "times_seen": 1
+    },
+    {
+      "id": 3,
+      "supplier_cnpj": "12345678000195",
+      "product_id": "11",
+      "supplier_code": "",
+      "supplier_description": "Produto Nota Teste",
+      "gtin": "7891234567895",
+      "manufacturer_reference": "",
+      "product_nome": "Produto Nota Teste",
+      "source": "nfe_auto",
+      "created_at": "2026-08-12T16:26:12",
+      "created_by": null,
+      "last_seen_date": "2026-08-12T16:27:58",
+      "times_seen": 2,
+      "updated_by": null
+    },
+    {
+      "id": 4,
+      "supplier_cnpj": "11222333000181",
+      "product_id": "18",
+      "supplier_code": "TEST001",
+      "supplier_description": "Arroz Teste 1kg",
+      "gtin": "7899999999001",
+      "manufacturer_reference": "",
+      "product_nome": "Arroz Teste 1kg",
+      "source": "nfe_auto",
+      "created_at": "2026-09-03T08:23:06",
+      "created_by": "test_user",
+      "last_seen_date": "2026-09-03T08:23:06",
+      "times_seen": 1
+    },
+    {
+      "id": 5,
+      "supplier_cnpj": "11222333000181",
+      "product_id": "19",
+      "supplier_code": "TEST002",
+      "supplier_description": "Feijao Teste",
+      "gtin": "",
+      "manufacturer_reference": "",
+      "product_nome": "Feijao Teste",
+      "source": "nfe_auto",
+      "created_at": "2026-09-03T08:23:06",
+      "created_by": "test_user",
+      "last_seen_date": "2026-09-03T08:23:06",
+      "times_seen": 1
     }
   ]
 }

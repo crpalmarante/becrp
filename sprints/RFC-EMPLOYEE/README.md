@@ -51,8 +51,9 @@ Documentação de referência:
   a tela de taxa padrão do funcionário (007) e a tela de taxa padrão GLOBAL da empresa (008,
   nova tabela `commission_global_rules` — db/018).
 - **`docs-tecnicos/`** — exemplo numérico completo de competência, template de holerite
-  imprimível, relatório de encargos, diagramas Mermaid e o mapa de telas × RFCs
-  (`RFC-MAPA-telas.md`).
+  imprimível, relatório de encargos, diagramas Mermaid, o mapa de telas × RFCs
+  (`RFC-MAPA-telas.md`) e o **`RELATORIO-FINAL-folha.md`** — fechamento consolidado dos
+  16 RFCs, validações do CI e bugs corrigidos (11/08/2026).
 
 ---
 
@@ -133,6 +134,33 @@ python3 -m unittest tests.test_permissions_integration -v     # integração esp
 python3 -m unittest tests.test_ctypes_paycalc -v              # ctypes COBOL específico
 ```
 
+### CI E2E do ERP (`scripts/run_ci.py`)
+
+O pipeline de CI do módulo é **`scripts/run_ci.py`** — build COBOL → seed → smokes
+RFC → reviews de tela via HTTP → checks de render Node → restauração do seed:
+
+```bash
+python3 scripts/run_ci.py             # suíte completa
+python3 scripts/run_ci.py --no-build  # pula a recompilação do COBOL
+python3 scripts/run_ci.py --browser   # adiciona o passo 9 (cenários visuais)
+```
+
+O **passo 9 (opcional, `--browser`)** sobe os mesmos cenários usados com
+browser-use para conferência visual em navegador real e valida o seed via HTTP
+antes de encerrar (com restauração dos dados):
+
+| Cenário | Porta | Seed validado | GET |
+|---|---|---|---|
+| `cenario_complementar_browser.py` | 8141 | 4 complementares nos estados C/V/F/P (aba Complementar, RFC-013) | `/api/folha/complementares` |
+| `cenario_rescisao_browser.py` | 8142 | 2 rescisões — 1 com `ferias_venc_dobro=True` (EM DOBRO) + 1 normal (aba Rescisão, RFC-003) | `/api/folha/rescisoes` |
+
+O render visual dos badges (VENCIDA/EM DOBRO), toasts e gating de botões fica
+coberto de forma determinística pelos **checks de render Node** (passo 7, com
+DOM stub); o `--browser` garante que o **seed** dos cenários continua consistente
+no CI. Para conferência visual manual, rode o cenário diretamente e deixe o
+servidor vivo (Ctrl+C restaura os dados). Detalhes do pipeline e do passo 9 em
+**`docs-tecnicos/RFC-CHECKLIST-fechamento.md`** (§ "Como rodar o CI (run_ci.py)").
+
 ---
 
-*Última atualização: 05/08/2026*
+*Última atualização: 11/08/2026*

@@ -1,0 +1,64 @@
+{
+  "modulos": {
+    "geral": {
+      "empresa_nome": "BECRP",
+      "moeda": "BRL",
+      "idioma": "pt-BR",
+      "fuso_horario": "America/Sao_Paulo",
+      "casas_decimais_valor": 2,
+      "casas_decimais_qtd": 3
+    },
+    "compras": {
+      "aprovacao_limite_direto": 5000.0,
+      "aprovacao_roles": [
+        "manager",
+        "admin",
+        "aprovador_compras"
+      ],
+      "status_inicial_pedido": "rascunho",
+      "requer_aprovacao": true,
+      "permitir_pedido_sem_aprovacao": false,
+      "bloquear_edicao_pedido_enviado": true,
+      "bloquear_edicao_pedido_recebido": true,
+      "comprador_padrao": "",
+      "condicao_pg_padrao": "30",
+      "forma_pg_padrao": "Boleto",
+      "unidade_padrao": "UN",
+      "dias_previsao_padrao": 7,
+      "email_notificacao_aprovacao": "",
+      "numero_itens_por_pedido": 0
+    },
+    "fiscal": {
+      "ambiente_sefaz": "homologacao",
+      "serie_nfe": 1,
+      "serie_nfce": 1,
+      "regime_tributario": "simples_nacional"
+    },
+    "estoque": {
+      "controle_lote": false,
+      "controle_serie": false,
+      "estoque_negativo": false
+    },
+    "vendas": {
+      "pedido_precisa_aprovacao": false,
+      "limite_credito_auto": true
+    }
+  },
+  "atualizado_em": "2026-08-17T19:39:56",
+  "history": [
+    {
+      "modulo": "estoque",
+      "chave": "rotas_multiplas_etapas",
+      "valor": true,
+      "usuario": "palmarante",
+      "data": "2026-08-17T19:39:56"
+    },
+    {
+      "modulo": "estoque",
+      "chave": "rotas_multiplas_etapas",
+      "valor": true,
+      "usuario": "palmarante",
+      "data": "2026-08-17T19:39:49"
+    }
+  ]
+}

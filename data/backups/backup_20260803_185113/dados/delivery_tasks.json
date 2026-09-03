@@ -1,0 +1,343 @@
+{
+  "seq": 16,
+  "atualizado_em": "2026-08-02T20:35:31",
+  "tarefas": [
+    {
+      "id": "DT-SEED-0001",
+      "tipo": "deliver_stop",
+      "entrega_id": "DO-SEED-0001",
+      "parada": 1,
+      "titulo": "Entregar parada 1 — Casa do cliente",
+      "status": "pending",
+      "operador": "",
+      "recurso_id": "",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-01T17:19:45",
+          "usuario": "seed",
+          "nota": "criação"
+        }
+      ],
+      "observacao": "Seed",
+      "criado_em": "2026-08-01T17:19:45",
+      "atualizado_em": "2026-08-01T17:19:45"
+    },
+    {
+      "id": "DT-20260801-0002",
+      "tipo": "load",
+      "entrega_id": "DO-20260801-0002",
+      "parada": 0,
+      "titulo": "Carregar DO-20260801-0002 em DC-01",
+      "status": "pending",
+      "operador": "Carlos",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "id": "DT-20260801-0003",
+      "tipo": "deliver_stop",
+      "entrega_id": "DO-20260801-0002",
+      "parada": 1,
+      "titulo": "Entregar parada 1 — Destino",
+      "status": "pending",
+      "operador": "Carlos",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "id": "DT-20260801-0004",
+      "tipo": "collect_pod",
+      "entrega_id": "DO-20260801-0002",
+      "parada": 1,
+      "titulo": "Comprovante parada 1",
+      "status": "pending",
+      "operador": "Carlos",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "id": "DT-20260802-0005",
+      "tipo": "load",
+      "entrega_id": "DO-20260802-0002",
+      "parada": 0,
+      "titulo": "Carregar DO-20260802-0002 em DC-01",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-02T20:30:57",
+      "atualizado_em": "2026-08-02T20:30:57"
+    },
+    {
+      "id": "DT-20260802-0006",
+      "tipo": "deliver_stop",
+      "entrega_id": "DO-20260802-0002",
+      "parada": 1,
+      "titulo": "Entregar parada 1 — Entrega",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "Av. Brasil, 500",
+      "criado_em": "2026-08-02T20:30:57",
+      "atualizado_em": "2026-08-02T20:30:57"
+    },
+    {
+      "id": "DT-20260802-0007",
+      "tipo": "collect_pod",
+      "entrega_id": "DO-20260802-0002",
+      "parada": 1,
+      "titulo": "Comprovante parada 1",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-02T20:30:57",
+      "atualizado_em": "2026-08-02T20:30:57"
+    },
+    {
+      "id": "DT-20260802-0008",
+      "tipo": "load",
+      "entrega_id": "DO-20260802-0003",
+      "parada": 0,
+      "titulo": "Carregar DO-20260802-0003 em DC-01",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:31:07",
+          "usuario": "seed",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-02T20:31:07",
+      "atualizado_em": "2026-08-02T20:31:07"
+    },
+    {
+      "id": "DT-20260802-0009",
+      "tipo": "deliver_stop",
+      "entrega_id": "DO-20260802-0003",
+      "parada": 1,
+      "titulo": "Entregar parada 1 — Entrega",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:31:07",
+          "usuario": "seed",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "Rua XV, 10",
+      "criado_em": "2026-08-02T20:31:07",
+      "atualizado_em": "2026-08-02T20:31:07"
+    },
+    {
+      "id": "DT-20260802-0010",
+      "tipo": "collect_pod",
+      "entrega_id": "DO-20260802-0003",
+      "parada": 1,
+      "titulo": "Comprovante parada 1",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:31:07",
+          "usuario": "seed",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-02T20:31:07",
+      "atualizado_em": "2026-08-02T20:31:07"
+    },
+    {
+      "id": "DT-20260802-0011",
+      "tipo": "load",
+      "entrega_id": "DO-20260802-0004",
+      "parada": 0,
+      "titulo": "Carregar DO-20260802-0004 em DC-01",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    },
+    {
+      "id": "DT-20260802-0012",
+      "tipo": "deliver_stop",
+      "entrega_id": "DO-20260802-0004",
+      "parada": 1,
+      "titulo": "Entregar parada 1 — Entrega",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "Rua A, 1",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    },
+    {
+      "id": "DT-20260802-0013",
+      "tipo": "collect_pod",
+      "entrega_id": "DO-20260802-0004",
+      "parada": 1,
+      "titulo": "Comprovante parada 1",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    },
+    {
+      "id": "DT-20260802-0014",
+      "tipo": "load",
+      "entrega_id": "DO-20260802-0005",
+      "parada": 0,
+      "titulo": "Carregar DO-20260802-0005 em DC-01",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    },
+    {
+      "id": "DT-20260802-0015",
+      "tipo": "deliver_stop",
+      "entrega_id": "DO-20260802-0005",
+      "parada": 1,
+      "titulo": "Entregar parada 1 — Entrega",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "Rua B, 2",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    },
+    {
+      "id": "DT-20260802-0016",
+      "tipo": "collect_pod",
+      "entrega_id": "DO-20260802-0005",
+      "parada": 1,
+      "titulo": "Comprovante parada 1",
+      "status": "pending",
+      "operador": "Carlos Motorista",
+      "recurso_id": "DRV-01",
+      "historico": [
+        {
+          "status": "pending",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "gerada"
+        }
+      ],
+      "observacao": "",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    }
+  ],
+  "total": 16
+}

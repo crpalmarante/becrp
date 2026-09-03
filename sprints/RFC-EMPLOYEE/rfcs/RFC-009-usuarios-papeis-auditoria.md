@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Usuários, papéis, autorização e trilha de auditoria |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (11/08/2026) |
 | **Data** | 01/08/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Governança |
@@ -103,9 +103,32 @@ Toda mutação relevante é registrada com:
    funções moderada; o Conferente pode acumular o papel de Aprovador, mas
    **nunca o de Operador** (Conferente ≠ Operador, exceto quando acumular
    Aprovador). ✅ 01/08/2026
+5. **Pagamento exige Tesouraria ≠ Aprovador da competência** — quem registra
+   o pagamento (estado "Paga") não pode ser o Aprovador que fechou a
+   competência, tanto no pagamento da competência quanto no pagamento do
+   holerite (que herda a competência). ✅ 11/08/2026
 
 ## 7. Aprovação
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | _autor_ | ✅ Aprovado | 11/08/2026 |
+
+---
+
+## 8. Implementação (rastreabilidade)
+
+| Item | Evidência |
+|---|---|
+| Trilha de auditoria imutável (append-only) | `folha_auditoria.py` → `dados/folha_auditoria.jsonl` (nunca reescreve/edita/apaga) |
+| Auditoria de lançamento/cálculo/estado | `server.py` registra `abrir_competencia`, `calcular`, `concluir`, `validar`, `fechar`, `pagar`, `lancar` (férias/13º/rescisão), `alterar_cadastro` e `alterar_tabela` (config) com quando/quem/antes/depois/contexto |
+| Auditoria dos cadastros mestres de RH | `alterar_cadastro` também cobre **funcionário, departamento, cargo e evento** (incluir/alterar/excluir) — `server.py` handlers `/api/departamento/*`, `/api/cargo/*`, `/api/evento/*` |
+| Versão das tabelas no cálculo (RFC-005 §5.1.2) | `calcular` grava `tax_table_versions` na trilha (`folha_auditoria.versao_tabela_usada`) |
+| Consulta da trilha | `GET /api/folha/auditoria?competencia=&acao=&quem=&limite=` (admin/instrutor) |
+| Tela de auditoria | Aba **Auditoria** em `pages/folha.html` (filtros + antes/depois + tabelas) |
+| Aprovador ≠ Operador no fechamento | `POST /api/folha/competencia/fechar` bloqueia quando o usuário é o Operador da competência (quem abriu/calculou) |
+| Conferente ≠ Operador na validação | `POST /api/folha/competencia/validar` bloqueia quando o usuário é o Operador |
+| Tesouraria ≠ Aprovador no pagamento | `POST /api/folha/competencia/pagar` e `POST /api/folha/holerite/pagar` bloqueiam quando o usuário é o Aprovador da competência (quem fechou) |
+| Auditoria do holerite | `gerar_holerites`, `pagar_holerite` e `excluir_holerite` registrados na trilha com competência/holerite_id |
+| Operador/Aprovador expostos na tela | `GET /api/folha/competencias` inclui `operador` e `aprovador` de cada competência (colunas na aba de competências) |
+| CI | `scripts/smoke_rfc009_auditoria.py` (52 checks: trilha, regras de separação Aprovador/Conferente/Tesouraria, cadastros mestres, anexo no relatório, imutabilidade) + `review_tela_folha` com usuários aprovador e tesouraria |

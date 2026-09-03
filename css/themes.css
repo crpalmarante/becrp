@@ -40,6 +40,8 @@
 
     --surface-panel:rgba(255,255,255,.4);
 
+    --surface-modal:#ffffff;
+
     --surface-overlay:rgba(0,0,0,.3);
 
     --text-primary:#1a202c;
@@ -228,6 +230,8 @@
     --surface-container:#111;
 
     --surface-panel:#111;
+
+    --surface-modal:#000000;
 
     --surface-overlay:#000;
 

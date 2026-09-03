@@ -25,6 +25,8 @@ DEFAULT_CONFIG = {
         "pos_sale": True,
         "receiving": True,
         "inventory_adjust": False,
+        # RFC-014: encargos da folha geram lançamentos no fechamento
+        "folha": True,
     },
     "atualizado_em": None,
 }
@@ -71,8 +73,7 @@ def update_config(payload):
         cfg["enabled"] = bool(body.get("enabled"))
     if isinstance(body.get("domains"), dict):
         for k, v in body["domains"].items():
-            if k in cfg["domains"]:
-                cfg["domains"][k] = bool(v)
+            cfg["domains"][k] = bool(v)
     _save_config(cfg)
     return cfg
 

@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "phase": "operational",
+  "instance": {
+    "name": "COMERCIAL FABIELI LTDA",
+    "identifier": "comercial_fabieli_ltda",
+    "description": ""
+  },
+  "localization": {
+    "country": "BR",
+    "language": "pt-BR",
+    "timezone": "America/Sao_Paulo",
+    "currency": "BRL"
+  },
+  "structure": {
+    "branch_name": "",
+    "warehouse_name": "",
+    "warehouse_postponed": true
+  },
+  "init_progress": [
+    {
+      "id": "repository",
+      "label": "Repositório",
+      "ok": true,
+      "detail": "",
+      "em": "2026-08-04T23:53:57"
+    },
+    {
+      "id": "configuration",
+      "label": "Configuração",
+      "ok": true,
+      "detail": "",
+      "em": "2026-08-04T23:53:57"
+    },
+    {
+      "id": "administrator",
+      "label": "Administrador",
+      "ok": true,
+      "detail": "",
+      "em": "2026-08-04T23:53:57"
+    },
+    {
+      "id": "localization",
+      "label": "Localização",
+      "ok": true,
+      "detail": "BR/BRL",
+      "em": "2026-08-04T23:53:57"
+    },
+    {
+      "id": "services",
+      "label": "Serviços / Registry",
+      "ok": true,
+      "detail": "",
+      "em": "2026-08-04T23:53:57"
+    },
+    {
+      "id": "analytics",
+      "label": "Analytics",
+      "ok": true,
+      "detail": "",
+      "em": "2026-08-04T23:53:57"
+    },
+    {
+      "id": "documents",
+      "label": "Documentos",
+      "ok": true,
+      "detail": "",
+      "em": "2026-08-04T23:53:57"
+    },
+    {
+      "id": "parameters",
+      "label": "Parâmetros default",
+      "ok": true,
+      "detail": "",
+      "em": "2026-08-04T23:53:57"
+    },
+    {
+      "id": "logging",
+      "label": "Logging",
+      "ok": true,
+      "detail": "",
+      "em": "2026-08-04T23:53:57"
+    }
+  ],
+  "steps_done": {
+    "localization": true,
+    "organization": true,
+    "company": true,
+    "users": true,
+    "modules": true,
+    "validation": true,
+    "go_live": true
+  },
+  "current_step": "go_live",
+  "go_live": true,
+  "compat_legacy": false,
+  "maintenance": false,
+  "archived": false,
+  "atualizado_em": "2026-08-08T20:55:35",
+  "initialized_em": "2026-08-04T23:53:57",
+  "go_live_em": "2026-08-08T20:55:35",
+  "go_live_by": "palmarante"
+}

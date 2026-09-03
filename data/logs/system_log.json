@@ -1,0 +1,133 @@
+{
+  "events": [
+    {
+      "em": "2026-08-03T18:50:34",
+      "dominio": "platform",
+      "acao": "backup",
+      "usuario": "",
+      "detalhe": "backup_20260803_185034 · 76 arquivos",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:50:34",
+      "dominio": "platform",
+      "acao": "backup",
+      "usuario": "admin",
+      "detalhe": "backup_20260803_185034 · 76 arquivos",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:50:40",
+      "dominio": "platform",
+      "acao": "restore",
+      "usuario": "",
+      "detalhe": "backup_20260803_185034 · 76 arquivos",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:50:40",
+      "dominio": "platform",
+      "acao": "maintenance",
+      "usuario": "admin",
+      "detalhe": "entrou em manutenção",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:50:40",
+      "dominio": "platform",
+      "acao": "maintenance",
+      "usuario": "admin",
+      "detalhe": "saiu da manutenção",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:50:40",
+      "dominio": "platform",
+      "acao": "archive",
+      "usuario": "admin",
+      "detalhe": "instância arquivada",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:50:40",
+      "dominio": "platform",
+      "acao": "archive",
+      "usuario": "admin",
+      "detalhe": "instância reativada",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:51:04",
+      "dominio": "platform",
+      "acao": "archive",
+      "usuario": "",
+      "detalhe": "instância arquivada",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:51:04",
+      "dominio": "platform",
+      "acao": "archive",
+      "usuario": "",
+      "detalhe": "instância reativada",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:51:13",
+      "dominio": "platform",
+      "acao": "backup",
+      "usuario": "admin",
+      "detalhe": "backup_20260803_185113 · 76 arquivos",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:51:13",
+      "dominio": "platform",
+      "acao": "restore",
+      "usuario": "",
+      "detalhe": "backup_20260803_185113 · 76 arquivos",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:51:13",
+      "dominio": "platform",
+      "acao": "maintenance",
+      "usuario": "admin",
+      "detalhe": "entrou em manutenção",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:51:13",
+      "dominio": "platform",
+      "acao": "maintenance",
+      "usuario": "admin",
+      "detalhe": "saiu da manutenção",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:51:13",
+      "dominio": "platform",
+      "acao": "archive",
+      "usuario": "admin",
+      "detalhe": "instância arquivada",
+      "data": {}
+    },
+    {
+      "em": "2026-08-03T18:51:13",
+      "dominio": "platform",
+      "acao": "archive",
+      "usuario": "admin",
+      "detalhe": "instância reativada",
+      "data": {}
+    },
+    {
+      "em": "2026-08-04T23:53:57",
+      "dominio": "platform",
+      "acao": "initialization",
+      "usuario": "",
+      "detalhe": "Plataforma inicializada",
+      "data": {}
+    }
+  ],
+  "atualizado_em": "2026-08-04T23:53:57"
+}

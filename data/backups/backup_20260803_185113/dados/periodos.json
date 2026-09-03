@@ -1,0 +1,130 @@
+{
+  "atualizado_em": "2026-07-31T23:23:14",
+  "exercicios": [
+    2026
+  ],
+  "periodos": [
+    {
+      "codigo": "2026-01",
+      "exercicio": 2026,
+      "mes": 1,
+      "nome": "Janeiro/2026",
+      "inicio": "2026-01-01",
+      "fim": "2026-01-31",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-02",
+      "exercicio": 2026,
+      "mes": 2,
+      "nome": "Fevereiro/2026",
+      "inicio": "2026-02-01",
+      "fim": "2026-02-28",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-03",
+      "exercicio": 2026,
+      "mes": 3,
+      "nome": "Março/2026",
+      "inicio": "2026-03-01",
+      "fim": "2026-03-31",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-04",
+      "exercicio": 2026,
+      "mes": 4,
+      "nome": "Abril/2026",
+      "inicio": "2026-04-01",
+      "fim": "2026-04-30",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-05",
+      "exercicio": 2026,
+      "mes": 5,
+      "nome": "Maio/2026",
+      "inicio": "2026-05-01",
+      "fim": "2026-05-31",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-06",
+      "exercicio": 2026,
+      "mes": 6,
+      "nome": "Junho/2026",
+      "inicio": "2026-06-01",
+      "fim": "2026-06-30",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-07",
+      "exercicio": 2026,
+      "mes": 7,
+      "nome": "Julho/2026",
+      "inicio": "2026-07-01",
+      "fim": "2026-07-31",
+      "status": "open",
+      "atualizado_em": "2026-07-31T23:23:14",
+      "alterado_por": null
+    },
+    {
+      "codigo": "2026-08",
+      "exercicio": 2026,
+      "mes": 8,
+      "nome": "Agosto/2026",
+      "inicio": "2026-08-01",
+      "fim": "2026-08-31",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-09",
+      "exercicio": 2026,
+      "mes": 9,
+      "nome": "Setembro/2026",
+      "inicio": "2026-09-01",
+      "fim": "2026-09-30",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-10",
+      "exercicio": 2026,
+      "mes": 10,
+      "nome": "Outubro/2026",
+      "inicio": "2026-10-01",
+      "fim": "2026-10-31",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-11",
+      "exercicio": 2026,
+      "mes": 11,
+      "nome": "Novembro/2026",
+      "inicio": "2026-11-01",
+      "fim": "2026-11-30",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    },
+    {
+      "codigo": "2026-12",
+      "exercicio": 2026,
+      "mes": 12,
+      "nome": "Dezembro/2026",
+      "inicio": "2026-12-01",
+      "fim": "2026-12-31",
+      "status": "open",
+      "atualizado_em": "2026-07-31T22:54:24"
+    }
+  ],
+  "total": 12
+}

@@ -361,6 +361,46 @@ tr:hover td { background:#f5f5f5; }
 <button class="btn btn-sm btn-success" onclick="salvarDependente()">Salvar</button>
 </div>
 </div>
+
+<div class="card" id="card-salarios" style="display:none;">
+<h2>Historico de Salarios (vigencia)</h2>
+<p style="font-size:.8rem;color:#666;margin-bottom:10px;">Registra cada alteracao salarial com data de inicio de vigencia (RFC-002 §3.3). O salario vigente de uma competencia e usado no processamento da folha.</p>
+<div style="margin-bottom:10px;">
+<select id="sl-funcionario-id" onchange="carregarSalarios()"><option value="">Selecionar funcionario...</option></select>
+</div>
+<div style="overflow-x:auto;">
+<table><thead><tr><th>ID</th><th>Salario</th><th>Vigencia Inicio</th><th>Vigencia Fim</th><th>Status</th></tr></thead>
+<tbody id="tabela-salarios"></tbody>
+</table>
+</div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;" id="sl-form">
+<input type="text" id="sl-salario" data-mask="moeda" inputmode="decimal" placeholder="Salario R$" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:140px;">
+<input type="date" id="sl-data-inicio" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
+<button class="btn btn-sm btn-success" onclick="salvarSalario()">Registrar Salario</button>
+</div>
+</div>
+
+<div class="card" id="card-movimentacoes" style="display:none;">
+<h2>Movimentacoes Contratuais (cargo/departamento)</h2>
+<p style="font-size:.8rem;color:#666;margin-bottom:10px;">Alteracoes de cargo e departamento com data de vigencia (RFC-002 §3.3 / RFC-016). Sao independentes do salario.</p>
+<div style="margin-bottom:10px;">
+<select id="mv-funcionario-id" onchange="carregarMovimentacoes()"><option value="">Selecionar funcionario...</option></select>
+<select id="mv-tipo" onchange="carregarMovimentacoes()">
+<option value="cargo">Cargo</option>
+<option value="departamento">Departamento</option>
+</select>
+</div>
+<div style="overflow-x:auto;">
+<table><thead><tr><th>ID</th><th>Tipo</th><th>Valor (id)</th><th>Vigencia Inicio</th><th>Vigencia Fim</th><th>Status</th></tr></thead>
+<tbody id="tabela-movimentacoes"></tbody>
+</table>
+</div>
+<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;" id="mv-form">
+<input type="text" id="mv-valor-referencia" inputmode="numeric" placeholder="Id do cargo/departamento" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:200px;">
+<input type="date" id="mv-data-inicio" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
+<button class="btn btn-sm btn-success" onclick="salvarMovimentacao()">Registrar Movimentacao</button>
+</div>
+</div>
 </main>
 
 <div id="toast" class="toast"></div>
@@ -1062,6 +1102,115 @@ if(data.status==='ok'){ mostrarToast(data.message||'Reativado!','success'); carr
 else mostrarToast(data.message||'Erro','error');
 }catch(e){ mostrarToast('Erro','error'); }
 }
+
+// ---- Historico de Salarios (RFC-002 §3.3) ----
+let salariosFuncId = '';
+
+function fmtSalarioValor(v) {
+    if (typeof Mascaras !== 'undefined' && Mascaras.fmtMoeda) {
+        return Mascaras.fmtMoeda(String(Math.round(Number(v) * 100)));
+    }
+    return Number(v).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+}
+
+async function carregarSalarios() {
+    salariosFuncId = document.getElementById('sl-funcionario-id').value;
+    if (!salariosFuncId) { document.getElementById('tabela-salarios').innerHTML = ''; return; }
+    document.getElementById('card-salarios').style.display = 'block';
+    try {
+        const r = await fetch('/api/funcionario/salario/listar?funcionario_id=' + salariosFuncId);
+        const data = await r.json();
+        const itens = data.salarios || [];
+        const tbody = document.getElementById('tabela-salarios');
+        if (itens.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">Nenhum registro salarial</td></tr>';
+        } else {
+            tbody.innerHTML = itens.map(s =>
+                '<tr><td>' + s.id + '</td><td>' + fmtSalarioValor(s.salario) + '</td><td>' + (s.data_inicio || '') + '</td>' +
+                '<td>' + (s.data_fim || '-') + '</td><td>' + (s.status || '') + '</td></tr>'
+            ).join('');
+        }
+    } catch(e) {}
+}
+
+async function salvarSalario() {
+    if (!salariosFuncId) { mostrarToast('Selecione funcionario','error'); return; }
+    const sal = document.getElementById('sl-salario').value;
+    const dataInicio = document.getElementById('sl-data-inicio').value;
+    if (!sal || !dataInicio) { mostrarToast('Informe salario e data de inicio','error'); return; }
+    const valor = (typeof Mascaras !== 'undefined' && Mascaras.limparMoeda) ? Mascaras.limparMoeda(sal) : sal.replace(/[^\d.]/g, '');
+    const params = new URLSearchParams();
+    params.set('funcionario_id', salariosFuncId);
+    params.set('salario', valor);
+    params.set('data_inicio', dataInicio);
+    try {
+        const r = await fetch('/api/funcionario/salario/incluir', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params});
+        const data = await r.json();
+        if (data.status === 'ok' || data.id) { mostrarToast('Salario registrado!','success'); document.getElementById('sl-salario').value=''; document.getElementById('sl-data-inicio').value=''; carregarSalarios(); }
+        else mostrarToast(data.mensagem||data.message||'Erro','error');
+    } catch(e) { mostrarToast('Erro','error'); }
+}
+
+setTimeout(() => {
+    const sel = document.getElementById('sl-funcionario-id');
+    if (sel) {
+        fetch('/api/funcionarios').then(r=>r.json()).then(data => {
+            sel.innerHTML = '<option value="">Selecionar funcionario...</option>' + (data.funcionarios||[]).map(f => '<option value="'+f.id+'">#'+f.id+' - '+f.nome+'</option>').join('');
+        });
+    }
+}, 600);
+
+// ---- Movimentações Contratuais (RFC-016/RFC-002 §3.3) ----
+let movimentacoesFuncId = '';
+
+async function carregarMovimentacoes() {
+    movimentacoesFuncId = document.getElementById('mv-funcionario-id').value;
+    const tipo = document.getElementById('mv-tipo').value;
+    if (!movimentacoesFuncId) { document.getElementById('tabela-movimentacoes').innerHTML = ''; return; }
+    document.getElementById('card-movimentacoes').style.display = 'block';
+    try {
+        const r = await fetch('/api/funcionario/movimentacao/listar?funcionario_id=' + movimentacoesFuncId + '&tipo=' + tipo);
+        const data = await r.json();
+        const itens = data.movimentacoes || [];
+        const tbody = document.getElementById('tabela-movimentacoes');
+        if (itens.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">Nenhuma movimentacao deste tipo</td></tr>';
+        } else {
+            tbody.innerHTML = itens.map(m =>
+                '<tr><td>' + m.id + '</td><td>' + (m.tipo || '') + '</td><td>' + (m.valor_referencia || '') + '</td>' +
+                '<td>' + (m.data_inicio || '') + '</td><td>' + (m.data_fim || '-') + '</td><td>' + (m.status || '') + '</td></tr>'
+            ).join('');
+        }
+    } catch(e) {}
+}
+
+async function salvarMovimentacao() {
+    if (!movimentacoesFuncId) { mostrarToast('Selecione funcionario','error'); return; }
+    const tipo = document.getElementById('mv-tipo').value;
+    const valor = document.getElementById('mv-valor-referencia').value;
+    const dataInicio = document.getElementById('mv-data-inicio').value;
+    if (!valor || !dataInicio) { mostrarToast('Informe id do cargo/departamento e data de inicio','error'); return; }
+    const params = new URLSearchParams();
+    params.set('funcionario_id', movimentacoesFuncId);
+    params.set('tipo', tipo);
+    params.set('valor_referencia', valor);
+    params.set('data_inicio', dataInicio);
+    try {
+        const r = await fetch('/api/funcionario/movimentacao/incluir', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params});
+        const data = await r.json();
+        if (data.status === 'ok' || data.id) { mostrarToast('Movimentacao registrada!','success'); document.getElementById('mv-valor-referencia').value=''; document.getElementById('mv-data-inicio').value=''; carregarMovimentacoes(); }
+        else mostrarToast(data.mensagem||data.message||'Erro','error');
+    } catch(e) { mostrarToast('Erro','error'); }
+}
+
+setTimeout(() => {
+    const sel = document.getElementById('mv-funcionario-id');
+    if (sel) {
+        fetch('/api/funcionarios').then(r=>r.json()).then(data => {
+            sel.innerHTML = '<option value="">Selecionar funcionario...</option>' + (data.funcionarios||[]).map(f => '<option value="'+f.id+'">#'+f.id+' - '+f.nome+'</option>').join('');
+        });
+    }
+}, 700);
 </script>
 <div id="modal-desligar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;align-items:center;justify-content:center;">
 <div style="background:#fff;border-radius:8px;padding:20px;width:360px;max-width:90%;box-shadow:0 4px 20px rgba(0,0,0,.2);">

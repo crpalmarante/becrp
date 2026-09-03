@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Cadastro de Funcionário: o que cadastrar |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (31/07/2026 — regras §3.2–3.4 e Decisão 1: histórico de salários com vigência, validação de obrigatórios no processamento, bloqueio de competências fechadas) |
 | **Data** | 31/07/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Cadastros |
@@ -124,4 +124,4 @@ processamento da folha: nada é calculado com informação que não esteja aqui.
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |

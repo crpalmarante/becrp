@@ -147,3 +147,86 @@ def release_for_order(pedido_id, motivo="released"):
 def consume_for_order(pedido_id):
     """Marca reserva consumida após stock move (Delivery), não no faturar comercial."""
     return release_for_order(pedido_id, motivo="consumed")
+
+
+def reserve_stock(estabelecimento_id, linhas, *, usuario="", nota="", origem="manual"):
+    """
+    Reserva manual de estoque (sem pedido B2B), ex.: venda interna, promessa.
+    linhas: [{produto_id, qtd}] — valida ATP por linha (não reserva além do disponível).
+    Retorna a reserva criada (status active).
+    """
+    eid = str(estabelecimento_id or "").strip() or "matriz"
+    seq = reservas_store.max_seq() + 1
+    rid = f"SR-{seq:05d}"
+    linhas_out = []
+    warnings = []
+    for it in linhas or []:
+        if not isinstance(it, dict):
+            continue
+        prod = str(it.get("produto_id") or it.get("id") or "").strip()
+        try:
+            qtd = int(float(it.get("qtd") or 0))
+        except (TypeError, ValueError):
+            qtd = 0
+        if not prod or qtd <= 0:
+            continue
+        avail = available_for_sale(eid, prod)
+        take = min(qtd, avail) if avail >= 0 else qtd
+        if take < qtd:
+            warnings.append(f"{prod}: pediu {qtd}, reservou {take} (ATP {avail})")
+        if take > 0:
+            linhas_out.append({
+                "produto_id": prod,
+                "produto": it.get("produto") or "",
+                "qtd": take,
+                "qtd_pedida": qtd,
+            })
+    if not linhas_out:
+        raise ValueError("Nenhuma quantidade disponível para reservar")
+    row = {
+        "id": rid,
+        "seq": seq,
+        "pedido_id": f"MAN-{seq:05d}",
+        "pedido_numero": "",
+        "estabelecimento_id": eid,
+        "status": "active",
+        "parcial": bool(warnings),
+        "linhas": linhas_out,
+        "warnings": warnings,
+        "usuario": str(usuario or "").strip(),
+        "origem": str(origem or "manual"),
+        "nota": str(nota or "").strip(),
+        "criado_em": _now(),
+        "atualizado_em": _now(),
+    }
+    return reservas_store.save(row, is_new=True)
+
+
+def release_reservation(reserva_id, motivo="released"):
+    """Libera reserva pelo ID da reserva (SR-xxxxx), não pelo pedido."""
+    cur = reservas_store.get(reserva_id)
+    if not cur:
+        return None
+    return reservas_store.set_status(str(reserva_id), str(motivo or "released"))
+
+
+def list_reservations(estabelecimento_id=None, produto_id=None, status="active"):
+    """Lista reservas (padrão: ativas) com linhas, para painel de estoque."""
+    out = []
+    eid = str(estabelecimento_id or "").strip()
+    pid = str(produto_id or "").strip()
+    for r in reservas_store.listar():
+        if status and r.get("status") != status:
+            continue
+        if eid and str(r.get("estabelecimento_id") or "") != eid:
+            continue
+        linhas = r.get("linhas") or []
+        if pid:
+            linhas = [ln for ln in linhas if str(ln.get("produto_id") or "") == pid]
+            if not linhas:
+                continue
+            r = dict(r)
+            r["linhas"] = linhas
+        out.append(r)
+    out.sort(key=lambda r: r.get("seq") or 0, reverse=True)
+    return out

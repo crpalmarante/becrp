@@ -47,7 +47,7 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
       <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
       <a class="menu-item active" href="devolucao-compra.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-rotate-ccw"/></svg><span class="menu-label">Devolução</span></a>
       <a class="menu-item" href="vendas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Vendas</span></a>
-      <a class="menu-item" href="parceiros.html?role=SUPPLIER"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
+      <a class="menu-item" href="fornecedores.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
       <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
     </nav>
   </aside>
@@ -170,7 +170,7 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
     lines = (d.itens||[]).map(i=>Object.assign({}, i));
     renderLines();
     document.getElementById("form-title").textContent = "Devolução #" + d.id;
-    document.getElementById("form-msg").innerHTML = d.status==="rascunho`
+    document.getElementById("form-msg").innerHTML = d.status==="rascunho"
       ? `<button type="button" class="so-btn primary" id="btn-concluir">Concluir devolução</button> <button type="button" class="so-btn danger" id="btn-cancelar">Cancelar</button>`
       : "";
     document.getElementById("btn-concluir")?.addEventListener("click", concluir);
@@ -202,6 +202,13 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
     msg.textContent = "Devolução #" + res.devolucao.id + " criada"; msg.style.color = "#86efac";
     await load();
     showView("list");
+    // Flash verde + scroll até a linha da devolução recém-criada
+    const _trNova = document.querySelector('#tbody tr[data-id="' + res.devolucao.id + '"]');
+    if (_trNova) {
+      _trNova.scrollIntoView({ behavior: "smooth", block: "center" });
+      _trNova.classList.add("dg-row-new");
+      setTimeout(() => _trNova.classList.remove("dg-row-new"), 2600);
+    }
   }
 
   async function concluir(){
@@ -209,6 +216,13 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
     const res = await api(API, {method:"POST", body: JSON.stringify({action:"concluir", id: current.id})});
     if(res.status !== "ok") return alert(res.message || "Erro");
     await load();
+    // Flash azul na linha atualizada (status alterado)
+    const _trConc = document.querySelector('#tbody tr[data-id="' + current.id + '"]');
+    if (_trConc) {
+      _trConc.scrollIntoView({ behavior: "smooth", block: "center" });
+      _trConc.classList.add("dg-row-edit");
+      setTimeout(() => _trConc.classList.remove("dg-row-edit"), 2600);
+    }
     openDetail(current.id);
   }
 
@@ -218,6 +232,13 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
     if(res.status !== "ok") return alert(res.message || "Erro");
     await load();
     showView("list");
+    // Flash azul na linha cancelada
+    const _trCan = document.querySelector('#tbody tr[data-id="' + current.id + '"]');
+    if (_trCan) {
+      _trCan.scrollIntoView({ behavior: "smooth", block: "center" });
+      _trCan.classList.add("dg-row-edit");
+      setTimeout(() => _trCan.classList.remove("dg-row-edit"), 2600);
+    }
   }
 
   document.getElementById("btn-refresh").onclick = load;

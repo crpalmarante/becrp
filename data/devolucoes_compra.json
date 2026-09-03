@@ -1,0 +1,49 @@
+{
+  "next_id": 2,
+  "devolucoes": [
+    {
+      "id": 1,
+      "status": "concluido",
+      "estabelecimento_id": "matriz",
+      "pedido_id": "1",
+      "pedido_num": "",
+      "recebimento_id": null,
+      "fornecedor_id": "",
+      "fornecedor": "Fornecedor Manual",
+      "cnpj": "",
+      "data": "2026-08-06",
+      "motivo": "Produto avariado",
+      "autorizado_por": "gerente",
+      "itens": [
+        {
+          "produto_id": "P100",
+          "produto_nome": "Parafuso",
+          "qtd": 10.0,
+          "uom": "UN",
+          "motivo_item": ""
+        }
+      ],
+      "total_qtd": 10.0,
+      "created_at": "2026-08-06T19:13:43",
+      "created_by": "joao",
+      "completed_at": "2026-08-06T19:13:43",
+      "completed_by": "gerente",
+      "events": [
+        {
+          "at": "2026-08-06T19:13:43",
+          "tipo": "created",
+          "by": "joao"
+        },
+        {
+          "at": "2026-08-06T19:13:43",
+          "tipo": "concluido",
+          "by": "gerente"
+        }
+      ],
+      "movement_ids": [
+        23
+      ]
+    }
+  ],
+  "atualizado_em": "2026-08-06T19:13:43"
+}

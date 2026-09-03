@@ -71,6 +71,43 @@ SEED_RULES = (
         "conta_credito": "1.01.01.02.01",
         "auto_post": True,
     },
+    # RFC-014 — Encargos patronais da folha (gerados no fechamento)
+    {
+        "codigo": "FOLHA_ENC_FGTS",
+        "nome": "FGTS 8% (encargo patronal)",
+        "evento": "folha_encargo_fgts",
+        "diario": "GER",
+        "conta_debito": "3.01.01.07.01.06",
+        "conta_credito": "2.01.01.01.04",
+        "auto_post": False,
+    },
+    {
+        "codigo": "FOLHA_ENC_INSS_PATRONAL",
+        "nome": "INSS patronal 20% (encargo patronal)",
+        "evento": "folha_encargo_inss_patronal",
+        "diario": "GER",
+        "conta_debito": "3.01.01.07.01.05",
+        "conta_credito": "2.01.01.01.03",
+        "auto_post": False,
+    },
+    {
+        "codigo": "FOLHA_ENC_RAT",
+        "nome": "RAT/SAT (encargo patronal)",
+        "evento": "folha_encargo_rat",
+        "diario": "GER",
+        "conta_debito": "3.01.01.07.01.05",
+        "conta_credito": "2.01.01.01.03",
+        "auto_post": False,
+    },
+    {
+        "codigo": "FOLHA_ENC_TERCEIROS",
+        "nome": "Contribuição a terceiros (SESI/SENAI/SENAC)",
+        "evento": "folha_encargo_terceiros",
+        "diario": "GER",
+        "conta_debito": "3.01.01.07.01.07",
+        "conta_credito": "2.01.01.01.09",
+        "auto_post": False,
+    },
 )
 
 
@@ -104,6 +141,25 @@ def _load_rules():
     data = _load_json(RULES_FILE, None)
     if data is None or not isinstance(data.get("regras"), list) or not data["regras"]:
         return ensure_seed_rules()
+    return ensure_seed_missing(data)
+
+
+def ensure_seed_missing(data):
+    """Migração idempotente: adiciona regras seed novas ao arquivo existente
+    sem sobrescrever regras já presentes (ex.: RFC-014 adiciona encargos)."""
+    rows = list(data.get("regras") or [])
+    existing = {str(r.get("codigo") or "").strip().upper() for r in rows}
+    added = 0
+    for s in SEED_RULES:
+        cod = str(s.get("codigo") or "").strip().upper()
+        if cod and cod not in existing:
+            rows.append(_build_rule(s, existing=None, codigo=cod))
+            existing.add(cod)
+            added += 1
+    if added:
+        data = dict(data)
+        data["regras"] = rows
+        _save_rules(data)
     return data
 
 

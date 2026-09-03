@@ -1,0 +1,131 @@
+{
+  "next_id": 5,
+  "cotacoes": [
+    {
+      "id": 4,
+      "acordo_id": 6,
+      "fornecedor_id": "",
+      "fornecedor": "XYZ",
+      "cnpj": "",
+      "prazo": "30",
+      "payment_terms": "30",
+      "forma_pg": "Boleto",
+      "frete": 0.0,
+      "valor_total": 166500.0,
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Notebook",
+          "qtd": 50.0,
+          "preco": 1750.0,
+          "subtotal": 87500.0
+        },
+        {
+          "prod_id": "",
+          "produto": "Monitor",
+          "qtd": 100.0,
+          "preco": 790.0,
+          "subtotal": 79000.0
+        }
+      ],
+      "vencedora": false,
+      "criado_em": "2026-08-06T19:24:23",
+      "criado_por": "ana"
+    },
+    {
+      "id": 3,
+      "acordo_id": 6,
+      "fornecedor_id": "",
+      "fornecedor": "ABC",
+      "cnpj": "",
+      "prazo": "15",
+      "payment_terms": "30",
+      "forma_pg": "Boleto",
+      "frete": 500.0,
+      "valor_total": 170500.0,
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Notebook",
+          "qtd": 50.0,
+          "preco": 1800.0,
+          "subtotal": 90000.0
+        },
+        {
+          "prod_id": "",
+          "produto": "Monitor",
+          "qtd": 100.0,
+          "preco": 800.0,
+          "subtotal": 80000.0
+        }
+      ],
+      "vencedora": false,
+      "criado_em": "2026-08-06T19:24:23",
+      "criado_por": "ana"
+    },
+    {
+      "id": 2,
+      "acordo_id": 1,
+      "fornecedor_id": "",
+      "fornecedor": "XYZ Tech",
+      "cnpj": "22333444000190",
+      "prazo": "30",
+      "payment_terms": "30",
+      "forma_pg": "Boleto",
+      "frete": 0.0,
+      "valor_total": 166500.0,
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Notebook",
+          "qtd": 50.0,
+          "preco": 1750.0,
+          "subtotal": 87500.0
+        },
+        {
+          "prod_id": "",
+          "produto": "Monitor",
+          "qtd": 100.0,
+          "preco": 790.0,
+          "subtotal": 79000.0
+        }
+      ],
+      "vencedora": true,
+      "criado_em": "2026-08-06T18:26:47",
+      "criado_por": "ana"
+    },
+    {
+      "id": 1,
+      "acordo_id": 1,
+      "fornecedor_id": "",
+      "fornecedor": "ABC Informática",
+      "cnpj": "11222333000190",
+      "prazo": "15",
+      "payment_terms": "30",
+      "forma_pg": "Boleto",
+      "frete": 500.0,
+      "valor_total": 170500.0,
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Notebook",
+          "qtd": 50.0,
+          "preco": 1800.0,
+          "subtotal": 90000.0
+        },
+        {
+          "prod_id": "",
+          "produto": "Monitor",
+          "qtd": 100.0,
+          "preco": 800.0,
+          "subtotal": 80000.0
+        }
+      ],
+      "vencedora": false,
+      "criado_em": "2026-08-06T18:26:47",
+      "criado_por": "ana"
+    }
+  ],
+  "atualizado_em": "2026-08-06T19:24:23",
+  "total": 4
+}

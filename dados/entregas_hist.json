@@ -1,0 +1,249 @@
+{
+  "DO-SEED-0001": [
+    {
+      "status": "draft",
+      "em": "2026-08-04T16:51:16",
+      "usuario": "seed",
+      "nota": "criação"
+    },
+    {
+      "status": "confirmed",
+      "em": "2026-08-04T16:51:16",
+      "usuario": "seed",
+      "nota": "confirmada"
+    },
+    {
+      "status": "ready",
+      "em": "2026-08-04T16:51:16",
+      "usuario": "seed",
+      "nota": "estoque ok / WMS"
+    }
+  ],
+  "DO-20260802-0002": [
+    {
+      "status": "draft",
+      "em": "2026-08-02T20:30:57",
+      "usuario": "smoke",
+      "nota": "criação"
+    },
+    {
+      "status": "confirmed",
+      "em": "2026-08-02T20:30:57",
+      "usuario": "smoke",
+      "nota": "confirm"
+    },
+    {
+      "status": "ready",
+      "em": "2026-08-02T20:30:57",
+      "usuario": "smoke",
+      "nota": "ready"
+    },
+    {
+      "status": "assigned",
+      "em": "2026-08-02T20:30:57",
+      "usuario": "smoke",
+      "nota": "atribuído Carlos Motorista"
+    },
+    {
+      "status": "assigned",
+      "em": "2026-08-02T20:30:57",
+      "usuario": "smoke",
+      "nota": "manifesto MF-20260802-0002"
+    },
+    {
+      "status": "in_transit",
+      "em": "2026-08-02T20:30:57",
+      "usuario": "smoke",
+      "nota": "depart"
+    },
+    {
+      "status": "delivered",
+      "em": "2026-08-02T20:30:57",
+      "usuario": "smoke",
+      "nota": "entregue"
+    }
+  ],
+  "DO-20260802-0003": [
+    {
+      "status": "draft",
+      "em": "2026-08-02T20:31:06",
+      "usuario": "seed",
+      "nota": "criação"
+    },
+    {
+      "status": "confirmed",
+      "em": "2026-08-02T20:31:06",
+      "usuario": "seed",
+      "nota": "confirm"
+    },
+    {
+      "status": "ready",
+      "em": "2026-08-02T20:31:06",
+      "usuario": "seed",
+      "nota": "ready"
+    },
+    {
+      "status": "assigned",
+      "em": "2026-08-02T20:31:06",
+      "usuario": "seed",
+      "nota": "atribuído Carlos Motorista"
+    },
+    {
+      "status": "assigned",
+      "em": "2026-08-02T20:31:06",
+      "usuario": "seed",
+      "nota": "manifesto MF-20260802-0003"
+    }
+  ],
+  "DO-20260802-0004": [
+    {
+      "status": "draft",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "criação"
+    },
+    {
+      "status": "confirmed",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "confirm"
+    },
+    {
+      "status": "ready",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "ready"
+    },
+    {
+      "status": "assigned",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "atribuído Carlos Motorista"
+    },
+    {
+      "status": "assigned",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "manifesto MF-20260802-0004"
+    },
+    {
+      "status": "in_transit",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "depart"
+    },
+    {
+      "status": "delivered",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "entregue"
+    }
+  ],
+  "DO-20260802-0005": [
+    {
+      "status": "draft",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "criação"
+    },
+    {
+      "status": "confirmed",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "confirm"
+    },
+    {
+      "status": "ready",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "ready"
+    },
+    {
+      "status": "assigned",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "atribuído Carlos Motorista"
+    },
+    {
+      "status": "assigned",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "manifesto MF-20260802-0004"
+    },
+    {
+      "status": "in_transit",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "depart"
+    },
+    {
+      "status": "delivered",
+      "em": "2026-08-02T20:35:31",
+      "usuario": "smoke",
+      "nota": "entregue"
+    }
+  ],
+  "DO-20260804-0006": [
+    {
+      "status": "draft",
+      "em": "2026-08-04T14:19:31",
+      "usuario": "smoke",
+      "nota": "criação"
+    }
+  ],
+  "DO-20260804-0007": [
+    {
+      "status": "draft",
+      "em": "2026-08-04T14:19:46",
+      "usuario": "smoke",
+      "nota": "criação"
+    }
+  ],
+  "DO-20260804-0008": [
+    {
+      "status": "draft",
+      "em": "2026-08-04T14:19:46",
+      "usuario": "smoke",
+      "nota": "criação"
+    }
+  ],
+  "DO-20260804-0001": [
+    {
+      "status": "draft",
+      "em": "2026-08-04T16:51:16",
+      "usuario": "smoke",
+      "nota": "criação"
+    }
+  ],
+  "DO-TEST-1": [],
+  "DO-20260804-0100": [
+    {
+      "status": "draft",
+      "em": "2026-08-04T16:51:34",
+      "usuario": "smoke",
+      "nota": "criação"
+    },
+    {
+      "status": "confirmed",
+      "em": "2026-08-04T16:51:34",
+      "usuario": "smoke",
+      "nota": "confirm"
+    }
+  ],
+  "DO-20260806-0101": [
+    {
+      "status": "draft",
+      "em": "2026-08-06T21:02:22",
+      "usuario": "test",
+      "nota": "criação"
+    }
+  ],
+  "DO-20260806-0102": [
+    {
+      "status": "draft",
+      "em": "2026-08-06T21:06:56",
+      "usuario": "test",
+      "nota": "criação"
+    }
+  ]
+}

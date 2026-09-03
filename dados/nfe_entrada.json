@@ -1,6 +1,456 @@
 {
   "nfe_entradas": [
     {
+      "chave": "43260762832155000141550010000000000000000007",
+      "numero": "9107",
+      "serie": "1",
+      "data_emissao": "2026-09-01",
+      "data_importacao": "2026-09-03 08:29:39",
+      "receiving_id": 15,
+      "estabelecimento_id": "matriz",
+      "fornecedor": {
+        "cnpj": "11222333000181",
+        "nome": "Dist Demo",
+        "ie": "",
+        "partner_id": "bp004"
+      },
+      "total": {
+        "vNF": "145.00",
+        "vProd": "145.00",
+        "vBC": "0.00",
+        "vICMS": "0.00",
+        "vCBS": "0.87",
+        "vIBS": "24.65",
+        "pCBS": "0.60",
+        "pIBS": "17.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "TEST001",
+          "nome": "Arroz Teste 1kg",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7899999999001",
+          "unidade": "UN",
+          "quantidade": "5.0000",
+          "vl_unitario": "20.0000000000",
+          "vl_total": "100.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 100.0,
+            "pCBS": 0.6,
+            "vCBS": 0.6,
+            "pIBS": 17.0,
+            "vIBS": 17.0
+          }
+        },
+        {
+          "n_item": "2",
+          "codigo": "TEST002",
+          "nome": "Feijao Teste",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "",
+          "unidade": "UN",
+          "quantidade": "3.0000",
+          "vl_unitario": "15.0000000000",
+          "vl_total": "45.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 45.0,
+            "pCBS": 0.6,
+            "vCBS": 0.27,
+            "pIBS": 17.0,
+            "vIBS": 7.65
+          }
+        }
+      ],
+      "duplicatas": [],
+      "status": "ESCRITURADA",
+      "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000000000000000007.xml"
+    },
+    {
+      "chave": "43260762832155000141550010000000000000000010",
+      "numero": "9210",
+      "serie": "1",
+      "data_emissao": "2026-09-01",
+      "data_importacao": "2026-09-03 08:23:17",
+      "receiving_id": 15,
+      "estabelecimento_id": "matriz",
+      "fornecedor": {
+        "cnpj": "11222333000181",
+        "nome": "Dist Demo",
+        "ie": "",
+        "partner_id": "bp004"
+      },
+      "total": {
+        "vNF": "145.00",
+        "vProd": "145.00",
+        "vBC": "0.00",
+        "vICMS": "0.00",
+        "vCBS": "0.87",
+        "vIBS": "24.65",
+        "pCBS": "0.60",
+        "pIBS": "17.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "TEST001",
+          "nome": "Arroz Teste 1kg",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7899999999001",
+          "unidade": "UN",
+          "quantidade": "5.0000",
+          "vl_unitario": "20.0000000000",
+          "vl_total": "100.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 100.0,
+            "pCBS": 0.6,
+            "vCBS": 0.6,
+            "pIBS": 17.0,
+            "vIBS": 17.0
+          }
+        },
+        {
+          "n_item": "2",
+          "codigo": "TEST002",
+          "nome": "Feijao Teste",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "",
+          "unidade": "UN",
+          "quantidade": "3.0000",
+          "vl_unitario": "15.0000000000",
+          "vl_total": "45.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 45.0,
+            "pCBS": 0.6,
+            "vCBS": 0.27,
+            "pIBS": 17.0,
+            "vIBS": 7.65
+          }
+        }
+      ],
+      "duplicatas": [],
+      "status": "ESCRITURADA",
+      "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000000000000000010.xml"
+    },
+    {
+      "chave": "43260762832155000141550010000000000000000009",
+      "numero": "9209",
+      "serie": "1",
+      "data_emissao": "2026-09-01",
+      "data_importacao": "2026-09-03 08:23:06",
+      "receiving_id": 15,
+      "estabelecimento_id": "matriz",
+      "fornecedor": {
+        "cnpj": "11222333000181",
+        "nome": "Dist Demo",
+        "ie": "",
+        "partner_id": "bp004"
+      },
+      "total": {
+        "vNF": "145.00",
+        "vProd": "145.00",
+        "vBC": "0.00",
+        "vICMS": "0.00",
+        "vCBS": "0.87",
+        "vIBS": "24.65",
+        "pCBS": "0.60",
+        "pIBS": "17.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "TEST001",
+          "nome": "Arroz Teste 1kg",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7899999999001",
+          "unidade": "UN",
+          "quantidade": "5.0000",
+          "vl_unitario": "20.0000000000",
+          "vl_total": "100.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 100.0,
+            "pCBS": 0.6,
+            "vCBS": 0.6,
+            "pIBS": 17.0,
+            "vIBS": 17.0
+          }
+        },
+        {
+          "n_item": "2",
+          "codigo": "TEST002",
+          "nome": "Feijao Teste",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "",
+          "unidade": "UN",
+          "quantidade": "3.0000",
+          "vl_unitario": "15.0000000000",
+          "vl_total": "45.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 45.0,
+            "pCBS": 0.6,
+            "vCBS": 0.27,
+            "pIBS": 17.0,
+            "vIBS": 7.65
+          }
+        }
+      ],
+      "duplicatas": [],
+      "status": "ESCRITURADA",
+      "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000000000000000009.xml"
+    },
+    {
+      "chave": "43260762832155000141550010000004441234567896",
+      "numero": "444",
+      "serie": "1",
+      "data_emissao": "2026-07-30",
+      "data_importacao": "2026-09-03 08:16:00",
+      "receiving_id": 14,
+      "estabelecimento_id": "matriz",
+      "fornecedor": {
+        "cnpj": "11222333000181",
+        "nome": "Dist Demo",
+        "ie": "",
+        "partner_id": "bp004"
+      },
+      "total": {
+        "vNF": "401.50",
+        "vProd": "401.50",
+        "vBC": "0.00",
+        "vICMS": "0.00",
+        "vICMSDeson": "0.00",
+        "vFCP": "0.00",
+        "vBCST": "0.00",
+        "vST": "0.00",
+        "vFCPST": "0.00",
+        "vFCPSTRet": "0.00",
+        "vFrete": "0.00",
+        "vSeg": "0.00",
+        "vDesc": "0.00",
+        "vII": "0.00",
+        "vIPI": "0.00",
+        "vIPIDevol": "0.00",
+        "vPIS": "0.00",
+        "vCOFINS": "0.00",
+        "vOutro": "0.00",
+        "vCBS": "2.40",
+        "vIBS": "68.25",
+        "pCBS": "0.60",
+        "pIBS": "17.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "ARR001",
+          "nome": "Arroz 5kg",
+          "ncm": "10063021",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7891234560018",
+          "unidade": "UN",
+          "quantidade": "10.0000",
+          "vl_unitario": "32.9000000000",
+          "vl_total": "329.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 329.0,
+            "pCBS": 0.6,
+            "vCBS": 1.97,
+            "pIBS": 17.0,
+            "vIBS": 55.93
+          }
+        },
+        {
+          "n_item": "2",
+          "codigo": "ACU002",
+          "nome": "Acucar 2kg",
+          "ncm": "17019900",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7891234560049",
+          "unidade": "UN",
+          "quantidade": "5.0000",
+          "vl_unitario": "8.5000000000",
+          "vl_total": "42.50",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 42.5,
+            "pCBS": 0.6,
+            "vCBS": 0.25,
+            "pIBS": 17.0,
+            "vIBS": 7.22
+          }
+        },
+        {
+          "n_item": "3",
+          "codigo": "XYZ999",
+          "nome": "Produto Novo Sem Cadastro",
+          "ncm": "21069090",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "",
+          "unidade": "UN",
+          "quantidade": "2.0000",
+          "vl_unitario": "15.0000000000",
+          "vl_total": "30.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 30.0,
+            "pCBS": 0.6,
+            "vCBS": 0.18,
+            "pIBS": 17.0,
+            "vIBS": 5.1
+          }
+        }
+      ],
+      "duplicatas": [],
+      "status": "ESCRITURADA",
+      "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000004441234567896.xml"
+    },
+    {
+      "chave": "12345678901234567890123456789012345678901234",
+      "numero": "123",
+      "serie": "1",
+      "data_emissao": "2026-08-06",
+      "data_importacao": "2026-08-06 19:56:14",
+      "receiving_id": 1,
+      "estabelecimento_id": "1",
+      "fornecedor": {
+        "cnpj": "12345678000195",
+        "nome": "Forn",
+        "ie": "",
+        "partner_id": 1
+      },
+      "total": {
+        "vNF": "1000.00",
+        "vCBS": "6.00",
+        "vIBS": "170.00",
+        "pCBS": "0.60",
+        "pIBS": "17.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "COD1",
+          "nome": "P1",
+          "ncm": "8517.12.00",
+          "cfop": "",
+          "cest": "",
+          "ean": "",
+          "unidade": "UN",
+          "quantidade": "10.0000",
+          "vl_unitario": "100.0000000000",
+          "vl_total": "1000.00",
+          "produto_id": "1",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 1000.0,
+            "pCBS": 0.6,
+            "vCBS": 6.0,
+            "pIBS": 17.0,
+            "vIBS": 170.0
+          }
+        }
+      ],
+      "duplicatas": [],
+      "status": "ESCRITURADA",
+      "xml_path": ""
+    },
+    {
+      "chave": "42260162832155000141550010000000021000000016",
+      "numero": "2",
+      "serie": "1",
+      "data_emissao": "2026-08-01",
+      "data_importacao": "2026-08-04 19:17:13",
+      "receiving_id": 999002,
+      "estabelecimento_id": "est_frac2",
+      "fornecedor": {
+        "cnpj": "11222333000181",
+        "nome": "F",
+        "ie": "",
+        "partner_id": "P"
+      },
+      "total": {
+        "vNF": "0.99",
+        "vProd": "0.99"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "X",
+          "nome": "Y",
+          "ncm": "22021000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "",
+          "unidade": "KG",
+          "quantidade": "0.3330",
+          "vl_unitario": "3.0000000000",
+          "vl_total": "1.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "duplicatas": [
+        {
+          "n_dup": "001",
+          "vencimento": "2026-09-15",
+          "valor": 0.99
+        }
+      ],
+      "status": "ESCRITURADA",
+      "xml_path": ""
+    },
+    {
       "chave": "29250905949989000289550010002485661311213556",
       "numero": "248566",
       "serie": "1",

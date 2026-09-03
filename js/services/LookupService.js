@@ -87,6 +87,7 @@
   function makeJsonCatalogProvider(opts) {
     const listPath = opts.listPath;
     const listKey = opts.listKey;
+    const labelFn = opts.labelFn || null;
     let localCache = null;
 
     async function loadAll(force) {
@@ -99,7 +100,7 @@
           codigo: c.id,
           nome: c.nome,
           descricao: c.descricao || "",
-          label: c.nome + (c.descricao ? " — " + c.descricao : ""),
+          label: labelFn ? labelFn(c) : c.nome + (c.descricao ? " — " + c.descricao : ""),
           ativo: c.ativo !== false,
         }));
       localCache = list;
@@ -115,7 +116,8 @@
           .filter(
             (c) =>
               c.nome.toLowerCase().includes(q) ||
-              (c.descricao || "").toLowerCase().includes(q)
+              (c.descricao || "").toLowerCase().includes(q) ||
+              (c.label || "").toLowerCase().includes(q)
           )
           .slice(0, 20);
       },
@@ -269,7 +271,11 @@
   }
 
   const ClienteProvider = makePartnerRoleProvider("CUSTOMER");
-  const FornecedorProvider = makePartnerRoleProvider("SUPPLIER");
+  const FornecedorProvider = makeJsonCatalogProvider({
+    listPath: "/api/admin/fornecedores",
+    listKey: "fornecedores",
+    labelFn: (c) => c.nome + (c.cnpj ? " — " + c.cnpj : ""),
+  });
   const PartnerProvider = {
     _cache: null,
     async search(text) {

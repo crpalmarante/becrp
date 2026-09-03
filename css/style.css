@@ -31,7 +31,17 @@ body{
 
     backdrop-filter:var(--glass-blur);
 
-    border-right:1px solid var(--glass-border);
+    border-right:none;
+
+    /* Neumorphism: sombra externa à direita + profundidade interna suave */
+
+    box-shadow:
+
+        inset -12px 0 22px -16px rgba(0,0,0,.5),
+
+        inset 12px 0 22px -16px rgba(255,255,255,.04),
+
+        10px 0 26px -16px rgba(0,0,0,.4);
 
     padding:var(--space-5) 0;
 
@@ -189,17 +199,29 @@ body{
 
 .menu-item:hover{
 
-    background:rgba(255,255,255,.08);
+    background:rgba(255,255,255,.04);
 
     color:var(--text-primary);
+
+    box-shadow:
+
+        5px 5px 10px rgba(0,0,0,.35),
+
+        -5px -5px 10px rgba(255,255,255,.045);
 
 }
 
 .menu-item.active{
 
-    background:rgba(20,184,166,.15);
+    background:rgba(20,184,166,.13);
 
     color:var(--color-primary);
+
+    box-shadow:
+
+        inset 4px 4px 8px rgba(0,0,0,.32),
+
+        inset -4px -4px 8px rgba(255,255,255,.045);
 
 }
 
@@ -2471,7 +2493,7 @@ th{
 
 .lookup-cest-panel{
     width:min(520px,100%);
-    background:var(--surface-panel, #111827);
+    background:var(--surface-modal, #111827);
     border:1px solid var(--border-color, rgba(255,255,255,.12));
     border-radius:12px;
     padding:16px;
@@ -3022,4 +3044,43 @@ th{
     width:12px;
     height:12px;
     color:#fff;
+}
+
+/* Destaque visual de linha recem-criada no DataGrid */
+.dg-row-new{
+    animation:dgFlashNew 2.4s ease-out;
+}
+.dg-row-new .dg-cell{
+    animation:dgFlashNew 2.4s ease-out;
+}
+@keyframes dgFlashNew{
+    0%{background-color:rgba(16,185,129,.35);box-shadow:inset 3px 0 0 #10b981}
+    60%{background-color:rgba(16,185,129,.18)}
+    100%{background-color:transparent;box-shadow:none}
+}
+
+/* Destaque visual de linha editada (azul) */
+.dg-row-edit{
+    animation:dgFlashEdit 2.4s ease-out;
+}
+.dg-row-edit .dg-cell{
+    animation:dgFlashEdit 2.4s ease-out;
+}
+@keyframes dgFlashEdit{
+    0%{background-color:rgba(59,130,246,.35);box-shadow:inset 3px 0 0 #3b82f6}
+    60%{background-color:rgba(59,130,246,.18)}
+    100%{background-color:transparent;box-shadow:none}
+}
+
+/* Destaque visual de linha excluida (vermelho) */
+.dg-row-del{
+    animation:dgFlashDel 2.4s ease-out;
+}
+.dg-row-del .dg-cell{
+    animation:dgFlashDel 2.4s ease-out;
+}
+@keyframes dgFlashDel{
+    0%{background-color:rgba(239,68,68,.35);box-shadow:inset 3px 0 0 #ef4444}
+    60%{background-color:rgba(239,68,68,.18)}
+    100%{background-color:transparent;box-shadow:none}
 }

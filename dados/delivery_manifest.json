@@ -1,0 +1,200 @@
+{
+  "seq": 4,
+  "atualizado_em": "2026-08-02T20:35:31",
+  "manifests": [
+    {
+      "id": "MF-SEED-0001",
+      "data": "2026-08-02",
+      "fonte": "DC-01",
+      "status": "in_progress",
+      "dispatch_id": "DS-SEED-0001",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "partida_estimada": "08:00",
+      "retorno_estimado": "18:00",
+      "entrega_ids": [
+        "DO-SEED-0001"
+      ],
+      "observacao": "Seed — manifesto do dia",
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T12:35:47",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "planning",
+          "em": "2026-08-02T12:35:47",
+          "usuario": "test",
+          "nota": "planejando"
+        },
+        {
+          "status": "planning",
+          "em": "2026-08-02T12:35:47",
+          "usuario": "test",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "released",
+          "em": "2026-08-02T12:35:47",
+          "usuario": "test",
+          "nota": "liberado para execução"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T19:52:25",
+          "usuario": "smoke",
+          "nota": "viagem iniciada"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-02T12:35:47",
+      "atualizado_em": "2026-08-02T19:52:25"
+    },
+    {
+      "id": "MF-20260802-0002",
+      "data": "2026-08-02",
+      "fonte": "DC-01",
+      "status": "in_progress",
+      "dispatch_id": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "partida_estimada": "",
+      "retorno_estimado": "",
+      "entrega_ids": [
+        "DO-20260802-0002"
+      ],
+      "observacao": "",
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "criação"
+        },
+        {
+          "status": "planning",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "planejando"
+        },
+        {
+          "status": "released",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "liberado para execução"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "viagem iniciada"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-02T20:30:57",
+      "atualizado_em": "2026-08-02T20:30:57"
+    },
+    {
+      "id": "MF-20260802-0003",
+      "data": "2026-08-02",
+      "fonte": "DC-01",
+      "status": "released",
+      "dispatch_id": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "partida_estimada": "",
+      "retorno_estimado": "",
+      "entrega_ids": [
+        "DO-20260802-0003"
+      ],
+      "observacao": "",
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "planning",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "planejando"
+        },
+        {
+          "status": "planning",
+          "em": "2026-08-02T20:31:07",
+          "usuario": "seed",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "released",
+          "em": "2026-08-02T20:31:07",
+          "usuario": "seed",
+          "nota": "liberado para execução"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-02T20:31:06",
+      "atualizado_em": "2026-08-02T20:31:07"
+    },
+    {
+      "id": "MF-20260802-0004",
+      "data": "2026-08-02",
+      "fonte": "DC-01",
+      "status": "in_progress",
+      "dispatch_id": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "partida_estimada": "",
+      "retorno_estimado": "",
+      "entrega_ids": [
+        "DO-20260802-0004",
+        "DO-20260802-0005"
+      ],
+      "observacao": "",
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "criação"
+        },
+        {
+          "status": "planning",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "planejando"
+        },
+        {
+          "status": "planning",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "released",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "liberado para execução"
+        },
+        {
+          "status": "in_progress",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "viagem iniciada"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31"
+    }
+  ],
+  "total": 4
+}

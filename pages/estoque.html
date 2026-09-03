@@ -25,11 +25,42 @@
     .stk-msg { margin:8px 0; font-size:14px; }
     .stk-msg.err { color:#f87171; }
     .stk-msg.ok { color:#4ade80; }
-    .stk-panels { display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-top:20px; }
+    .stk-panels { display:grid; grid-template-columns: 1fr 1fr; gap:var(--space-5); margin-top:20px; }
     @media (max-width: 900px) { .stk-panels { grid-template-columns: 1fr; } }
     .stk-card { padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
     .stk-card h3 { margin:0 0 10px; font-size:15px; }
+    .workspace{padding-top:0}
+    #workspace-view{padding-top:14px}
     .stk-zero { opacity:.45; }
+    .dash-view-btn.active{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
+    .dash-clickable{cursor:pointer}
+    .dash-clickable:hover .chart-bar{opacity:.85}
+    #dash-view{margin-bottom:16px}
+    #dash-view .chart-bar-col{min-width:64px}
+    #dash-widgets-ops, #dash-history{margin-top:var(--space-5)}
+    #dash-widgets-ops{grid-template-columns:1fr 1fr}
+    .menu-item.soon .menu-label{opacity:.75}
+    .menu-item .soon-tag{margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);opacity:.8}
+    #sub-config.open{max-height:860px} /* submenu grande (14 itens) — só quando aberto */
+    /* ── Sidebar toggled (recolher/expandir) ── */
+    @media(min-width:1025px){
+      #sidebar .sidebar-collapse{display:flex}
+      #sidebar.collapsed{width:64px!important}
+      #sidebar.collapsed .menu-label,
+      #sidebar.collapsed .soon-tag,
+      #sidebar.collapsed .brand-text{opacity:0!important;width:0!important;display:none!important}
+      #sidebar.collapsed .menu-item{justify-content:center;padding-left:0;padding-right:0}
+      #sidebar.collapsed .sidebar-nav{padding:0 var(--space-2)}
+      #sidebar.collapsed .sidebar-collapse .icon{transform:rotate(180deg)}
+      .main-area.collapsed{margin-left:64px!important;width:calc(100% - 64px)!important}
+    }
+    /* ── Menu equalizado ── */
+    .sidebar-nav{display:flex;flex-direction:column;gap:4px}
+    .menu-item{min-height:42px;border-radius:10px}
+    .menu-item .icon{width:20px;height:20px;flex-shrink:0}
+    .menu-item.soon .soon-tag{margin-left:auto;white-space:nowrap}
+    .sidebar-collapse{margin:4px 0 10px;color:var(--text-muted)}
+    .sidebar-collapse:hover{color:var(--color-primary)}
   </style>
 </head>
 <body>
@@ -39,23 +70,164 @@
       <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
       <span class="brand-text">BECRP</span>
     </div>
+    <div class="sidebar-collapse" id="sidebar-collapse" title="Recolher/expandir menu">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-chevron-left"/></svg>
+    </div>
     <nav class="sidebar-nav">
-      <a class="menu-item active" href="estoque.html">
-        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
-        <span class="menu-label">Estoque</span>
+      <a class="menu-item active" href="estoque.html" title="Visão Geral do Inventário">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Visão Geral</span>
       </a>
-      <a class="menu-item" href="recebimento.html">
+      <div class="menu-item has-children" id="menu-operacoes" title="Operações">
         <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
-        <span class="menu-label">Recebimento</span>
-      </a>
-      <a class="menu-item" href="produtos.html">
+        <span class="menu-label">Operações</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-operacoes">
+        <a class="menu-item" href="ajustes-estoque.html" title="Ajustes de Estoque">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Ajustes de Estoque</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Transferências</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-trash"/></svg>
+          <span class="menu-label">Sucatas</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+          <span class="menu-label">Custos Adicionais</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-clock"/></svg>
+          <span class="menu-label">Executar Agendados</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-produtos" title="Produtos">
         <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
         <span class="menu-label">Produtos</span>
-      </a>
-      <a class="menu-item" href="../index4.html">
-        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
-        <span class="menu-label">Dashboard</span>
-      </a>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-produtos">
+        <a class="menu-item" href="produtos.html" title="Cadastro de Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Produto</span>
+        </a>
+        <a class="menu-item" href="variantes.html" title="Variantes de Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-filter"/></svg>
+          <span class="menu-label">Variantes</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-relatorios" title="Relatórios">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Relatórios</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-relatorios">
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Estoque</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+          <span class="menu-label">Locais</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-clock"/></svg>
+          <span class="menu-label">Histórico de Movimentações</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Movimentação de Estoque</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="valorizacao.html" title="Valorização">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+          <span class="menu-label">Valorização</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-config" title="Configurações">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="menu-label">Configurações</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-config">
+        <a class="menu-item" href="wms-armazens.html" title="Armazéns">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+          <span class="menu-label">Armazéns</span>
+        </a>
+        <a class="menu-item" href="wms-localizacoes.html" title="Locais">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+          <span class="menu-label">Locais</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Rotas</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-lock"/></svg>
+          <span class="menu-label">Regras</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="wms-tipos-operacao.html" title="Tipos de Operação">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-refresh"/></svg>
+          <span class="menu-label">Tipos de Operação</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Categoria de Armazenamento</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-upload"/></svg>
+          <span class="menu-label">Regras de Entrada no Depósito</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="categorias.html" title="Categoria dos Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg>
+          <span class="menu-label">Categoria dos Produtos</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Atributos</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Embalagem dos Produtos</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg>
+          <span class="menu-label">Nomenclatura Código de Barras</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Método de Envio</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Veículo</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+          <span class="menu-label">Prefixo do CEP</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
     </nav>
   </aside>
 
@@ -66,6 +238,7 @@
         <span class="topbar-title">Estoque</span>
       </div>
       <div class="topbar-user" style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <button class="dialog-btn dialog-btn-secondary" id="btn-count">Contagem</button>
         <button class="dialog-btn dialog-btn-secondary" id="btn-transfer">Transferir</button>
         <button class="dialog-btn dialog-btn-primary" id="btn-adjust">Ajustar</button>
         <span class="topbar-user-info"><span id="user-name-display">—</span></span>
@@ -75,8 +248,11 @@
     <div class="workspace">
       <div id="workspace-view" style="display:flex">
         <div class="workspace-header">
-          <div class="workspace-breadcrumb">BECRP / Inventário / Estoque</div>
           <h2 class="workspace-title">Saldos por loja</h2>
+          <div style="display:flex;gap:6px;margin-left:auto">
+            <button class="dialog-btn dialog-btn-secondary dash-view-btn" id="view-btn-tabela">☰ Tabela</button>
+            <button class="dialog-btn dialog-btn-secondary dash-view-btn" id="view-btn-dash">▦ Dashboard</button>
+          </div>
         </div>
         <div class="workspace-content">
           <div class="stk-toolbar">
@@ -84,17 +260,64 @@
             <label style="display:flex;gap:6px;align-items:center;font-size:13px">
               <input type="checkbox" id="hide-zero" checked> Ocultar zerados
             </label>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-report">Relatório de movimentação</button>
             <button class="dialog-btn dialog-btn-secondary" id="btn-refresh">Atualizar</button>
           </div>
           <div id="msg" class="stk-msg"></div>
+          <div id="dash-view" style="display:none">
+            <div class="dash-tools" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+              <label style="display:flex;gap:6px;align-items:center;font-size:13px">Histórico:
+                <select class="form-input" id="dash-period" style="width:auto;padding:6px 10px">
+                  <option value="dia">Por dia</option>
+                  <option value="mes">Por mês</option>
+                  <option value="semestre">Por semestre</option>
+                </select>
+              </label>
+              <label style="display:flex;gap:6px;align-items:center;font-size:13px">Operação:
+                <select class="form-input" id="dash-op" style="width:auto;padding:6px 10px">
+                  <option value="">Todas as operações</option>
+                  <option value="sale">Vendas</option>
+                  <option value="receive">Compras</option>
+                  <option value="transfer">Transferências internas</option>
+                  <option value="transit">Remessas internas</option>
+                  <option value="concerto">Remessa para concerto</option>
+                  <option value="demonstracao">Produtos para demonstração</option>
+                  <option value="devolucao">Devoluções</option>
+                </select>
+              </label>
+              <label style="display:flex;gap:6px;align-items:center;font-size:13px">KPIs (período):
+                <select class="form-input" id="dash-kpi-dias" style="width:auto;padding:6px 10px">
+                  <option value="7">7 dias</option>
+                  <option value="30" selected>30 dias</option>
+                  <option value="90">90 dias</option>
+                </select>
+              </label>
+            </div>
+            <div class="dashboard-kpis" id="dash-kpis"></div>
+            <div class="dashboard-kpis" id="dash-kpis-extras"></div>
+            <div class="dashboard-widgets" id="dash-widgets"></div>
+            <div class="dashboard-widgets" id="dash-widgets-ops">
+              <div id="dash-categoria"></div>
+              <div id="dash-operacoes"></div>
+            </div>
+            <div class="dashboard-widgets" id="dash-widgets-extra">
+              <div id="dash-alerts"></div>
+              <div id="dash-reservas"></div>
+              <div id="dash-cycles"></div>
+              <div id="dash-abc"></div>
+              <div id="dash-schedule"></div>
+              <div id="dash-divergences"></div>
+            </div>
+            <div class="dashboard-widgets" id="dash-history"></div>
+          </div>
           <div id="balances"></div>
           <div class="stk-panels">
-            <div class="stk-card">
-              <h3>Movimentos recentes</h3>
+            <div class="dashboard-widget widget-md">
+              <div class="widget-header"><span class="widget-title">Movimentos recentes</span></div>
               <div id="movements"></div>
             </div>
-            <div class="stk-card">
-              <h3>Em trânsito</h3>
+            <div class="dashboard-widget widget-md">
+              <div class="widget-header"><span class="widget-title">Em trânsito</span></div>
               <div id="transit"></div>
             </div>
           </div>
@@ -113,7 +336,7 @@
     <div class="dialog-body">
       <div class="field"><label>Origem</label><select class="form-input" id="tr-from"></select></div>
       <div class="field"><label>Destino</label><select class="form-input" id="tr-to"></select></div>
-      <div class="field"><label>Produto ID</label><input class="form-input" id="tr-pid" placeholder="ex.: 1"></div>
+      <div class="field"><label>Produto</label><select class="form-input" id="tr-pid"></select></div>
       <div class="field"><label>Quantidade</label><input class="form-input" id="tr-qty" type="number" min="1" value="1"></div>
       <div class="field"><label>Nota</label><input class="form-input" id="tr-nota" placeholder="opcional"></div>
       <div class="form-error" id="tr-error"></div>
@@ -121,6 +344,51 @@
     <div class="dialog-footer">
       <button class="dialog-btn dialog-btn-secondary" data-close="transfer-modal">Cancelar</button>
       <button class="dialog-btn dialog-btn-primary" id="tr-save">Transferir</button>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="count-modal" style="display:none">
+  <div class="dialog-box" style="max-width:640px">
+    <div class="dialog-header">
+      <h3 class="dialog-title">Contagem física (inventário)</h3>
+      <button class="dialog-close" data-close="count-modal">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+        <div class="field" style="flex:1;margin:0"><label>Loja</label><select class="form-input" id="ct-estab"></select></div>
+        <button class="dialog-btn dialog-btn-secondary" id="ct-start" style="margin-top:18px">Iniciar contagem</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:10px;padding:10px;border:1px dashed rgba(255,255,255,.15);border-radius:8px">
+        <div class="field" style="margin:0"><label>Tipo</label>
+          <select class="form-input" id="ct-modo">
+            <option value="anual">Anual (estoque todo)</option>
+            <option value="rotativo">Rotativo (ciclo parcial)</option>
+          </select>
+        </div>
+        <div class="field" style="margin:0;min-width:150px" id="ct-escopo-wrap">
+          <label>Escopo do ciclo</label>
+          <select class="form-input" id="ct-escopo">
+            <option value="categoria">Categoria</option>
+            <option value="localizacao">Localização</option>
+            <option value="classe">Classe ABC</option>
+            <option value="amostra">Amostra (N itens)</option>
+          </select>
+        </div>
+        <div class="field" style="margin:0;min-width:180px" id="ct-escopo-val-wrap">
+          <label id="ct-escopo-val-label">Categoria</label>
+          <select class="form-input" id="ct-escopo-val"></select>
+        </div>
+        <button class="dialog-btn dialog-btn-secondary" id="ct-sugestao" style="margin-top:18px" title="Usa a sugestão do próximo ciclo (itens sem contagem ou com divergência)">💡 Sugestão</button>
+      </div>
+      <div id="ct-history" style="margin-bottom:10px"></div>
+      <div id="ct-items" style="max-height:320px;overflow-y:auto"></div>
+      <div id="ct-causas" style="max-height:200px;overflow-y:auto"></div>
+      <div class="form-error" id="ct-error"></div>
+    </div>
+    <div class="dialog-footer" id="ct-footer" style="display:none">
+      <button class="dialog-btn dialog-btn-secondary" id="ct-save">Salvar contagens</button>
+      <button class="dialog-btn dialog-btn-primary" id="ct-close">Fechar e aplicar ajustes</button>
     </div>
   </div>
 </div>
@@ -133,7 +401,7 @@
     </div>
     <div class="dialog-body">
       <div class="field"><label>Loja</label><select class="form-input" id="aj-estab"></select></div>
-      <div class="field"><label>Produto ID</label><input class="form-input" id="aj-pid" placeholder="ex.: 1"></div>
+      <div class="field"><label>Produto</label><select class="form-input" id="aj-pid"></select></div>
       <div class="field"><label>Direção</label>
         <select class="form-input" id="aj-dir">
           <option value="in">Entrada (+)</option>
@@ -151,6 +419,57 @@
   </div>
 </div>
 
+<div class="dialog-overlay" id="report-modal" style="display:none">
+  <div class="dialog-box" style="max-width:860px">
+    <div class="dialog-header">
+      <h3 class="dialog-title">Relatório de movimentação</h3>
+      <button class="dialog-close" data-close="report-modal">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;margin-bottom:12px">
+        <div class="field" style="margin:0;min-width:130px"><label>Loja</label><select class="form-input" id="rpt-estab"></select></div>
+        <div class="field" style="margin:0;min-width:120px"><label>Tipo</label>
+          <select class="form-input" id="rpt-tipo">
+            <option value="">Todos</option>
+            <option value="receive">Compras</option>
+            <option value="sale">Vendas</option>
+            <option value="transfer">Transferências</option>
+            <option value="transit">Trânsito</option>
+            <option value="adjust">Ajustes</option>
+            <option value="concerto">Concerto</option>
+            <option value="demonstracao">Demonstração</option>
+            <option value="devolucao">Devoluções</option>
+          </select>
+        </div>
+        <div class="field" style="margin:0"><label>Produto</label><select class="form-input" id="rpt-pid"></select></div>
+        <div class="field" style="margin:0"><label>De</label><input class="form-input" id="rpt-de" type="date"></div>
+        <div class="field" style="margin:0"><label>Até</label><input class="form-input" id="rpt-ate" type="date"></div>
+        <button class="dialog-btn dialog-btn-primary" id="rpt-run">Filtrar</button>
+        <button class="dialog-btn dialog-btn-secondary" id="rpt-export">⬇ Exportar CSV</button>
+      </div>
+      <div id="rpt-resumo" style="font-size:13px;margin-bottom:10px"></div>
+      <div id="rpt-body" style="max-height:420px;overflow-y:auto"></div>
+      <div class="form-error" id="rpt-error"></div>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="audit-modal" style="display:none">
+  <div class="dialog-box" style="max-width:860px">
+    <div class="dialog-header">
+      <h3 class="dialog-title">Auditoria da contagem</h3>
+      <button class="dialog-close" data-close="audit-modal">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div id="au-body"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn dialog-btn-secondary" data-close="audit-modal">Fechar</button>
+      <button class="dialog-btn dialog-btn-primary" id="au-export">⬇ Exportar CSV</button>
+    </div>
+  </div>
+</div>
+
 <script src="../js/services/AuthService.js"></script>
 <script>
 (function () {
@@ -160,6 +479,470 @@
 
   let empresas = {};
   let nomes = {};
+  let produtos = [];
+  let currentCount = null;
+  let viewMode = "dash";
+  let porAtual = {};
+  let movsAtual = [];
+  let movsAll = null;
+  const OP_LABELS = {
+    sale: "Vendas",
+    receive: "Compras",
+    transfer_out: "Transferências internas",
+    transfer_in: "Transferências internas",
+    transit: "Remessas internas",
+    adjust: "Ajustes",
+    concerto: "Remessa para concerto",
+    demonstracao: "Produtos para demonstração",
+    devolucao: "Devoluções",
+  };
+  function opFilterMatch(tipo, op) {
+    if (!op) return true;
+    if (op === "transfer") return tipo === "transfer_out" || tipo === "transfer_in";
+    return tipo === op;
+  }
+  function periodKey(at, period) {
+    const s = String(at || "");
+    if (s.length < 7) return "—";
+    if (period === "dia") return s.slice(0, 10);
+    if (period === "mes") return s.slice(0, 7);
+    const m = parseInt(s.slice(5, 7), 10) || 1;
+    return s.slice(0, 4) + (m <= 6 ? "-S1" : "-S2");
+  }
+  function periodLabel(key, period) {
+    if (period === "dia") {
+      const [, m, d] = key.split("-");
+      return `${d}/${m}`;
+    }
+    if (period === "mes") {
+      const [, m] = key.split("-");
+      const MES = ["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+      return `${MES[(parseInt(m, 10) || 1) - 1]}/${key.slice(2, 4)}`;
+    }
+    return key.replace("-", " ");
+  }
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function fmtNum(v) {
+    return Math.round(Number(v) || 0).toLocaleString("pt-BR");
+  }
+  function setView(mode) {
+    viewMode = mode;
+    document.getElementById("view-btn-tabela").classList.toggle("active", mode === "tabela");
+    document.getElementById("view-btn-dash").classList.toggle("active", mode === "dash");
+    document.getElementById("balances").style.display = mode === "tabela" ? "" : "none";
+    document.getElementById("dash-view").style.display = mode === "dash" ? "" : "none";
+    if (mode === "dash") renderDashboard();
+  }
+
+  function renderDashboard() {
+    const estab = document.getElementById("filter-estab").value;
+    const hideZero = document.getElementById("hide-zero").checked;
+
+    // mesmos critérios da tabela: loja filtrada + ocultar zerados
+    const rows = [];
+    Object.keys(porAtual).forEach((eid) => {
+      const loja = porAtual[eid] || {};
+      Object.keys(loja).forEach((pid) => {
+        const qty = Number(loja[pid] || 0);
+        if (hideZero && qty <= 0) return;
+        rows.push({ eid, pid, qty });
+      });
+    });
+
+    const totalUnid = rows.reduce((s, r) => s + r.qty, 0);
+    const prods = new Set(rows.map((r) => r.pid));
+    const zeroCount = Object.keys(porAtual).reduce((s, eid) => {
+      return s + Object.keys(porAtual[eid] || {}).filter((pid) => Number(porAtual[eid][pid] || 0) <= 0).length;
+    }, 0);
+
+    const kpi = (label, value, color) => `
+      <div class="kpi-card kpi-${color}">
+        <div class="kpi-header"><span class="kpi-label-ico"></span></div>
+        <div class="kpi-value">${value}</div>
+        <div class="kpi-label">${label}</div>
+      </div>`;
+    const barChart = (title, keys, getVal, max, clickable) => `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">${title}</span></div>
+        <div class="chart-bars">
+          ${keys.map((k) => `
+            <div class="chart-bar-col ${clickable ? "dash-clickable" : ""}" ${clickable ? `data-click="${escapeHtml(String(k))}"` : ""} title="${clickable ? "Clique para filtrar por esta loja" : ""}">
+              <div class="chart-bar" style="height:${Math.max((getVal(k) / (max || 1)) * 100, 2)}%">
+                <span class="chart-bar-value">${fmtNum(getVal(k))}</span>
+              </div>
+              <span class="chart-bar-label">${escapeHtml(String(k))}</span>
+            </div>`).join("")}
+        </div>
+      </div>`;
+
+    // saldo por loja
+    const porLoja = {};
+    rows.forEach((r) => { porLoja[r.eid] = (porLoja[r.eid] || 0) + r.qty; });
+    const lojaKeys = Object.keys(porLoja).sort((a, b) => porLoja[b] - porLoja[a]);
+    const maxLoja = Math.max(...lojaKeys.map((k) => porLoja[k]), 1);
+
+    // top produtos
+    const porProd = {};
+    rows.forEach((r) => { porProd[r.pid] = (porProd[r.pid] || 0) + r.qty; });
+    const prodKeys = Object.keys(porProd).sort((a, b) => porProd[b] - porProd[a]).slice(0, 10);
+    const maxProd = Math.max(...prodKeys.map((k) => porProd[k]), 1);
+    const prodLabel = (k) => (nomes[k] ? k + " · " + nomes[k] : k);
+
+    // saldo por categoria
+    const prodCat = {};
+    produtos.forEach((p) => { prodCat[p.id] = p.categoria || "Sem categoria"; });
+    const porCat = {};
+    rows.forEach((r) => {
+      const c = prodCat[r.pid] || "Sem categoria";
+      porCat[c] = (porCat[c] || 0) + r.qty;
+    });
+    const catKeys = Object.keys(porCat).sort((a, b) => porCat[b] - porCat[a]);
+    const maxCat = Math.max(...catKeys.map((k) => porCat[k]), 1);
+
+    document.getElementById("dash-kpis").innerHTML =
+      kpi("Unidades em estoque", fmtNum(totalUnid), "primary") +
+      kpi("Produtos com saldo", fmtNum(prods.size), "info") +
+      kpi("Lojas no filtro", fmtNum(estab ? 1 : new Set(rows.map((r) => r.eid)).size), "success") +
+      kpi("Produtos zerados", fmtNum(zeroCount), "warning");
+
+    document.getElementById("dash-widgets").innerHTML =
+      barChart("Saldo por loja — clique para filtrar", lojaKeys, (k) => porLoja[k], maxLoja, true) +
+      barChart("Top produtos por saldo", prodKeys.map(prodLabel), (k) => porProd[k.split(" · ")[0]], maxProd);
+
+    document.getElementById("dash-categoria").innerHTML =
+      catKeys.length ? barChart("Saldo por categoria", catKeys, (k) => porCat[k], maxCat) : "";
+
+    loadDashMovements();
+
+    // interação: clicar na barra de loja aplica o filtro e volta para a tabela
+    document.querySelectorAll("#dash-widgets [data-click]").forEach((el) => {
+      el.onclick = () => {
+        document.getElementById("filter-estab").value = el.dataset.click;
+        document.getElementById("filter-estab").dispatchEvent(new Event("change"));
+        setView("tabela");
+      };
+    });
+  }
+
+  async function loadDashMovements() {
+    if (!movsAll) {
+      const data = await AuthService.api("/api/inventory/movements?limit=1000");
+      movsAll = data.movements || [];
+    }
+    // operações (contagem por tipo, com rótulos amigáveis)
+    const porTipo = {};
+    (movsAll || []).forEach((m) => {
+      const lbl = OP_LABELS[m.tipo] || m.tipo;
+      porTipo[lbl] = (porTipo[lbl] || 0) + 1;
+    });
+    const tipoKeys = Object.keys(porTipo);
+    const maxTipo = Math.max(...tipoKeys.map((k) => porTipo[k]), 1);
+    document.getElementById("dash-operacoes").innerHTML =
+      tipoKeys.length
+        ? `<div class="dashboard-widget widget-md">
+            <div class="widget-header"><span class="widget-title">Operações (movimentos)</span></div>
+            <div class="chart-bars">
+              ${tipoKeys.map((k) => `
+                <div class="chart-bar-col">
+                  <div class="chart-bar" style="height:${Math.max((porTipo[k] / maxTipo) * 100, 2)}%">
+                    <span class="chart-bar-value">${fmtNum(porTipo[k])}</span>
+                  </div>
+                  <span class="chart-bar-label">${escapeHtml(k)}</span>
+                </div>`).join("")}
+            </div>
+          </div>`
+        : "";
+    renderHistoryChart();
+    renderKpisExtras();
+    loadAlerts();
+    loadReservas();
+    loadCycles();
+    loadAbc();
+    loadSchedule();
+    loadDivergences();
+  }
+
+  async function loadDivergences() {
+    const el = document.getElementById("dash-divergences");
+    const estab = document.getElementById("filter-estab").value;
+    const qs = estab ? ("?estabelecimento_id=" + encodeURIComponent(estab)) : "";
+    const data = await AuthService.api("/api/inventory/divergences" + qs);
+    if (data.status !== "ok") { el.innerHTML = ""; return; }
+    const rec = data.recorrentes || [];
+    const causas = data.causas || [];
+    const fmt = (v) => "R$ " + Number(v || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+    el.innerHTML = `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">Análise de divergências</span></div>
+        <div style="font-size:13px;margin-bottom:8px">${fmtNum(data.total_ajustes || 0)} ajuste(s) · ${fmt(data.total_valor_ajustado)} em divergências</div>
+        ${causas.length ? `<div style="font-size:12px;margin-bottom:8px">${causas.slice(0, 4).map((c) => `<span style="padding:2px 8px;border:1px solid rgba(255,255,255,.15);border-radius:12px;margin-right:4px;display:inline-block;margin-bottom:4px">${escapeHtml(c.label)}: ${c.total}</span>`).join("")}</div>` : ""}
+        ${rec.length ? `<table class="stk-table">
+          <thead><tr><th>Produto</th><th>Ocorr.</th><th>Diverg. acum.</th><th>Causa</th></tr></thead>
+          <tbody>
+            ${rec.slice(0, 6).map((r) => `
+              <tr>
+                <td>${r.produto_id} · ${escapeHtml(r.produto)}</td>
+                <td style="color:#fbbf24"><strong>${r.ocorrencias}×</strong></td>
+                <td>${r.total_divergencia > 0 ? "+" : ""}${r.total_divergencia}</td>
+                <td>${Object.keys(r.causas || {}).map((k) => escapeHtml(({ erro_contagem: "recontar", quebra_perda: "quebra", extravio: "extravio", erro_recebimento: "recebimento", erro_baixa: "baixa", nao_localizado: "não localizado", obsolescencia: "obsolescência", outros: "outros" })[k] || k)).join(", ")}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>` : `<p style="font-size:13px;opacity:.7;margin:0">Sem divergências recorrentes registradas.</p>`}
+      </div>`;
+  }
+
+  async function loadSchedule() {
+    const el = document.getElementById("dash-schedule");
+    const estab = document.getElementById("filter-estab").value;
+    const qs = estab ? ("?estabelecimento_id=" + encodeURIComponent(estab)) : "";
+    const data = await AuthService.api("/api/inventory/schedule" + qs);
+    if (data.status !== "ok") { el.innerHTML = ""; return; }
+    const clsColor = { A: "#f87171", B: "#fbbf24", C: "#4ade80" };
+    const clsLabel = { A: "A", B: "B", C: "C" };
+    const prox = data.proximos || [];
+    const totalVen = data.total_vencidos || 0;
+    const clsRows = (["A", "B", "C"]).map((c) => {
+      const r = (data.classes || {})[c] || {};
+      const on = r.ativo ? "" : " <span style=\"opacity:.5\">(pausada)</span>";
+      const ven = r.vencidos ? `<span style="color:#fbbf24">⚠ ${r.vencidos} vencido(s)</span>` : "<span style=\"color:#4ade80\">em dia</span>";
+      return `
+        <tr>
+          <td style="color:${clsColor[c]};font-weight:700">${clsLabel[c]}</td>
+          <td>${r.periodicidade || "—"}${on}</td>
+          <td>${fmtNum(r.itens || 0)} itens</td>
+          <td>${ven}</td>
+        </tr>`;
+    }).join("");
+    const proxTxt = prox.length
+      ? prox.map((p) => `Classe ${p.classe} em <strong>${p.data}</strong>`).join(" · ")
+      : "—";
+    el.innerHTML = `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">Agendamento de ciclos${totalVen ? ` <span style="color:#fbbf24">(${totalVen} vencido(s))</span>` : ""}</span></div>
+        <table class="stk-table">
+          <thead><tr><th>Classe</th><th>Frequência</th><th>Itens</th><th>Status</th></tr></thead>
+          <tbody>${clsRows}</tbody>
+        </table>
+        <div style="font-size:12px;opacity:.8;margin-top:8px">Próximos: ${proxTxt}</div>
+        ${data.primeiro_vencido ? `<button class="dialog-btn dialog-btn-primary" id="sch-go" style="margin-top:10px;padding:6px 12px;font-size:12px">▶ Iniciar ciclo da classe ${data.primeiro_vencido}</button>` : ""}
+      </div>`;
+    const go = el.querySelector("#sch-go");
+    if (go) {
+      go.onclick = () => {
+        document.getElementById("ct-modo").value = "rotativo";
+        document.getElementById("ct-modo").dispatchEvent(new Event("change"));
+        document.getElementById("ct-escopo").value = "classe";
+        fillEscopoVal();
+        document.getElementById("ct-escopo-val").value = data.primeiro_vencido;
+        document.getElementById("btn-count").click();
+        document.getElementById("ct-start").click();
+      };
+    }
+  }
+
+  async function loadAbc() {
+    const el = document.getElementById("dash-abc");
+    const estab = document.getElementById("filter-estab").value;
+    const qs = estab ? ("?estabelecimento_id=" + encodeURIComponent(estab)) : "";
+    const data = await AuthService.api("/api/inventory/abc" + qs);
+    if (data.status !== "ok") { el.innerHTML = ""; return; }
+    const resumo = data.resumo || {};
+    const clsColor = { A: "#f87171", B: "#fbbf24", C: "#4ade80" };
+    const clsLabel = { A: "A · semanal", B: "B · mensal", C: "C · bimestral" };
+    el.innerHTML = `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">Curva ABC (${data.criterio || "valor"})</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          ${["A", "B", "C"].map((c) => {
+            const r = resumo[c] || {};
+            return `
+            <div style="flex:1;min-width:120px;padding:8px;border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:12px">
+              <div style="font-weight:700;color:${clsColor[c]}">Classe ${c}</div>
+              <div>${fmtNum(r.itens || 0)} itens · ${fmtNum(r.pct_valor || 0)}% valor</div>
+              <div style="opacity:.75">${clsLabel[c]}</div>
+              ${r.vencidos ? `<div style="color:#fbbf24">⚠ ${r.vencidos} vencido(s)</div>` : ""}
+            </div>`;
+          }).join("")}
+        </div>
+        <table class="stk-table">
+          <thead><tr><th>Produto</th><th>Classe</th><th>Valor</th><th>% acum.</th><th>Última contagem</th></tr></thead>
+          <tbody>
+            ${(data.itens || []).slice(0, 8).map((r) => `
+              <tr>
+                <td>${r.produto_id} · ${escapeHtml(r.produto)}</td>
+                <td style="color:${clsColor[r.classe]};font-weight:700">${r.classe}</td>
+                <td>R$ ${Number(r.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</td>
+                <td>${fmtNum(r.pct_acumulado)}%</td>
+                <td>${r.dias_desde_contagem == null ? "—" : r.dias_desde_contagem + "d"}${r.vencido ? " <span style=\"color:#fbbf24\" title=\"Vencido pela periodicidade da classe\">⚠</span>" : ""}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  async function loadCycles() {
+    const el = document.getElementById("dash-cycles");
+    const estab = document.getElementById("filter-estab").value;
+    const qs = estab ? ("?estabelecimento_id=" + encodeURIComponent(estab)) : "";
+    const data = await AuthService.api("/api/inventory/cycles" + qs);
+    const rows = data.cycles || [];
+    if (!rows.length) {
+      el.innerHTML = `<div class="dashboard-widget widget-md"><div class="widget-header"><span class="widget-title">Acuracidade (contagens)</span></div><p style="font-size:13px;opacity:.7;margin:0">Nenhuma contagem fechada ainda.</p></div>`;
+      return;
+    }
+    const rot = rows.filter((r) => r.modo === "rotativo");
+    const media = rows.reduce((s, r) => s + (r.acuracia || 0), 0) / rows.length;
+    el.innerHTML = `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">Acuracidade (${rows.length} contagem(ns))</span></div>
+        <div style="font-size:13px;margin-bottom:8px">Média: <strong style="color:${media >= 95 ? "#4ade80" : media >= 90 ? "#fbbf24" : "#f87171"}">${media.toLocaleString("pt-BR")}%</strong>${rot.length ? ` · ${rot.length} rotativa(s)` : ""}</div>
+        <table class="stk-table">
+          <thead><tr><th>#</th><th>Modo</th><th>Itens</th><th>Ajustes</th><th>Acuracidade</th></tr></thead>
+          <tbody>
+            ${rows.slice(0, 8).map((r) => `
+              <tr>
+                <td>#${r.id}</td>
+                <td>${r.modo === "rotativo" ? "<span style=\"color:#5eead4\">rotativo</span>" : "anual"}</td>
+                <td>${fmtNum(r.itens_contados)}</td>
+                <td>${fmtNum(r.total_ajustes)}</td>
+                <td style="color:${r.acuracia >= 95 ? "#4ade80" : r.acuracia >= 90 ? "#fbbf24" : "#f87171"}"><strong>${fmtNum(r.acuracia)}%</strong></td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  async function renderKpisExtras() {
+    const el = document.getElementById("dash-kpis-extras");
+    const dias = document.getElementById("dash-kpi-dias").value;
+    const estab = document.getElementById("filter-estab").value;
+    const qs = new URLSearchParams({ dias });
+    if (estab) qs.set("estabelecimento_id", estab);
+    const data = await AuthService.api("/api/inventory/kpis?" + qs.toString());
+    if (data.status !== "ok") { el.innerHTML = ""; return; }
+    const fmt = (v) => v == null ? "—" : fmtNum(v);
+    const fmtGiro = (v) => {
+      if (v == null) return "—";
+      const n = Number(v);
+      return n < 10 ? n.toLocaleString("pt-BR", { maximumFractionDigits: 2 }) : fmtNum(n);
+    };
+    const fmtMoeda = (v) => (v == null ? "—" : "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+    const kpi = (label, value, color, title) => `
+      <div class="kpi-card kpi-${color}" title="${title || ""}">
+        <div class="kpi-header"><span class="kpi-label-ico"></span></div>
+        <div class="kpi-value">${value}</div>
+        <div class="kpi-label">${label}</div>
+      </div>`;
+    el.innerHTML =
+      kpi("Valor em estoque", fmtMoeda(data.valor_estoque), "info", "Saldo × preço de custo") +
+      kpi(`Giro (${dias}d)`, fmtGiro(data.giro), "primary", "Unidades vendidas ÷ estoque médio no período") +
+      kpi("Cobertura (dias)", fmt(data.cobertura_dias), "success", "Estoque atual ÷ média diária de vendas") +
+      kpi("Ruptura", fmt(data.ruptura ? data.ruptura.length : 0), data.ruptura && data.ruptura.length ? "warning" : "success", "Produtos que venderam no período e estão sem saldo");
+  }
+
+  async function loadAlerts() {
+    const el = document.getElementById("dash-alerts");
+    const estab = document.getElementById("filter-estab").value;
+    const qs = estab ? ("?estabelecimento_id=" + encodeURIComponent(estab)) : "";
+    const data = await AuthService.api("/api/inventory/alerts" + qs);
+    const alerts = data.alerts || [];
+    if (!alerts.length) {
+      el.innerHTML = `<div class="dashboard-widget widget-md"><div class="widget-header"><span class="widget-title">Alertas de estoque mínimo</span></div><p style="font-size:13px;opacity:.7;margin:0">Nenhum produto abaixo do mínimo. ✅</p></div>`;
+      return;
+    }
+    el.innerHTML = `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">Alertas de estoque mínimo (${alerts.length})</span></div>
+        <table class="stk-table">
+          <thead><tr><th>Produto</th><th>Local</th><th>Saldo</th><th>Mínimo</th><th>Faltam</th></tr></thead>
+          <tbody>
+            ${alerts.map((a) => `
+              <tr>
+                <td>${a.produto_id} · ${escapeHtml(a.produto)}</td>
+                <td>${escapeHtml(a.localizacao || "—")}</td>
+                <td>${fmtNum(a.saldo)}</td>
+                <td>${fmtNum(a.minimo)}</td>
+                <td style="color:#fbbf24"><strong>${fmtNum(a.faltam)}</strong></td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  async function loadReservas() {
+    const el = document.getElementById("dash-reservas");
+    const estab = document.getElementById("filter-estab").value;
+    const qs = estab ? ("?estabelecimento_id=" + encodeURIComponent(estab)) : "";
+    const data = await AuthService.api("/api/inventory/reservations" + qs);
+    const rows = data.reservations || [];
+    if (!rows.length) {
+      el.innerHTML = `<div class="dashboard-widget widget-md"><div class="widget-header"><span class="widget-title">Reservas ativas</span></div><p style="font-size:13px;opacity:.7;margin:0">Nenhuma reserva ativa.</p></div>`;
+      return;
+    }
+    el.innerHTML = `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">Reservas ativas (${rows.length})</span></div>
+        <table class="stk-table">
+          <thead><tr><th>Reserva</th><th>Pedido</th><th>Itens</th><th></th></tr></thead>
+          <tbody>
+            ${rows.map((r) => `
+              <tr>
+                <td>${r.id}${r.parcial ? " <span style=\"color:#fbbf24;font-size:11px\" title=\"Reserva parcial\">⚠</span>" : ""}</td>
+                <td>${escapeHtml(r.pedido_numero || r.pedido_id || "—")}</td>
+                <td>${(r.linhas || []).map((l) => `${l.produto_id}×${l.qtd}`).join(", ")}</td>
+                <td><button class="dialog-btn dialog-btn-secondary" style="padding:2px 8px;font-size:11px" data-release="${r.id}">Liberar</button></td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+      </div>`;
+    el.querySelectorAll("[data-release]").forEach((btn) => {
+      btn.onclick = async () => {
+        const res = await AuthService.api("/api/inventory/reservations/" + btn.dataset.release + "/release", {
+          method: "POST",
+          body: JSON.stringify({ motivo: "released" }),
+        });
+        if (res.status === "ok") msg("Reserva " + btn.dataset.release + " liberada", true);
+        else msg(res.message || "Falha ao liberar reserva", false);
+        loadReservas();
+      };
+    });
+  }
+
+  async function renderHistoryChart() {
+    if (!movsAll) {
+      const data = await AuthService.api("/api/inventory/movements?limit=1000");
+      movsAll = data.movements || [];
+    }
+    const period = document.getElementById("dash-period").value;
+    const op = document.getElementById("dash-op").value;
+    const opLbl = document.getElementById("dash-op").selectedOptions[0]?.textContent || "";
+    const por = {};
+    (movsAll || []).forEach((m) => {
+      if (!opFilterMatch(m.tipo, op)) return;
+      const k = periodKey(m.at, period);
+      por[k] = (por[k] || 0) + Number(m.qty || 0);
+    });
+    const keys = Object.keys(por).sort();
+    const max = Math.max(...keys.map((k) => por[k]), 1);
+    const el = document.getElementById("dash-history");
+    if (!keys.length) { el.innerHTML = ""; return; }
+    el.innerHTML = `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">Movimentações por ${period === "dia" ? "dia" : period === "mes" ? "mês" : "semestre"}${op ? " · " + escapeHtml(opLbl) : ""}</span></div>
+        <div class="chart-bars">
+          ${keys.map((k) => `
+            <div class="chart-bar-col">
+              <div class="chart-bar" style="height:${Math.max((por[k] / max) * 100, 2)}%">
+                <span class="chart-bar-value">${fmtNum(por[k])}</span>
+              </div>
+              <span class="chart-bar-label">${periodLabel(k, period)}</span>
+            </div>`).join("")}
+        </div>
+      </div>`;
+  }
 
   function msg(text, ok) {
     const el = document.getElementById("msg");
@@ -202,10 +985,38 @@
 
   async function loadNomes(estab) {
     nomes = {};
+    produtos = [];
     const qs = estab ? ("?estabelecimento_id=" + encodeURIComponent(estab)) : "";
     const data = await AuthService.api("/api/pos/produtos" + qs);
     (data.produtos || []).forEach((p) => {
       nomes[String(p.id)] = p.nome || String(p.id);
+      produtos.push({
+        id: String(p.id),
+        nome: p.nome || String(p.id),
+        categoria: p.categoria || "",
+        localizacao: p.localizacao || p.location || "",
+        estoque_min: p.estoque_min != null ? Number(p.estoque_min) : 0,
+      });
+    });
+    produtos.sort((a, b) => a.nome.localeCompare(b.nome));
+    const opts = produtos.map((p) => `<option value="${p.id}">${p.id} · ${p.nome}</option>`).join("");
+    ["tr-pid", "aj-pid"].forEach((selId) => {
+      const el = document.getElementById(selId);
+      if (el) el.innerHTML = opts || '<option value="">— sem produtos —</option>';
+    });
+  }
+
+  function ensureEstabOptions(keys) {
+    const sel = document.getElementById("filter-estab");
+    const existing = new Set(Array.from(sel.options).map((o) => o.value));
+    keys.forEach((k) => {
+      if (!existing.has(k)) {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = (empresas[k] || {}).nome || k;
+        sel.appendChild(opt);
+        existing.add(k);
+      }
     });
   }
 
@@ -223,8 +1034,10 @@
       const data = await AuthService.api("/api/inventory/balance");
       if (data.status !== "ok") return msg(data.message || "Falha ao carregar");
       por = data.por_estabelecimento || {};
+      ensureEstabOptions(Object.keys(por));
     }
 
+    porAtual = por;
     const rows = [];
     Object.keys(por).forEach((eid) => {
       const loja = por[eid] || {};
@@ -241,18 +1054,28 @@
       return;
     }
 
+    const prodInfo = {};
+    produtos.forEach((p) => { prodInfo[p.id] = p; });
     document.getElementById("balances").innerHTML = `
       <table class="stk-table">
-        <thead><tr><th>Loja</th><th>Produto</th><th>Saldo</th></tr></thead>
+        <thead><tr><th>Loja</th><th>Produto</th><th>Local</th><th>Saldo</th></tr></thead>
         <tbody>
-          ${rows.map((r) => `
+          ${rows.map((r) => {
+            const info = prodInfo[r.pid] || {};
+            const local = info.localizacao || "—";
+            const min = Number(info.estoque_min) > 0 ? Number(info.estoque_min) : null;
+            const alerta = min != null && r.qty <= min;
+            return `
             <tr class="${r.qty <= 0 ? "stk-zero" : ""}">
               <td>${(empresas[r.eid] || {}).nome || r.eid}</td>
-              <td>${r.pid} · ${nomes[r.pid] || "—"}</td>
+              <td>${r.pid} · ${nomes[r.pid] || "—"}${alerta ? " <span style=\"color:#fbbf24;font-size:11px\" title=\"Abaixo do mínimo (${min})\">⚠</span>" : ""}</td>
+              <td>${local}</td>
               <td><strong>${r.qty}</strong></td>
-            </tr>`).join("")}
+            </tr>`;
+          }).join("")}
         </tbody>
       </table>`;
+    if (viewMode === "dash") renderDashboard();
   }
 
   async function loadMovements() {
@@ -261,6 +1084,8 @@
     if (estab) qs.set("estabelecimento_id", estab);
     const data = await AuthService.api("/api/inventory/movements?" + qs.toString());
     const rows = data.movements || [];
+    movsAtual = rows;
+    if (viewMode === "dash") renderDashboard();
     if (!rows.length) {
       document.getElementById("movements").innerHTML = "<p>Sem movimentos.</p>";
       return;
@@ -320,6 +1145,48 @@
   document.querySelectorAll("[data-close]").forEach((btn) => {
     btn.addEventListener("click", () => closeModal(btn.dataset.close));
   });
+  const sbSidebar = document.getElementById("sidebar");
+  const sbBtn = document.getElementById("sidebar-collapse");
+  function applySidebar(collapsed) {
+    sbSidebar.classList.toggle("collapsed", collapsed);
+    sbSidebar.style.width = collapsed ? "64px" : "";
+    const ma = document.querySelector(".main-area");
+    if (ma) {
+      ma.classList.toggle("collapsed", collapsed);
+      ma.style.marginLeft = collapsed ? "64px" : "";
+      ma.style.width = collapsed ? "calc(100% - 64px)" : "";
+    }
+  }
+  if (sbSidebar && sbBtn) {
+    if (localStorage.getItem("sidebar_collapsed") === "true") applySidebar(true);
+    sbBtn.onclick = () => {
+      const collapsed = !sbSidebar.classList.contains("collapsed");
+      applySidebar(collapsed);
+      localStorage.setItem("sidebar_collapsed", collapsed);
+    };
+  }
+  document.querySelectorAll(".menu-item.has-children").forEach((parent) => {
+    const sub = document.getElementById("sub-" + parent.id.replace("menu-", ""));
+    if (!sub) return;
+    parent.addEventListener("click", () => {
+      sub.classList.toggle("open");
+      const arrow = parent.querySelector(".menu-arrow");
+      if (arrow) arrow.classList.toggle("rotated");
+    });
+  });
+  document.getElementById("view-btn-tabela").onclick = () => setView("tabela");
+  document.getElementById("view-btn-dash").onclick = () => setView("dash");
+  document.getElementById("dash-period").onchange = renderHistoryChart;
+  document.getElementById("dash-op").onchange = renderHistoryChart;
+  document.getElementById("dash-kpi-dias").onchange = () => { renderKpisExtras(); loadAlerts(); loadReservas(); };
+  document.getElementById("btn-report").onclick = openReportModal;
+  document.getElementById("rpt-run").onclick = runReport;
+  document.getElementById("rpt-export").onclick = exportReportCsv;
+  document.getElementById("btn-count").onclick = openCountModal;
+  document.getElementById("ct-start").onclick = startCount;
+  document.getElementById("ct-save").onclick = saveCount;
+  document.getElementById("ct-close").onclick = closeCount;
+  document.getElementById("au-export").onclick = exportAuditCsv;
   document.getElementById("btn-transfer").onclick = () => {
     document.getElementById("tr-error").textContent = "";
     openModal("transfer-modal");
@@ -355,6 +1222,432 @@
     refresh();
   };
 
+  function showCountErr(msg, ok) {
+    const el = document.getElementById("ct-error");
+    el.textContent = msg || "";
+    el.style.color = ok ? "#4ade80" : "#f87171";
+    el.classList.add("visible");
+  }
+
+  function openReportModal() {
+    const estabSel = document.getElementById("rpt-estab");
+    estabSel.innerHTML = `<option value="">Todas lojas</option>` +
+      Object.keys(empresas).map((id) => `<option value="${id}">${empresas[id].nome || id}</option>`).join("");
+    const filtro = document.getElementById("filter-estab").value;
+    if (filtro) estabSel.value = filtro;
+    const pidSel = document.getElementById("rpt-pid");
+    pidSel.innerHTML = `<option value="">Todos produtos</option>` +
+      produtos.map((p) => `<option value="${p.id}">${p.id} · ${p.nome}</option>`).join("");
+    document.getElementById("rpt-error").textContent = "";
+    runReport();
+    openModal("report-modal");
+  }
+
+  async function runReport() {
+    const err = document.getElementById("rpt-error");
+    err.textContent = "";
+    const qs = new URLSearchParams({ limit: "500" });
+    const estab = document.getElementById("rpt-estab").value;
+    const tipo = document.getElementById("rpt-tipo").value;
+    const pid = document.getElementById("rpt-pid").value;
+    const de = document.getElementById("rpt-de").value;
+    const ate = document.getElementById("rpt-ate").value;
+    if (estab) qs.set("estabelecimento_id", estab);
+    if (tipo) qs.set("tipo", tipo);
+    if (pid) qs.set("produto_id", pid);
+    if (de) qs.set("de", de);
+    if (ate) qs.set("ate", ate);
+    const data = await AuthService.api("/api/inventory/report?" + qs.toString());
+    if (data.status !== "ok") { err.textContent = data.message || "Falha no relatório"; return; }
+    const rows = data.movements || [];
+    const t = data.totais || {};
+    document.getElementById("rpt-resumo").innerHTML =
+      `<strong>${rows.length}</strong> movimento(s) · Entradas <strong>${fmtNum(t.entrada)}</strong> · Saídas <strong>${fmtNum(t.saida)}</strong> · Saldo do período <strong>${fmtNum(t.saldo_periodo)}</strong>`;
+    if (!rows.length) {
+      document.getElementById("rpt-body").innerHTML = "<p>Sem movimentos para os filtros.</p>";
+      return;
+    }
+    document.getElementById("rpt-body").innerHTML = `
+      <table class="stk-table">
+        <thead><tr><th>#</th><th>Data</th><th>Tipo</th><th>Produto</th><th>Loja</th><th>Qty</th><th>Referência</th></tr></thead>
+        <tbody>
+          ${rows.map((m) => {
+            const sign = m.sign === -1 || ["sale", "transfer_out", "concerto", "demonstracao"].includes(m.tipo) ? "−" : (m.sign === 1 || m.tipo === "transfer_in" || m.tipo === "receive" || m.tipo === "devolucao" ? "+" : "");
+            return `
+            <tr>
+              <td>${m.id}</td>
+              <td>${String(m.at || "").slice(0, 16)}</td>
+              <td>${OP_LABELS[m.tipo] || m.tipo}</td>
+              <td>${m.produto_id} · ${nomes[m.produto_id] || ""}</td>
+              <td>${(empresas[m.estabelecimento_id] || {}).nome || m.estabelecimento_id || "—"}</td>
+              <td>${sign}${m.qty}</td>
+              <td>${escapeHtml(m.ref_tipo || "")}${m.ref_id ? " #" + escapeHtml(m.ref_id) : ""}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  function exportReportCsv() {
+    const table = document.querySelector("#rpt-body table");
+    if (!table) { msg("Nada para exportar", false); return; }
+    const lines = [];
+    lines.push("ID;Data;Tipo;Produto;Loja;Qty;Referencia");
+    table.querySelectorAll("tbody tr").forEach((tr) => {
+      const cells = Array.from(tr.querySelectorAll("td")).map((td) => {
+        const v = td.textContent.trim();
+        return /[;\n"]/.test(v) ? `"${v.replace(/"/g, "\"\"")}"` : v;
+      });
+      lines.push(cells.join(";"));
+    });
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "relatorio-movimentacao.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    msg("CSV exportado", true);
+  }
+
+  function fillEscopoVal() {
+    const tipo = document.getElementById("ct-escopo").value;
+    const sel = document.getElementById("ct-escopo-val");
+    const label = document.getElementById("ct-escopo-val-label");
+    if (tipo === "amostra") {
+      label.textContent = "Quantidade (N)";
+      sel.innerHTML = [10, 20, 30, 50].map((n) => `<option value="${n}">${n} itens</option>`).join("");
+      return;
+    }
+    if (tipo === "classe") {
+      label.textContent = "Classe ABC";
+      sel.innerHTML = `
+        <option value="A">A · semanal (alto valor)</option>
+        <option value="B">B · mensal (médio valor)</option>
+        <option value="C">C · bimestral (baixo valor)</option>`;
+      return;
+    }
+    if (tipo === "categoria") {
+      label.textContent = "Categoria";
+      const cats = {};
+      produtos.forEach((p) => { if (p.categoria) cats[p.categoria] = (cats[p.categoria] || 0) + 1; });
+      sel.innerHTML = Object.keys(cats).sort().map((c) => `<option value="${c}">${c} (${cats[c]})</option>`).join("");
+      return;
+    }
+    label.textContent = "Localização";
+    const locs = {};
+    produtos.forEach((p) => { if (p.localizacao) locs[p.localizacao] = (locs[p.localizacao] || 0) + 1; });
+    sel.innerHTML = Object.keys(locs).sort().map((l) => `<option value="${l}">${l} (${locs[l]})</option>`).join("");
+  }
+
+  function openCountModal() {
+    showCountErr("");
+    document.getElementById("ct-start").disabled = false;
+    const ctSel = document.getElementById("ct-estab");
+    const src = document.getElementById("filter-estab");
+    ctSel.innerHTML = Array.from(src.options).filter((o) => o.value)
+      .map((o) => `<option value="${o.value}">${o.textContent}</option>`).join("");
+    const estab = document.getElementById("filter-estab").value;
+    if (estab) document.getElementById("ct-estab").value = estab;
+    fillEscopoVal();
+    currentCount = null;
+    renderCountItems();
+    loadCountHistory();
+    openModal("count-modal");
+  }
+
+  document.getElementById("ct-modo").onchange = () => {
+    const rot = document.getElementById("ct-modo").value === "rotativo";
+    document.getElementById("ct-escopo-wrap").style.display = rot ? "" : "none";
+    document.getElementById("ct-escopo-val-wrap").style.display = rot ? "" : "none";
+    document.getElementById("ct-sugestao").style.display = rot ? "" : "none";
+  };
+  document.getElementById("ct-escopo").onchange = fillEscopoVal;
+  document.getElementById("ct-sugestao").onclick = async () => {
+    const estab = document.getElementById("ct-estab").value;
+    if (!estab) { showCountErr("Escolha a loja para a sugestão"); return; }
+    const data = await AuthService.api("/api/inventory/cycles/suggest?estabelecimento_id=" + encodeURIComponent(estab));
+    if (data.status !== "ok") { showCountErr(data.message || "Falha na sugestão"); return; }
+    if (!data.sugestao || !data.sugestao.length) { showCountErr("Sem itens para sugerir", true); return; }
+    document.getElementById("ct-modo").value = "rotativo";
+    document.getElementById("ct-modo").dispatchEvent(new Event("change"));
+    document.getElementById("ct-escopo").value = "classe";
+    fillEscopoVal();
+    const val = document.getElementById("ct-escopo-val");
+    if (data.classe) val.value = data.classe;
+    showCountErr(`Sugestão: classe ${data.classe || "?"} (${data.periodicidade || "?"}) · ${data.sugestao.length} itens`, true);
+  };
+
+  async function loadCountHistory() {
+    const el = document.getElementById("ct-history");
+    const data = await AuthService.api("/api/inventory/counts");
+    const rows = data.counts || [];
+    if (!rows.length) { el.innerHTML = ""; return; }
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">Contagens recentes:</div>' +
+      rows.slice(0, 6).map((c) => {
+        const modo = c.modo || "anual";
+        const esc = c.escopo || {};
+        const escTxt = modo === "rotativo" ? ` · <span style="color:#5eead4">${esc.tipo || ""}${esc.valor != null ? ": " + esc.valor : ""}</span>` : "";
+        const acu = c.resumo && c.resumo.acuracia != null
+          ? ` · <span style="color:${c.resumo.acuracia >= 95 ? "#4ade80" : "#fbbf24"}">acuracidade ${c.resumo.acuracia}%</span>`
+          : "";
+        return `
+        <div style="display:flex;gap:8px;align-items:center;padding:4px 8px;border:1px solid var(--border-color);border-radius:6px;margin-bottom:4px;font-size:12px">
+          <span>#${c.id} · ${(empresas[c.estabelecimento_id] || {}).nome || c.estabelecimento_id}${escTxt}</span>
+          <span style="color:${c.status === "aberto" ? "#fbbf24" : "#4ade80"}">${c.status === "aberto" ? "aberto" : "fechado"}</span>
+          ${c.status === "aberto" ? `<button class="dialog-btn dialog-btn-secondary" style="padding:2px 8px;font-size:11px" data-retomar="${c.id}">Retomar</button>` : ""}
+          ${c.status === "fechado" ? `<button class="dialog-btn dialog-btn-secondary" style="padding:2px 8px;font-size:11px" data-audit="${c.id}">Auditar</button>` : ""}
+          ${acu}
+          ${c.resumo ? `<span style="margin-left:auto;color:var(--text-muted)">${c.resumo.total_ajustes} ajuste(s)</span>` : ""}
+        </div>`;
+      }).join("");
+    el.querySelectorAll("[data-retomar]").forEach((btn) => {
+      btn.onclick = async () => {
+        const d = await AuthService.api("/api/inventory/counts/" + btn.dataset.retomar);
+        if (d.status === "ok") {
+          currentCount = d.count;
+          document.getElementById("ct-estab").value = d.count.estabelecimento_id;
+          renderCountItems();
+        }
+      };
+    });
+    el.querySelectorAll("[data-audit]").forEach((btn) => {
+      btn.onclick = () => openAudit(btn.dataset.audit);
+    });
+  }
+
+  async function openAudit(cid) {
+    const data = await AuthService.api("/api/inventory/counts/" + cid + "/audit");
+    if (data.status !== "ok") { msg(data.message || "Falha na auditoria", false); return; }
+    const a = data.audit || {};
+    const r = a.resumo || {};
+    const esc = a.escopo || {};
+    const escTxt = a.modo === "rotativo" ? `rotativo (${esc.tipo || ""}${esc.valor != null ? ": " + esc.valor : ""})` : "anual";
+    const causas = (a.por_causa || []).map((c) => `<span style="padding:2px 8px;border:1px solid rgba(255,255,255,.15);border-radius:12px;margin-right:4px;display:inline-block;margin-bottom:4px">${escapeHtml(c.label)}: ${c.itens} · ${fmtNum(c.valor)}</span>`).join("");
+    document.getElementById("au-body").innerHTML = `
+      <div style="font-size:13px;margin-bottom:10px">
+        <strong>Contagem #${a.id}</strong> · ${escTxt} · ${(empresas[a.estabelecimento_id] || {}).nome || a.estabelecimento_id}<br>
+        Criada ${String(a.criado_em || "").slice(0, 16)} · Fechada ${String(a.fechado_em || "—").slice(0, 16)}<br>
+        <strong>${fmtNum(r.itens_contados || 0)}</strong> itens contados · <strong>${fmtNum(r.total_ajustes || 0)}</strong> ajuste(s) · acuracidade <strong style="color:${(r.acuracia || 0) >= 95 ? "#4ade80" : "#fbbf24"}">${r.acuracia != null ? r.acuracia + "%" : "—"}</strong>
+        ${a.nota ? `<br>Nota: ${escapeHtml(a.nota)}` : ""}
+      </div>
+      ${causas ? `<div style="font-size:12px;margin-bottom:8px">${causas}</div>` : ""}
+      <table class="stk-table">
+        <thead><tr><th>Produto</th><th>Local</th><th>Sistema</th><th>Contado</th><th>Diverg.</th><th>Causa</th></tr></thead>
+        <tbody>
+          ${(a.itens || []).map((i) => {
+            const d = i.divergencia;
+            const div = d == null ? "—" : (d > 0 ? "+" : "") + d;
+            const cor = d == null || Math.abs(Number(d)) < 1e-9 ? "" : "color:#fbbf24";
+            return `
+            <tr>
+              <td>${i.produto_id} · ${escapeHtml(i.produto)}</td>
+              <td>${escapeHtml(i.localizacao || "—")}</td>
+              <td>${i.qtd_sistema}</td>
+              <td>${i.qtd_contada != null ? i.qtd_contada : "—"}</td>
+              <td style="${cor}">${div}</td>
+              <td>${escapeHtml(i.causa_label || "—")}${i.observacao ? " <span style=\"opacity:.7\">· " + escapeHtml(i.observacao) + "</span>" : ""}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+    document.getElementById("au-export").dataset.cid = cid;
+    openModal("audit-modal");
+  }
+
+  function exportAuditCsv() {
+    const table = document.querySelector("#au-body table");
+    if (!table) { msg("Nada para exportar", false); return; }
+    const lines = [];
+    lines.push("Produto;Local;Sistema;Contado;Divergencia;Causa");
+    table.querySelectorAll("tbody tr").forEach((tr) => {
+      const cells = Array.from(tr.querySelectorAll("td")).map((td) => {
+        const v = td.textContent.trim();
+        return /[;\n"]/.test(v) ? `"${v.replace(/"/g, "\"\"")}"` : v;
+      });
+      lines.push(cells.join(";"));
+    });
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `auditoria-contagem-${document.getElementById("au-export").dataset.cid || ""}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    msg("CSV de auditoria exportado", true);
+  }
+
+  function renderCountItems() {
+    const box = document.getElementById("ct-items");
+    const footer = document.getElementById("ct-footer");
+    const btn = document.getElementById("ct-start");
+    if (!currentCount) {
+      box.innerHTML = '<div style="color:var(--text-muted);font-size:13px;padding:1rem">Escolha a loja e clique em <strong>Iniciar contagem</strong> para carregar os saldos atuais.</div>';
+      footer.style.display = "none";
+      btn.textContent = "Iniciar contagem";
+      btn.disabled = false;
+      return;
+    }
+    btn.textContent = "Nova contagem";
+    footer.style.display = "";
+    const itens = currentCount.itens || [];
+    const modo = currentCount.modo || "anual";
+    const esc = currentCount.escopo || {};
+    const escopoTxt = modo === "rotativo"
+      ? ` · <span style="color:#5eead4">rotativo (${esc.tipo || "?"}: ${esc.valor != null ? esc.valor : ""})</span>`
+      : "";
+    box.innerHTML = `
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px">Contagem #${currentCount.id} · ${itens.length} item(ns)${escopoTxt}</div>
+      <table class="stk-table">
+        <thead><tr><th>Produto</th><th>Sistema</th><th>Contado</th><th>Divergência</th></tr></thead>
+        <tbody>
+          ${itens.map((i) => `
+            <tr>
+              <td>${i.produto_id} · ${nomes[i.produto_id] || "—"}</td>
+              <td>${i.qtd_sistema}</td>
+              <td><input class="form-input ct-qty" data-pid="${i.produto_id}" type="number" min="0" step="1" value="${i.qtd_contada != null ? i.qtd_contada : i.qtd_sistema}" style="width:90px;padding:4px 8px"></td>
+              <td class="ct-div" data-pid="${i.produto_id}">${i.divergencia != null ? i.divergencia : "—"}</td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+    box.querySelectorAll(".ct-qty").forEach((inp) => {
+      inp.addEventListener("input", () => {
+        const qc = Number(inp.value || 0);
+        const item = (currentCount.itens || []).find((x) => String(x.produto_id) === inp.dataset.pid);
+        if (item) {
+          const diff = Math.round((qc - item.qtd_sistema) * 1000) / 1000;
+          const td = box.querySelector(`.ct-div[data-pid="${inp.dataset.pid}"]`);
+          if (td) td.textContent = diff === 0 ? "—" : (diff > 0 ? "+" : "") + diff;
+        }
+      });
+    });
+  }
+
+  async function startCount() {
+    const estab = document.getElementById("ct-estab").value;
+    if (!estab) { showCountErr("Escolha a loja"); return; }
+    const modo = document.getElementById("ct-modo").value;
+    const body = { estabelecimento_id: estab, nota: "" };
+    if (modo === "rotativo") {
+      const tipo = document.getElementById("ct-escopo").value;
+      const val = document.getElementById("ct-escopo-val").value;
+      body.escopo = { tipo, valor: tipo === "amostra" ? Number(val) : val };
+    }
+    const data = await AuthService.api("/api/inventory/cycles", {
+      method: "POST",
+      body: JSON.stringify(body),
+    });
+    if (data.status !== "ok") {
+      // fallback: endpoint de contagem tradicional
+      if (modo === "rotativo") {
+        const legacy = await AuthService.api("/api/inventory/counts", {
+          method: "POST",
+          body: JSON.stringify({ estabelecimento_id: estab }),
+        });
+        if (legacy.status !== "ok") { showCountErr(legacy.message || "Erro ao iniciar"); return; }
+        currentCount = legacy.count;
+      } else {
+        showCountErr(data.message || "Erro ao iniciar");
+        return;
+      }
+    } else {
+      currentCount = data.count;
+    }
+    renderCountItems();
+    loadCountHistory();
+  }
+
+  const CAUSAS_DIVERGENCIA = {
+    erro_contagem: "Erro de contagem (recontar)",
+    quebra_perda: "Quebra / perda física",
+    extravio: "Extravio / sumiço",
+    erro_recebimento: "Erro no recebimento",
+    erro_baixa: "Erro de baixa / venda",
+    nao_localizado: "Item não localizado",
+    obsolescencia: "Obsolescência / vencido",
+    outros: "Outros",
+  };
+
+  function divergentesContados() {
+    // itens com qtd contada registrada e divergente do sistema
+    return (currentCount.itens || []).filter((i) => {
+      if (i.qtd_contada == null) return false;
+      return Math.abs(Number(i.qtd_contada) - Number(i.qtd_sistema)) > 1e-9;
+    });
+  }
+
+  async function saveCount() {
+    if (!currentCount) return;
+    const itens = Array.from(document.querySelectorAll("#ct-items .ct-qty")).map((inp) => ({
+      produto_id: inp.dataset.pid,
+      qtd_contada: Number(inp.value || 0),
+    }));
+    const data = await AuthService.api("/api/inventory/counts/" + currentCount.id + "/itens", {
+      method: "POST",
+      body: JSON.stringify({ itens }),
+    });
+    if (data.status !== "ok") { showCountErr(data.message || "Erro ao salvar"); return; }
+    currentCount = data.count;
+    // etapa 4: apontar causa das divergências antes de fechar
+    renderCausas();
+    showCountErr("Contagens salvas ✓ — aponto as causas das divergências abaixo antes de fechar", true);
+  }
+
+  function renderCausas() {
+    const box = document.getElementById("ct-causas");
+    const divs = divergentesContados();
+    if (!divs.length) { box.innerHTML = ""; return; }
+    box.innerHTML = `
+      <div style="font-size:13px;margin:10px 0 6px;color:#fbbf24"><strong>Divergências — aponte a causa (análise):</strong></div>
+      <table class="stk-table">
+        <thead><tr><th>Produto</th><th>Divergência</th><th>Causa</th><th>Observação</th></tr></thead>
+        <tbody>
+          ${divs.map((i) => `
+            <tr>
+              <td>${i.produto_id} · ${nomes[i.produto_id] || "—"}</td>
+              <td>${i.divergencia > 0 ? "+" : ""}${i.divergencia}</td>
+              <td>
+                <select class="form-input ct-causa" data-pid="${i.produto_id}" style="width:190px;padding:4px 8px">
+                  <option value="">— selecione —</option>
+                  ${Object.entries(CAUSAS_DIVERGENCIA).map(([k, v]) => `<option value="${k}" ${i.causa === k ? "selected" : ""}>${v}</option>`).join("")}
+                </select>
+              </td>
+              <td><input class="form-input ct-causa-obs" data-pid="${i.produto_id}" placeholder="opcional" value="${escapeHtml(i.observacao || "")}" style="width:200px;padding:4px 8px"></td>
+            </tr>`).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  async function saveCausas() {
+    if (!currentCount) return;
+    const causas = Array.from(document.querySelectorAll("#ct-causas .ct-causa")).map((sel) => ({
+      produto_id: sel.dataset.pid,
+      causa: sel.value,
+      observacao: (document.querySelector(`.ct-causa-obs[data-pid="${sel.dataset.pid}"]`) || {}).value || "",
+    })).filter((c) => c.causa);
+    if (!causas.length) return;
+    await AuthService.api("/api/inventory/counts/" + currentCount.id + "/causas", {
+      method: "POST",
+      body: JSON.stringify({ causas }),
+    });
+  }
+
+  async function closeCount() {
+    if (!currentCount) return;
+    if (!confirm("Fechar a contagem? Os ajustes de divergência serão aplicados ao estoque.")) return;
+    await saveCausas();
+    await saveCount();
+    const data = await AuthService.api("/api/inventory/counts/" + currentCount.id + "/fechar", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+    if (data.status !== "ok") { showCountErr(data.message || "Erro ao fechar"); return; }
+    const r = data.count.resumo || {};
+    showCountErr(`Contagem #${currentCount.id} fechada — ${r.total_ajustes} ajuste(s) aplicado(s) · acuracidade ${r.acuracia != null ? r.acuracia + "%" : "—"} ✓`, true);
+    currentCount = null;
+    renderCountItems();
+    loadCountHistory();
+    refresh();
+  }
+
   document.getElementById("aj-save").onclick = async () => {
     const err = document.getElementById("aj-error");
     err.textContent = "";
@@ -385,6 +1678,7 @@
   (async function boot() {
     await loadEmpresas();
     await refresh();
+    setView("dash");
   })();
 })();
 </script>

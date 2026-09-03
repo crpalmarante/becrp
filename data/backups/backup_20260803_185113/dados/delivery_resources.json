@@ -1,0 +1,46 @@
+{
+  "seq": 3,
+  "atualizado_em": "2026-08-02T20:35:31",
+  "recursos": [
+    {
+      "id": "DRV-01",
+      "tipo": "driver",
+      "nome": "Carlos Motorista",
+      "placa": "",
+      "telefone": "(54) 98888-1001",
+      "capacidade": 0,
+      "status": "busy",
+      "ativo": true,
+      "observacao": "Seed",
+      "criado_em": "2026-08-02T11:39:35",
+      "atualizado_em": "2026-08-02T20:35:31"
+    },
+    {
+      "id": "VEH-01",
+      "tipo": "vehicle",
+      "nome": "Fiat Fiorino",
+      "placa": "ABC1D23",
+      "telefone": "",
+      "capacidade": 500,
+      "status": "available",
+      "ativo": true,
+      "observacao": "Seed",
+      "criado_em": "2026-08-02T11:39:35",
+      "atualizado_em": "2026-08-02T11:39:35"
+    },
+    {
+      "id": "CAR-01",
+      "tipo": "carrier",
+      "nome": "Transportadora X",
+      "placa": "",
+      "telefone": "(54) 3333-0000",
+      "capacidade": 0,
+      "status": "available",
+      "ativo": true,
+      "observacao": "Seed parceiro CARRIER",
+      "criado_em": "2026-08-02T11:39:35",
+      "atualizado_em": "2026-08-02T11:39:35"
+    }
+  ],
+  "total": 3
+}

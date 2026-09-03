@@ -1,0 +1,31 @@
+{
+  "faturas": [
+    {
+      "id": 1,
+      "numero": "FV00001",
+      "pedido_id": "99",
+      "pedido_numero": "PV00099",
+      "partner_id": "P1",
+      "cliente": "Cliente Teste SA",
+      "cnpj": "12345678000199",
+      "data_emissao": "2026-08-04",
+      "data_vencimento": "2026-09-04",
+      "subtotal": 100.5,
+      "impostos": 18.09,
+      "total": 118.59,
+      "status": "PENDENTE",
+      "itens_count": 2,
+      "entrega_id": "DO-00001",
+      "nfe_numero": 123,
+      "nfe_status": "RASCUNHO",
+      "ar_titulos": [
+        "AR-00001",
+        "AR-00002"
+      ],
+      "atualizado_em": "2026-08-04T17:30:06"
+    }
+  ],
+  "total": 1,
+  "source": "cobol:faturas_venda.dat",
+  "atualizado_em": "2026-08-04T17:30:06"
+}

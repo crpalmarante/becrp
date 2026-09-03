@@ -1,0 +1,292 @@
+{
+  "seq": 6,
+  "atualizado_em": "2026-08-02T20:35:31",
+  "pods": [
+    {
+      "id": "POD-SEED-0001",
+      "entrega_id": "DO-SEED-0001",
+      "parada": 1,
+      "status": "waiting",
+      "receptor_nome": "",
+      "receptor_doc": "",
+      "entregador": "Carlos Motorista",
+      "confirmado_em": "",
+      "lat": null,
+      "lng": null,
+      "assinatura": "",
+      "fotos": [],
+      "documentos": [],
+      "observacao": "Seed — aguardando confirmação",
+      "motivo_rejeicao": "",
+      "itens_ok": true,
+      "historico": [
+        {
+          "status": "waiting",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "seed",
+          "nota": "seed"
+        }
+      ],
+      "evidencias": [],
+      "criado_em": "2026-08-01T17:48:08",
+      "atualizado_em": "2026-08-01T17:48:08",
+      "imutavel": false
+    },
+    {
+      "id": "POD-20260801-0002",
+      "entrega_id": "DO-20260801-0002",
+      "parada": 1,
+      "status": "confirmed",
+      "receptor_nome": "Maria",
+      "receptor_doc": "",
+      "entregador": "Carlos",
+      "confirmado_em": "2026-08-01T17:48:08",
+      "lat": -28.26,
+      "lng": -52.4,
+      "assinatura": "assinatura:Maria",
+      "fotos": [
+        "porta.jpg"
+      ],
+      "documentos": [],
+      "observacao": "deixado na portaria",
+      "motivo_rejeicao": "",
+      "itens_ok": true,
+      "historico": [
+        {
+          "status": "waiting",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "nota": "criado na entrega"
+        },
+        {
+          "status": "waiting",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "nota": "evidência capturada"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "nota": "confirmado pelo receptor"
+        }
+      ],
+      "evidencias": [
+        {
+          "tipo": "signature",
+          "ref": "assinatura:Maria",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test"
+        },
+        {
+          "tipo": "photo",
+          "ref": "porta.jpg",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test"
+        }
+      ],
+      "criado_em": "2026-08-01T17:48:08",
+      "atualizado_em": "2026-08-01T17:48:08",
+      "imutavel": true
+    },
+    {
+      "id": "POD-20260801-0003",
+      "entrega_id": "DO-20260801-0003",
+      "parada": 1,
+      "status": "rejected",
+      "receptor_nome": "",
+      "receptor_doc": "",
+      "entregador": "A",
+      "confirmado_em": "",
+      "lat": null,
+      "lng": null,
+      "assinatura": "",
+      "fotos": [
+        "recusa.jpg"
+      ],
+      "documentos": [],
+      "observacao": "",
+      "motivo_rejeicao": "cliente recusou",
+      "itens_ok": true,
+      "historico": [
+        {
+          "status": "waiting",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "nota": "criado na entrega"
+        },
+        {
+          "status": "waiting",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "nota": "evidência capturada"
+        },
+        {
+          "status": "rejected",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test",
+          "nota": "cliente recusou"
+        }
+      ],
+      "evidencias": [
+        {
+          "tipo": "photo",
+          "ref": "recusa.jpg",
+          "em": "2026-08-01T17:48:08",
+          "usuario": "test"
+        }
+      ],
+      "criado_em": "2026-08-01T17:48:08",
+      "atualizado_em": "2026-08-01T17:48:08",
+      "imutavel": true
+    },
+    {
+      "id": "POD-20260802-0004",
+      "entrega_id": "DO-20260802-0002",
+      "parada": 1,
+      "status": "confirmed",
+      "receptor_nome": "Maria",
+      "receptor_doc": "",
+      "entregador": "Carlos Motorista",
+      "confirmado_em": "2026-08-02T20:30:57",
+      "lat": null,
+      "lng": null,
+      "assinatura": "ok",
+      "fotos": [],
+      "documentos": [],
+      "observacao": "confirmado no workspace motorista",
+      "motivo_rejeicao": "",
+      "itens_ok": true,
+      "historico": [
+        {
+          "status": "waiting",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "criado na entrega"
+        },
+        {
+          "status": "waiting",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "evidência capturada"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "confirmado pelo receptor"
+        }
+      ],
+      "evidencias": [
+        {
+          "tipo": "signature",
+          "ref": "ok",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke"
+        }
+      ],
+      "criado_em": "2026-08-02T20:30:57",
+      "atualizado_em": "2026-08-02T20:30:57",
+      "imutavel": true
+    },
+    {
+      "id": "POD-20260802-0005",
+      "entrega_id": "DO-20260802-0005",
+      "parada": 1,
+      "status": "confirmed",
+      "receptor_nome": "João",
+      "receptor_doc": "",
+      "entregador": "Carlos Motorista",
+      "confirmado_em": "2026-08-02T20:35:31",
+      "lat": null,
+      "lng": null,
+      "assinatura": "ok",
+      "fotos": [],
+      "documentos": [],
+      "observacao": "",
+      "motivo_rejeicao": "",
+      "itens_ok": true,
+      "historico": [
+        {
+          "status": "waiting",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "criado na entrega"
+        },
+        {
+          "status": "waiting",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "evidência capturada"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "confirmado pelo receptor"
+        }
+      ],
+      "evidencias": [
+        {
+          "tipo": "signature",
+          "ref": "ok",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke"
+        }
+      ],
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31",
+      "imutavel": true
+    },
+    {
+      "id": "POD-20260802-0006",
+      "entrega_id": "DO-20260802-0004",
+      "parada": 1,
+      "status": "confirmed",
+      "receptor_nome": "Ana",
+      "receptor_doc": "",
+      "entregador": "Carlos Motorista",
+      "confirmado_em": "2026-08-02T20:35:31",
+      "lat": null,
+      "lng": null,
+      "assinatura": "ok",
+      "fotos": [],
+      "documentos": [],
+      "observacao": "",
+      "motivo_rejeicao": "",
+      "itens_ok": true,
+      "historico": [
+        {
+          "status": "waiting",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "criado na entrega"
+        },
+        {
+          "status": "waiting",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "evidência capturada"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "confirmado pelo receptor"
+        }
+      ],
+      "evidencias": [
+        {
+          "tipo": "signature",
+          "ref": "ok",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke"
+        }
+      ],
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31",
+      "imutavel": true
+    }
+  ],
+  "total": 6
+}

@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Conceito e conteúdo do holerite |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (10/08/2026 — holerite como visão do processamento §1/§3.1: geração e regeneração por competência com valores idênticos §3.4; FGTS gravado no processamento (RFC-005 §4) exibido no holerite; bloqueio de competência inexistente/aberta; detalhes e observações §2.2–2.4/§5.2; endpoints /api/folha/holerites + gerar/pagar/excluir; smoke_rfc007_holerite + review_tela_folha no CI) |
 | **Data** | 31/07/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Saídas |
@@ -96,4 +96,4 @@ Mesmos campos do bloco de proventos (código, descrição, referência, valor).
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |

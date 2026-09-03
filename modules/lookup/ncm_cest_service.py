@@ -44,18 +44,56 @@ def _parse_br_date(s: str) -> str:
     return s[:10]
 
 
-def _build_ncm_from_tabela() -> list:
-    """
-    Fonte oficial: dados/Tabela_NCM.json (Camex / Gecex).
-    Expõe apenas códigos de 8 dígitos (item NCM do produto),
-    com descrição hierárquica para o autocomplete achar por capítulo/posição.
+def _load_ncm_tabela_rows():
+    """Lê a tabela NCM oficial (Camex / Gecex).
+
+    Fonte primária: dados/Tabela_NCM.json
+    Fallback: dados/Tabela_NCM.csv (gerado por scripts/gerar_tabela_ncm_csv.py)
     """
     path = os.path.join(DADOS, "Tabela_NCM.json")
-    if not os.path.exists(path):
-        return []
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    rows = data.get("Nomenclaturas") or []
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        rows = data.get("Nomenclaturas") or []
+        if rows:
+            return [
+                {
+                    "Codigo": r.get("Codigo", ""),
+                    "Descricao": r.get("Descricao", ""),
+                    "Data_Inicio": r.get("Data_Inicio", ""),
+                    "Data_Fim": r.get("Data_Fim", ""),
+                }
+                for r in rows
+            ]
+
+    csv_path = os.path.join(DADOS, "Tabela_NCM.csv")
+    if os.path.exists(csv_path):
+        import csv as _csv
+
+        rows = []
+        with open(csv_path, "r", encoding="utf-8-sig", newline="") as f:
+            reader = _csv.DictReader(f, delimiter=";")
+            for r in reader:
+                rows.append({
+                    "Codigo": r.get("codigo", ""),
+                    "Descricao": r.get("descricao", ""),
+                    "Data_Inicio": r.get("vigencia_inicio", ""),
+                    "Data_Fim": r.get("vigencia_fim", ""),
+                })
+        if rows:
+            return rows
+
+    return []
+
+
+def _build_ncm_from_tabela() -> list:
+    """
+    Fonte oficial: dados/Tabela_NCM.json (Camex / Gecex), com
+    fallback para dados/Tabela_NCM.csv. Expõe apenas códigos de 8 dígitos
+    (item NCM do produto), com descrição hierárquica para o autocomplete
+    achar por capítulo/posição.
+    """
+    rows = _load_ncm_tabela_rows()
     by_code: dict[str, dict] = {}
     for r in rows:
         code = _digits(r.get("Codigo", ""))
@@ -84,12 +122,13 @@ def _build_ncm_from_tabela() -> list:
     for code, row in by_code.items():
         if len(code) != 8:
             continue
-        full = chain_desc(code) or row["descricao_curta"]
+        item_desc = row["descricao_curta"].lstrip("-").strip()
+        full = item_desc or chain_desc(code) or row["descricao_curta"]
         out.append({
             "id": code,
             "codigo": code,
             "descricao": full,
-            "descricao_curta": row["descricao_curta"],
+            "descricao_curta": item_desc,
             "capitulo": code[:2],
             "posicao": code[:4],
             "subposicao": code[:6],
@@ -182,11 +221,16 @@ def _search_table(table: list, text: str, limit: int = 20) -> list:
     scored.sort(key=lambda x: (x[0], x[1].get("codigo", "")))
     out = []
     for _, row in scored[:limit]:
+        desc = re.sub(r"<[^>]+>", "", row.get("descricao") or "")
+        desc = desc.replace("›", " ").replace("- ", "")
+        desc = re.sub(r"\s+", " ", desc).strip()
+        if desc.startswith("- "):
+            desc = desc[2:].strip()
         out.append({
             "id": row.get("id") or row.get("codigo"),
             "codigo": row.get("codigo"),
-            "descricao": re.sub(r"<[^>]+>", "", row.get("descricao") or ""),
-            "label": f"{row.get('codigo')} — {re.sub(r'<[^>]+>', '', row.get('descricao') or '')}",
+            "descricao": desc,
+            "label": f"{row.get('codigo')} — {desc}",
             "segmento": row.get("segmento"),
         })
     return out
@@ -240,11 +284,16 @@ def get_ncm(code: str) -> dict | None:
     code = _digits(code)
     for row in _ncm_table():
         if _digits(row.get("codigo", "")) == code and _vigente(row):
+            desc = re.sub(r"<[^>]+>", "", row.get("descricao") or "")
+            desc = desc.replace("›", " ").replace("- ", "")
+            desc = re.sub(r"\s+", " ", desc).strip()
+            if desc.startswith("- "):
+                desc = desc[2:].strip()
             return {
                 "id": row.get("id") or row.get("codigo"),
                 "codigo": row.get("codigo"),
-                "descricao": re.sub(r"<[^>]+>", "", row.get("descricao") or ""),
-                "label": f"{row.get('codigo')} — {re.sub(r'<[^>]+>', '', row.get('descricao') or '')}",
+                "descricao": desc,
+                "label": f"{row.get('codigo')} — {desc}",
             }
     return None
 

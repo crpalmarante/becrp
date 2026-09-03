@@ -1,12 +1,517 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
-<meta charset="UTF-8">
-<meta http-equiv="refresh" content="0;url=parceiros.html?role=SUPPLIER">
-<title>BECRP — Fornecedores</title>
-<script>location.replace("parceiros.html?role=SUPPLIER");</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FiscalBrasil ERP — Fornecedores</title>
+    <meta name="theme-color" content="#714B67">
+    <link rel="stylesheet" href="../css/fonts.css">
+    <link rel="stylesheet" href="../css/variaveis.css">
+    <link rel="stylesheet" href="../css/reset.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/icons.css">
+    <link rel="stylesheet" href="../css/grid.css">
+    <link rel="stylesheet" href="../css/forms.css">
+    <link rel="stylesheet" href="../css/motion.css">
+    <link rel="stylesheet" href="../css/responsive.css">
+    <link rel="stylesheet" href="../css/themes.css">
+    <link rel="stylesheet" href="../css/style.css">
 </head>
 <body>
-<p>Redirecionando para <a href="parceiros.html?role=SUPPLIER">Parceiros · Fornecedores</a>…</p>
+
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item" href="configuracoes.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+                <span class="menu-label">Configurações</span>
+            </a>
+            <a class="menu-item" href="categorias.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-filter"/></svg>
+                <span class="menu-label">Categorias</span>
+            </a>
+            <a class="menu-item" href="produtos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+                <span class="menu-label">Produtos</span>
+            </a>
+            <a class="menu-item" href="fornecedores.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+                <span class="menu-label">Fornecedores</span>
+            </a>
+            <a class="menu-item" href="contatos.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="menu-label">Contatos</span>
+            </a>
+            <a class="menu-item" href="../index4.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                <span class="menu-label">Dashboard</span>
+            </a>
+        </nav>
+    </aside>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="topbar-title">Fornecedores</span>
+            </div>
+            <div class="topbar-search">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+                <input class="topbar-search-input" id="search-input" placeholder="Buscar fornecedores...">
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <button type="button" class="so-btn primary" onclick="openModal()" title="Novo fornecedor">
+                    <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></span>Novo
+                </button>
+                <span class="topbar-user-info">
+                    <span id="user-name-display">Administrador</span>
+                </span>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
+                <div class="workspace-header">
+                    <h2 class="workspace-title">Gerenciar Fornecedores</h2>
+                    <div style="display:flex;gap:6px;margin-left:auto">
+                        <button type="button" class="so-btn view-btn active" id="view-btn-lista" onclick="setView('lista')">☰ Lista</button>
+                        <button type="button" class="so-btn view-btn" id="view-btn-kanban" onclick="setView('kanban')">▦ Kanban</button>
+                    </div>
+                </div>
+                <div class="workspace-content">
+                    <div id="data-container"></div>
+                    <div id="kanban-view" style="display:none">
+                        <div class="kanban-board" id="kanban-board"></div>
+                    </div>
+                </div>
+                <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+                    <div class="status-bar-left">
+                        <span id="status-user-info">Usuário: Administrador</span>
+                    </div>
+                    <div class="status-bar-right">
+                        <span>Versão 1.0.0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dialog-overlay" id="item-modal">
+    <div class="dialog-box">
+        <div class="dialog-header">
+            <h3 class="dialog-title" id="modal-title">Novo Fornecedor</h3>
+            <button class="dialog-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="dialog-body">
+            <form id="item-form">
+                <div class="field">
+                    <label>CNPJ</label>
+                    <div style="display:flex;gap:6px;align-items:center">
+                        <input class="form-input" id="edit-cnpj" placeholder="00.000.000/0000-00" style="flex:1;min-width:0">
+                        <button type="button" class="so-btn" onclick="buscarCnpj()" title="Buscar dados na ReceitaWS" style="flex-shrink:0">🔍 Consultar</button>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Nome / Razão social</label>
+                    <input class="form-input" id="edit-nome" required>
+                </div>
+                <div class="field">
+                    <label>Endereço</label>
+                    <input class="form-input" id="edit-endereco">
+                </div>
+                <div class="field">
+                    <label>CEP</label>
+                    <input class="form-input" id="edit-cep" placeholder="00000-000" onblur="buscarCep()">
+                </div>
+                <div class="field">
+                    <label>Telefone</label>
+                    <input class="form-input" id="edit-telefone" data-mask="tel" placeholder="(00) 0000-0000">
+                </div>
+                <div class="field">
+                    <label>E-mail</label>
+                    <input class="form-input" id="edit-email" type="email">
+                </div>
+                <div class="field">
+                    <label>Inscrição Estadual</label>
+                    <input class="form-input" id="edit-ie">
+                </div>
+                <div class="field">
+                    <label>Inscrição Municipal</label>
+                    <input class="form-input" id="edit-inscricao-mun">
+                </div>
+                <div class="field">
+                    <label>CNAE</label>
+                    <input class="form-input" id="edit-cnae" placeholder="0000-0/00" maxlength="10">
+                </div>
+                <div class="field">
+                    <label>Descrição CNAE</label>
+                    <input class="form-input" id="edit-cnae-desc" placeholder="Ex.: Comércio varejista de mercadorias">
+                </div>
+                <div class="field">
+                    <label>Logo (URL)</label>
+                    <div style="display:flex;gap:8px;align-items:center">
+                        <input class="form-input" id="edit-logo" placeholder="https://.../logo.png" oninput="updateLogoPreview()" style="flex:1;min-width:0">
+                        <span id="logo-preview" style="width:40px;height:40px;border-radius:50%;overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:rgba(20,184,166,.18);color:#5eead4;font-weight:700;font-size:13px">?</span>
+                    </div>
+                </div>
+                <div class="form-error" id="form-error"></div>
+            </form>
+        </div>
+        <div class="dialog-footer">
+            <button class="dialog-btn dialog-btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="dialog-btn dialog-btn-primary" onclick="save()">Salvar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    textarea.form-input{resize:vertical;min-height:60px;font-family:inherit}
+    .so-btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      border:1px solid var(--border-color);background:var(--surface-panel);
+      color:var(--text-primary);padding:0 12px;height:34px;line-height:1;
+      border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;
+    }
+    .so-btn .icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px}
+    .so-btn .icon svg{width:18px;height:18px;fill:currentColor}
+    .so-btn.primary{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
+    /* Ações na mesma linha e linhas mais finas */
+    .dg-table td.dg-cell{padding-top:3px;padding-bottom:3px}
+    .dg-table .dg-page{width:26px;height:26px;font-size:12px}
+    .dg-page.danger{color:#f87171}
+    .view-btn.active{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
+    /* ── Kanban (geral) ── */
+    .kanban-board{display:flex;gap:12px;overflow-x:auto;align-items:flex-start;padding-bottom:8px}
+    .kanban-col{flex:1 1 0;min-width:300px;background:rgba(255,255,255,.03);border:1px solid var(--border-color);border-radius:14px;display:flex;flex-direction:column;max-height:calc(100vh - 260px)}
+    .kanban-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border-color);font-weight:700;font-size:13px;position:sticky;top:0}
+    .kanban-dot{width:8px;height:8px;border-radius:50%}
+    .kanban-count{margin-left:auto;background:rgba(255,255,255,.08);border-radius:999px;padding:1px 8px;font-size:11px;font-weight:600}
+    .kanban-body{padding:8px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:8px;min-height:80px}
+    .kanban-card{background:var(--surface-panel);border:1px solid var(--border-color);border-radius:10px;padding:10px 12px;cursor:pointer;user-select:none}
+    .kanban-card:hover{border-color:rgba(20,184,166,.5)}
+    .kcard-top{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted)}
+    .kcard-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;background:rgba(20,184,166,.18);color:#5eead4;flex-shrink:0}
+    .kcard-nome{font-size:13px;font-weight:600;margin:6px 0 2px;word-break:break-word}
+    .kcard-linha{font-size:12px;color:var(--text-muted);display:flex;gap:6px;align-items:flex-start;margin-top:2px;word-break:break-word}
+</style>
+<script src="../js/masks.js"></script>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+    let editingId = null;
+    let allData = [];
+    let viewMode = "lista";
+    function escapeHtml(s) {
+        return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+    function fmtCnpj(v) {
+        const d = String(v || "").replace(/\D/g, "");
+        if (d.length !== 14) return String(v || "");
+        return d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
+    }
+
+    function initials(name) {
+        const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+        if (!parts.length) return "?";
+        const first = parts[0][0] || "";
+        const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+        return (first + last).toUpperCase();
+    }
+
+    function avatarHtml(e) {
+        const ini = escapeHtml(initials(e.nome));
+        const logo = String(e.logo || "").trim();
+        if (!logo) return `<span class="kcard-avatar">${ini}</span>`;
+        return `<span class="kcard-avatar" style="overflow:hidden"><img src="${escapeHtml(logo)}" alt=""
+            onerror="this.style.display='none';this.parentElement.textContent='${ini}';this.parentElement.style.background='rgba(20,184,166,.18)';this.parentElement.style.color='#5eead4'"
+            style="width:100%;height:100%;object-fit:cover"></span>`;
+    }
+
+    function updateLogoPreview() {
+        const url = document.getElementById("edit-logo").value.trim();
+        const ini = initials(document.getElementById("edit-nome").value) || "?";
+        const prev = document.getElementById("logo-preview");
+        if (url) {
+            prev.innerHTML = `<img src="${escapeHtml(url)}" alt="" style="width:100%;height:100%;object-fit:cover"
+                onerror="this.outerHTML='${ini}'" >`;
+        } else {
+            prev.textContent = ini;
+        }
+    }
+
+    function setView(mode) {
+        viewMode = mode;
+        document.getElementById("view-btn-lista").classList.toggle("active", mode === "lista");
+        document.getElementById("view-btn-kanban").classList.toggle("active", mode === "kanban");
+        document.getElementById("data-container").style.display = mode === "lista" ? "" : "none";
+        document.getElementById("kanban-view").style.display = mode === "kanban" ? "" : "none";
+        if (mode === "kanban") renderKanban(); else render();
+    }
+
+    function renderKanban() {
+        const q = (document.getElementById("search-input").value || "").toLowerCase();
+        const list = allData.filter(e => {
+            if (!q) return true;
+            return [e.nome, e.cnpj, e.cep, e.email, e.ie, e.cnae, e.cnae_desc].some(v => String(v || "").toLowerCase().includes(q));
+        });
+        const board = document.getElementById("kanban-board");
+        board.innerHTML = `
+            <div class="kanban-col">
+                <div class="kanban-head">
+                    <span class="kanban-dot" style="background:#5eead4"></span>
+                    <span>Geral</span>
+                    <span class="kanban-count">${list.length}</span>
+                </div>
+                <div class="kanban-body">
+                    ${list.length ? list.map(e => `
+                    <div class="kanban-card" data-id="${e.id}" title="Clique para editar">
+                        <div class="kcard-top">
+                            ${avatarHtml(e)}
+                            <span style="flex:1;min-width:0">${escapeHtml(fmtCnpj(e.cnpj))||'—'}</span>
+                        </div>
+                        <div class="kcard-nome">${escapeHtml(e.nome)||'—'}</div>
+                        ${e.endereco?`<div class="kcard-linha">📍 ${escapeHtml(e.endereco)}</div>`:''}
+                        ${e.telefone?`<div class="kcard-linha">📞 ${escapeHtml(e.telefone)}</div>`:''}
+                        ${e.email?`<div class="kcard-linha">✉️ ${escapeHtml(e.email)}</div>`:''}
+                    </div>`).join('') : '<div style="padding:1rem;font-size:12px;color:var(--text-muted)">Nenhum fornecedor</div>'}
+                </div>
+            </div>`;
+        board.querySelectorAll(".kanban-card").forEach(card => {
+            card.onclick = () => edit(allData.find(f => String(f.id) === String(card.dataset.id)));
+        });
+    }
+
+    async function buscarCnpj() {
+        const cnpj = document.getElementById("edit-cnpj").value.replace(/\D/g, "");
+        const errEl = document.getElementById("form-error");
+        errEl.classList.remove("visible");
+        if (cnpj.length !== 14) {
+            errEl.textContent = "Digite um CNPJ válido (14 dígitos) para consultar";
+            errEl.classList.add("visible");
+            return;
+        }
+        const btn = document.querySelector('button[onclick="buscarCnpj()"]');
+        if (btn) { btn.disabled = true; btn.textContent = "Consultando..."; }
+        try {
+            const r = await fetch("https://www.receitaws.com.br/v1/cnpj/" + cnpj);
+            const d = await r.json();
+            if (d.status === "ERROR" || !d.nome) {
+                errEl.textContent = "CNPJ não encontrado na Receita";
+                errEl.classList.add("visible");
+                return;
+            }
+            document.getElementById("edit-nome").value = d.nome || "";
+            let end = "";
+            if (d.logradouro) end += d.logradouro;
+            if (d.numero) end += (end ? ", " : "") + d.numero;
+            if (d.complemento) end += (end ? " - " : "") + d.complemento;
+            if (d.bairro) end += (end ? " - " : "") + d.bairro;
+            if (d.municipio) end += (end ? " - " : "") + d.municipio + "/" + (d.uf || "");
+            document.getElementById("edit-endereco").value = end;
+            document.getElementById("edit-cep").value = d.cep || "";
+            document.getElementById("edit-telefone").value = d.telefone || "";
+            document.getElementById("edit-email").value = d.email || "";
+            document.getElementById("edit-ie").value = d.inscricao_estadual || "";
+            const atv = (d.atividade_principal && d.atividade_principal[0]) || {};
+            if (atv.code) {
+                const digits = String(atv.code).replace(/\D/g, "");
+                if (digits.length === 7) {
+                    document.getElementById("edit-cnae").value = digits.slice(0,4) + "-" + digits.slice(4,5) + "/" + digits.slice(5);
+                } else {
+                    document.getElementById("edit-cnae").value = String(atv.code);
+                }
+                document.getElementById("edit-cnae-desc").value = atv.text || "";
+            }
+        } catch (e) {
+            errEl.textContent = "Erro ao consultar CNPJ (tente novamente)";
+            errEl.classList.add("visible");
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = "🔍 Consultar"; }
+        }
+    }
+
+    async function buscarCep() {
+        const cep = (document.getElementById("edit-cep").value || "").replace(/\D/g, "");
+        if (cep.length !== 8) return;
+        try {
+            const r = await fetch("https://viacep.com.br/ws/" + cep + "/json/");
+            const d = await r.json();
+            if (d.erro) return;
+            let end = "";
+            if (d.logradouro) end += d.logradouro;
+            if (d.bairro) end += (end ? " - " : "") + d.bairro;
+            if (d.localidade) end += (end ? " - " : "") + d.localidade + "/" + (d.uf || "");
+            if (end) document.getElementById("edit-endereco").value = end;
+        } catch (e) {}
+    }
+
+    async function load() {
+        const container = document.getElementById("data-container");
+        container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem">Carregando...</div>';
+        const data = await window.api("/api/admin/fornecedores");
+        if (data.status !== "ok") {
+            container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem;color:var(--color-danger)">Acesso negado</div>';
+            return;
+        }
+        allData = data.fornecedores || [];
+        render();
+    }
+
+    function render() {
+        const q = (document.getElementById("search-input").value || "").toLowerCase();
+        const list = allData.filter(e => {
+            if (!q) return true;
+            return [e.nome, e.cnpj, e.cep, e.email, e.ie, e.cnae, e.cnae_desc].some(v => String(v || "").toLowerCase().includes(q));
+        });
+
+        document.getElementById("data-container").innerHTML = `
+            <div class="dg-wrapper">
+                <div class="dg-scroll">
+                    <table class="dg-table">
+                        <thead><tr class="dg-header">
+                            <th class="dg-th" style="width:40px"><div class="dg-th-content">#</div></th>
+                            <th class="dg-th"><div class="dg-th-content">CNPJ</div></th>
+                            <th class="dg-th"><div class="dg-th-content">CEP</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Nome</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Telefone</div></th>
+                            <th class="dg-th"><div class="dg-th-content">E-mail</div></th>
+                            <th class="dg-th"><div class="dg-th-content">IE</div></th>
+                            <th class="dg-th"><div class="dg-th-content">CNAE</div></th>
+                            <th class="dg-th" style="width:80px"><div class="dg-th-content">Ações</div></th>
+                        </tr></thead>
+                        <tbody>
+                            ${list.map(e => `
+                            <tr class="dg-row">
+                                <td class="dg-cell dg-cell-center">${String(e.id).substring(0,6)}</td>
+                                <td class="dg-cell">${escapeHtml(fmtCnpj(e.cnpj))||'-'}</td>
+                                <td class="dg-cell">${escapeHtml(e.cep)||'-'}</td>
+                                <td class="dg-cell"><strong>${escapeHtml(e.nome)}</strong></td>
+                                <td class="dg-cell">${escapeHtml(e.telefone)||'-'}</td>
+                                <td class="dg-cell">${escapeHtml(e.email)||'-'}</td>
+                                <td class="dg-cell">${escapeHtml(e.ie)||'-'}</td>
+                                <td class="dg-cell">${e.cnae?`<strong>${escapeHtml(e.cnae)}</strong>${e.cnae_desc?`<br><span style="color:var(--text-secondary);font-size:12px">${escapeHtml(e.cnae_desc)}</span>`:''}`:'-'}</td>
+                                <td class="dg-cell">
+                                    <span style="display:inline-flex;gap:2px;align-items:center">
+                                        <button class="dg-page" onclick='edit(${JSON.stringify(e).replace(/'/g,"&#39;")})' title="Editar">✎</button>
+                                        <button class="dg-page danger" onclick="remove('${e.id}')" title="Excluir">🗑</button>
+                                    </span>
+                                </td>
+                            </tr>`).join('')}
+                            ${list.length===0?'<tr><td class="dg-cell" colspan="9" style="text-align:center;padding:2rem">Nenhum fornecedor cadastrado</td></tr>':''}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="padding:var(--space-4);text-align:center;color:var(--text-secondary);font-size:var(--font-sm)">
+                    ${list.length} fornecedor${list.length!==1?'es':''} cadastrado${list.length!==1?'s':''}
+                </div>
+            </div>
+        `;
+    }
+
+    function edit(data) {
+        editingId = data.id;
+        document.getElementById("modal-title").textContent = "Editar Fornecedor";
+        document.getElementById("edit-cnpj").value = fmtCnpj(data.cnpj)||"";
+        document.getElementById("edit-nome").value = data.nome||"";
+        document.getElementById("edit-endereco").value = data.endereco||"";
+        document.getElementById("edit-cep").value = data.cep||"";
+        document.getElementById("edit-telefone").value = data.telefone||"";
+        document.getElementById("edit-email").value = data.email||"";
+        document.getElementById("edit-ie").value = data.ie||"";
+        document.getElementById("edit-inscricao-mun").value = data.inscricao_mun||"";
+        document.getElementById("edit-cnae").value = data.cnae||"";
+        document.getElementById("edit-cnae-desc").value = data.cnae_desc||"";
+        document.getElementById("edit-logo").value = data.logo||"";
+        updateLogoPreview();
+        document.getElementById("form-error").classList.remove("visible");
+        document.getElementById("item-modal").classList.add("dialog-open");
+    }
+
+    function openModal() {
+        editingId = null;
+        document.getElementById("modal-title").textContent = "Novo Fornecedor";
+        ["edit-cnpj","edit-nome","edit-endereco","edit-cep","edit-telefone","edit-email","edit-ie","edit-inscricao-mun","edit-cnae","edit-cnae-desc","edit-logo"].forEach(id => {
+            document.getElementById(id).value = "";
+        });
+        updateLogoPreview();
+        document.getElementById("form-error").classList.remove("visible");
+        document.getElementById("item-modal").classList.add("dialog-open");
+    }
+
+    function closeModal() {
+        document.getElementById("item-modal").classList.remove("dialog-open");
+        editingId = null;
+    }
+
+    async function save() {
+        const nome = document.getElementById("edit-nome").value.trim();
+        const errEl = document.getElementById("form-error");
+        errEl.classList.remove("visible");
+
+        if (!nome) { errEl.textContent = "Nome é obrigatório"; errEl.classList.add("visible"); return; }
+
+        const cnpj = document.getElementById("edit-cnpj").value.replace(/\D/g, "");
+        const payload = {
+            cnpj,
+            nome,
+            endereco: document.getElementById("edit-endereco").value.trim(),
+            cep: document.getElementById("edit-cep").value.trim(),
+            telefone: document.getElementById("edit-telefone").value.trim(),
+            email: document.getElementById("edit-email").value.trim(),
+            ie: document.getElementById("edit-ie").value.trim(),
+            inscricao_mun: document.getElementById("edit-inscricao-mun").value.trim(),
+            cnae: document.getElementById("edit-cnae").value.trim(),
+            cnae_desc: document.getElementById("edit-cnae-desc").value.trim(),
+            logo: document.getElementById("edit-logo").value.trim(),
+        };
+
+        let data;
+        if (editingId) {
+            data = await window.api("/api/admin/fornecedores/"+editingId, {
+                method: "POST",
+                body: JSON.stringify({ action: "update", ...payload })
+            });
+        } else {
+            data = await window.api("/api/admin/fornecedores", {
+                method: "POST",
+                body: JSON.stringify(payload)
+            });
+        }
+
+        if (data.status !== "ok") {
+            errEl.textContent = data.message || "Erro ao salvar";
+            errEl.classList.add("visible");
+            return;
+        }
+        closeModal();
+        load();
+    }
+
+    async function remove(id) {
+        if (!confirm("Excluir este fornecedor?")) return;
+        const data = await window.api("/api/admin/fornecedores/"+id, {
+            method: "POST",
+            body: JSON.stringify({ action: "delete" })
+        });
+        if (data.status !== "ok") {
+            alert(data.message || "Erro ao excluir");
+            return;
+        }
+        load();
+    }
+
+    document.addEventListener("auth:ready", function () {
+        load();
+        document.getElementById("search-input").addEventListener("input", () => {
+            if (viewMode === "kanban") renderKanban(); else render();
+        });
+    });
+</script>
+
 </body>
 </html>

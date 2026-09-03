@@ -35,6 +35,7 @@ Uso:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -49,6 +50,7 @@ import urllib.request
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 
+import jsonio  # noqa: E402
 import cobol_bridge  # noqa: E402  (para ler a config da folha após o seed do servidor)
 
 FILES = (
@@ -57,6 +59,10 @@ FILES = (
     "dados/folha_config.dat",
     "dados/holerites.dat",
     "dados/holerites.tmp",
+    "dados/dependentes.dat",
+    # RFC-009: o review cria o usuário 'aprovador' (separação de funções);
+    # o restore devolve o users.json original ao final.
+    "data/users.json",
 )
 BACKUP = "/tmp/becrp_review_folha_backup"
 
@@ -173,6 +179,61 @@ def _token_dev():
     return None
 
 
+def _token_do(login):
+    """Token de um usuário específico em data/users.json (RFC-009: o review
+    usa 'bruno' para operar e 'aprovador' para validar/fechar — separação de
+    funções Aprovador ≠ Operador no fechamento)."""
+    try:
+        with open(os.path.join(ROOT, "data", "users.json"), encoding="utf-8") as f:
+            users = json.load(f)
+        items = users.items() if isinstance(users, dict) else [
+            (u.get("usuario"), u) for u in users]
+        for _k, v in items:
+            if str(v.get("usuario") or "") == login and v.get("token"):
+                return v["token"]
+    except Exception:
+        pass
+    return None
+
+
+def _garantir_aprovador():
+    """Cria os usuários 'aprovador' e 'tesouraria' em data/users.json se
+    faltarem (RFC-009 §4.2/Decisão 4). Sem eles, validar/fechar seriam feitos
+    pelo mesmo usuário que opera (regra Aprovador ≠ Operador) e o pagamento
+    pelo mesmo que fecha (regra Tesouraria ≠ Aprovador) — ambos bloqueados."""
+    path = os.path.join(ROOT, "data", "users.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            users = json.load(f)
+    except (OSError, ValueError):
+        users = {}
+    if not any(str(v.get("usuario") or "") == "aprovador"
+               for v in users.values() if isinstance(v, dict)):
+        users["aprovador"] = {
+            "usuario": "aprovador",
+            "nome": "Aprovador Review",
+            "email": "aprovador@review.local",
+            "senha": hashlib.sha256(b"654321").hexdigest(),
+            "role": "admin",
+            "empresas": {},
+            "ativo": True,
+            "token": "ci-token-aprovador-2026",
+        }
+    if not any(str(v.get("usuario") or "") == "tesouraria"
+               for v in users.values() if isinstance(v, dict)):
+        users["tesouraria"] = {
+            "usuario": "tesouraria",
+            "nome": "Tesouraria Review",
+            "email": "tesouraria@review.local",
+            "senha": hashlib.sha256(b"123123").hexdigest(),
+            "role": "admin",
+            "empresas": {},
+            "ativo": True,
+            "token": "ci-token-tesouraria-2026",
+        }
+    jsonio.save(path, users)
+
+
 # --------------------------------------------------------------------------
 # Referências Python do INSS/IRRF (cópias do smoke RFC-006)
 # --------------------------------------------------------------------------
@@ -241,6 +302,8 @@ def main():
             p = os.path.join(ROOT, rel)
             if os.path.exists(p):
                 os.remove(p)
+        # RFC-009: garante o segundo usuário (Aprovador ≠ Operador no fechamento)
+        _garantir_aprovador()
 
         log = open(os.path.join(BACKUP, "server.log"), "w")
         proc = subprocess.Popen([sys.executable, "server.py", str(PORT)],
@@ -330,6 +393,13 @@ def main():
             return 1
         fid = ativos[0].get("id")
         nome = ativos[0].get("nome") or f"Func {fid}"
+        # estado determinístico p/ o RFC-005 §4: remove dependentes do
+        # funcionário para que o passo 4 calcule SEM cotas de salário-família
+        for dep in cobol_bridge.dependentes_listar(fid):
+            try:
+                cobol_bridge.dependente_excluir(dep.get("id"))
+            except Exception:
+                pass
         cfg = cobol_bridge.folha_config_ler()  # já seedada pelo servidor
         sal, he, dsr, dep = 3000.00, 200.00, 33.33, 0
         base_inss = round(sal + he + dsr, 2)
@@ -357,7 +427,51 @@ def main():
         check("líquido = proventos − descontos",
               quase(r.get("liquido"), r.get("proventos", 0) - r.get("total_descontos", 0)), r)
 
-        print("\n5. Aba Processar — concluir e estado")
+        print("\n5. RFC-005 §4 — salário-família via HTTP (cotas dos dependentes)")
+        # fluxo real: dependente com sal_familia='S' → o server injeta cotas_sf
+        # no cálculo (o COBOL não recebe cotas no payload desta chamada)
+        dep_nome = f"Dep SF Rev {fid}"
+        code, d = _post_form("/api/dependente/incluir", token, {
+            "funcionario_id": fid, "nome": dep_nome, "cpf": "777.888.999-00",
+            "data_nasc": "2015-02-02", "grau_parentesco": "filho",
+            "irrf": "S", "sal_familia": "S",
+        })
+        check("dependente com sal_familia=S → ok",
+              code == 200 and d.get("status") == "ok", f"{code} {d}")
+        comp_sf = "2026/07"
+        code, d = _post_form("/api/folha/competencia/abrir", token, {"competencia": comp_sf})
+        check("abrir competência para SF → ok",
+              code == 200 and d.get("status") == "ok", f"{code} {d}")
+        # salva uma versão de tabela p/ 2026/07 via POST (cobre o versionamento
+        # por competência na API) e lê o valor de SF da faixa 1 dessa versão
+        code, d = _post_form("/api/folha/config/salvar", token, {
+            "competencia": comp_sf, "sf_f1_teto": "1905.52", "sf_f1_valor": "62.04",
+            "sf_f2_teto": "3047.00", "sf_f2_valor": "43.17",
+        })
+        check("salvar config por competência (POST) → ok",
+              code == 200 and d.get("status") == "ok", f"{code} {d}")
+        cfg = cobol_bridge.folha_config_ler(comp_sf)
+        sf_f1 = float(cfg.get("sf_f1_valor") or 0)
+        code, rsf = _post_form("/api/folha/competencia/calcular", token, {
+            "competencia": comp_sf, "funcionario_id": fid, "nome": nome,
+            "salario_base": "1500.00", "horas_extras": "0", "dsr": "0",
+            "faltas": "0", "dependentes": "0", "outros_proventos": "0",
+            "outros_descontos": "0",
+        })
+        check("calcular SF via HTTP → ok",
+              code == 200 and rsf.get("status") == "ok", f"{code} {rsf}")
+        check("salário-família pago (1 cota faixa 1)",
+              quase(rsf.get("salario_familia"), sf_f1),
+              f"{rsf.get('salario_familia')} vs {sf_f1}")
+        check("SF fora da base INSS (não incide)",
+              quase(rsf.get("base_inss"), 1500.00), rsf.get("base_inss"))
+        code, data = _get(f"/api/folha/config?competencia={urllib.parse.quote(comp_sf)}", token=token)
+        check("GET config por competência → SF no payload",
+              code == 200 and data.get("competencia") == comp_sf
+              and "sf_f1_teto" in data,
+              f"code={code} resp={data}")
+
+        print("\n6. Aba Processar — concluir e estado")
         code, data = _post_form("/api/folha/competencia/concluir", token, {"competencia": comp})
         check("concluir → ok", code == 200 and data.get("status") == "ok", f"{code} {data}")
         code, data = _get("/api/folha/competencias", token=token)
@@ -377,7 +491,7 @@ def main():
             check("detalhe: líquido confere com o calcular",
                   quase(det.get("liquido"), r.get("liquido")), det)
 
-        print("\n6. Aba Holerites — gerar, detalhes, observações")
+        print("\n7. Aba Holerites — gerar, detalhes, observações")
         code, data = _post_form("/api/folha/holerite/gerar", token, {"competencia": comp})
         check("gerar holerites → ok", code == 200 and data.get("status") == "ok",
               f"{code} {data}")
@@ -413,20 +527,26 @@ def main():
                   str(det2.get("observacoes", "")).strip() == "Revisão automatizada da tela",
                   det2)
 
-            print("\n7. Guards de holerite (estado)")
-            code, d = _post_form("/api/folha/holerite/pagar", token,
+            print("\n8. Guards de holerite (estado)")
+            # RFC-009 §4.2 (Tesouraria ≠ Aprovador): o pagamento é registrado
+            # pela tesouraria (quem fechou = aprovador não pode pagar).
+            token_tes = _token_do("tesouraria") or token
+            code, d = _post_form("/api/folha/holerite/pagar", token_tes,
                                  {"id": hid, "data_pagamento": "2026-08-10"})
             check("pagar holerite com folha em C → bloqueado",
                   d.get("status") == "error", f"{code} {d}")
-            code, d = _post_form("/api/folha/competencia/validar", token,
+            # RFC-009 §4.2/Decisão 4: validar/fechar exigem usuário diferente
+            # do operador da competência (quem abriu/calculou = bruno).
+            token_aprov = _token_do("aprovador") or token
+            code, d = _post_form("/api/folha/competencia/validar", token_aprov,
                                  {"competencia": comp})
-            check("validar folha → ok", code == 200 and d.get("status") == "ok",
-                  f"{code} {d}")
-            code, d = _post_form("/api/folha/competencia/fechar", token,
+            check("validar folha (Aprovador) → ok",
+                  code == 200 and d.get("status") == "ok", f"{code} {d}")
+            code, d = _post_form("/api/folha/competencia/fechar", token_aprov,
                                  {"competencia": comp})
-            check("fechar folha → ok", code == 200 and d.get("status") == "ok",
-                  f"{code} {d}")
-            code, d = _post_form("/api/folha/holerite/pagar", token,
+            check("fechar folha (Aprovador) → ok",
+                  code == 200 and d.get("status") == "ok", f"{code} {d}")
+            code, d = _post_form("/api/folha/holerite/pagar", token_tes,
                                  {"id": hid, "data_pagamento": "2026-08-10"})
             check("pagar holerite com folha fechada → ok",
                   code == 200 and d.get("status") == "ok", f"{code} {d}")

@@ -1,0 +1,153 @@
+{
+  "atualizado_em": "2026-08-01T17:32:37",
+  "tipos": [
+    {
+      "codigo": "REC-COMPRA",
+      "nome": "Recebimento de Compra",
+      "template": "purchase_receipt",
+      "direcao": "incoming",
+      "documentos": [
+        "pedido_compra",
+        "nfe"
+      ],
+      "workflow": [
+        "receive",
+        "inspect",
+        "putaway"
+      ],
+      "origem_loc_tipo": "",
+      "destino_loc_tipo": "receiving",
+      "gera_tarefas": true,
+      "ativo": true,
+      "descricao": "Recebe produtos do fornecedor até a área de recebimento.",
+      "origem": "manual",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "codigo": "EXP-CLIENTE",
+      "nome": "Expedição ao Cliente",
+      "template": "customer_shipment",
+      "direcao": "outgoing",
+      "documentos": [
+        "pedido_venda"
+      ],
+      "workflow": [
+        "pick",
+        "pack",
+        "ship"
+      ],
+      "origem_loc_tipo": "storage",
+      "destino_loc_tipo": "shipping",
+      "gera_tarefas": true,
+      "ativo": true,
+      "descricao": "Separa, embala e expede pedidos de venda.",
+      "origem": "manual",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "codigo": "TRF-INT",
+      "nome": "Transferência Interna",
+      "template": "internal_transfer",
+      "direcao": "internal",
+      "documentos": [
+        "transferencia"
+      ],
+      "workflow": [
+        "pick",
+        "transit",
+        "receive"
+      ],
+      "origem_loc_tipo": "storage",
+      "destino_loc_tipo": "storage",
+      "gera_tarefas": true,
+      "ativo": true,
+      "descricao": "Move estoque entre armazéns ou áreas.",
+      "origem": "manual",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "codigo": "REP-ENVIO",
+      "nome": "Envio para Reparo",
+      "template": "repair_shipment",
+      "direcao": "outgoing",
+      "documentos": [
+        "ordem_reparo"
+      ],
+      "workflow": [
+        "pick",
+        "ship",
+        "return"
+      ],
+      "origem_loc_tipo": "storage",
+      "destino_loc_tipo": "virtual",
+      "gera_tarefas": true,
+      "ativo": true,
+      "descricao": "Envia produto para assistência (empresa mantém posse).",
+      "origem": "manual",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "codigo": "DEV-CLIENTE",
+      "nome": "Devolução de Cliente",
+      "template": "customer_return",
+      "direcao": "incoming",
+      "documentos": [
+        "devolucao"
+      ],
+      "workflow": [
+        "receive",
+        "inspect",
+        "putaway"
+      ],
+      "origem_loc_tipo": "",
+      "destino_loc_tipo": "shipping",
+      "gera_tarefas": true,
+      "ativo": true,
+      "descricao": "Recebe devolução, inspeciona e decide destino.",
+      "origem": "manual",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "codigo": "AJUSTE-INV",
+      "nome": "Ajuste de Inventário",
+      "template": "inventory_adjustment",
+      "direcao": "internal",
+      "documentos": [
+        "contagem"
+      ],
+      "workflow": [
+        "count",
+        "adjust"
+      ],
+      "origem_loc_tipo": "storage",
+      "destino_loc_tipo": "virtual",
+      "gera_tarefas": false,
+      "ativo": true,
+      "descricao": "Corrige diferenças físicas (requer autorização).",
+      "origem": "manual",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "codigo": "XDOCK",
+      "nome": "Cross Docking",
+      "template": "cross_docking",
+      "direcao": "internal",
+      "documentos": [
+        "pedido_compra",
+        "pedido_venda"
+      ],
+      "workflow": [
+        "receive",
+        "ship"
+      ],
+      "origem_loc_tipo": "receiving",
+      "destino_loc_tipo": "shipping",
+      "gera_tarefas": true,
+      "ativo": true,
+      "descricao": "Recebe e expede sem armazenagem intermediária.",
+      "origem": "manual",
+      "atualizado_em": "2026-08-01T17:32:37"
+    }
+  ],
+  "total": 7
+}

@@ -1,5 +1,5 @@
 {
-  "atualizado_em": "2026-07-31T22:54:24",
+  "atualizado_em": "2026-08-05T00:41:37",
   "exercicios": [
     2026
   ],
@@ -72,7 +72,8 @@
       "inicio": "2026-07-01",
       "fim": "2026-07-31",
       "status": "open",
-      "atualizado_em": "2026-07-31T22:54:24"
+      "atualizado_em": "2026-08-05T00:41:37",
+      "alterado_por": null
     },
     {
       "codigo": "2026-08",

@@ -85,7 +85,7 @@
         <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
         <span class="menu-label">Produtos</span>
       </a>
-      <a class="menu-item" href="parceiros.html?role=SUPPLIER">
+      <a class="menu-item" href="fornecedores.html">
         <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
         <span class="menu-label">Fornecedores</span>
       </a>
@@ -290,6 +290,7 @@
 
   let empresas = {};
   let selectedId = null;
+  let flashId = null, flashVariant = "new", flashTimer = null;
 
   function msg(text, ok) {
     const el = document.getElementById("msg");
@@ -351,7 +352,7 @@
           ${rows.map((r) => {
             const loja = (empresas[r.estabelecimento_id] || {}).nome || r.estabelecimento_id;
             const n = (r.items || []).length;
-            return `<tr>
+            return `<tr data-id="${r.id}">
               <td>${r.id}</td>
               <td>${loja}</td>
               <td>${r.fornecedor_nome || "—"}</td>
@@ -365,6 +366,18 @@
     document.querySelectorAll("[data-open]").forEach((btn) => {
       btn.addEventListener("click", () => openDetail(btn.dataset.open));
     });
+    if (flashId != null) {
+      const _tr = document.querySelector('#list tr[data-id="' + flashId + '"]');
+      if (_tr) {
+        _tr.scrollIntoView({ behavior: "smooth", block: "center" });
+        _tr.classList.add(flashVariant === "edit" ? "dg-row-edit" : "dg-row-new");
+        clearTimeout(flashTimer);
+        flashTimer = setTimeout(() => {
+          flashId = null;
+          document.querySelectorAll("#list .dg-row-new, #list .dg-row-edit").forEach((el) => el.classList.remove("dg-row-new", "dg-row-edit"));
+        }, 2600);
+      }
+    }
   }
 
   async function openDetail(id) {
@@ -881,6 +894,8 @@
     }
     closeModal();
     msg("Recebimento #" + res.receiving.id + " criado.", true);
+    flashId = res.receiving.id;
+    flashVariant = "new";
     await loadList();
     openDetail(res.receiving.id);
   };

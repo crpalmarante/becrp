@@ -7,10 +7,10 @@ Fonte: dados/wms_locations.json
 
 from __future__ import annotations
 
-import json
 import os
 from datetime import datetime
 
+import cobol_bridge
 import wms_warehouses
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -115,31 +115,24 @@ def _now():
 
 
 def _load_raw():
-    if not os.path.exists(DATA_FILE):
+    """Lê as localizações direto do COBOL (dados/localizacoes.dat)."""
+    rows = cobol_bridge.localizacoes_listar()
+    if not rows:
         return ensure_seed()
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    if not isinstance(data, dict):
-        return ensure_seed()
-    if not isinstance(data.get("localizacoes"), list):
-        data["localizacoes"] = []
-    if not data["localizacoes"]:
-        return ensure_seed()
-    return data
-
-
-def _save(data):
-    os.makedirs(os.path.dirname(DATA_FILE) or ".", exist_ok=True)
-    data["atualizado_em"] = _now()
-    data["total"] = len(data.get("localizacoes") or [])
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    return {"atualizado_em": _now(), "localizacoes": rows, "total": len(rows)}
 
 
 def ensure_seed():
-    rows = [_build_row(s, existing=None, codigo=s["codigo"]) for s in SEED]
+    rows = []
+    for s in SEED:
+        row = _build_row(s, existing=None, codigo=s["codigo"])
+        try:
+            cobol_bridge.localizacoes_incluir(row)
+        except ValueError as e:
+            if "ja existe" not in str(e):
+                raise
+        rows.append(row)
     data = {"atualizado_em": _now(), "localizacoes": rows, "total": len(rows)}
-    _save(data)
     return data
 
 
@@ -372,60 +365,48 @@ def get_localizacao(codigo):
     key = str(codigo or "").strip().upper()
     if not key:
         return None
-    for r in _load_raw().get("localizacoes") or []:
-        if str(r.get("codigo") or "").upper() == key:
-            return _enrich(r)
-    return None
+    row = cobol_bridge.localizacoes_buscar(key)
+    return _enrich(row) if row else None
 
 
 def create_localizacao(payload):
-    data = _load_raw()
     body = dict(payload or {})
     codigo = str(body.get("codigo") or "").strip().upper()
     if not codigo:
         raise ValueError("codigo obrigatório")
-    if any(str(r.get("codigo") or "").upper() == codigo for r in data["localizacoes"]):
+    if any(str(r.get("codigo") or "").upper() == codigo for r in _load_raw().get("localizacoes") or []):
         raise ValueError(f"já existe localização com código {codigo}")
     row = _build_row(body, codigo=codigo)
     row["origem"] = "manual"
-    data["localizacoes"].append(row)
-    _save(data)
+    cobol_bridge.localizacoes_incluir(row)
     return _enrich(row)
 
 
 def update_localizacao(codigo, payload):
-    data = _load_raw()
     key = str(codigo or "").strip().upper()
-    idx = None
-    existing = None
-    for i, r in enumerate(data.get("localizacoes") or []):
-        if str(r.get("codigo") or "").upper() == key:
-            idx = i
-            existing = r
-            break
+    existing = next(
+        (
+            r
+            for r in _load_raw().get("localizacoes") or []
+            if str(r.get("codigo") or "").upper() == key
+        ),
+        None,
+    )
     if existing is None:
         raise ValueError("localização não encontrada")
     body = dict(payload or {})
     body.pop("codigo", None)
     row = _build_row(body, existing=existing, codigo=existing.get("codigo"))
     row["origem"] = existing.get("origem") or "manual"
-    data["localizacoes"][idx] = row
-    _save(data)
+    cobol_bridge.localizacoes_alterar(row)
     return _enrich(row)
 
 
 def delete_localizacao(codigo):
-    data = _load_raw()
     key = str(codigo or "").strip().upper()
-    idx = None
-    for i, r in enumerate(data.get("localizacoes") or []):
-        if str(r.get("codigo") or "").upper() == key:
-            idx = i
-            break
-    if idx is None:
+    if not any(str(r.get("codigo") or "").upper() == key for r in _load_raw().get("localizacoes") or []):
         raise ValueError("localização não encontrada")
-    data["localizacoes"].pop(idx)
-    _save(data)
+    cobol_bridge.localizacoes_excluir(key)
     return True
 
 

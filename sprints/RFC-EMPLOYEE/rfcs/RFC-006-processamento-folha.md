@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | O processo mensal: do fechamento ao pagamento |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (10/08/2026 — processamento no COBOL com estados abrir → calcular → concluir → validar → fechar → pagar; competência única por mês §2 (decisão 2); INSS progressivo por faixa e IRRF com dedução de faixa/dependentes (RFC-005 §2/§3) conferidos contra referência; bloqueios de duplicidade e de transição fora de ordem; smoke_rfc006_folha + review_tela_folha no CI) |
 | **Data** | 31/07/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Processos |
@@ -109,4 +109,4 @@ alterado depois de fechado.
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |

@@ -1,0 +1,39 @@
+{
+  "SR-00001": {
+    "warnings": [],
+    "criado_em": "2026-08-04T14:11:10",
+    "atualizado_em": "2026-08-04T16:53:49"
+  },
+  "SR-00002": {
+    "warnings": [],
+    "criado_em": "2026-08-04T14:19:46",
+    "atualizado_em": "2026-08-17T18:19:16"
+  },
+  "SR-00003": {
+    "warnings": [],
+    "criado_em": "2026-08-04T14:19:46",
+    "atualizado_em": "2026-08-04T16:53:49"
+  },
+  "SR-00004": {
+    "warnings": [],
+    "criado_em": "2026-08-04T16:53:59",
+    "atualizado_em": "2026-08-04T16:54:00"
+  },
+  "SR-00005": {
+    "warnings": [],
+    "criado_em": "2026-08-04T16:54:00",
+    "atualizado_em": "2026-08-04T16:54:00"
+  },
+  "SR-00006": {
+    "warnings": [
+      "1: pediu 75, reservou 68 (ATP 68)"
+    ],
+    "criado_em": "2026-08-04T17:11:32",
+    "atualizado_em": "2026-08-04T17:11:32"
+  },
+  "SR-00007": {
+    "warnings": [],
+    "criado_em": "2026-08-17T18:15:41",
+    "atualizado_em": "2026-08-17T18:15:41"
+  }
+}

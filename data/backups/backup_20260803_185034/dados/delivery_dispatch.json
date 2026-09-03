@@ -1,0 +1,100 @@
+{
+  "seq": 3,
+  "atualizado_em": "2026-08-02T11:36:26",
+  "dispatches": [
+    {
+      "id": "DS-SEED-0001",
+      "data": "2026-08-01",
+      "fonte": "DC-01",
+      "status": "open",
+      "prioridade": "normal",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "entrega_ids": [
+        "DO-SEED-0001"
+      ],
+      "observacao": "Seed — lote do dia",
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "id": "DS-20260801-0002",
+      "data": "2026-08-01",
+      "fonte": "DC-01",
+      "status": "released",
+      "prioridade": "high",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos",
+      "veiculo": "VAN-1",
+      "entrega_ids": [
+        "DO-20260801-0002"
+      ],
+      "observacao": "",
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "planning",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "atribuído Carlos"
+        },
+        {
+          "status": "released",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "liberado"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "id": "DS-20260802-0003",
+      "data": "2026-08-02",
+      "fonte": "DC-01",
+      "status": "open",
+      "prioridade": "high",
+      "recurso_id": "",
+      "motorista": "",
+      "veiculo": "",
+      "entrega_ids": [
+        "DO-SEED-0001"
+      ],
+      "observacao": "",
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-02T11:36:26",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "criado_em": "2026-08-02T11:36:26",
+      "atualizado_em": "2026-08-02T11:36:26"
+    }
+  ],
+  "total": 3
+}

@@ -1,16 +1,35 @@
 {
   "bp001": {
+    "id": "bp001",
     "partner_code": "BP000000001",
     "person_type": "COMPANY",
     "display_name": "Bom Preço",
     "legal_name": "Mercado Bom Preço LTDA",
     "trade_name": "Bom Preço",
     "status": "ACTIVE",
-    "roles": ["CUSTOMER"],
-    "documents": [
-      { "id": "d1", "document_type": "CNPJ", "document_number": "12.345.678/0001-90" },
-      { "id": "d2", "document_type": "IE", "document_number": "123.456.789.000" }
+    "roles": [
+      "CUSTOMER"
     ],
+    "documents": [
+      {
+        "id": "d1",
+        "document_type": "CNPJ",
+        "document_number": "12.345.678/0001-90"
+      },
+      {
+        "id": "d2",
+        "document_type": "IE",
+        "document_number": "123.456.789.000"
+      }
+    ],
+    "default_price_list_id": "pl_varejo",
+    "credit_limit": 50000.0,
+    "payment_terms": "30/60",
+    "credit_blocked": false,
+    "regime": "SN",
+    "contribuinte_icms": "1",
+    "observacao": "Cliente B2B — pedidos semanais",
+    "ativo": true,
     "addresses": [
       {
         "id": "a1",
@@ -61,23 +80,40 @@
         "preferred": true
       }
     ],
-    "regime": "SN",
-    "contribuinte_icms": "1",
-    "observacao": "Cliente B2B — pedidos semanais",
-    "ativo": true
+    "bank_accounts": []
   },
   "bp002": {
+    "id": "bp002",
     "partner_code": "BP000000002",
     "person_type": "COMPANY",
     "display_name": "Sul Alimentos",
     "legal_name": "Distribuidora Sul Alimentos SA",
     "trade_name": "Sul Alimentos",
     "status": "ACTIVE",
-    "roles": ["CUSTOMER", "SUPPLIER"],
-    "documents": [
-      { "id": "d1", "document_type": "CNPJ", "document_number": "98.765.432/0001-10" },
-      { "id": "d2", "document_type": "IE", "document_number": "987.654.321.000" }
+    "roles": [
+      "CUSTOMER",
+      "SUPPLIER"
     ],
+    "documents": [
+      {
+        "id": "d1",
+        "document_type": "CNPJ",
+        "document_number": "98.765.432/0001-10"
+      },
+      {
+        "id": "d2",
+        "document_type": "IE",
+        "document_number": "987.654.321.000"
+      }
+    ],
+    "default_price_list_id": "",
+    "credit_limit": 0.0,
+    "payment_terms": "30",
+    "credit_blocked": false,
+    "regime": "LP",
+    "contribuinte_icms": "1",
+    "observacao": "Compra e vende — papéis CUSTOMER + SUPPLIER",
+    "ativo": true,
     "addresses": [
       {
         "id": "a1",
@@ -126,22 +162,28 @@
         "preferred": false
       }
     ],
-    "regime": "LP",
-    "contribuinte_icms": "1",
-    "observacao": "Compra e vende — papéis CUSTOMER + SUPPLIER",
-    "ativo": true
+    "bank_accounts": []
   },
   "bp003": {
+    "id": "bp003",
     "partner_code": "BP000000003",
     "person_type": "PERSON",
     "display_name": "João Silva",
     "legal_name": "João Silva",
     "trade_name": "",
     "status": "ACTIVE",
-    "roles": ["CUSTOMER"],
-    "documents": [
-      { "id": "d1", "document_type": "CPF", "document_number": "123.456.789-00" }
+    "roles": [
+      "CUSTOMER"
     ],
+    "documents": [],
+    "default_price_list_id": "",
+    "credit_limit": 0.0,
+    "payment_terms": "30",
+    "credit_blocked": false,
+    "regime": "PF",
+    "contribuinte_icms": "9",
+    "observacao": "Cliente varejo / NFC-e",
+    "ativo": true,
     "addresses": [
       {
         "id": "a1",
@@ -168,92 +210,39 @@
         "preferred": true
       }
     ],
-    "regime": "PF",
-    "contribuinte_icms": "9",
-    "observacao": "Cliente varejo / NFC-e",
-    "ativo": true
+    "bank_accounts": []
   },
   "bp004": {
-    "partner_code": "BP000000004",
-    "person_type": "COMPANY",
-    "display_name": "Agro Norte Insumos",
-    "legal_name": "Agro Norte Insumos LTDA",
-    "trade_name": "Agro Norte",
-    "status": "ACTIVE",
-    "roles": ["SUPPLIER"],
-    "documents": [
-      { "id": "d1", "document_type": "CNPJ", "document_number": "11.222.333/0001-44" },
-      { "id": "d2", "document_type": "IE", "document_number": "ISENTO" }
-    ],
-    "addresses": [
-      {
-        "id": "a1",
-        "address_type": "HEADQUARTERS",
-        "zip_code": "78010-000",
-        "street": "Av. Historiador Rubens de Mendonça",
-        "number": "2000",
-        "district": "Centro-Norte",
-        "city": "Cuiabá",
-        "state": "MT",
-        "country": "BR",
-        "preferred": true
-      },
-      {
-        "id": "a2",
-        "address_type": "WAREHOUSE",
-        "zip_code": "78048-000",
-        "street": "Rodovia BR-364",
-        "number": "Km 12",
-        "district": "Industrial",
-        "city": "Cuiabá",
-        "state": "MT",
-        "country": "BR",
-        "preferred": false
-      }
-    ],
-    "contacts": [
-      {
-        "id": "c1",
-        "name": "Roberto Vendas",
-        "department": "Comercial",
-        "job_title": "Vendedor",
-        "email": "vendas@agronorte.com.br",
-        "phone": "(65) 3322-4400",
-        "mobile": "(65) 99999-3300",
-        "preferred": true
-      }
-    ],
-    "regime": "SN",
-    "contribuinte_icms": "1",
-    "observacao": "Fornecedor de insumos",
-    "ativo": true,
-    "bank_accounts": [
-      {
-        "id": "bk1",
-        "bank_code": "001",
-        "bank": "Banco do Brasil",
-        "branch": "1234-5",
-        "account": "98765-4",
-        "account_type": "CHECKING",
-        "holder_name": "Agro Norte Insumos LTDA",
-        "pix_type": "CNPJ",
-        "pix_key": "11.222.333/0001-44",
-        "preferred": true
-      }
-    ]
-  },
-  "bp004": {
+    "id": "bp004",
     "partner_code": "BP000000004",
     "person_type": "COMPANY",
     "display_name": "Dist Demo",
     "legal_name": "DISTRIBUIDORA DEMO LTDA",
     "trade_name": "Dist Demo",
     "status": "ACTIVE",
-    "roles": ["SUPPLIER"],
-    "documents": [
-      { "id": "d1", "document_type": "CNPJ", "document_number": "11.222.333/0001-81" },
-      { "id": "d2", "document_type": "IE", "document_number": "1234567890" }
+    "roles": [
+      "SUPPLIER"
     ],
+    "documents": [
+      {
+        "id": "d1",
+        "document_type": "CNPJ",
+        "document_number": "11.222.333/0001-81"
+      },
+      {
+        "id": "d2",
+        "document_type": "IE",
+        "document_number": "1234567890"
+      }
+    ],
+    "default_price_list_id": "",
+    "credit_limit": 0.0,
+    "payment_terms": "30",
+    "credit_blocked": false,
+    "regime": "RN",
+    "contribuinte_icms": "1",
+    "observacao": "Fornecedor demo NF-e inbound (CNPJ do XML sample)",
+    "ativo": true,
     "addresses": [
       {
         "id": "a1",
@@ -269,9 +258,84 @@
       }
     ],
     "contacts": [],
-    "regime": "RN",
+    "bank_accounts": []
+  },
+  "bp00005": {
+    "id": "bp00005",
+    "partner_code": "BP00005",
+    "person_type": "COMPANY",
+    "display_name": "Teste",
+    "legal_name": "Teste Parceiro COBOL LTDA",
+    "trade_name": "Teste",
+    "status": "ACTIVE",
+    "roles": [
+      "CUSTOMER"
+    ],
+    "documents": [
+      {
+        "id": "d1",
+        "document_type": "CNPJ",
+        "document_number": "11222333000181"
+      }
+    ],
+    "default_price_list_id": "",
+    "credit_limit": 1000.0,
+    "payment_terms": "30",
+    "credit_blocked": false,
+    "regime": "SN",
     "contribuinte_icms": "1",
-    "observacao": "Fornecedor demo NF-e inbound (CNPJ do XML sample)",
-    "ativo": true
+    "observacao": "",
+    "ativo": true,
+    "addresses": [
+      {
+        "id": "a1",
+        "address_type": "BILLING",
+        "zip_code": "",
+        "street": "Rua A",
+        "number": "1",
+        "district": "",
+        "city": "SP",
+        "state": "SP",
+        "country": "BR",
+        "preferred": true
+      }
+    ],
+    "contacts": [
+      {
+        "id": "c1",
+        "name": "Fulano",
+        "department": "",
+        "job_title": "",
+        "email": "a@b.com",
+        "phone": "",
+        "mobile": "",
+        "preferred": true
+      }
+    ],
+    "bank_accounts": []
+  },
+  "bp00006": {
+    "id": "bp00006",
+    "partner_code": "BP000000006",
+    "person_type": "COMPANY",
+    "display_name": "Electrolux do Brasil",
+    "legal_name": "Electrolux do Brasil",
+    "trade_name": "",
+    "status": "ACTIVE",
+    "roles": [
+      "SUPPLIER"
+    ],
+    "documents": [],
+    "default_price_list_id": "",
+    "credit_limit": 0.0,
+    "payment_terms": "30",
+    "credit_blocked": false,
+    "regime": "SN",
+    "contribuinte_icms": "1",
+    "observacao": "",
+    "ativo": true,
+    "addresses": [],
+    "contacts": [],
+    "bank_accounts": []
   }
 }

@@ -64,8 +64,8 @@
                 <input class="topbar-search-input" id="search-input" placeholder="Buscar categorias...">
             </div>
             <div class="topbar-user" style="margin-left:auto">
-                <button class="topbar-icon-btn" onclick="openModal()" title="Nova categoria">
-                    <svg class="icon"><use href="../assets/images/icons.svg#icon-plus"/></svg>
+                <button type="button" class="so-btn primary" onclick="openModal()" title="Nova categoria">
+                    <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></span>Novo
                 </button>
                 <span class="topbar-user-info">
                     <span id="user-name-display">Administrador</span>
@@ -76,7 +76,6 @@
         <div class="workspace">
             <div id="workspace-view" style="display:flex">
                 <div class="workspace-header">
-                    <div class="workspace-breadcrumb">FiscalBrasil / Cadastros / Categorias</div>
                     <h2 class="workspace-title">Gerenciar Categorias</h2>
                 </div>
                 <div class="workspace-content">
@@ -108,6 +107,12 @@
                     <input class="form-input" id="edit-nome" required>
                 </div>
                 <div class="field">
+                    <label>Categoria pai (opcional)</label>
+                    <select class="form-input" id="edit-pai">
+                        <option value="">— Sem categoria pai —</option>
+                    </select>
+                </div>
+                <div class="field">
                     <label>Descrição</label>
                     <textarea class="form-input" id="edit-descricao" rows="3"></textarea>
                 </div>
@@ -123,19 +128,48 @@
 
 <style>
     textarea.form-input{resize:vertical;min-height:60px;font-family:inherit}
+    .so-btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      border:1px solid var(--border-color);background:var(--surface-panel);
+      color:var(--text-primary);padding:0 12px;height:34px;line-height:1;
+      border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;
+    }
+    .so-btn .icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px}
+    .so-btn .icon svg{width:18px;height:18px;fill:currentColor}
+    .so-btn.primary{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
+    /* Ações na mesma linha e linhas mais finas */
+    .dg-table td.dg-cell{padding-top:3px;padding-bottom:3px}
+    .dg-table .dg-page{width:26px;height:26px;font-size:12px}
 </style>
 <script src="../js/services/AuthService.js"></script>
 <script src="../js/auth/page-boot.js"></script>
 <script>
     let editingId = null;
     let allData = [];
-    async function api(path, opts = {}) {
-        return window.api(path, opts);
+    function escapeHtml(s) {
+        return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+    // Constrói a árvore e devolve lista ordenada com nível de profundidade
+    function buildTree(list) {
+        const byId = new Map(list.map(c => [String(c.id), c]));
+        const children = new Map();
+        list.forEach(c => {
+            const pid = String(c.pai_id || 0);
+            if (!children.has(pid)) children.set(pid, []);
+            children.get(pid).push(c);
+        });
+        const out = [];
+        const walk = (pid, level) => {
+            const kids = (children.get(String(pid)) || []).sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
+            kids.forEach(c => { out.push({ ...c, _level: level }); walk(c.id, level + 1); });
+        };
+        walk(0, 0);
+        return out;
     }
 async function load() {
         const container = document.getElementById("data-container");
         container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem">Carregando...</div>';
-        const data = await api("/api/admin/categorias");
+        const data = await window.api("/api/admin/categorias");
         if (data.status !== "ok") {
             container.innerHTML = '<div class="glass-panel" style="text-align:center;padding:3rem;color:var(--color-danger)">Acesso negado</div>';
             return;
@@ -144,9 +178,20 @@ async function load() {
         render();
     }
 
+    function categoriaNome(id) {
+        const c = allData.find(x => String(x.id) === String(id));
+        return c ? c.nome : "";
+    }
+
     function render() {
         const q = (document.getElementById("search-input").value || "").toLowerCase();
-        const filtered = q ? allData.filter(e => e.nome.toLowerCase().includes(q)) : allData;
+        const tree = buildTree(allData);
+        const filtered = q ? tree.filter(e => e.nome.toLowerCase().includes(q)) : tree;
+        const nomePai = (e) => {
+            const pid = e.pai_id || 0;
+            const nome = categoriaNome(pid);
+            return pid && nome ? ` <span style="color:var(--text-muted);font-size:11px">(de ${escapeHtml(nome)})</span>` : "";
+        };
 
         document.getElementById("data-container").innerHTML = `
             <div class="dg-wrapper">
@@ -162,13 +207,15 @@ async function load() {
                         <tbody>
                             ${filtered.map(e => `
                             <tr class="dg-row" style="${e.ativo===false?'opacity:.5':''}">
-                                <td class="dg-cell dg-cell-center">${e.id.substring(0,6)}</td>
-                                <td class="dg-cell"><strong>${e.nome}</strong></td>
-                                <td class="dg-cell">${e.descricao||'-'}</td>
+                                <td class="dg-cell dg-cell-center">${String(e.id).substring(0,6)}</td>
+                                <td class="dg-cell"><span style="display:inline-block;width:${e._level*16}px"></span>${e._level>0?'└ ':'<strong>'}${escapeHtml(e.nome)}${e._level>0?'':''}</strong>${nomePai(e)}</td>
+                                <td class="dg-cell">${escapeHtml(e.descricao)||'-'}</td>
                                 <td class="dg-cell"><span class="badge badge-${e.ativo!==false?'success':'danger'}">${e.ativo!==false?'Ativo':'Inativo'}</span></td>
                                 <td class="dg-cell">
-                                    <button class="dg-page" onclick='edit(${JSON.stringify(e).replace(/'/g,"&#39;")})' title="Editar">✎</button>
-                                    <button class="dg-page" onclick="toggle('${e.id}')" title="${e.ativo!==false?'Desativar':'Ativar'}">${e.ativo!==false?'⏸':'▶'}</button>
+                                    <span style="display:inline-flex;gap:2px;align-items:center">
+                                        <button class="dg-page" onclick='edit(${JSON.stringify(e).replace(/'/g,"&#39;")})' title="Editar">✎</button>
+                                        <button class="dg-page" onclick="toggle('${e.id}')" title="${e.ativo!==false?'Desativar':'Ativar'}">${e.ativo!==false?'⏸':'▶'}</button>
+                                    </span>
                                 </td>
                             </tr>`).join('')}
                             ${filtered.length===0?'<tr><td class="dg-cell" colspan="5" style="text-align:center;padding:2rem">Nenhuma categoria cadastrada</td></tr>':''}
@@ -182,12 +229,31 @@ async function load() {
         `;
     }
 
+    function fillPaiOptions(selectedId) {
+        const sel = document.getElementById("edit-pai");
+        if (!sel) return;
+        // Árvore: exibe apenas categorias que não são descendentes da que está sendo editada
+        const blocked = new Set();
+        if (editingId != null) {
+            const visit = (id) => {
+                blocked.add(String(id));
+                allData.filter(c => String(c.pai_id || 0) === String(id)).forEach(c => visit(c.id));
+            };
+            visit(editingId);
+        }
+        const list = allData.filter(c => !blocked.has(String(c.id)));
+        sel.innerHTML = '<option value="">— Sem categoria pai —</option>' +
+            list.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("");
+        sel.value = selectedId != null ? String(selectedId) : "";
+    }
+
     function edit(data) {
         editingId = data.id;
         document.getElementById("modal-title").textContent = "Editar Categoria";
         document.getElementById("edit-nome").value = data.nome||"";
         document.getElementById("edit-descricao").value = data.descricao||"";
         document.getElementById("form-error").classList.remove("visible");
+        fillPaiOptions(data.pai_id || 0);
         document.getElementById("item-modal").classList.add("dialog-open");
     }
 
@@ -197,6 +263,7 @@ async function load() {
         document.getElementById("edit-nome").value = "";
         document.getElementById("edit-descricao").value = "";
         document.getElementById("form-error").classList.remove("visible");
+        fillPaiOptions(0);
         document.getElementById("item-modal").classList.add("dialog-open");
     }
 
@@ -213,16 +280,20 @@ async function load() {
 
         if (!nome) { errEl.textContent = "Nome é obrigatório"; errEl.classList.add("visible"); return; }
 
+        const pai = document.getElementById("edit-pai").value || "";
+        const payload = { nome, descricao };
+        if (pai) payload.pai_id = Number(pai);
+
         let data;
         if (editingId) {
-            data = await api("/api/admin/categorias/"+editingId, {
+            data = await window.api("/api/admin/categorias/"+editingId, {
                 method: "POST",
-                body: JSON.stringify({ action: "update", nome, descricao })
+                body: JSON.stringify({ action: "update", ...payload })
             });
         } else {
-            data = await api("/api/admin/categorias", {
+            data = await window.api("/api/admin/categorias", {
                 method: "POST",
-                body: JSON.stringify({ nome, descricao })
+                body: JSON.stringify(payload)
             });
         }
 
@@ -236,7 +307,7 @@ async function load() {
     }
 
     async function toggle(id) {
-        await api("/api/admin/categorias/"+id, {
+        await window.api("/api/admin/categorias/"+id, {
             method: "POST",
             body: JSON.stringify({ action: "toggle" })
         });

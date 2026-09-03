@@ -2,7 +2,9 @@
 """Smoke E2E do RFC-003 — Admissão e Demissão (Rescisão).
 
 Cobre (motor COBOL via cobol_bridge):
-  - rescisao_calcular: verbas do acerto (decisão 1 — calcula e exibe)
+  - rescisao_calcular: verbas do acerto (decisão 1 — calcula e exibe); férias
+    vencidas pagas em dobro (RFC-010 Decisão 4 na rescisão — só o salário
+    dobra, 1/3 permanece na base normal)
     * saldo de salário, aviso prévio (indenizado vs trabalhado),
       férias + 1/3, 13º proporcional, FGTS 8%, multa FGTS (40% sem justa
       causa / 20% acordo / 0 demais) e prazo de pagamento (data + 10 dias)
@@ -111,11 +113,14 @@ def main():
         r = cobol_bridge.rescisao_calcular(base)
         check("saldo de salário = 8 dias * 100,00", quase(r["saldo_salario"], 800.00))
         check("aviso prévio indenizado = 33 dias", quase(r["aviso_previo"], 3300.00))
-        check("férias (venc + prop + 1/3)", quase(r["ferias"], 4500.00))
+        check("férias vencidas EM DOBRO (30d × 100 × 2)", quase(r["ferias_venc"], 6000.00))
+        check("1/3 na base normal ((3000+1500)/3)", quase(r["1_3_ferias"], 1500.00))
+        check("férias = venc(2x) + prop", quase(r["ferias"], 7500.00))
+        check("alerta: ferias_venc_dobro = true", r.get("ferias_venc_dobro") is True)
         check("13º proporcional (7 meses)", quase(r["decimo_proporcional"], 1750.00))
-        check("FGTS 8% das verbas", quase(r["fgts"], 948.00))
-        check("multa FGTS 40% (sem justa causa)", quase(r["multa_fgts"], 379.20))
-        check("líquido = verbas + FGTS + multa", quase(r["liquido"], 13177.20))
+        check("FGTS 8% das verbas", quase(r["fgts"], 1188.00))
+        check("multa FGTS 40% (sem justa causa)", quase(r["multa_fgts"], 475.20))
+        check("líquido = verbas + FGTS + multa", quase(r["liquido"], 16513.20))
         check("prazo de pagamento = deslig + 10 dias", r["prazo_pagamento"] == "2026-08-18")
 
         print("\n2. Aviso trabalhado → sem aviso indenizado (decisão 2)")
@@ -132,6 +137,8 @@ def main():
         # 2800/30 = 93,33… (truncado p/ 2 casas no COBOL) → 8 dias = 746,64
         check("2800/30 → saldo 8 dias = 746,64", quase(r3["saldo_salario"], 746.64))
         check("aviso e multa zerados", quase(r3["aviso_previo"], 0.00) and quase(r3["multa_fgts"], 0.00))
+        check("sem vencidas: ferias_venc = 0 e dobro=false",
+              quase(r3.get("ferias_venc"), 0.00) and r3.get("ferias_venc_dobro") is False)
 
         print("\n3. Validação de motivo (RFC-003 §3.1)")
         try:
@@ -198,6 +205,61 @@ def main():
         check("situação volta a ativo", fx2.get("situacao_vinculo") == "ativo", fx2.get("situacao_vinculo"))
         check("data_dem limpa", not fx2.get("data_dem"))
         check("motivo limpo", not fx2.get("motivo_deslig"))
+
+        print("\n8. Regressão — 2 rescisões em sequência não herdam valores (bug do READ)")
+        # o loop de READ do gravar-rescisao sobrescrevia os campos calculados
+        # re-* com o registro anterior: a 2a rescisão saía com valores da 1a.
+        z_id = cobol_bridge.funcionario_incluir({
+            "nome": "Smoke Regressao", "usuario": "smoke_regressao",
+            "senha": "smoke123", "cpf": "77766655544",
+            "data_nasc": "1990-01-01", "data_adm": "2026-01-05",
+            "salario": 3000.00})
+        ra = cobol_bridge.rescisao_incluir({
+            **base, "funcionario_id": y["id"], "nome": y["nome"],
+            "motivo": "sem-justa-causa", "ferias_venc_dias": 30,
+            "salario_base": 3000.00})
+        check("1a rescisão criada", int(ra.get("id")) > 0)
+        check("1a: dobro=true (venc=30)", ra.get("ferias_venc_dobro") is True)
+        rb = cobol_bridge.rescisao_incluir({
+            **base, "funcionario_id": z_id, "nome": "Smoke Regressao",
+            "motivo": "pedido-demissao", "ferias_venc_dias": 0,
+            "ferias_prop_meses": 6, "13_prop_meses": 7,
+            "salario_base": 2500.00})
+        check("2a rescisão criada", int(rb.get("id")) > 0)
+        check("2a: dobro=false (venc=0)", rb.get("ferias_venc_dobro") is False, rb)
+        check("2a: ferias_venc=0 (não herdou da 1a)", quase(rb.get("ferias_venc"), 0.00), rb.get("ferias_venc"))
+        check("2a: saldo pelo salário próprio (2500/30*8=666,64)",
+              quase(rb.get("saldo_salario"), 666.64), rb.get("saldo_salario"))
+        check("2a: férias proporcionais próprias (2500/12*6=1250)",
+              quase(rb.get("ferias_prop"), 1250.00), rb.get("ferias_prop"))
+        check("2a: aviso pelo salário próprio (2500/30*33=2749,89)",
+              quase(rb.get("aviso_previo"), 2749.89), rb.get("aviso_previo"))
+        check("2a: líquido próprio (≠ da 1a)",
+              quase(rb.get("liquido"), 7064.85), rb.get("liquido"))
+        rs_list = cobol_bridge.rescisao_listar()
+        r2_grav = next((rr for rr in rs_list if str(rr.get("id")) == str(rb.get("id"))), None)
+        check("2a gravada no arquivo: venc=0", r2_grav is not None and quase(r2_grav.get("ferias_venc"), 0.00),
+              r2_grav.get("ferias_venc") if r2_grav else None)
+        check("2a gravada no arquivo: dobro=false",
+              r2_grav is not None and r2_grav.get("ferias_venc_dobro") is False)
+
+        print("\n8b. Nome derivado do funcionário quando o form não envia nome")
+        w_id = cobol_bridge.funcionario_incluir({
+            "nome": "Smoke Sem Nome", "usuario": "smoke_sem_nome",
+            "senha": "smoke123", "cpf": "33344455566",
+            "data_nasc": "1990-01-01", "data_adm": "2026-01-05",
+            "salario": 2000.00})
+        rw = cobol_bridge.rescisao_incluir({
+            **base, "funcionario_id": w_id, "nome": "",  # form não envia nome
+            "motivo": "pedido-demissao", "ferias_venc_dias": 0,
+            "ferias_prop_meses": 3, "13_prop_meses": 4,
+            "salario_base": 2000.00})
+        check("rescisão sem nome criada", int(rw.get("id")) > 0)
+        rw_list = cobol_bridge.rescisao_listar()
+        rw_grav = next((rr for rr in rw_list if str(rr.get("id")) == str(rw.get("id"))), None)
+        check("nome derivado do funcionário na gravação",
+              rw_grav is not None and (rw_grav.get("nome") or "") == "Smoke Sem Nome",
+              rw_grav.get("nome") if rw_grav else None)
 
         print(f"\n{'='*50}\nResultado: {PASS} ok / {FAIL} falhas\n{'='*50}")
         sys.exit(0 if FAIL == 0 else 1)

@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Ajustes de Estoque</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Sidebar toggled (recolher/expandir) ── */
+    @media(min-width:1025px){
+      #sidebar .sidebar-collapse{display:flex}
+      #sidebar.collapsed{width:64px!important}
+      #sidebar.collapsed .menu-label,
+      #sidebar.collapsed .soon-tag,
+      #sidebar.collapsed .brand-text{opacity:0!important;width:0!important;display:none!important}
+      #sidebar.collapsed .menu-item{justify-content:center;padding-left:0;padding-right:0}
+      #sidebar.collapsed .sidebar-nav{padding:0 var(--space-2)}
+      #sidebar.collapsed .sidebar-collapse .icon{transform:rotate(180deg)}
+      .main-area.collapsed{margin-left:64px!important;width:calc(100% - 64px)!important}
+    }
+    /* ── Menu equalizado ── */
+    .sidebar-nav{display:flex;flex-direction:column;gap:4px}
+    .menu-item{min-height:42px;border-radius:10px}
+    .menu-item .icon{width:20px;height:20px;flex-shrink:0}
+    .menu-item.soon .soon-tag{margin-left:auto;white-space:nowrap}
+    .menu-item .soon-tag{margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);opacity:.8}
+    .sidebar-collapse{margin:4px 0 10px;color:var(--text-muted)}
+    .sidebar-collapse:hover{color:var(--color-primary)}
+    #sub-config.open{max-height:860px} /* submenu grande (14 itens) — só quando aberto */
+    /* ── Página ── */
+    .workspace{padding-top:0}
+    #workspace-view{padding-top:14px}
+    .aj-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+    .aj-toolbar select{min-width:160px}
+    .aj-table{width:100%;border-collapse:collapse}
+    .aj-table th,.aj-table td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08)}
+    .aj-table th{font-size:12px;text-transform:uppercase;opacity:.7}
+    .aj-msg{margin:8px 0;font-size:14px}
+    .aj-msg.err{color:#f87171}
+    .aj-msg.ok{color:#4ade80}
+    .badge{padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600}
+    .badge-in{background:rgba(74,222,128,.15);color:#4ade80}
+    .badge-out{background:rgba(248,113,113,.15);color:#f87171}
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4);margin-bottom:20px}
+    @media (max-width:900px){.kpi-row{grid-template-columns:1fr 1fr}}
+    .kpi-card{padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+    .kpi-card .kpi-value{font-size:22px;font-weight:700}
+    .kpi-card .kpi-label{font-size:12px;opacity:.7;text-transform:uppercase;letter-spacing:.04em}
+    .kpi-card.in .kpi-value{color:#4ade80}
+    .kpi-card.out .kpi-value{color:#f87171}
+    .kpi-card.liq .kpi-value{color:#5eead4}
+    .empty{padding:24px;text-align:center;opacity:.6}
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <div class="sidebar-collapse" id="sidebar-collapse" title="Recolher/expandir menu">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-chevron-left"/></svg>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html" title="Visão Geral do Inventário">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Visão Geral</span>
+      </a>
+      <div class="menu-item has-children open" id="menu-operacoes" title="Operações">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="menu-label">Operações</span>
+        <svg class="icon icon-16 menu-arrow rotated"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu open" id="sub-operacoes">
+        <a class="menu-item active" href="ajustes-estoque.html" title="Ajustes de Estoque">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Ajustes de Estoque</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Transferências</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-trash"/></svg>
+          <span class="menu-label">Sucatas</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+          <span class="menu-label">Custos Adicionais</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-clock"/></svg>
+          <span class="menu-label">Executar Agendados</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-produtos" title="Produtos">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Produtos</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-produtos">
+        <a class="menu-item" href="produtos.html" title="Cadastro de Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Produto</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-filter"/></svg>
+          <span class="menu-label">Variantes</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-relatorios" title="Relatórios">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Relatórios</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-relatorios">
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Estoque</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+          <span class="menu-label">Locais</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-clock"/></svg>
+          <span class="menu-label">Histórico de Movimentações</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Movimentação de Estoque</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+          <span class="menu-label">Valorização</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-config" title="Configurações">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="menu-label">Configurações</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-config">
+        <a class="menu-item" href="wms-armazens.html" title="Armazéns">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+          <span class="menu-label">Armazéns</span>
+        </a>
+        <a class="menu-item" href="wms-localizacoes.html" title="Locais">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+          <span class="menu-label">Locais</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Rotas</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-lock"/></svg>
+          <span class="menu-label">Regras</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="wms-tipos-operacao.html" title="Tipos de Operação">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-refresh"/></svg>
+          <span class="menu-label">Tipos de Operação</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Categoria de Armazenamento</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-upload"/></svg>
+          <span class="menu-label">Regras de Entrada no Depósito</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="categorias.html" title="Categoria dos Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg>
+          <span class="menu-label">Categoria dos Produtos</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Atributos</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Embalagem dos Produtos</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg>
+          <span class="menu-label">Nomenclatura Código de Barras</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Método de Envio</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Veículo</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+          <span class="menu-label">Prefixo do CEP</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+        <span class="topbar-title">Ajustes de Estoque</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <button class="dialog-btn dialog-btn-primary" id="btn-new">Novo Ajuste</button>
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-content" style="width:100%">
+          <div class="aj-toolbar">
+            <select class="form-input" id="filter-estab"><option value="">Todas lojas</option></select>
+            <select class="form-input" id="filter-dir">
+              <option value="">Todas as direções</option>
+              <option value="in">Entrada (+)</option>
+              <option value="out">Saída (−)</option>
+            </select>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-refresh">Atualizar</button>
+          </div>
+          <div id="msg" class="aj-msg"></div>
+          <div class="kpi-row" id="kpis"></div>
+          <div id="list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="new-modal" style="display:none">
+  <div class="dialog-box" style="max-width:440px">
+    <div class="dialog-header">
+      <h3 class="dialog-title">Novo ajuste de estoque</h3>
+      <button class="dialog-close" data-close="new-modal">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div class="field"><label>Loja</label><select class="form-input" id="aj-estab"></select></div>
+      <div class="field"><label>Produto</label><select class="form-input" id="aj-pid"></select></div>
+      <div class="field"><label>Direção</label>
+        <select class="form-input" id="aj-dir">
+          <option value="in">Entrada (+)</option>
+          <option value="out">Saída (−)</option>
+        </select>
+      </div>
+      <div class="field"><label>Quantidade</label><input class="form-input" id="aj-qty" type="number" min="1" value="1"></div>
+      <div class="field"><label>Motivo</label><input class="form-input" id="aj-nota" placeholder="obrigatório" required></div>
+      <div class="form-error" id="aj-error"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn dialog-btn-secondary" data-close="new-modal">Cancelar</button>
+      <button class="dialog-btn dialog-btn-primary" id="aj-save">Salvar ajuste</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let empresas = {};
+  let nomes = {};
+  let produtos = [];
+  let movs = [];
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function fmtNum(v) {
+    return Math.round(Number(v) || 0).toLocaleString("pt-BR");
+  }
+  function fmtDt(at) {
+    const s = String(at || "");
+    if (s.length < 16) return s;
+    const d = s.slice(0, 10).split("-");
+    return `${d[2]}/${d[1]}/${d[0]} ${s.slice(11, 16)}`;
+  }
+  function msg(text, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = text || "";
+    el.className = "aj-msg " + (ok ? "ok" : text ? "err" : "");
+  }
+  function openModal(id) { document.getElementById(id).style.display = "flex"; }
+  function closeModal(id) { document.getElementById(id).style.display = "none"; }
+  document.querySelectorAll("[data-close]").forEach((btn) => {
+    btn.addEventListener("click", () => closeModal(btn.dataset.close));
+  });
+
+  // ── Sidebar toggled ──
+  const sbSidebar = document.getElementById("sidebar");
+  const sbBtn = document.getElementById("sidebar-collapse");
+  function applySidebar(collapsed) {
+    sbSidebar.classList.toggle("collapsed", collapsed);
+    sbSidebar.style.width = collapsed ? "64px" : "";
+    const ma = document.querySelector(".main-area");
+    if (ma) {
+      ma.classList.toggle("collapsed", collapsed);
+      ma.style.marginLeft = collapsed ? "64px" : "";
+      ma.style.width = collapsed ? "calc(100% - 64px)" : "";
+    }
+  }
+  if (sbSidebar && sbBtn) {
+    if (localStorage.getItem("sidebar_collapsed") === "true") applySidebar(true);
+    sbBtn.onclick = () => {
+      const collapsed = !sbSidebar.classList.contains("collapsed");
+      applySidebar(collapsed);
+      localStorage.setItem("sidebar_collapsed", collapsed);
+    };
+  }
+  document.querySelectorAll(".menu-item.has-children").forEach((parent) => {
+    const sub = document.getElementById("sub-" + parent.id.replace("menu-", ""));
+    if (!sub) return;
+    parent.addEventListener("click", () => {
+      sub.classList.toggle("open");
+      const arrow = parent.querySelector(".menu-arrow");
+      if (arrow) arrow.classList.toggle("rotated");
+    });
+  });
+
+  // ── Dados ──
+  function fillSelects(ids) {
+    const opts = Object.keys(empresas).map((id) =>
+      `<option value="${id}">${empresas[id].nome || id}</option>`
+    ).join("");
+    ids.forEach((selId) => {
+      const el = document.getElementById(selId);
+      if (el) el.innerHTML = opts;
+    });
+  }
+
+  async function loadEmpresas() {
+    empresas = {};
+    let lista = [];
+    const mine = await AuthService.api("/api/auth/minhas-empresas");
+    if (mine.status === "ok" && mine.empresas && mine.empresas.length) lista = mine.empresas;
+    else {
+      const data = await AuthService.api("/api/admin/empresas");
+      if (data.status === "ok") lista = data.empresas || [];
+    }
+    if (!lista.length) {
+      lista = [
+        { id: "matriz", nome: "Matriz" },
+        { id: "filial_sp", nome: "Filial São Paulo" },
+        { id: "filial_rj", nome: "Filial Rio de Janeiro" },
+      ];
+    }
+    lista.forEach((e) => { empresas[e.id] = e; });
+    const filterOpts = `<option value="">Todas lojas</option>` +
+      Object.keys(empresas).map((id) => `<option value="${id}">${empresas[id].nome || id}</option>`).join("");
+    document.getElementById("filter-estab").innerHTML = filterOpts;
+    fillSelects(["aj-estab"]);
+  }
+
+  async function loadNomes(estab) {
+    nomes = {};
+    produtos = [];
+    const qs = estab ? ("?estabelecimento_id=" + encodeURIComponent(estab)) : "";
+    const data = await AuthService.api("/api/pos/produtos" + qs);
+    (data.produtos || []).forEach((p) => {
+      nomes[String(p.id)] = p.nome || String(p.id);
+      produtos.push({ id: String(p.id), nome: p.nome || String(p.id) });
+    });
+    produtos.sort((a, b) => a.nome.localeCompare(b.nome));
+    const opts = produtos.map((p) => `<option value="${p.id}">${p.id} · ${p.nome}</option>`).join("");
+    const el = document.getElementById("aj-pid");
+    if (el) el.innerHTML = opts || '<option value="">— sem produtos —</option>';
+  }
+
+  function ensureEstabOptions(keys) {
+    const sel = document.getElementById("filter-estab");
+    const existing = new Set(Array.from(sel.options).map((o) => o.value));
+    keys.forEach((k) => {
+      if (!existing.has(k)) {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = (empresas[k] || {}).nome || k;
+        sel.appendChild(opt);
+        existing.add(k);
+      }
+    });
+  }
+
+  function render() {
+    const dir = document.getElementById("filter-dir").value;
+    const rows = movs.filter((m) => {
+      if (dir === "in") return Number(m.sign || 1) === 1;
+      if (dir === "out") return Number(m.sign || 1) === -1;
+      return true;
+    });
+
+    const total = rows.length;
+    const entradas = rows.filter((m) => Number(m.sign || 1) === 1).reduce((s, m) => s + Number(m.qty || 0), 0);
+    const saidas = rows.filter((m) => Number(m.sign || 1) === -1).reduce((s, m) => s + Number(m.qty || 0), 0);
+
+    document.getElementById("kpis").innerHTML =
+      `<div class="kpi-card"><div class="kpi-value">${fmtNum(total)}</div><div class="kpi-label">Ajustes no filtro</div></div>` +
+      `<div class="kpi-card in"><div class="kpi-value">+${fmtNum(entradas)}</div><div class="kpi-label">Unidades entrada</div></div>` +
+      `<div class="kpi-card out"><div class="kpi-value">−${fmtNum(saidas)}</div><div class="kpi-label">Unidades saída</div></div>` +
+      `<div class="kpi-card liq"><div class="kpi-value">${entradas - saidas >= 0 ? "+" : ""}${fmtNum(entradas - saidas)}</div><div class="kpi-label">Saldo líquido</div></div>`;
+
+    if (!rows.length) {
+      document.getElementById("list").innerHTML = '<div class="empty">Nenhum ajuste encontrado.</div>';
+      return;
+    }
+
+    document.getElementById("list").innerHTML = `
+      <table class="aj-table">
+        <thead><tr><th>#</th><th>Data</th><th>Loja</th><th>Produto</th><th>Direção</th><th>Qtd</th><th>Motivo</th><th>Usuário</th></tr></thead>
+        <tbody>
+          ${rows.map((m) => {
+            const isIn = Number(m.sign || 1) === 1;
+            return `
+            <tr>
+              <td>${m.id}</td>
+              <td>${fmtDt(m.at)}</td>
+              <td>${(empresas[m.estabelecimento_id] || {}).nome || m.estabelecimento_id || "—"}</td>
+              <td>${m.produto_id} · ${nomes[m.produto_id] || "—"}</td>
+              <td><span class="badge ${isIn ? "badge-in" : "badge-out"}">${isIn ? "Entrada +" : "Saída −"}</span></td>
+              <td><strong>${m.qty}</strong></td>
+              <td>${escapeHtml(m.nota || "—")}</td>
+              <td>${escapeHtml(m.user_id || "—")}</td>
+            </tr>`;
+          }).join("")}
+        </tbody>
+      </table>`;
+  }
+
+  async function loadMovements() {
+    const estab = document.getElementById("filter-estab").value;
+    const qs = new URLSearchParams({ limit: "200" });
+    if (estab) qs.set("estabelecimento_id", estab);
+    const data = await AuthService.api("/api/inventory/movements?" + qs.toString());
+    movs = (data.movements || []).filter((m) => m.tipo === "adjust");
+    render();
+  }
+
+  async function refresh() {
+    msg("");
+    await loadNomes(document.getElementById("filter-estab").value || "matriz");
+    await loadMovements();
+  }
+
+  document.getElementById("btn-refresh").onclick = refresh;
+  document.getElementById("filter-estab").onchange = refresh;
+  document.getElementById("filter-dir").onchange = render;
+  document.getElementById("btn-new").onclick = () => {
+    document.getElementById("aj-error").textContent = "";
+    openModal("new-modal");
+  };
+
+  document.getElementById("aj-save").onclick = async () => {
+    const err = document.getElementById("aj-error");
+    err.textContent = "";
+    const nota = document.getElementById("aj-nota").value.trim();
+    if (!nota) {
+      err.textContent = "Informe o motivo do ajuste";
+      return;
+    }
+    const res = await AuthService.api("/api/inventory/adjust", {
+      method: "POST",
+      body: JSON.stringify({
+        estabelecimento_id: document.getElementById("aj-estab").value,
+        produto_id: document.getElementById("aj-pid").value.trim(),
+        qty: Number(document.getElementById("aj-qty").value || 0),
+        direcao: document.getElementById("aj-dir").value,
+        nota,
+      }),
+    });
+    if (res.status !== "ok") {
+      err.textContent = res.message || "Falha no ajuste";
+      return;
+    }
+    closeModal("new-modal");
+    document.getElementById("aj-qty").value = "1";
+    document.getElementById("aj-nota").value = "";
+    msg("Ajuste ok · movimento #" + res.movement_id, true);
+    refresh();
+  };
+
+  (async function boot() {
+    await loadEmpresas();
+    await refresh();
+  })();
+})();
+</script>
+</body>
+</html>

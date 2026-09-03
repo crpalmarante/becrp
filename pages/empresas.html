@@ -151,9 +151,7 @@
     let editingId = null;
     let allEmpresas = [];
     let priceLists = [];
-    async function api(path, opts = {}) {
-        return window.api(path, opts);
-    }
+    const api = (path, opts = {}) => window.api(path, opts);
 
     async function loadPriceLists() {
         try {

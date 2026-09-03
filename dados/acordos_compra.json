@@ -1,0 +1,347 @@
+{
+  "acordos": [
+    {
+      "id": 6,
+      "numero": "CT00006",
+      "tipo": "tender",
+      "status": "em_cotacao",
+      "data": "",
+      "fechamento": "",
+      "descricao": "Compra de notebooks",
+      "comprador": "ana",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 0.0,
+      "pedido_id": "",
+      "pedido_num": "",
+      "notas": "",
+      "itens": [
+        {
+          "acordo_id": 6,
+          "seq": 1,
+          "prod_id": "",
+          "produto": "Notebook",
+          "qtd": 50.0,
+          "uom": "UN",
+          "descricao": ""
+        },
+        {
+          "acordo_id": 6,
+          "seq": 2,
+          "prod_id": "",
+          "produto": "Monitor",
+          "qtd": 100.0,
+          "uom": "UN",
+          "descricao": ""
+        }
+      ],
+      "cotacoes": [
+        {
+          "id": 4,
+          "acordo_id": 6,
+          "fornecedor_id": "",
+          "fornecedor": "XYZ",
+          "cnpj": "",
+          "prazo": "30",
+          "payment_terms": "30",
+          "forma_pg": "Boleto",
+          "frete": 0.0,
+          "valor_total": 166500.0,
+          "itens": [
+            {
+              "prod_id": "",
+              "produto": "Notebook",
+              "qtd": 50.0,
+              "preco": 1750.0,
+              "subtotal": 87500.0
+            },
+            {
+              "prod_id": "",
+              "produto": "Monitor",
+              "qtd": 100.0,
+              "preco": 790.0,
+              "subtotal": 79000.0
+            }
+          ],
+          "vencedora": false,
+          "criado_em": "2026-08-06T19:24:23",
+          "criado_por": "ana"
+        },
+        {
+          "id": 3,
+          "acordo_id": 6,
+          "fornecedor_id": "",
+          "fornecedor": "ABC",
+          "cnpj": "",
+          "prazo": "15",
+          "payment_terms": "30",
+          "forma_pg": "Boleto",
+          "frete": 500.0,
+          "valor_total": 170500.0,
+          "itens": [
+            {
+              "prod_id": "",
+              "produto": "Notebook",
+              "qtd": 50.0,
+              "preco": 1800.0,
+              "subtotal": 90000.0
+            },
+            {
+              "prod_id": "",
+              "produto": "Monitor",
+              "qtd": 100.0,
+              "preco": 800.0,
+              "subtotal": 80000.0
+            }
+          ],
+          "vencedora": false,
+          "criado_em": "2026-08-06T19:24:23",
+          "criado_por": "ana"
+        }
+      ],
+      "blanket": {}
+    },
+    {
+      "id": 5,
+      "numero": "AC00005",
+      "tipo": "blanket",
+      "status": "fechado",
+      "data": "",
+      "fechamento": "2026-08-06",
+      "descricao": "Blanket anual de papel",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 0.0,
+      "pedido_id": "",
+      "pedido_num": "",
+      "notas": "",
+      "itens": [
+        {
+          "acordo_id": 5,
+          "seq": 1,
+          "prod_id": "",
+          "produto": "Papel A4",
+          "qtd": 1000.0,
+          "uom": "UN",
+          "descricao": ""
+        }
+      ],
+      "cotacoes": [],
+      "blanket": {
+        "liberacoes": [
+          {
+            "pedido_id": 6,
+            "pedido_num": "PC00006",
+            "valor": 2000.0,
+            "qtd": 50.0,
+            "data": "2026-08-06T19:20:54",
+            "usuario": "gerente"
+          },
+          {
+            "pedido_id": 5,
+            "pedido_num": "PC00005",
+            "valor": 5000.0,
+            "qtd": 100.0,
+            "data": "2026-08-06T19:20:53",
+            "usuario": "gerente"
+          }
+        ],
+        "valor_total": 50000.0,
+        "saldo_valor": 43000.0,
+        "qtd_total": 1000.0,
+        "saldo_qtd": 850.0,
+        "atualizado_por": "gerente",
+        "atualizado_em": "2026-08-06T19:20:54"
+      }
+    },
+    {
+      "id": 4,
+      "numero": "AC00004",
+      "tipo": "blanket",
+      "status": "rascunho",
+      "data": "",
+      "fechamento": "",
+      "descricao": "Blanket anual de papel",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 0.0,
+      "pedido_id": "",
+      "pedido_num": "",
+      "notas": "",
+      "itens": [
+        {
+          "acordo_id": 4,
+          "seq": 1,
+          "prod_id": "",
+          "produto": "Papel A4",
+          "qtd": 1000.0,
+          "uom": "UN",
+          "descricao": ""
+        }
+      ],
+      "cotacoes": [],
+      "blanket": {}
+    },
+    {
+      "id": 3,
+      "numero": "AC00003",
+      "tipo": "blanket",
+      "status": "rascunho",
+      "data": "",
+      "fechamento": "",
+      "descricao": "Blanket anual de papel",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 0.0,
+      "pedido_id": "",
+      "pedido_num": "",
+      "notas": "",
+      "itens": [
+        {
+          "acordo_id": 3,
+          "seq": 1,
+          "prod_id": "",
+          "produto": "Papel A4",
+          "qtd": 1000.0,
+          "uom": "UN",
+          "descricao": ""
+        }
+      ],
+      "cotacoes": [],
+      "blanket": {}
+    },
+    {
+      "id": 2,
+      "numero": "AC00002",
+      "tipo": "blanket",
+      "status": "rascunho",
+      "data": "",
+      "fechamento": "",
+      "descricao": "Blanket anual de papel",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 0.0,
+      "pedido_id": "",
+      "pedido_num": "",
+      "notas": "",
+      "itens": [
+        {
+          "acordo_id": 2,
+          "seq": 1,
+          "prod_id": "",
+          "produto": "Papel A4",
+          "qtd": 1000.0,
+          "uom": "UN",
+          "descricao": ""
+        }
+      ],
+      "cotacoes": [],
+      "blanket": {}
+    },
+    {
+      "id": 1,
+      "numero": "CT00001",
+      "tipo": "tender",
+      "status": "fechado",
+      "data": "",
+      "fechamento": "2026-08-06",
+      "descricao": "Compra de notebooks",
+      "comprador": "ana",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 0.0,
+      "pedido_id": "2",
+      "pedido_num": "PC00002",
+      "notas": "",
+      "itens": [
+        {
+          "acordo_id": 1,
+          "seq": 1,
+          "prod_id": "",
+          "produto": "Notebook",
+          "qtd": 50.0,
+          "uom": "UN",
+          "descricao": ""
+        },
+        {
+          "acordo_id": 1,
+          "seq": 2,
+          "prod_id": "",
+          "produto": "Monitor",
+          "qtd": 100.0,
+          "uom": "UN",
+          "descricao": ""
+        }
+      ],
+      "cotacoes": [
+        {
+          "id": 2,
+          "acordo_id": 1,
+          "fornecedor_id": "",
+          "fornecedor": "XYZ Tech",
+          "cnpj": "22333444000190",
+          "prazo": "30",
+          "payment_terms": "30",
+          "forma_pg": "Boleto",
+          "frete": 0.0,
+          "valor_total": 166500.0,
+          "itens": [
+            {
+              "prod_id": "",
+              "produto": "Notebook",
+              "qtd": 50.0,
+              "preco": 1750.0,
+              "subtotal": 87500.0
+            },
+            {
+              "prod_id": "",
+              "produto": "Monitor",
+              "qtd": 100.0,
+              "preco": 790.0,
+              "subtotal": 79000.0
+            }
+          ],
+          "vencedora": true,
+          "criado_em": "2026-08-06T18:26:47",
+          "criado_por": "ana"
+        },
+        {
+          "id": 1,
+          "acordo_id": 1,
+          "fornecedor_id": "",
+          "fornecedor": "ABC Informática",
+          "cnpj": "11222333000190",
+          "prazo": "15",
+          "payment_terms": "30",
+          "forma_pg": "Boleto",
+          "frete": 500.0,
+          "valor_total": 170500.0,
+          "itens": [
+            {
+              "prod_id": "",
+              "produto": "Notebook",
+              "qtd": 50.0,
+              "preco": 1800.0,
+              "subtotal": 90000.0
+            },
+            {
+              "prod_id": "",
+              "produto": "Monitor",
+              "qtd": 100.0,
+              "preco": 800.0,
+              "subtotal": 80000.0
+            }
+          ],
+          "vencedora": false,
+          "criado_em": "2026-08-06T18:26:47",
+          "criado_por": "ana"
+        }
+      ],
+      "blanket": {}
+    }
+  ]
+}

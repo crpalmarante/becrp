@@ -1,0 +1,39 @@
+{
+  "next_id": 3,
+  "pricelists": [
+    {
+      "id": 2,
+      "produto_id": "P100",
+      "produto": "Parafuso",
+      "fornecedor_id": "FORN2",
+      "fornecedor": "Fornecedor B",
+      "codigo_fornecedor": "PAR-B",
+      "preco": 0.42,
+      "moeda": "BRL",
+      "lead_time": 7,
+      "qtd_minima": 200.0,
+      "validade_de": "2026-08-06",
+      "validade_ate": "9999-12-31",
+      "updated_at": "2026-08-06T19:52:48",
+      "updated_by": "joao"
+    },
+    {
+      "id": 1,
+      "produto_id": "P100",
+      "produto": "Parafuso",
+      "fornecedor_id": "FORN1",
+      "fornecedor": "Fornecedor A",
+      "codigo_fornecedor": "PAR-A",
+      "preco": 0.45,
+      "moeda": "BRL",
+      "lead_time": 5,
+      "qtd_minima": 100.0,
+      "validade_de": "2026-08-06",
+      "validade_ate": "9999-12-31",
+      "updated_at": "2026-08-06T19:52:48",
+      "updated_by": "joao"
+    }
+  ],
+  "atualizado_em": "2026-08-06T19:52:48",
+  "total": 2
+}

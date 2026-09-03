@@ -1,0 +1,11 @@
+{
+  "pedidos": {
+    "1": {
+      "moeda": "USD",
+      "taxa": 5.25,
+      "updated_at": "2026-08-06T20:06:27",
+      "updated_by": ""
+    }
+  },
+  "updated_at": "2026-08-06T20:06:27"
+}

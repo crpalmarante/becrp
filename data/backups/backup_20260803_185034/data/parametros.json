@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "system": {
+    "page_size": 50,
+    "session_timeout_segundos": 300,
+    "idioma_padrao": "pt-BR"
+  },
+  "ui": {
+    "date_format": "DD/MM/AAAA",
+    "decimal_separator": ",",
+    "thousands_separator": ".",
+    "currency_position": "before"
+  },
+  "negocio": {
+    "inventory_precision": 2,
+    "price_precision": 2,
+    "fiscal_regime": ""
+  },
+  "atualizado_em": "2026-08-03T18:36:43"
+}

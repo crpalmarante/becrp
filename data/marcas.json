@@ -1,3 +1,12 @@
 {
-  "generica": { "nome": "Genérica", "descricao": "Marca própria / sem marca", "ativo": true }
+  "generica": {
+    "nome": "Genérica",
+    "descricao": "Marca própria / sem marca",
+    "ativo": true
+  },
+  "462e5e25": {
+    "nome": "Electroclux",
+    "descricao": "",
+    "ativo": true
+  }
 }

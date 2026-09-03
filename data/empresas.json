@@ -1,39 +1,61 @@
 {
   "matriz": {
     "nome": "Matriz",
-    "cnpj": "62832155000141",
-    "ie": "ISENTO",
-    "cidade": "Passo Fundo",
-    "uf": 43,
     "ativo": true,
-    "nome_razao": "COMERCIAL FABIELI LTDA",
-    "nome_fantasia": "COMERCIAL FABIELI",
-    "municipio": "Passo Fundo",
-    "endereco": "RUA RIO GRANDE DO SUL, 372, CENTRO, PASSO FUNDO/RS",
-    "cep": "99010001",
-    "telefone": "(54)3311-5000",
-    "email": "fabieli@fabieli.com.br",
-    "cod_municipio": "4314100",
     "tipo": "matriz",
-    "default_price_list_id": "pl_varejo"
-  },
-  "filial_sp": {
-    "nome": "Filial São Paulo",
-    "cnpj": "00.000.000/0002-00",
-    "ie": "123.456.789.001",
-    "cidade": "São Paulo",
-    "uf": "SP",
-    "ativo": true,
-    "tipo": "filial",
-    "default_price_list_id": "pl_filial_sp"
-  },
-  "filial_rj": {
-    "nome": "Filial Rio de Janeiro",
-    "cnpj": "00.000.000/0003-00",
-    "ie": "123.456.789.002",
-    "cidade": "Rio de Janeiro",
-    "uf": "RJ",
-    "ativo": true,
-    "tipo": "filial"
+    "nome_razao": "COMERCIAL FABIELI LTDA",
+    "nome_fantasia": "Matriz",
+    "cnpj": "62832155000141",
+    "ie": "263850510",
+    "inscricao_est": "263850510",
+    "logradouro": "RODOVIA DUQUE DE CAXIAS",
+    "numero": "S/N",
+    "complemento": "QUADRA01 LOTE 14",
+    "bairro": "UBATUBA",
+    "endereco": "RODOVIA DUQUE DE CAXIAS, S/N, QUADRA01 LOTE 14",
+    "cidade": "São Francisco do Sul",
+    "municipio": "São Francisco do Sul",
+    "uf": "SC",
+    "cep": "89335000",
+    "telefone": "(47)3444-3503",
+    "email": "COMERCIOMOVEISFORMIGARI@GMAIL.COM",
+    "cod_municipio": "4216206",
+    "cnae_prim_codigo": "4754701",
+    "cnae_prim_desc": "Comércio varejista de móveis",
+    "cnae_sec_codigos": "4753900,4754702,4759801,4759899,4763601,4785799,6622300,7490104",
+    "cnaes_secundarios": [
+      {
+        "codigo": "4753900",
+        "descricao": "Comércio varejista especializado de eletrodomésticos e equipamentos de áudio e vídeo"
+      },
+      {
+        "codigo": "4754702",
+        "descricao": "Comércio varejista de artigos de colchoaria"
+      },
+      {
+        "codigo": "4759801",
+        "descricao": "Comércio varejista de artigos de tapeçaria, cortinas e persianas"
+      },
+      {
+        "codigo": "4759899",
+        "descricao": "Comércio varejista de outros artigos de uso pessoal e doméstico não especificados anteriormente"
+      },
+      {
+        "codigo": "4763601",
+        "descricao": "Comércio varejista de brinquedos e artigos recreativos"
+      },
+      {
+        "codigo": "4785799",
+        "descricao": "Comércio varejista de outros artigos usados"
+      },
+      {
+        "codigo": "6622300",
+        "descricao": "Corretores e agentes de seguros, de planos de previdência complementar e de saúde"
+      },
+      {
+        "codigo": "7490104",
+        "descricao": "Atividades de intermediação e agenciamento de serviços e negócios em geral, exceto imobiliários"
+      }
+    ]
   }
 }

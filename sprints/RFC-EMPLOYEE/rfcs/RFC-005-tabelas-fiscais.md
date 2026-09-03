@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Conceito de tabelas fiscais: INSS, IRRF e salário-família |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (10/08/2026) |
 | **Data** | 31/07/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Folha |
@@ -106,4 +106,4 @@ Benefício pago ao empregado **de baixa renda** por dependente, dentro de faixas
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |

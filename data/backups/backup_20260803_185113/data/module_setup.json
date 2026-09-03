@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "apps": {
+    "pos": {
+      "done": false,
+      "done_at": "",
+      "by": ""
+    },
+    "sales": {
+      "done": false,
+      "done_at": "",
+      "by": ""
+    },
+    "inventory": {
+      "done": false,
+      "done_at": "",
+      "by": ""
+    },
+    "fiscal": {
+      "done": false,
+      "done_at": "",
+      "by": ""
+    },
+    "purchases": {
+      "done": false,
+      "done_at": "",
+      "by": ""
+    },
+    "wms": {
+      "done": false,
+      "done_at": "",
+      "by": ""
+    },
+    "delivery": {
+      "done": false,
+      "done_at": "",
+      "by": ""
+    },
+    "accounting": {
+      "done": false,
+      "done_at": "",
+      "by": ""
+    },
+    "hr_payroll": {
+      "done": false,
+      "done_at": "",
+      "by": ""
+    }
+  },
+  "atualizado_em": "2026-08-03T18:51:13",
+  "reset_em": "2026-08-03T18:51:13",
+  "reset_by": ""
+}

@@ -1,0 +1,52 @@
+{
+  "terminais": [
+    {
+      "id": "pdv-01",
+      "tipo": "pdv",
+      "codigo": "PDV-01",
+      "nome": "Balcão frente",
+      "estabelecimento_id": "matriz",
+      "usuario_id": "vended01",
+      "usuario_nome": "Ana Vendedora",
+      "ativo": true,
+      "treino": true,
+      "impressora": "",
+      "balanca": "mock",
+      "timeout_min": 30,
+      "emite_nfce": false,
+      "criado_em": "2026-07-31T12:00:00"
+    },
+    {
+      "id": "cx-01",
+      "tipo": "caixa",
+      "codigo": "CX-01",
+      "nome": "Caixa principal",
+      "estabelecimento_id": "matriz",
+      "usuario_id": "caixa001",
+      "usuario_nome": "Carla Caixa",
+      "ativo": true,
+      "treino": true,
+      "impressora": "",
+      "balanca": "nenhuma",
+      "timeout_min": 30,
+      "emite_nfce": true,
+      "criado_em": "2026-07-31T12:00:00"
+    },
+    {
+      "id": "cx-ger",
+      "tipo": "caixa",
+      "codigo": "CX-GER",
+      "nome": "Hub gerente",
+      "estabelecimento_id": "matriz",
+      "usuario_id": "gerent01",
+      "usuario_nome": "Bruno Gerente",
+      "ativo": true,
+      "treino": true,
+      "impressora": "",
+      "balanca": "nenhuma",
+      "timeout_min": 30,
+      "emite_nfce": true,
+      "criado_em": "2026-07-31T12:00:00"
+    }
+  ]
+}

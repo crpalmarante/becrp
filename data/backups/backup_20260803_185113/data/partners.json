@@ -1,0 +1,277 @@
+{
+  "bp001": {
+    "partner_code": "BP000000001",
+    "person_type": "COMPANY",
+    "display_name": "Bom Preço",
+    "legal_name": "Mercado Bom Preço LTDA",
+    "trade_name": "Bom Preço",
+    "status": "ACTIVE",
+    "roles": ["CUSTOMER"],
+    "documents": [
+      { "id": "d1", "document_type": "CNPJ", "document_number": "12.345.678/0001-90" },
+      { "id": "d2", "document_type": "IE", "document_number": "123.456.789.000" }
+    ],
+    "addresses": [
+      {
+        "id": "a1",
+        "address_type": "HEADQUARTERS",
+        "zip_code": "01001-000",
+        "street": "Rua das Flores",
+        "number": "100",
+        "district": "Centro",
+        "city": "São Paulo",
+        "state": "SP",
+        "country": "BR",
+        "preferred": true
+      },
+      {
+        "id": "a2",
+        "address_type": "BILLING",
+        "zip_code": "01001-000",
+        "street": "Rua das Flores",
+        "number": "100",
+        "district": "Centro",
+        "city": "São Paulo",
+        "state": "SP",
+        "country": "BR",
+        "preferred": true
+      },
+      {
+        "id": "a3",
+        "address_type": "SHIPPING",
+        "zip_code": "01310-100",
+        "street": "Av. Paulista",
+        "number": "1500",
+        "district": "Bela Vista",
+        "city": "São Paulo",
+        "state": "SP",
+        "country": "BR",
+        "preferred": true
+      }
+    ],
+    "contacts": [
+      {
+        "id": "c1",
+        "name": "Ana Compras",
+        "department": "Compras",
+        "job_title": "Compradora",
+        "email": "compras@bompreco.com.br",
+        "phone": "(11) 3456-7890",
+        "mobile": "(11) 98888-1001",
+        "preferred": true
+      }
+    ],
+    "regime": "SN",
+    "contribuinte_icms": "1",
+    "observacao": "Cliente B2B — pedidos semanais",
+    "ativo": true
+  },
+  "bp002": {
+    "partner_code": "BP000000002",
+    "person_type": "COMPANY",
+    "display_name": "Sul Alimentos",
+    "legal_name": "Distribuidora Sul Alimentos SA",
+    "trade_name": "Sul Alimentos",
+    "status": "ACTIVE",
+    "roles": ["CUSTOMER", "SUPPLIER"],
+    "documents": [
+      { "id": "d1", "document_type": "CNPJ", "document_number": "98.765.432/0001-10" },
+      { "id": "d2", "document_type": "IE", "document_number": "987.654.321.000" }
+    ],
+    "addresses": [
+      {
+        "id": "a1",
+        "address_type": "HEADQUARTERS",
+        "zip_code": "90010-150",
+        "street": "Av. Borges de Medeiros",
+        "number": "500",
+        "district": "Centro Histórico",
+        "city": "Porto Alegre",
+        "state": "RS",
+        "country": "BR",
+        "preferred": true
+      },
+      {
+        "id": "a2",
+        "address_type": "BILLING",
+        "zip_code": "90010-150",
+        "street": "Av. Borges de Medeiros",
+        "number": "500",
+        "district": "Centro Histórico",
+        "city": "Porto Alegre",
+        "state": "RS",
+        "country": "BR",
+        "preferred": true
+      }
+    ],
+    "contacts": [
+      {
+        "id": "c1",
+        "name": "Carlos Pedidos",
+        "department": "Comercial",
+        "job_title": "Gerente",
+        "email": "pedidos@sulalimentos.com.br",
+        "phone": "(51) 3222-1100",
+        "mobile": "",
+        "preferred": true
+      },
+      {
+        "id": "c2",
+        "name": "Paula Fornecimento",
+        "department": "Vendas",
+        "job_title": "Representante",
+        "email": "paula@sulalimentos.com.br",
+        "phone": "(51) 3222-1101",
+        "mobile": "(51) 99999-2200",
+        "preferred": false
+      }
+    ],
+    "regime": "LP",
+    "contribuinte_icms": "1",
+    "observacao": "Compra e vende — papéis CUSTOMER + SUPPLIER",
+    "ativo": true
+  },
+  "bp003": {
+    "partner_code": "BP000000003",
+    "person_type": "PERSON",
+    "display_name": "João Silva",
+    "legal_name": "João Silva",
+    "trade_name": "",
+    "status": "ACTIVE",
+    "roles": ["CUSTOMER"],
+    "documents": [
+      { "id": "d1", "document_type": "CPF", "document_number": "123.456.789-00" }
+    ],
+    "addresses": [
+      {
+        "id": "a1",
+        "address_type": "HEADQUARTERS",
+        "zip_code": "01310-100",
+        "street": "Av. Paulista",
+        "number": "1000",
+        "district": "Bela Vista",
+        "city": "São Paulo",
+        "state": "SP",
+        "country": "BR",
+        "preferred": true
+      }
+    ],
+    "contacts": [
+      {
+        "id": "c1",
+        "name": "João Silva",
+        "department": "",
+        "job_title": "",
+        "email": "joao@email.com",
+        "phone": "(11) 99999-8888",
+        "mobile": "(11) 99999-8888",
+        "preferred": true
+      }
+    ],
+    "regime": "PF",
+    "contribuinte_icms": "9",
+    "observacao": "Cliente varejo / NFC-e",
+    "ativo": true
+  },
+  "bp004": {
+    "partner_code": "BP000000004",
+    "person_type": "COMPANY",
+    "display_name": "Agro Norte Insumos",
+    "legal_name": "Agro Norte Insumos LTDA",
+    "trade_name": "Agro Norte",
+    "status": "ACTIVE",
+    "roles": ["SUPPLIER"],
+    "documents": [
+      { "id": "d1", "document_type": "CNPJ", "document_number": "11.222.333/0001-44" },
+      { "id": "d2", "document_type": "IE", "document_number": "ISENTO" }
+    ],
+    "addresses": [
+      {
+        "id": "a1",
+        "address_type": "HEADQUARTERS",
+        "zip_code": "78010-000",
+        "street": "Av. Historiador Rubens de Mendonça",
+        "number": "2000",
+        "district": "Centro-Norte",
+        "city": "Cuiabá",
+        "state": "MT",
+        "country": "BR",
+        "preferred": true
+      },
+      {
+        "id": "a2",
+        "address_type": "WAREHOUSE",
+        "zip_code": "78048-000",
+        "street": "Rodovia BR-364",
+        "number": "Km 12",
+        "district": "Industrial",
+        "city": "Cuiabá",
+        "state": "MT",
+        "country": "BR",
+        "preferred": false
+      }
+    ],
+    "contacts": [
+      {
+        "id": "c1",
+        "name": "Roberto Vendas",
+        "department": "Comercial",
+        "job_title": "Vendedor",
+        "email": "vendas@agronorte.com.br",
+        "phone": "(65) 3322-4400",
+        "mobile": "(65) 99999-3300",
+        "preferred": true
+      }
+    ],
+    "regime": "SN",
+    "contribuinte_icms": "1",
+    "observacao": "Fornecedor de insumos",
+    "ativo": true,
+    "bank_accounts": [
+      {
+        "id": "bk1",
+        "bank_code": "001",
+        "bank": "Banco do Brasil",
+        "branch": "1234-5",
+        "account": "98765-4",
+        "account_type": "CHECKING",
+        "holder_name": "Agro Norte Insumos LTDA",
+        "pix_type": "CNPJ",
+        "pix_key": "11.222.333/0001-44",
+        "preferred": true
+      }
+    ]
+  },
+  "bp004": {
+    "partner_code": "BP000000004",
+    "person_type": "COMPANY",
+    "display_name": "Dist Demo",
+    "legal_name": "DISTRIBUIDORA DEMO LTDA",
+    "trade_name": "Dist Demo",
+    "status": "ACTIVE",
+    "roles": ["SUPPLIER"],
+    "documents": [
+      { "id": "d1", "document_type": "CNPJ", "document_number": "11.222.333/0001-81" },
+      { "id": "d2", "document_type": "IE", "document_number": "1234567890" }
+    ],
+    "addresses": [
+      {
+        "id": "a1",
+        "address_type": "HEADQUARTERS",
+        "zip_code": "99010-000",
+        "street": "Rua Fornecedor",
+        "number": "100",
+        "district": "Centro",
+        "city": "Passo Fundo",
+        "state": "RS",
+        "country": "BR",
+        "preferred": true
+      }
+    ],
+    "contacts": [],
+    "regime": "RN",
+    "contribuinte_icms": "1",
+    "observacao": "Fornecedor demo NF-e inbound (CNPJ do XML sample)",
+    "ativo": true
+  }
+}

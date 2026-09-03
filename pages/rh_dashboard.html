@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RH Dashboard - Palmarante</title>
-<link rel="stylesheet" href="pos.css">
+<link rel="stylesheet" href="../css/pos.css">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#333}
@@ -160,6 +160,26 @@ tr:hover td{background:#f5f5f5}
 <div id="toast" class="toast"></div>
 
 <script>
+// Autenticação: injeta o token nas chamadas /api/* (padrão das demais telas)
+(function(){
+  const orig = window.fetch;
+  function getToken(){
+    if (window.AuthService && typeof AuthService.getToken === 'function') {
+      try { return AuthService.getToken(); } catch(e){}
+    }
+    return localStorage.getItem('auth_token') || '';
+  }
+  window.fetch = function(url, opts){
+    opts = opts || {};
+    if (String(url).indexOf('/api/') === 0) {
+      const headers = Object.assign({}, opts.headers || {});
+      const token = getToken();
+      if (token) headers['X-Auth-Token'] = token;
+      opts.headers = headers;
+    }
+    return orig(url, opts);
+  };
+})();
 function mostrarToast(msg, tipo) {
 const t=document.getElementById('toast');t.textContent=msg;
 t.className='toast '+tipo;t.style.display='block';

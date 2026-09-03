@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Movimentações contratuais: alterações com vigência |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (09/08/2026 — cargo e departamento com vigência; salário com vigência desde 31/07/2026; jornada/benefícios/forma de pagamento como evolução) |
 | **Data** | 01/08/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Processos |
@@ -64,4 +64,4 @@ regra 3) — o cálculo usa o valor vigente na competência.
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |

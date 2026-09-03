@@ -356,6 +356,7 @@ def _ensure_product(it, supplier_cnpj, catalog, user_id=None):
     custo = float(it.get("preco_unit") or 0)
     pid = cobol_bridge.produtos_incluir({
         "nome": nome,
+        "categoria": "Importacao NF-e",  # COBOL exige categoria; NF-e nao traz no XML
         "preco": custo,
         "preco_custo": custo,
         "stock": 0,
@@ -363,9 +364,10 @@ def _ensure_product(it, supplier_cnpj, catalog, user_id=None):
         "codigo_barras": ean[:14] if ean else "",
         "unidade": (it.get("unidade") or "UN")[:6],
         "ncm": ncm[:8] if ncm else "",
+        "cfop": (it.get("cfop") or "")[:4],  # CFOP da propria nota (default do produto)
         "fornecedor": _digits(supplier_cnpj)[:18],
         "fracionado": True,
-    })
+    }, importacao=True)
     pid_s = str(pid)
     try:
         product_localization.upsert_ref(

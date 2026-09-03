@@ -77,5 +77,30 @@
       "R": {},
       "C": {}
     }
+  },
+  "compra": {
+    "label": "Pedidos de Compra",
+    "states": [
+      {"code": "rascunho", "label": "Rascunho",     "color": "#9e9e9e", "icon": "📝"},
+      {"code": "pendente", "label": "Pendente",     "color": "#ff9800", "icon": "🕐"},
+      {"code": "aprovado", "label": "Aprovado",     "color": "#4caf50", "icon": "✅"},
+      {"code": "enviado",  "label": "Enviado",      "color": "#2196f3", "icon": "📤"},
+      {"code": "recebido", "label": "Recebido",     "color": "#1a237e", "icon": "📦"},
+      {"code": "cancelado","label": "Cancelado",    "color": "#c62828", "icon": "❌"}
+    ],
+    "transitions": {
+      "rascunho": {"pendente": {"roles": ["employee","comprador","admin"], "label": "Enviar para Aprovacao"}},
+      "pendente": {"aprovado": {"roles": ["manager","admin","aprovador_compras"], "label": "Aprovar"},
+                   "cancelado": {"roles": ["manager","admin","aprovador_compras"], "label": "Recusar"}},
+      "aprovado": {"enviado":  {"roles": ["comprador","admin"], "label": "Enviar p/ Fornecedor"},
+                   "cancelado": {"roles": ["manager","admin"], "label": "Cancelar"}},
+      "enviado":  {"recebido": {"roles": ["comprador","admin","recebimento"], "label": "Receber"},
+                   "cancelado": {"roles": ["manager","admin"], "label": "Cancelar"}},
+      "recebido": {},
+      "cancelado": {}
+    },
+    "limites": {
+      "aprovacao_direta": 5000.00
+    }
   }
 }

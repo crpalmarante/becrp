@@ -1,0 +1,952 @@
+{
+  "next_id": 10,
+  "receivings": [
+    {
+      "id": 1,
+      "status": "completed",
+      "origem": "manual",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "CD Central",
+      "fornecedor_id": null,
+      "documento_ref": "ROMANEIO-DEMO-4",
+      "nota": "Seed: conferir e concluir para entrar Açúcar e fechar trânsito no Promise",
+      "items": [
+        {
+          "produto_id": "4",
+          "produto_nome": "Acucar 2kg",
+          "qty_expected": 40,
+          "qty_verified": 40,
+          "unidade": "UN"
+        }
+      ],
+      "created_at": "2026-07-31T11:25:12",
+      "created_by": "seed",
+      "verified_at": "2026-07-31T11:25:15",
+      "verified_by": "test",
+      "completed_at": "2026-07-31T11:25:15",
+      "completed_by": "test",
+      "inventory": {
+        "status": "Completed",
+        "movement_ids": [
+          22
+        ],
+        "completed_at": "2026-07-31T11:25:15"
+      },
+      "events": [
+        {
+          "at": "2026-07-31T11:25:12",
+          "tipo": "created",
+          "by": "seed"
+        },
+        {
+          "at": "2026-07-31T11:25:15",
+          "tipo": "verified",
+          "by": "test"
+        },
+        {
+          "at": "2026-07-31T11:25:15",
+          "tipo": "completed",
+          "by": "test",
+          "movement_ids": [
+            22
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "status": "draft",
+      "origem": "manual",
+      "estabelecimento_id": "filial_sp",
+      "fornecedor_nome": "Distribuidora Demo",
+      "fornecedor_id": null,
+      "documento_ref": "NF-DEMO-2",
+      "nota": "Seed UI: conferir e concluir Feijão na Filial SP",
+      "items": [
+        {
+          "produto_id": "2",
+          "produto_nome": "Feijao 1kg",
+          "qty_expected": 20,
+          "qty_verified": null,
+          "unidade": "UN"
+        }
+      ],
+      "created_at": "2026-07-31T11:25:28",
+      "created_by": "seed",
+      "verified_at": null,
+      "verified_by": null,
+      "completed_at": null,
+      "completed_by": null,
+      "inventory": null,
+      "events": [
+        {
+          "at": "2026-07-31T11:25:28",
+          "tipo": "created",
+          "by": "seed"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "status": "completed",
+      "origem": "nfe",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "DISTRIBUIDORA DEMO LTDA",
+      "fornecedor_id": null,
+      "fornecedor_cnpj": "11222333000181",
+      "documento_ref": "43260762832155000141550010000001231234567890",
+      "nota": "NF-e 123/1 · 2026-07-30T10:00:00-03:00",
+      "items": [
+        {
+          "produto_id": "1",
+          "produto_nome": "Arroz 5kg",
+          "qty_expected": 10,
+          "qty_verified": 10,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "1",
+            "codigo_fornecedor": "ARR001",
+            "ean": "7891234560018",
+            "descricao": "Arroz 5kg",
+            "ncm": "10063021",
+            "qty_xml": 10.0,
+            "preco_unit": 32.9
+          }
+        },
+        {
+          "produto_id": "4",
+          "produto_nome": "Acucar 2kg",
+          "qty_expected": 5,
+          "qty_verified": 5,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "2",
+            "codigo_fornecedor": "ACU002",
+            "ean": "7891234560049",
+            "descricao": "Acucar 2kg",
+            "ncm": "17019900",
+            "qty_xml": 5.0,
+            "preco_unit": 8.5
+          }
+        },
+        {
+          "produto_id": "5",
+          "produto_nome": "Cafe 500g",
+          "qty_expected": 2,
+          "qty_verified": 2,
+          "unidade": "UN",
+          "match": "manual",
+          "nfe_item": {
+            "n_item": "3",
+            "codigo_fornecedor": "XYZ999",
+            "ean": "",
+            "descricao": "Produto Novo Sem Cadastro",
+            "ncm": "21069090",
+            "qty_xml": 2.0,
+            "preco_unit": 15.0
+          }
+        }
+      ],
+      "nfe": {
+        "chave": "43260762832155000141550010000001231234567890",
+        "modelo": "55",
+        "numero": "123",
+        "serie": "1",
+        "emissao": "2026-07-30T10:00:00-03:00",
+        "valor_total": 401.5,
+        "destinatario_cnpj": "62832155000141",
+        "fornecedor_cnpj": "11222333000181",
+        "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000001231234567890.xml",
+        "xml_sha256": "36d15635329f659ae20f301780c71cb21744a38bfddc6945781457a1502b1172",
+        "resolve_estabelecimento": "ok",
+        "itens_sem_match": 0
+      },
+      "created_at": "2026-07-31T12:43:57",
+      "created_by": "test",
+      "verified_at": "2026-07-31T12:44:02",
+      "verified_by": "test",
+      "completed_at": "2026-07-31T12:44:02",
+      "completed_by": "test",
+      "inventory": {
+        "status": "Completed",
+        "movement_ids": [
+          29,
+          30,
+          31
+        ],
+        "completed_at": "2026-07-31T12:44:02"
+      },
+      "events": [
+        {
+          "at": "2026-07-31T12:43:57",
+          "tipo": "created",
+          "by": "test",
+          "origem": "nfe"
+        },
+        {
+          "at": "2026-07-31T12:44:02",
+          "tipo": "product_linked",
+          "by": "test",
+          "item_index": 2,
+          "produto_id": "5"
+        },
+        {
+          "at": "2026-07-31T12:44:02",
+          "tipo": "verified",
+          "by": "test"
+        },
+        {
+          "at": "2026-07-31T12:44:02",
+          "tipo": "completed",
+          "by": "test",
+          "movement_ids": [
+            29,
+            30,
+            31
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "status": "draft",
+      "origem": "nfe",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "DISTRIBUIDORA DEMO LTDA",
+      "fornecedor_id": null,
+      "fornecedor_cnpj": "11222333000181",
+      "documento_ref": "43260762832155000141550010000009991234567891",
+      "nota": "NF-e 999/1 · 2026-07-30T10:00:00-03:00",
+      "items": [
+        {
+          "produto_id": "1",
+          "produto_nome": "Arroz 5kg",
+          "qty_expected": 10,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "1",
+            "codigo_fornecedor": "ARR001",
+            "ean": "7891234560018",
+            "descricao": "Arroz 5kg",
+            "ncm": "10063021",
+            "qty_xml": 10.0,
+            "preco_unit": 32.9
+          }
+        },
+        {
+          "produto_id": "4",
+          "produto_nome": "Acucar 2kg",
+          "qty_expected": 5,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "2",
+            "codigo_fornecedor": "ACU002",
+            "ean": "7891234560049",
+            "descricao": "Acucar 2kg",
+            "ncm": "17019900",
+            "qty_xml": 5.0,
+            "preco_unit": 8.5
+          }
+        },
+        {
+          "produto_id": "",
+          "produto_nome": "Produto Novo Sem Cadastro",
+          "qty_expected": 2,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "none",
+          "nfe_item": {
+            "n_item": "3",
+            "codigo_fornecedor": "XYZ999",
+            "ean": "",
+            "descricao": "Produto Novo Sem Cadastro",
+            "ncm": "21069090",
+            "qty_xml": 2.0,
+            "preco_unit": 15.0
+          }
+        }
+      ],
+      "nfe": {
+        "chave": "43260762832155000141550010000009991234567891",
+        "modelo": "55",
+        "numero": "999",
+        "serie": "1",
+        "emissao": "2026-07-30T10:00:00-03:00",
+        "valor_total": 401.5,
+        "destinatario_cnpj": "62832155000141",
+        "fornecedor_cnpj": "11222333000181",
+        "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000009991234567891.xml",
+        "xml_sha256": "34fc6e8a05e6671edf44afe91cea41afe7f3e118c3f8158753ed6693bd80ced2",
+        "resolve_estabelecimento": "ok",
+        "itens_sem_match": 1
+      },
+      "created_at": "2026-07-31T12:44:16",
+      "created_by": "smoke",
+      "verified_at": null,
+      "verified_by": null,
+      "completed_at": null,
+      "completed_by": null,
+      "inventory": null,
+      "events": [
+        {
+          "at": "2026-07-31T12:44:16",
+          "tipo": "created",
+          "by": "smoke",
+          "origem": "nfe"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "status": "completed",
+      "origem": "nfe",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "DISTRIBUIDORA DEMO LTDA",
+      "fornecedor_id": null,
+      "fornecedor_cnpj": "11222333000181",
+      "documento_ref": "43260762832155000141550010000008881234567892",
+      "nota": "NF-e 888/1 · 2026-07-30T10:00:00-03:00",
+      "items": [
+        {
+          "produto_id": "1",
+          "produto_nome": "Arroz 5kg",
+          "qty_expected": 10,
+          "qty_verified": 10,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "1",
+            "codigo_fornecedor": "ARR001",
+            "ean": "7891234560018",
+            "descricao": "Arroz 5kg",
+            "ncm": "10063021",
+            "qty_xml": 10.0,
+            "preco_unit": 32.9
+          },
+          "qty_damaged": 0,
+          "verify_result": "verified",
+          "qty_difference": 0,
+          "notes": "faltaram 7"
+        },
+        {
+          "produto_id": "4",
+          "produto_nome": "Acucar 2kg",
+          "qty_expected": 5,
+          "qty_verified": 5,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "2",
+            "codigo_fornecedor": "ACU002",
+            "ean": "7891234560049",
+            "descricao": "Acucar 2kg",
+            "ncm": "17019900",
+            "qty_xml": 5.0,
+            "preco_unit": 8.5
+          },
+          "qty_damaged": 0,
+          "notes": "1 avariado",
+          "verify_result": "verified",
+          "qty_difference": 0
+        },
+        {
+          "produto_id": "7",
+          "produto_nome": "Paozinho",
+          "qty_expected": 2,
+          "qty_verified": 2,
+          "unidade": "UN",
+          "match": "supplier_ref",
+          "nfe_item": {
+            "n_item": "3",
+            "codigo_fornecedor": "XYZ999",
+            "ean": "",
+            "descricao": "Produto Novo Sem Cadastro",
+            "ncm": "21069090",
+            "qty_xml": 2.0,
+            "preco_unit": 15.0
+          },
+          "qty_damaged": 0,
+          "verify_result": "verified",
+          "qty_difference": 0
+        }
+      ],
+      "nfe": {
+        "chave": "43260762832155000141550010000008881234567892",
+        "modelo": "55",
+        "numero": "888",
+        "serie": "1",
+        "emissao": "2026-07-30T10:00:00-03:00",
+        "valor_total": 401.5,
+        "destinatario_cnpj": "62832155000141",
+        "fornecedor_cnpj": "11222333000181",
+        "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000008881234567892.xml",
+        "xml_sha256": "fd1fb53c33c1247da9cc649eb62475278e647ea831c7f9cef8e54c757e04fc5e",
+        "resolve_estabelecimento": "ok",
+        "itens_sem_match": 0
+      },
+      "created_at": "2026-07-31T12:51:25",
+      "created_by": "smoke",
+      "verified_at": "2026-07-31T14:45:26",
+      "verified_by": "smoke",
+      "completed_at": "2026-07-31T14:45:26",
+      "completed_by": "smoke",
+      "inventory": {
+        "status": "Completed",
+        "movement_ids": [
+          32,
+          33,
+          34
+        ],
+        "completed_at": "2026-07-31T14:45:26"
+      },
+      "events": [
+        {
+          "at": "2026-07-31T12:51:25",
+          "tipo": "created",
+          "by": "smoke",
+          "origem": "nfe"
+        },
+        {
+          "at": "2026-07-31T14:45:26",
+          "tipo": "verification_started",
+          "by": "smoke",
+          "method": "barcode"
+        },
+        {
+          "at": "2026-07-31T14:45:26",
+          "tipo": "verification_item_scanned",
+          "by": "smoke",
+          "item_index": 0,
+          "barcode": "7891234560018",
+          "qty_add": 3,
+          "qty_verified": 3
+        },
+        {
+          "at": "2026-07-31T14:45:26",
+          "tipo": "verified",
+          "by": "smoke",
+          "method": "mixed",
+          "differences_count": 2
+        },
+        {
+          "at": "2026-07-31T14:45:26",
+          "tipo": "verification_difference_detected",
+          "by": "smoke",
+          "count": 2
+        },
+        {
+          "at": "2026-07-31T14:45:26",
+          "tipo": "verification_reopened",
+          "by": "smoke"
+        },
+        {
+          "at": "2026-07-31T14:45:26",
+          "tipo": "verified",
+          "by": "smoke",
+          "method": "mixed",
+          "differences_count": 0
+        },
+        {
+          "at": "2026-07-31T14:45:26",
+          "tipo": "completed",
+          "by": "smoke",
+          "movement_ids": [
+            32,
+            33,
+            34
+          ]
+        }
+      ],
+      "verification": {
+        "receiving_id": 5,
+        "warehouse_id": "matriz",
+        "operator_id": "smoke",
+        "method": "mixed",
+        "started_at": "2026-07-31T14:45:26",
+        "completed_at": "2026-07-31T14:45:26",
+        "status": "completed",
+        "differences_count": 0,
+        "items": [
+          {
+            "produto_id": "1",
+            "produto_nome": "Arroz 5kg",
+            "expected_quantity": 10,
+            "received_quantity": 10,
+            "damaged_quantity": 0,
+            "difference": 0,
+            "result": "verified",
+            "notes": "faltaram 7"
+          },
+          {
+            "produto_id": "4",
+            "produto_nome": "Acucar 2kg",
+            "expected_quantity": 5,
+            "received_quantity": 5,
+            "damaged_quantity": 0,
+            "difference": 0,
+            "result": "verified",
+            "notes": "1 avariado"
+          },
+          {
+            "produto_id": "7",
+            "produto_nome": "Paozinho",
+            "expected_quantity": 2,
+            "received_quantity": 2,
+            "damaged_quantity": 0,
+            "difference": 0,
+            "result": "verified",
+            "notes": ""
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "status": "draft",
+      "origem": "nfe",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "DISTRIBUIDORA DEMO LTDA",
+      "fornecedor_id": null,
+      "fornecedor_cnpj": "11222333000181",
+      "documento_ref": "43260762832155000141550010000007771234567893",
+      "nota": "NF-e 777/1 · 2026-07-30T10:00:00-03:00",
+      "items": [
+        {
+          "produto_id": "1",
+          "produto_nome": "Arroz 5kg",
+          "qty_expected": 10,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "1",
+            "codigo_fornecedor": "ARR001",
+            "ean": "7891234560018",
+            "descricao": "Arroz 5kg",
+            "ncm": "10063021",
+            "qty_xml": 10.0,
+            "preco_unit": 32.9
+          }
+        },
+        {
+          "produto_id": "4",
+          "produto_nome": "Acucar 2kg",
+          "qty_expected": 5,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "2",
+            "codigo_fornecedor": "ACU002",
+            "ean": "7891234560049",
+            "descricao": "Acucar 2kg",
+            "ncm": "17019900",
+            "qty_xml": 5.0,
+            "preco_unit": 8.5
+          }
+        },
+        {
+          "produto_id": "7",
+          "produto_nome": "Paozinho",
+          "qty_expected": 2,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "supplier_ref",
+          "nfe_item": {
+            "n_item": "3",
+            "codigo_fornecedor": "XYZ999",
+            "ean": "",
+            "descricao": "Produto Novo Sem Cadastro",
+            "ncm": "21069090",
+            "qty_xml": 2.0,
+            "preco_unit": 15.0
+          }
+        }
+      ],
+      "nfe": {
+        "chave": "43260762832155000141550010000007771234567893",
+        "modelo": "55",
+        "numero": "777",
+        "serie": "1",
+        "emissao": "2026-07-30T10:00:00-03:00",
+        "valor_total": 401.5,
+        "destinatario_cnpj": "62832155000141",
+        "fornecedor_cnpj": "11222333000181",
+        "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000007771234567893.xml",
+        "xml_sha256": "6fb5a7da1bc2ccdd37942524e5046049ed302c9a2118d163e690758e6f851dcd",
+        "resolve_estabelecimento": "ok",
+        "itens_sem_match": 0
+      },
+      "created_at": "2026-07-31T15:02:11",
+      "created_by": "smoke",
+      "verified_at": null,
+      "verified_by": null,
+      "completed_at": null,
+      "completed_by": null,
+      "inventory": null,
+      "events": [
+        {
+          "at": "2026-07-31T15:02:11",
+          "tipo": "created",
+          "by": "smoke",
+          "origem": "nfe"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "status": "draft",
+      "origem": "nfe",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "DISTRIBUIDORA DEMO LTDA",
+      "fornecedor_id": null,
+      "fornecedor_cnpj": "11222333000181",
+      "documento_ref": "43260762832155000141550010000005551234567895",
+      "nota": "NF-e 555/1 · 2026-07-30T10:00:00-03:00",
+      "items": [
+        {
+          "produto_id": "1",
+          "produto_nome": "Arroz 5kg",
+          "qty_expected": 10,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "1",
+            "codigo_fornecedor": "ARR001",
+            "ean": "7891234560018",
+            "descricao": "Arroz 5kg",
+            "ncm": "10063021",
+            "qty_xml": 10.0,
+            "preco_unit": 32.9
+          }
+        },
+        {
+          "produto_id": "4",
+          "produto_nome": "Acucar 2kg",
+          "qty_expected": 5,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "2",
+            "codigo_fornecedor": "ACU002",
+            "ean": "7891234560049",
+            "descricao": "Acucar 2kg",
+            "ncm": "17019900",
+            "qty_xml": 5.0,
+            "preco_unit": 8.5
+          }
+        },
+        {
+          "produto_id": "7",
+          "produto_nome": "Paozinho",
+          "qty_expected": 2,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "supplier_ref",
+          "nfe_item": {
+            "n_item": "3",
+            "codigo_fornecedor": "XYZ999",
+            "ean": "",
+            "descricao": "Produto Novo Sem Cadastro",
+            "ncm": "21069090",
+            "qty_xml": 2.0,
+            "preco_unit": 15.0
+          }
+        }
+      ],
+      "nfe": {
+        "chave": "43260762832155000141550010000005551234567895",
+        "modelo": "55",
+        "numero": "555",
+        "serie": "1",
+        "emissao": "2026-07-30T10:00:00-03:00",
+        "valor_total": 401.5,
+        "destinatario_cnpj": "62832155000141",
+        "fornecedor_cnpj": "11222333000181",
+        "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000005551234567895.xml",
+        "xml_sha256": "14717c9d034b0322d7887b9fce9f5f7af925285563888f0185684db2bb14b52b",
+        "resolve_estabelecimento": "ok",
+        "itens_sem_match": 0
+      },
+      "created_at": "2026-07-31T15:02:33",
+      "created_by": "smoke",
+      "verified_at": null,
+      "verified_by": null,
+      "completed_at": null,
+      "completed_by": null,
+      "inventory": null,
+      "events": [
+        {
+          "at": "2026-07-31T15:02:33",
+          "tipo": "created",
+          "by": "smoke",
+          "origem": "nfe"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "status": "draft",
+      "origem": "nfe",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "Dist Demo",
+      "fornecedor_id": "bp004",
+      "fornecedor_cnpj": "11222333000181",
+      "documento_ref": "43260762832155000141550010000003331234567897",
+      "nota": "NF-e 333/1 · 2026-07-30T10:00:00-03:00",
+      "items": [
+        {
+          "produto_id": "1",
+          "produto_nome": "Arroz 5kg",
+          "qty_expected": 10,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "1",
+            "codigo_fornecedor": "ARR001",
+            "ean": "7891234560018",
+            "descricao": "Arroz 5kg",
+            "ncm": "10063021",
+            "qty_xml": 10.0,
+            "preco_unit": 32.9
+          }
+        },
+        {
+          "produto_id": "4",
+          "produto_nome": "Acucar 2kg",
+          "qty_expected": 5,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "ean",
+          "nfe_item": {
+            "n_item": "2",
+            "codigo_fornecedor": "ACU002",
+            "ean": "7891234560049",
+            "descricao": "Acucar 2kg",
+            "ncm": "17019900",
+            "qty_xml": 5.0,
+            "preco_unit": 8.5
+          }
+        },
+        {
+          "produto_id": "7",
+          "produto_nome": "Paozinho",
+          "qty_expected": 2,
+          "qty_verified": null,
+          "unidade": "UN",
+          "match": "supplier_ref",
+          "nfe_item": {
+            "n_item": "3",
+            "codigo_fornecedor": "XYZ999",
+            "ean": "",
+            "descricao": "Produto Novo Sem Cadastro",
+            "ncm": "21069090",
+            "qty_xml": 2.0,
+            "preco_unit": 15.0
+          }
+        }
+      ],
+      "nfe": {
+        "chave": "43260762832155000141550010000003331234567897",
+        "modelo": "55",
+        "numero": "333",
+        "serie": "1",
+        "emissao": "2026-07-30T10:00:00-03:00",
+        "valor_total": 401.5,
+        "destinatario_cnpj": "62832155000141",
+        "fornecedor_cnpj": "11222333000181",
+        "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000003331234567897.xml",
+        "xml_sha256": "69ea33f7240504168e4cee2d514cae2d26beddc05a06d6be39137df08d004291",
+        "resolve_estabelecimento": "ok",
+        "itens_sem_match": 0
+      },
+      "partner_lookup": {
+        "status": "found",
+        "match": "cnpj",
+        "criteria": {
+          "cnpj": "11222333000181",
+          "role": "SUPPLIER"
+        },
+        "partners": [],
+        "partner": {
+          "id": "bp004",
+          "partner_code": "BP000000004",
+          "display_name": "Dist Demo",
+          "legal_name": "DISTRIBUIDORA DEMO LTDA",
+          "trade_name": "Dist Demo",
+          "roles": [
+            "SUPPLIER"
+          ],
+          "cnpj": "11222333000181",
+          "cpf": "",
+          "status": "ACTIVE"
+        }
+      },
+      "created_at": "2026-07-31T15:07:12",
+      "created_by": "smoke",
+      "verified_at": null,
+      "verified_by": null,
+      "completed_at": null,
+      "completed_by": null,
+      "inventory": null,
+      "events": [
+        {
+          "at": "2026-07-31T15:07:12",
+          "tipo": "created",
+          "by": "smoke",
+          "origem": "nfe"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "status": "verified",
+      "origem": "nfe",
+      "estabelecimento_id": "matriz",
+      "fornecedor_nome": "Dist Demo",
+      "fornecedor_id": "bp004",
+      "fornecedor_cnpj": "11222333000181",
+      "documento_ref": "",
+      "nota": "",
+      "items": [
+        {
+          "produto_id": "5",
+          "produto_nome": "Cafe",
+          "qty_expected": 3,
+          "qty_verified": 1,
+          "unidade": "UN",
+          "match": "manual",
+          "nfe_item": {
+            "ean": "",
+            "descricao": "Item Sem Match",
+            "codigo_fornecedor": "ZZZ1"
+          },
+          "qty_damaged": 0,
+          "verify_result": "quantity_difference",
+          "qty_difference": -2
+        },
+        {
+          "produto_id": "1",
+          "produto_nome": "Arroz",
+          "qty_expected": 2,
+          "qty_verified": 2,
+          "unidade": "UN",
+          "match": "ok",
+          "qty_damaged": 0,
+          "verify_result": "verified",
+          "qty_difference": 0
+        }
+      ],
+      "nfe": null,
+      "partner_lookup": {
+        "status": "found",
+        "match": "manual",
+        "partner": {
+          "id": "bp004",
+          "partner_code": "BP000000004",
+          "display_name": "Dist Demo",
+          "legal_name": "DISTRIBUIDORA DEMO LTDA",
+          "trade_name": "Dist Demo",
+          "roles": [
+            "SUPPLIER"
+          ],
+          "cnpj": "11222333000181",
+          "cpf": "",
+          "status": "ACTIVE"
+        },
+        "criteria": {
+          "partner_id": "bp004"
+        }
+      },
+      "created_at": "2026-07-31T15:42:05",
+      "created_by": "smoke",
+      "verified_at": "2026-07-31T15:43:13",
+      "verified_by": "smoke",
+      "completed_at": null,
+      "completed_by": null,
+      "inventory": null,
+      "events": [
+        {
+          "at": "2026-07-31T15:42:05",
+          "tipo": "created",
+          "by": "smoke",
+          "origem": "nfe"
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "product_linked",
+          "by": "smoke",
+          "item_index": 0,
+          "produto_id": "5",
+          "ref_id": 2
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "partner_linked",
+          "by": "smoke",
+          "partner_id": "bp004"
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "verification_started",
+          "by": "smoke",
+          "method": "manual"
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "verified",
+          "by": "smoke",
+          "method": "manual",
+          "differences_count": 1
+        },
+        {
+          "at": "2026-07-31T15:43:13",
+          "tipo": "verification_difference_detected",
+          "by": "smoke",
+          "count": 1
+        }
+      ],
+      "verification": {
+        "receiving_id": 9,
+        "warehouse_id": "matriz",
+        "operator_id": "smoke",
+        "method": "manual",
+        "started_at": "2026-07-31T15:43:13",
+        "completed_at": "2026-07-31T15:43:13",
+        "status": "completed",
+        "differences_count": 1,
+        "items": [
+          {
+            "produto_id": "5",
+            "produto_nome": "Cafe",
+            "expected_quantity": 3,
+            "received_quantity": 1,
+            "damaged_quantity": 0,
+            "difference": -2,
+            "result": "quantity_difference",
+            "notes": ""
+          },
+          {
+            "produto_id": "1",
+            "produto_nome": "Arroz",
+            "expected_quantity": 2,
+            "received_quantity": 2,
+            "damaged_quantity": 0,
+            "difference": 0,
+            "result": "verified",
+            "notes": ""
+          }
+        ]
+      }
+    }
+  ]
+}

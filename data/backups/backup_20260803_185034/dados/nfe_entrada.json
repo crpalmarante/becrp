@@ -1,0 +1,790 @@
+{
+  "nfe_entradas": [
+    {
+      "chave": "29250905949989000289550010002485661311213556",
+      "numero": "248566",
+      "serie": "1",
+      "data_emissao": "2025-09-17",
+      "data_importacao": "2026-07-17 18:11:59",
+      "fornecedor": {
+        "cnpj": "05949989000289",
+        "nome": "REISTAR INDUSTRIA E COMERCIO DE ELETRONICOS LTDA",
+        "ie": "068644763"
+      },
+      "total": {
+        "vBC": "9043.40",
+        "vICMS": "1085.21",
+        "vProd": "9043.40",
+        "vNF": "10399.91",
+        "vST": "0"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "000503A78",
+          "nome": "SKD CAIXA AMPLIF. AMVOX ACA 1601 FESTA II",
+          "ncm": "85182200",
+          "cfop": "6101",
+          "cest": "2105700",
+          "ean": "7898649372281",
+          "unidade": "PC",
+          "quantidade": "3.0000",
+          "vl_unitario": "699.9000000000",
+          "vl_total": "2099.70",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "2",
+          "codigo": "000503B01",
+          "nome": "SKD CAIXA AMPLIF. AMVOX ACA 150 POP",
+          "ncm": "85279100",
+          "cfop": "6101",
+          "cest": "2106600",
+          "ean": "7898649372724",
+          "unidade": "PC",
+          "quantidade": "8.0000",
+          "vl_unitario": "139.9000000000",
+          "vl_total": "1119.20",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "3",
+          "codigo": "000503A48",
+          "nome": "SKD CAIXA AMPLIF. AMVOX ACA 1000 NEW X SFM",
+          "ncm": "85182200",
+          "cfop": "6101",
+          "cest": "2105700",
+          "ean": "7898649372175",
+          "unidade": "PC",
+          "quantidade": "6.0000",
+          "vl_unitario": "629.9000000000",
+          "vl_total": "3779.40",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "4",
+          "codigo": "000503A06",
+          "nome": "SKD CAIXA AMPLIF. AMVOX ACA 221 GIGANTE II",
+          "ncm": "85279100",
+          "cfop": "6101",
+          "cest": "2106600",
+          "ean": "7898649371581",
+          "unidade": "PC",
+          "quantidade": "6.0000",
+          "vl_unitario": "175.9000000000",
+          "vl_total": "1055.40",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "5",
+          "codigo": "000503A63",
+          "nome": "SKD CAIXA AMPLIF. AMVOX ACA 600 BAGVOX BLACK",
+          "ncm": "85182200",
+          "cfop": "6101",
+          "cest": "2105700",
+          "ean": "7898649372168",
+          "unidade": "PC",
+          "quantidade": "3.0000",
+          "vl_unitario": "329.9000000000",
+          "vl_total": "989.70",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "41250977500049008465550010016007721017394160",
+      "numero": "1600772",
+      "serie": "1",
+      "data_emissao": "2025-09-07",
+      "data_importacao": "2026-07-17 18:11:59",
+      "fornecedor": {
+        "cnpj": "77500049008465",
+        "nome": "MERCADOMOVEIS LTDA",
+        "ie": "9040774375"
+      },
+      "total": {
+        "vBC": "51000.00",
+        "vICMS": "2040.00",
+        "vProd": "51000.00",
+        "vNF": "51000.00",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "74652.4.4",
+          "nome": "REFRIGERADOR MIDEA F.FREE DUPLEX MD-RT611E INVER BIV 473L MD-RT611EVD463 Inox Bivolt",
+          "ncm": "84181000",
+          "cfop": "6102",
+          "cest": "2100200",
+          "ean": "7908198015260",
+          "unidade": "un",
+          "quantidade": "20.0000",
+          "vl_unitario": "2550.0000000000",
+          "vl_total": "51000.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "52250922962737000128550010017599091090361420",
+      "numero": "1759909",
+      "serie": "1",
+      "data_emissao": "2025-09-10",
+      "data_importacao": "2026-07-17 18:11:59",
+      "fornecedor": {
+        "cnpj": "22962737000128",
+        "nome": "GAZIN ATACADO CENTRO-OESTE LTDA",
+        "ie": "106461141"
+      },
+      "total": {
+        "vBC": "8899.00",
+        "vICMS": "1067.88",
+        "vProd": "8899.00",
+        "vNF": "8899.00",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "53900.8.14",
+          "nome": "Celular Samsung Galaxy A16 4G 128GB SM-A165M/DS SM-A165MZKRZTO PRETO QUADRIBAND",
+          "ncm": "85171300",
+          "cfop": "6102",
+          "cest": "2105301",
+          "ean": "7892509138239",
+          "unidade": "Un",
+          "quantidade": "10.0000",
+          "vl_unitario": "889.9000000000",
+          "vl_total": "8899.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "35250944742211001228550010000334171090334170",
+      "numero": "33417",
+      "serie": "1",
+      "data_emissao": "2025-09-11",
+      "data_importacao": "2026-07-17 18:12:28",
+      "fornecedor": {
+        "cnpj": "44742211001228",
+        "nome": "MOVEIS LANZA LTDA",
+        "ie": "222009730111"
+      },
+      "total": {
+        "vBC": "19293.36",
+        "vICMS": "2315.20",
+        "vProd": "19293.36",
+        "vNF": "19920.38",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "10.0100",
+          "nome": "MESA POTENZA PLUS BRANCO",
+          "ncm": "94036000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7896527005481",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "182.0100000000",
+          "vl_total": "2184.12",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "2",
+          "codigo": "10.0100",
+          "nome": "MESA POTENZA PLUS NOCE BRONZE",
+          "ncm": "94036000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7896527005498",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "182.0100000000",
+          "vl_total": "2184.12",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "3",
+          "codigo": "10.0111",
+          "nome": "MESA DE CABECEIRA ROMA BRANCO",
+          "ncm": "94035000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7896527006051",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "167.1100000000",
+          "vl_total": "2005.32",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "4",
+          "codigo": "10.0111",
+          "nome": "MESA DE CABECEIRA ROMA NOCE BRONZE",
+          "ncm": "94035000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7896527006068",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "167.1100000000",
+          "vl_total": "2005.32",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "5",
+          "codigo": "10.0009",
+          "nome": "COMODA SAP IBIZA PLUS BRANCO",
+          "ncm": "94035000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7898937187931",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "454.7700000000",
+          "vl_total": "5457.24",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "6",
+          "codigo": "10.0009",
+          "nome": "COMODA SAP IBIZA PLUS NOCE BRONZE",
+          "ncm": "94035000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7896527002558",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "454.7700000000",
+          "vl_total": "5457.24",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "41250911494894000130550010000264941000307644",
+      "numero": "26494",
+      "serie": "1",
+      "data_emissao": "2025-09-05",
+      "data_importacao": "2026-07-17 18:12:28",
+      "fornecedor": {
+        "cnpj": "11494894000130",
+        "nome": "MOPAR INDUSTRIA E COMERCIO DE MOVEIS LTDA",
+        "ie": "9051145493"
+      },
+      "total": {
+        "vBC": "11980.06",
+        "vICMS": "1437.61",
+        "vProd": "11980.06",
+        "vNF": "12369.41",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "174.550",
+          "nome": "ESTRELA ROUP. 06 PTS 02 GVTS - FREIJO/OFF WHITE",
+          "ncm": "94035000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "SEM GTIN",
+          "unidade": "UN",
+          "quantidade": "20.0000",
+          "vl_unitario": "599.003000",
+          "vl_total": "11980.06",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "41250975341800000175550010004011441094011440",
+      "numero": "401144",
+      "serie": "1",
+      "data_emissao": "2025-09-17",
+      "data_importacao": "2026-07-17 18:12:28",
+      "fornecedor": {
+        "cnpj": "75341800000175",
+        "nome": "ARAMOVEIS INDUSTRIA DE MOVEIS LTDA-EM REC JUDICIAL",
+        "ie": "6280187745"
+      },
+      "total": {
+        "vBC": "7832.00",
+        "vICMS": "939.84",
+        "vProd": "7832.00",
+        "vNF": "8086.54",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "2014148",
+          "nome": "910 COMODA 08 GAVETAS ATACAMA / OFF-WHITE",
+          "ncm": "94035000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7893762135829",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "296.0000000000",
+          "vl_total": "3552.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "2",
+          "codigo": "2014141",
+          "nome": "910 ESCRIVANINHA 01 PTA 01GAV ATACAMA / OFF-WHITE",
+          "ncm": "94035000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7893762135911",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "165.0000000000",
+          "vl_total": "1980.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "3",
+          "codigo": "2030290",
+          "nome": "944 GR CANADA 06 PTS 08 GAV CINAMOMO / OFF WHITE",
+          "ncm": "94035000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7893762136536",
+          "unidade": "UN",
+          "quantidade": "2.0000",
+          "vl_unitario": "1150.0000000000",
+          "vl_total": "2300.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "41250985074623000242550020007489921576219703",
+      "numero": "748992",
+      "serie": "2",
+      "data_emissao": "2025-09-08",
+      "data_importacao": "2026-07-17 18:12:28",
+      "fornecedor": {
+        "cnpj": "85074623000242",
+        "nome": "DJ-INDUSTRIA E COMERCIO DE MOVEIS LTDA",
+        "ie": "9038999483"
+      },
+      "total": {
+        "vBC": "5007.06",
+        "vICMS": "600.85",
+        "vProd": "5007.06",
+        "vNF": "5169.78",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "25764.222",
+          "nome": "HOME ATENAS FREIJO/OFF WHITE",
+          "ncm": "94036000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7908365524335",
+          "unidade": "UN",
+          "quantidade": "6.0000",
+          "vl_unitario": "416.690000000",
+          "vl_total": "2500.14",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "2",
+          "codigo": "32611.253",
+          "nome": "BANCADA ATLAS CEDRO",
+          "ncm": "94036000",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "7908365528876",
+          "unidade": "UN",
+          "quantidade": "4.0000",
+          "vl_unitario": "626.730000000",
+          "vl_total": "2506.92",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "41250995443594000111550010000277311213406369",
+      "numero": "27731",
+      "serie": "1",
+      "data_emissao": "2025-09-11",
+      "data_importacao": "2026-07-17 18:12:28",
+      "fornecedor": {
+        "cnpj": "95443594000111",
+        "nome": "FORMA STYLO COLCHOES E ESPUMAS LTDA",
+        "ie": "1019215497"
+      },
+      "total": {
+        "vBC": "10530.00",
+        "vICMS": "1263.60",
+        "vProd": "10530.00",
+        "vNF": "10530.00",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "003003",
+          "nome": "COLCHAO 188X138X16 STRATUS 65 BORD.",
+          "ncm": "94042100",
+          "cfop": "6101",
+          "cest": "",
+          "ean": "SEM GTIN",
+          "unidade": "PC",
+          "quantidade": "30.0000",
+          "vl_unitario": "351.00",
+          "vl_total": "10530.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "42250901789035000114550010000202221760938912",
+      "numero": "20222",
+      "serie": "1",
+      "data_emissao": "2025-09-05",
+      "data_importacao": "2026-07-17 18:12:28",
+      "fornecedor": {
+        "cnpj": "01789035000114",
+        "nome": "FAIMEC - INDUSTRIA E COMERCIO DE MOVEIS LTDA",
+        "ie": "253461529"
+      },
+      "total": {
+        "vBC": "14890.00",
+        "vICMS": "1786.80",
+        "vProd": "14890.00",
+        "vNF": "15373.92",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "5002-11",
+          "nome": "MULTIUSO CHILE 02 PTS BRANCO",
+          "ncm": "94036000",
+          "cfop": "5101",
+          "cest": "",
+          "ean": "7894903968252",
+          "unidade": "PC",
+          "quantidade": "40.0000",
+          "vl_unitario": "130.0000000000",
+          "vl_total": "5200.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "2",
+          "codigo": "5002-204",
+          "nome": "MULTIUSO CHILE 02 PTS FREIJO/OFFWHITE",
+          "ncm": "94036000",
+          "cfop": "5101",
+          "cest": "",
+          "ean": "7894903969563",
+          "unidade": "PC",
+          "quantidade": "40.0000",
+          "vl_unitario": "130.0000000000",
+          "vl_total": "5200.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "3",
+          "codigo": "17024-204",
+          "nome": "ROUPEIRO TOCANTINS 04 PTS FREIJO/OFFWHITE",
+          "ncm": "94035000",
+          "cfop": "5101",
+          "cest": "",
+          "ean": "7894903969556",
+          "unidade": "PC",
+          "quantidade": "6.0000",
+          "vl_unitario": "315.0000000000",
+          "vl_total": "1890.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "4",
+          "codigo": "5002-22",
+          "nome": "MULTIUSO CHILE 02 PTS CANELA",
+          "ncm": "94036000",
+          "cfop": "5101",
+          "cest": "",
+          "ean": "7894903969488",
+          "unidade": "PC",
+          "quantidade": "20.0000",
+          "vl_unitario": "130.0000000000",
+          "vl_total": "2600.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "42250909104629000156550020001537851320420873",
+      "numero": "153785",
+      "serie": "2",
+      "data_emissao": "2025-09-11",
+      "data_importacao": "2026-07-17 18:12:28",
+      "fornecedor": {
+        "cnpj": "09104629000156",
+        "nome": "BEST COMERCIAL IMPORTADORA LTDA",
+        "ie": "255481160"
+      },
+      "total": {
+        "vBC": "14761.00",
+        "vICMS": "590.44",
+        "vProd": "14761.00",
+        "vNF": "15938.51",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "2530",
+          "nome": "FORNO ELET 50LT BASICO PRETO/BRANCO 220V",
+          "ncm": "85166000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7898589672366",
+          "unidade": "PC",
+          "quantidade": "10.0000",
+          "vl_unitario": "359.0000000000",
+          "vl_total": "3590.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "2",
+          "codigo": "2733",
+          "nome": "FOGAO ELETRICO 2 BOCAS BEST AD-S201 PRETO 220V",
+          "ncm": "85166000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7898589673240",
+          "unidade": "PC",
+          "quantidade": "15.0000",
+          "vl_unitario": "89.0000000000",
+          "vl_total": "1335.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "3",
+          "codigo": "1800",
+          "nome": "SANDUICHEIRA MINI GRILL FS-8016A 220V",
+          "ncm": "85167990",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7898589671802",
+          "unidade": "PC",
+          "quantidade": "16.0000",
+          "vl_unitario": "49.0000000000",
+          "vl_total": "784.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "4",
+          "codigo": "3679",
+          "nome": "FRITADEIRA SEM OLEO BEST 10L FRYER AF100G-MS 220V",
+          "ncm": "85166000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7898589674162",
+          "unidade": "PC",
+          "quantidade": "10.0000",
+          "vl_unitario": "349.0000000000",
+          "vl_total": "3490.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "5",
+          "codigo": "2644",
+          "nome": "FRITADEIRA SEM OLEO BEST 5L FRYER KDF-562-3 220V",
+          "ncm": "85166000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7898589672847",
+          "unidade": "PC",
+          "quantidade": "10.0000",
+          "vl_unitario": "189.0000000000",
+          "vl_total": "1890.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "6",
+          "codigo": "1433",
+          "nome": "CHALEIRA ELETRICA INOX BEST YD-202F 220V",
+          "ncm": "85167990",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "7898589670980",
+          "unidade": "PC",
+          "quantidade": "102.0000",
+          "vl_unitario": "36.0000000000",
+          "vl_total": "3672.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    },
+    {
+      "chave": "42250911416589000120550010000411451481100105",
+      "numero": "41145",
+      "serie": "1",
+      "data_emissao": "2025-09-16",
+      "data_importacao": "2026-07-17 18:12:28",
+      "fornecedor": {
+        "cnpj": "11416589000120",
+        "nome": "CHAMALUX IND. COM. IMP. E EXP. LTDA",
+        "ie": "256007942"
+      },
+      "total": {
+        "vBC": "7128.00",
+        "vICMS": "855.36",
+        "vProd": "7128.00",
+        "vNF": "7313.33",
+        "vST": "0.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "668",
+          "nome": "COOKTOP 4 BOCAS ULTRA CHAMA PRETO ARAME 7897575153933",
+          "ncm": "73211100",
+          "cfop": "5101",
+          "cest": "2100100",
+          "ean": "7897575153933",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "249.0000000000",
+          "vl_total": "2988.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        },
+        {
+          "n_item": "2",
+          "codigo": "669",
+          "nome": "COOKTOP 5 BOCAS ULTRA CHAMA PRETO ARAME 7897575153940",
+          "ncm": "73211100",
+          "cfop": "5101",
+          "cest": "2100100",
+          "ean": "7897575153940",
+          "unidade": "UN",
+          "quantidade": "12.0000",
+          "vl_unitario": "345.0000000000",
+          "vl_total": "4140.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": ""
+        }
+      ],
+      "produtos_adicionados": []
+    }
+  ]
+}

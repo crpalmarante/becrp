@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Valorização de Estoque</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Sidebar toggled (recolher/expandir) ── */
+    @media(min-width:1025px){
+      #sidebar .sidebar-collapse{display:flex}
+      #sidebar.collapsed{width:64px!important}
+      #sidebar.collapsed .menu-label,
+      #sidebar.collapsed .soon-tag,
+      #sidebar.collapsed .brand-text{opacity:0!important;width:0!important;display:none!important}
+      #sidebar.collapsed .menu-item{justify-content:center;padding-left:0;padding-right:0}
+      #sidebar.collapsed .sidebar-nav{padding:0 var(--space-2)}
+      #sidebar.collapsed .sidebar-collapse .icon{transform:rotate(180deg)}
+      .main-area.collapsed{margin-left:64px!important;width:calc(100% - 64px)!important}
+    }
+    /* ── Menu equalizado ── */
+    .sidebar-nav{display:flex;flex-direction:column;gap:4px}
+    .menu-item{min-height:42px;border-radius:10px}
+    .menu-item .icon{width:20px;height:20px;flex-shrink:0}
+    .menu-item.soon .soon-tag{margin-left:auto;white-space:nowrap}
+    .menu-item .soon-tag{margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);opacity:.8}
+    .sidebar-collapse{margin:4px 0 10px;color:var(--text-muted)}
+    .sidebar-collapse:hover{color:var(--color-primary)}
+    #sub-config.open{max-height:860px} /* submenu grande (14 itens) — só quando aberto */
+    /* ── Página ── */
+    .workspace{padding-top:0}
+    #workspace-view{padding-top:14px}
+    .vl-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+    .vl-toolbar select{min-width:180px}
+    .vl-table{width:100%;border-collapse:collapse}
+    .vl-table th,.vl-table td{padding:10px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08)}
+    .vl-table th{font-size:12px;text-transform:uppercase;opacity:.7}
+    .vl-table td.num,.vl-table th.num{text-align:right}
+    .vl-table tfoot td{font-weight:700;border-top:2px solid rgba(255,255,255,.15);border-bottom:none}
+    .vl-msg{margin:8px 0;font-size:14px}
+    .vl-msg.err{color:#f87171}
+    .vl-msg.ok{color:#4ade80}
+    .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-4);margin-bottom:20px}
+    @media (max-width:900px){.kpi-row{grid-template-columns:1fr 1fr}}
+    .kpi-card{padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)}
+    .kpi-card .kpi-value{font-size:22px;font-weight:700}
+    .kpi-card .kpi-label{font-size:12px;opacity:.7;text-transform:uppercase;letter-spacing:.04em}
+    .kpi-card.custo .kpi-value{color:#5eead4}
+    .kpi-card.venda .kpi-value{color:#4ade80}
+    .kpi-card.margem .kpi-value{color:#fbbf24}
+    .vl-widgets{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5);margin-top:var(--space-5)}
+    @media (max-width:900px){.vl-widgets{grid-template-columns:1fr}}
+    .empty{padding:24px;text-align:center;opacity:.6}
+    .sem-preco{opacity:.5}
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <div class="sidebar-collapse" id="sidebar-collapse" title="Recolher/expandir menu">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-chevron-left"/></svg>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html" title="Visão Geral do Inventário">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Visão Geral</span>
+      </a>
+      <div class="menu-item has-children" id="menu-operacoes" title="Operações">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="menu-label">Operações</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-operacoes">
+        <a class="menu-item" href="ajustes-estoque.html" title="Ajustes de Estoque">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Ajustes de Estoque</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Transferências</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-trash"/></svg>
+          <span class="menu-label">Sucatas</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+          <span class="menu-label">Custos Adicionais</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-clock"/></svg>
+          <span class="menu-label">Executar Agendados</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-produtos" title="Produtos">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Produtos</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-produtos">
+        <a class="menu-item" href="produtos.html" title="Cadastro de Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Produto</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-filter"/></svg>
+          <span class="menu-label">Variantes</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+      <div class="menu-item has-children open" id="menu-relatorios" title="Relatórios">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Relatórios</span>
+        <svg class="icon icon-16 menu-arrow rotated"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu open" id="sub-relatorios">
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Estoque</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+          <span class="menu-label">Locais</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-clock"/></svg>
+          <span class="menu-label">Histórico de Movimentações</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Movimentação de Estoque</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item active" href="valorizacao.html" title="Valorização">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+          <span class="menu-label">Valorização</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-config" title="Configurações">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="menu-label">Configurações</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-config">
+        <a class="menu-item" href="wms-armazens.html" title="Armazéns">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+          <span class="menu-label">Armazéns</span>
+        </a>
+        <a class="menu-item" href="wms-localizacoes.html" title="Locais">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+          <span class="menu-label">Locais</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Rotas</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-lock"/></svg>
+          <span class="menu-label">Regras</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="wms-tipos-operacao.html" title="Tipos de Operação">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-refresh"/></svg>
+          <span class="menu-label">Tipos de Operação</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Categoria de Armazenamento</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-upload"/></svg>
+          <span class="menu-label">Regras de Entrada no Depósito</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="categorias.html" title="Categoria dos Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg>
+          <span class="menu-label">Categoria dos Produtos</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Atributos</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Embalagem dos Produtos</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg>
+          <span class="menu-label">Nomenclatura Código de Barras</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Método de Envio</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Veículo</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+          <span class="menu-label">Prefixo do CEP</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+        <span class="topbar-title">Valorização</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <button class="dialog-btn dialog-btn-secondary" id="btn-print">Imprimir</button>
+        <button class="dialog-btn dialog-btn-secondary" id="btn-refresh">Atualizar</button>
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-content" style="width:100%">
+          <div class="vl-toolbar">
+            <select class="form-input" id="filter-estab"><option value="">Todas lojas</option></select>
+            <label style="display:flex;gap:6px;align-items:center;font-size:13px">
+              <input type="checkbox" id="hide-zero" checked> Ocultar zerados
+            </label>
+            <span style="font-size:12px;opacity:.6">Valorização: custo (preço de custo) × venda (preço de venda) do catálogo</span>
+          </div>
+          <div id="msg" class="vl-msg"></div>
+          <div class="kpi-row" id="kpis"></div>
+          <div id="list"></div>
+          <div class="vl-widgets" id="widgets"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let empresas = {};
+  let produtos = {};   // id -> {nome, categoria, preco_custo, preco}
+  let porAtual = {};   // eid -> {pid: qty}
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function fmtNum(v) {
+    return Math.round(Number(v) || 0).toLocaleString("pt-BR");
+  }
+  function fmtBRL(v) {
+    return (Number(v) || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+  function msg(text, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = text || "";
+    el.className = "vl-msg " + (ok ? "ok" : text ? "err" : "");
+  }
+
+  // ── Sidebar toggled ──
+  const sbSidebar = document.getElementById("sidebar");
+  const sbBtn = document.getElementById("sidebar-collapse");
+  function applySidebar(collapsed) {
+    sbSidebar.classList.toggle("collapsed", collapsed);
+    sbSidebar.style.width = collapsed ? "64px" : "";
+    const ma = document.querySelector(".main-area");
+    if (ma) {
+      ma.classList.toggle("collapsed", collapsed);
+      ma.style.marginLeft = collapsed ? "64px" : "";
+      ma.style.width = collapsed ? "calc(100% - 64px)" : "";
+    }
+  }
+  if (sbSidebar && sbBtn) {
+    if (localStorage.getItem("sidebar_collapsed") === "true") applySidebar(true);
+    sbBtn.onclick = () => {
+      const collapsed = !sbSidebar.classList.contains("collapsed");
+      applySidebar(collapsed);
+      localStorage.setItem("sidebar_collapsed", collapsed);
+    };
+  }
+  document.querySelectorAll(".menu-item.has-children").forEach((parent) => {
+    const sub = document.getElementById("sub-" + parent.id.replace("menu-", ""));
+    if (!sub) return;
+    parent.addEventListener("click", () => {
+      sub.classList.toggle("open");
+      const arrow = parent.querySelector(".menu-arrow");
+      if (arrow) arrow.classList.toggle("rotated");
+    });
+  });
+
+  // ── Dados ──
+  async function loadEmpresas() {
+    empresas = {};
+    let lista = [];
+    const mine = await AuthService.api("/api/auth/minhas-empresas");
+    if (mine.status === "ok" && mine.empresas && mine.empresas.length) lista = mine.empresas;
+    else {
+      const data = await AuthService.api("/api/admin/empresas");
+      if (data.status === "ok") lista = data.empresas || [];
+    }
+    if (!lista.length) {
+      lista = [
+        { id: "matriz", nome: "Matriz" },
+        { id: "filial_sp", nome: "Filial São Paulo" },
+        { id: "filial_rj", nome: "Filial Rio de Janeiro" },
+      ];
+    }
+    lista.forEach((e) => { empresas[e.id] = e; });
+    const filterOpts = `<option value="">Todas lojas</option>` +
+      Object.keys(empresas).map((id) => `<option value="${id}">${empresas[id].nome || id}</option>`).join("");
+    document.getElementById("filter-estab").innerHTML = filterOpts;
+  }
+
+  function ensureEstabOptions(keys) {
+    const sel = document.getElementById("filter-estab");
+    const existing = new Set(Array.from(sel.options).map((o) => o.value));
+    keys.forEach((k) => {
+      if (!existing.has(k)) {
+        const opt = document.createElement("option");
+        opt.value = k;
+        opt.textContent = (empresas[k] || {}).nome || k;
+        sel.appendChild(opt);
+        existing.add(k);
+      }
+    });
+  }
+
+  async function loadProdutos() {
+    produtos = {};
+    const data = await AuthService.api("/api/pos/produtos");
+    (data.produtos || []).forEach((p) => {
+      const id = String(p.id);
+      produtos[id] = {
+        nome: p.nome || id,
+        categoria: p.categoria || "Sem categoria",
+        custo: Number(p.preco_custo) > 0 ? Number(p.preco_custo) : 0,
+        venda: Number(p.preco) > 0 ? Number(p.preco) : 0,
+      };
+    });
+  }
+
+  async function loadBalances() {
+    const estab = document.getElementById("filter-estab").value;
+    let por = {};
+    if (estab) {
+      const data = await AuthService.api("/api/inventory/balance?estabelecimento_id=" + encodeURIComponent(estab));
+      if (data.status !== "ok") return msg(data.message || "Falha ao carregar");
+      por[estab] = data.balances || {};
+    } else {
+      const data = await AuthService.api("/api/inventory/balance");
+      if (data.status !== "ok") return msg(data.message || "Falha ao carregar");
+      por = data.por_estabelecimento || {};
+      ensureEstabOptions(Object.keys(por));
+    }
+    porAtual = por;
+    render();
+  }
+
+  function render() {
+    const hideZero = document.getElementById("hide-zero").checked;
+    const rows = [];
+    Object.keys(porAtual).forEach((eid) => {
+      const loja = porAtual[eid] || {};
+      Object.keys(loja).forEach((pid) => {
+        const qty = Number(loja[pid] || 0);
+        if (hideZero && qty <= 0) return;
+        rows.push({ eid, pid, qty });
+      });
+    });
+
+    // agrega qty por produto (todas as lojas ou a filtrada)
+    const porProd = {};
+    rows.forEach((r) => {
+      porProd[r.pid] = (porProd[r.pid] || 0) + r.qty;
+    });
+
+    const linhas = Object.keys(porProd).map((pid) => {
+      const p = produtos[pid] || {};
+      const qty = porProd[pid];
+      const custo = p.custo || 0;
+      const venda = p.venda || 0;
+      return {
+        pid,
+        nome: p.nome || pid,
+        categoria: p.categoria || "Sem categoria",
+        qty,
+        custo,
+        venda,
+        vCusto: qty * custo,
+        vVenda: qty * venda,
+        temPreco: !!(p.custo || p.venda),
+      };
+    }).sort((a, b) => b.vVenda - a.vVenda);
+
+    const totCusto = linhas.reduce((s, l) => s + l.vCusto, 0);
+    const totVenda = linhas.reduce((s, l) => s + l.vVenda, 0);
+    const valorizados = linhas.filter((l) => l.temPreco).length;
+
+    document.getElementById("kpis").innerHTML =
+      `<div class="kpi-card custo"><div class="kpi-value">${fmtBRL(totCusto)}</div><div class="kpi-label">Valor a custo</div></div>` +
+      `<div class="kpi-card venda"><div class="kpi-value">${fmtBRL(totVenda)}</div><div class="kpi-label">Valor a venda</div></div>` +
+      `<div class="kpi-card margem"><div class="kpi-value">${fmtBRL(totVenda - totCusto)}</div><div class="kpi-label">Margem potencial</div></div>` +
+      `<div class="kpi-card"><div class="kpi-value">${fmtNum(linhas.length)}</div><div class="kpi-label">Itens com saldo (${valorizados} valorizados)</div></div>`;
+
+    if (!linhas.length) {
+      document.getElementById("list").innerHTML = '<div class="empty">Nenhum saldo para valorizar.</div>';
+      document.getElementById("widgets").innerHTML = "";
+      return;
+    }
+
+    document.getElementById("list").innerHTML = `
+      <table class="vl-table">
+        <thead><tr>
+          <th>Produto</th><th>Categoria</th><th class="num">Saldo</th>
+          <th class="num">Custo un.</th><th class="num">Venda un.</th>
+          <th class="num">Valor custo</th><th class="num">Valor venda</th>
+        </tr></thead>
+        <tbody>
+          ${linhas.map((l) => `
+            <tr class="${l.temPreco ? "" : "sem-preco"}">
+              <td>${l.pid} · ${escapeHtml(l.nome)}</td>
+              <td>${escapeHtml(l.categoria)}</td>
+              <td class="num"><strong>${fmtNum(l.qty)}</strong></td>
+              <td class="num">${l.custo ? fmtBRL(l.custo) : "—"}</td>
+              <td class="num">${l.venda ? fmtBRL(l.venda) : "—"}</td>
+              <td class="num">${l.custo ? fmtBRL(l.vCusto) : "—"}</td>
+              <td class="num">${l.venda ? fmtBRL(l.vVenda) : "—"}</td>
+            </tr>`).join("")}
+        </tbody>
+        <tfoot><tr>
+          <td colspan="3">Total (${fmtNum(linhas.length)} itens)</td>
+          <td class="num"></td><td class="num"></td>
+          <td class="num">${fmtBRL(totCusto)}</td>
+          <td class="num">${fmtBRL(totVenda)}</td>
+        </tr></tfoot>
+      </table>`;
+
+    renderCharts(linhas);
+  }
+
+  function renderCharts(linhas) {
+    const porCat = {};
+    linhas.forEach((l) => {
+      const c = l.categoria;
+      porCat[c] = porCat[c] || { custo: 0, venda: 0 };
+      porCat[c].custo += l.vCusto;
+      porCat[c].venda += l.vVenda;
+    });
+    const catKeys = Object.keys(porCat).sort((a, b) => porCat[b].venda - porCat[a].venda);
+    const maxC = Math.max(...catKeys.map((k) => porCat[k].custo), 1);
+    const maxV = Math.max(...catKeys.map((k) => porCat[k].venda), 1);
+
+    const barChart = (title, getVal, max) => `
+      <div class="dashboard-widget widget-md">
+        <div class="widget-header"><span class="widget-title">${title}</span></div>
+        <div class="chart-bars">
+          ${catKeys.map((k) => `
+            <div class="chart-bar-col" title="${escapeHtml(k)}">
+              <div class="chart-bar" style="height:${Math.max((getVal(k) / (max || 1)) * 100, 2)}%">
+                <span class="chart-bar-value">${fmtBRL(getVal(k))}</span>
+              </div>
+              <span class="chart-bar-label">${escapeHtml(k)}</span>
+            </div>`).join("")}
+        </div>
+      </div>`;
+
+    document.getElementById("widgets").innerHTML =
+      barChart("Valor por categoria — custo", (k) => porCat[k].custo, maxC) +
+      barChart("Valor por categoria — venda", (k) => porCat[k].venda, maxV);
+  }
+
+  document.getElementById("btn-refresh").onclick = async () => {
+    msg("");
+    await loadBalances();
+  };
+  document.getElementById("filter-estab").onchange = loadBalances;
+  document.getElementById("hide-zero").onchange = render;
+  document.getElementById("btn-print").onclick = () => window.print();
+
+  (async function boot() {
+    await loadEmpresas();
+    await loadProdutos();
+    await loadBalances();
+  })();
+})();
+</script>
+</body>
+</html>

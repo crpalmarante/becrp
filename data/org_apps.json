@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "onboarding_complete": true,
+  "compat_legacy": false,
+  "package_id": "retail",
+  "apps": {
+    "pos": {
+      "installed": true,
+      "version": "1.0.0",
+      "installed_at": "2026-08-08T20:55:32",
+      "by": "palmarante"
+    },
+    "sales": {
+      "installed": false,
+      "version": "1.0.0",
+      "installed_at": "",
+      "by": "palmarante"
+    },
+    "inventory": {
+      "installed": true,
+      "version": "1.0.0",
+      "installed_at": "2026-08-08T20:55:32",
+      "by": "palmarante"
+    },
+    "fiscal": {
+      "installed": true,
+      "version": "1.0.0",
+      "installed_at": "2026-08-08T20:55:32",
+      "by": "palmarante"
+    },
+    "purchases": {
+      "installed": false,
+      "version": "1.0.0",
+      "installed_at": "",
+      "by": "palmarante"
+    },
+    "wms": {
+      "installed": false,
+      "version": "1.0.0",
+      "installed_at": "",
+      "by": "palmarante"
+    },
+    "delivery": {
+      "installed": false,
+      "version": "1.0.0",
+      "installed_at": "",
+      "by": "palmarante"
+    },
+    "accounting": {
+      "installed": false,
+      "version": "1.0.0",
+      "installed_at": "",
+      "by": "palmarante"
+    },
+    "hr_payroll": {
+      "installed": false,
+      "version": "1.0.0",
+      "installed_at": "",
+      "by": "palmarante"
+    }
+  },
+  "atualizado_em": "2026-08-08T20:55:32"
+}

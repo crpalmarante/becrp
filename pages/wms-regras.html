@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — WMS Regras push/pull</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-note { font-size:12px; opacity:.65; margin:0 0 12px; }
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:120px; }
+    .pc-toolbar .grow { flex:1; min-width:180px; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; vertical-align:top; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .pc-table tr.inactive td { opacity:.5; }
+    .badge { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); white-space:nowrap; display:inline-block; }
+    .badge-pull { border-color:rgba(20,184,166,.5); color:#2dd4bf; }
+    .badge-push { border-color:rgba(251,191,36,.5); color:#fbbf24; }
+    .badge-ok { border-color:rgba(74,222,128,.5); color:#4ade80; }
+    .badge-parcial { border-color:rgba(251,191,36,.5); color:#fbbf24; }
+    .badge-problem { border-color:rgba(248,113,113,.5); color:#fca5a5; }
+    .badge-off { opacity:.5; }
+    .act-btns { display:flex; gap:4px; flex-wrap:wrap; }
+    .btn-xs {
+      padding:3px 8px; font-size:11px; cursor:pointer;
+      border:1px solid rgba(255,255,255,.2); border-radius:4px;
+      background:transparent; color:inherit;
+    }
+    .btn-xs.primary { border-color:rgba(20,184,166,.5); }
+    .btn-xs.danger { border-color:rgba(248,113,113,.4); }
+    .btn-xs:hover { border-color:rgba(20,184,166,.7); }
+    .panel { padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; margin-bottom:14px; }
+    .panel h3 { margin:0 0 10px; font-size:14px; }
+    .sec-title { font-size:11px; text-transform:uppercase; letter-spacing:.04em; opacity:.6; margin:18px 0 8px; }
+    .resumo { display:flex; gap:8px; flex-wrap:wrap; margin:0 0 12px; }
+    .resumo .chip { font-size:12px; padding:4px 10px; border:1px solid rgba(255,255,255,.15); border-radius:6px; }
+    .resumo .chip b { margin-right:4px; }
+    .route { font-family:var(--font-mono, monospace); font-size:12px; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .form-grid .span2 { grid-column:span 2; }
+    @media (max-width:640px) { .form-grid { grid-template-columns:1fr; } .form-grid .span2 { grid-column:auto; } }
+    .dialog-box.wide { max-width:560px; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item" href="wms-rotas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-route"/></svg><span class="menu-label">Rotas</span></a>
+      <a class="menu-item active" href="wms-regras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-route"/></svg><span class="menu-label">Regras push/pull</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-route"/></svg>
+        <span class="topbar-title">WMS — Rotas e regras push/pull</span>
+      </div>
+      <div class="topbar-user" style="margin-left:auto">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <div class="workspace-breadcrumb">BECRP / WMS / Regras push/pull</div>
+          <h2 class="workspace-title">Automatize a movimentação entre localizações</h2>
+        </div>
+        <div class="workspace-content">
+          <p class="pc-note">RFC-9012 — regras PULL repõem o destino quando ele fica abaixo do mínimo; regras PUSH escoam o excedente da origem acima do máximo. A avaliação compara os saldos atuais por localização e gera sugestões.</p>
+          <div id="msg" class="pc-msg"></div>
+
+          <div class="pc-toolbar">
+            <div class="field"><label>Filtro</label>
+              <input class="form-input" id="filtro-q" placeholder="buscar…">
+            </div>
+            <div class="field"><label>Tipo</label>
+              <select class="form-input" id="filtro-tipo">
+                <option value="">Todos</option>
+                <option value="pull">Pull (reposição)</option>
+                <option value="push">Push (escoamento)</option>
+              </select>
+            </div>
+            <div class="field"><label>Status</label>
+              <select class="form-input" id="filtro-ativo">
+                <option value="">Todos</option>
+                <option value="1">Ativas</option>
+                <option value="0">Pausadas</option>
+              </select>
+            </div>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-avaliar">⚡ Avaliar regras</button>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-aplicar">▶ Aplicar selecionadas</button>
+            <button class="dialog-btn dialog-btn-primary" id="btn-nova" style="margin-left:auto">+ Nova regra</button>
+          </div>
+
+          <div class="sec-title">Regras configuradas</div>
+          <div class="pc-meta" id="regras-meta"></div>
+          <div style="overflow-x:auto">
+            <table class="pc-table" id="regras-table">
+              <thead>
+                <tr>
+                  <th>Regra</th><th>Tipo</th><th>Rota</th><th>Produto / Categoria</th>
+                  <th>Níveis</th><th>Modo</th><th>Status</th><th>Ações</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="sec-title">Demanda — pull em cascata</div>
+          <div class="panel">
+            <p class="pc-note">Resolve uma demanda de trás para frente: a regra com destino no local pedido puxa do nível anterior; o que faltar sobe na cadeia (Estoque → Envio → Cliente). O plano sai na ordem de execução: <b>separação</b> primeiro, <b>envio</b> por último.</p>
+            <div class="pc-toolbar" style="margin-bottom:10px">
+              <div class="field"><label>Armazém</label>
+                <input class="form-input" id="dm-armazem" value="DC-01" style="min-width:80px">
+              </div>
+              <div class="field"><label>Destino final (demanda)</label>
+                <input class="form-input" id="dm-destino" list="loc-list" placeholder="Ex.: CLIENTE" style="min-width:150px">
+              </div>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-add-item">+ Item</button>
+              <button class="dialog-btn dialog-btn-primary" id="btn-resolver">🔎 Resolver demanda</button>
+              <button class="dialog-btn dialog-btn-secondary" id="btn-aplicar-plano" style="display:none">▶ Aplicar plano</button>
+            </div>
+            <div id="dm-itens"></div>
+            <div id="dm-result"></div>
+          </div>
+
+          <div class="sec-title">Avaliação atual</div>
+          <div id="eval-panel"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="dlg-regra">
+  <div class="dialog-box wide">
+    <div class="dialog-header">
+      <div class="dialog-title" id="dlg-title">Nova regra</div>
+      <button class="dialog-close" type="button" data-close>&times;</button>
+    </div>
+    <div class="dialog-body">
+      <div id="dlg-msg" class="pc-msg"></div>
+      <div class="form-grid">
+        <div class="field span2"><label>Nome</label>
+          <input class="form-input" id="f-nome" placeholder="Ex.: Reposição da face de picking">
+        </div>
+        <div class="field"><label>Tipo</label>
+          <select class="form-input" id="f-tipo">
+            <option value="pull">Pull — repor destino abaixo do mínimo</option>
+            <option value="push">Push — escoar excedente da origem</option>
+          </select>
+        </div>
+        <div class="field"><label>Armazém</label>
+          <input class="form-input" id="f-armazem" value="DC-01">
+        </div>
+        <div class="field"><label>Localização origem</label>
+          <input class="form-input" id="f-origem" list="loc-list" placeholder="Ex.: A01-01-01">
+        </div>
+        <div class="field"><label>Localização destino</label>
+          <input class="form-input" id="f-destino" list="loc-list" placeholder="Ex.: PCK-01">
+        </div>
+        <datalist id="loc-list"></datalist>
+        <div class="field"><label>Produto (id)</label>
+          <input class="form-input" id="f-produto" list="prod-list" placeholder="vazio = por categoria">
+        </div>
+        <div class="field"><label>Categoria</label>
+          <input class="form-input" id="f-categoria" list="cat-list" placeholder="ou use a categoria">
+        </div>
+        <datalist id="prod-list"></datalist>
+        <datalist id="cat-list"></datalist>
+        <div class="field"><label id="l-min">Nível mínimo (pull)</label>
+          <input class="form-input" id="f-nivel-min" type="number" min="0" step="1" value="5">
+        </div>
+        <div class="field"><label id="l-max">Nível máximo (push)</label>
+          <input class="form-input" id="f-nivel-max" type="number" min="0" step="1" value="20">
+        </div>
+        <div class="field"><label id="l-qtd">Qtd. de reposição (pull)</label>
+          <input class="form-input" id="f-qtd" type="number" min="0" step="1" value="10">
+        </div>
+        <div class="field"><label>Prioridade</label>
+          <select class="form-input" id="f-prioridade">
+            <option value="alta">Alta</option>
+            <option value="normal" selected>Normal</option>
+            <option value="baixa">Baixa</option>
+          </select>
+        </div>
+        <div class="field"><label>Como aplicar</label>
+          <select class="form-input" id="f-modo">
+            <option value="operacao" selected>Operação WMS (operador executa)</option>
+            <option value="direto">Transferência direta de estoque</option>
+          </select>
+        </div>
+        <div class="field"><label>Ativa</label>
+          <select class="form-input" id="f-ativo">
+            <option value="1" selected>Sim</option>
+            <option value="0">Não</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+        <button class="dialog-btn dialog-btn-secondary" type="button" data-close>Cancelar</button>
+        <button class="dialog-btn dialog-btn-primary" id="btn-save">Salvar regra</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  const uname = auth.user.usuario || auth.user.nome || "";
+  document.getElementById("user-name-display").textContent = auth.user.nome || uname || "Usuário";
+
+  let perms = { pode_escrever: false };
+  let regras = [];
+  let editId = null;
+  let sugestoes = [];
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+
+  function msg(t, ok) {
+    const el = $("msg");
+    el.textContent = t || "";
+    el.className = "pc-msg " + (ok ? "ok" : t ? "err" : "");
+  }
+
+  function badgeTipo(t) {
+    return t === "pull"
+      ? '<span class="badge badge-pull">PULL · repor</span>'
+      : '<span class="badge badge-push">PUSH · escoar</span>';
+  }
+
+  function badgeStatus(s) {
+    if (s === "ok") return '<span class="badge badge-ok">pronto</span>';
+    if (s === "parcial") return '<span class="badge badge-parcial">parcial</span>';
+    return '<span class="badge badge-problem">' + esc(s.replace(/_/g, " ")) + "</span>";
+  }
+
+  function renderRegras() {
+    const tbody = document.querySelector("#regras-table tbody");
+    $("regras-meta").textContent = regras.length + " regra(s)";
+    if (!regras.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="opacity:.6">Nenhuma regra configurada.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = regras.map((r) => {
+      const alvo = r.tipo === "pull"
+        ? "mín " + esc(r.nivel_min) + " · repõe " + esc(r.qtd_reposicao)
+        : "máx " + esc(r.nivel_max);
+      const escopo = r.produto_id
+        ? '<span class="route">' + esc(r.produto_id) + "</span>"
+        : esc(r.categoria) || "todos";
+      return `<tr class="${r.ativo ? "" : "inactive"}">
+        <td><strong>${esc(r.id)}</strong><div style="font-size:12px;opacity:.75">${esc(r.nome)}</div>
+          ${r.ultimo_resultado ? `<div style="font-size:11px;opacity:.6">${esc(r.ultimo_resultado)}</div>` : ""}
+        </td>
+        <td>${badgeTipo(r.tipo)}</td>
+        <td><span class="route">${esc(r.origem)} → ${esc(r.destino)}</span><div style="font-size:11px;opacity:.6">${esc(r.armazem)}</div></td>
+        <td>${escopo}</td>
+        <td>${alvo}<div style="font-size:11px;opacity:.6">${esc(r.prioridade)}</div></td>
+        <td>${r.modo_aplicar === "direto" ? "Direto" : "Operação WMS"}</td>
+        <td>${r.ativo ? '<span class="badge badge-ok">ativa</span>' : '<span class="badge badge-off">pausada</span>'}</td>
+        <td><div class="act-btns">
+          <button class="btn-xs" data-act="editar" data-id="${esc(r.id)}">Editar</button>
+          <button class="btn-xs" data-act="toggle" data-id="${esc(r.id)}">${r.ativo ? "Pausar" : "Ativar"}</button>
+          <button class="btn-xs danger" data-act="excluir" data-id="${esc(r.id)}">Excluir</button>
+        </div></td>
+      </tr>`;
+    }).join("");
+  }
+
+  function renderEval() {
+    const panel = $("eval-panel");
+    if (!sugestoes.length) {
+      panel.innerHTML = '<div class="panel"><h3>Sem sugestões agora</h3><p class="pc-note">Nenhuma regra ativa disparou com os saldos atuais. Clique em "Avaliar regras" para recalcular.</p></div>';
+      return;
+    }
+    const ok = sugestoes.filter((s) => s.status === "ok").length;
+    const sem = sugestoes.filter((s) => s.status !== "ok").length;
+    panel.innerHTML = `
+      <div class="panel">
+        <h3>Movimentações sugeridas (${sugestoes.length})</h3>
+        <div class="resumo">
+          <span class="chip"><b>${ok}</b> prontas</span>
+          <span class="chip"><b>${sem}</b> com restrição</span>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="pc-table">
+            <thead><tr>
+              <th style="width:28px"></th><th>Regra</th><th>Produto</th><th>Rota</th>
+              <th>Saldos (orig/dest)</th><th>Qtd</th><th>Status</th>
+            </tr></thead>
+            <tbody>
+              ${sugestoes.map((s, i) => `<tr>
+                <td><input type="checkbox" class="sug-check" data-i="${i}" ${s.status === "ok" ? "checked" : ""}></td>
+                <td>${esc(s.regra_id)}<div style="font-size:11px;opacity:.65">${esc(s.regra_nome)}</div></td>
+                <td><span class="route">${esc(s.produto_id)}</span><div style="font-size:11px;opacity:.65">${esc(s.produto)}</div></td>
+                <td><span class="route">${esc(s.origem)} → ${esc(s.destino)}</span></td>
+                <td>${esc(s.saldo_origem)} / ${esc(s.saldo_destino)}</td>
+                <td><b>${esc(s.qtd)}</b></td>
+                <td>${badgeStatus(s.status)}<div style="font-size:11px;opacity:.65">${esc(s.observacao)}</div></td>
+              </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+        <p class="pc-note" style="margin-top:8px">Marcadas geram operações WMS (ou transferência direta, conforme o modo da regra).</p>
+      </div>`;
+  }
+
+  async function load() {
+    try {
+      const qs = new URLSearchParams();
+      if ($("filtro-q").value) qs.set("q", $("filtro-q").value);
+      if ($("filtro-tipo").value) qs.set("tipo", $("filtro-tipo").value);
+      if ($("filtro-ativo").value !== "") qs.set("ativo", $("filtro-ativo").value);
+      const res = await AuthService.api("/api/wms/regras?" + qs.toString());
+      if (res.status !== "ok") { msg(res.message || "Falha ao carregar regras"); return; }
+      regras = res.regras || [];
+      perms = res.permissoes || perms;
+      renderRegras();
+      $("btn-nova").style.display = perms.pode_escrever ? "" : "none";
+      $("btn-aplicar").style.display = perms.pode_escrever ? "" : "none";
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  async function avaliar() {
+    try {
+      msg("Avaliando regras…");
+      const res = await AuthService.api("/api/wms/regras/evaluate");
+      if (res.status !== "ok") { msg(res.message || "Falha na avaliação"); return; }
+      sugestoes = res.sugestoes || [];
+      const r = res.resumo || {};
+      renderEval();
+      msg(`Avaliação: ${r.sugestoes} sugestão(ões) · ${r.ok} prontas · ${r.sem_estoque_origem} sem estoque na origem · ${r.destino_sem_capacidade} destino sem capacidade`, true);
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  async function aplicar() {
+    try {
+      const sel = Array.from(document.querySelectorAll(".sug-check:checked"))
+        .map((c) => sugestoes[Number(c.dataset.i)].regra_id);
+      if (!sel.length) { msg("Selecione ao menos uma sugestão para aplicar."); return; }
+      const res = await AuthService.api("/api/admin/wms/regras/apply", {
+        method: "POST",
+        body: JSON.stringify({ regra_ids: sel }),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha ao aplicar"); return; }
+      const a = res.resumo || {};
+      msg(`Aplicadas: ${a.aplicadas} · puladas: ${a.puladas}`, a.puladas === 0);
+      sugestoes = [];
+      renderEval();
+      await load();
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  // ── Demanda (pull em cascata) ──
+  let planoAtual = null;
+
+  function renderItensDemanda() {
+    const wrap = $("dm-itens");
+    const rows = wrap.querySelectorAll(".dm-item");
+    if (!rows.length) {
+      wrap.innerHTML =
+        '<div class="dm-item" style="display:flex;gap:8px;align-items:end;margin-bottom:6px">' +
+        '<div class="field"><label>Produto</label><input class="form-input dm-prod" placeholder="id (ex.: 1)" style="width:110px"></div>' +
+        '<div class="field"><label>Qtd</label><input class="form-input dm-qtd" type="number" min="1" value="10" style="width:80px"></div>' +
+        '<button class="btn-xs" data-rm>Remover</button>' +
+        "</div>";
+    }
+  }
+
+  function itensDemanda() {
+    return Array.from($("dm-itens").querySelectorAll(".dm-item")).map((row) => ({
+      produto_id: row.querySelector(".dm-prod").value.trim(),
+      qtd: Number(row.querySelector(".dm-qtd").value || 0),
+    })).filter((i) => i.produto_id && i.qtd > 0);
+  }
+
+  function badgeEtapa(e) {
+    return e === "separacao"
+      ? '<span class="badge badge-pull">separa&ccedil;&atilde;o</span>'
+      : '<span class="badge badge-push">envio</span>';
+  }
+
+  function renderPlano(plano) {
+    const box = $("dm-result");
+    const r = plano.resumo || {};
+    const faltas = (plano.nao_resolvido || []).length;
+    let html = `<div style="margin-top:8px;font-size:13px;opacity:.85">Resumo: <b>${r.passos}</b> passo(s) · ${r.separacao} separa&ccedil;&atilde;o · ${r.envio} envio${faltas ? ` · <b style="color:#fca5a5">${faltas} n&atilde;o resolvido(s)</b>` : ""}</div>`;
+    if ((plano.passos || []).length) {
+      html += `<div style="overflow-x:auto;margin-top:8px">
+        <table class="pc-table">
+          <thead><tr><th>#</th><th>Etapa</th><th>Produto</th><th>Rota</th><th>Qtd</th><th>Regra</th></tr></thead>
+          <tbody>
+            ${plano.passos.map((p, i) => `<tr>
+              <td>${i + 1}</td>
+              <td>${badgeEtapa(p.etapa)}</td>
+              <td><span class="route">${esc(p.produto_id)}</span><div style="font-size:11px;opacity:.65">${esc(p.produto)}</div></td>
+              <td><span class="route">${esc(p.origem)} → ${esc(p.destino)}</span></td>
+              <td><b>${esc(p.qtd)}</b></td>
+              <td style="font-size:12px">${esc(p.regra_id)} · ${esc(p.regra_nome)}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table></div>`;
+    }
+    if (faltas) {
+      html += `<div style="margin-top:8px;font-size:12px;color:#fca5a5">` +
+        plano.nao_resolvido.map((f) => `&bull; ${esc(f.produto_id)} (${esc(f.produto)}): falta ${esc(f.falta)} em ${esc(f.destino)}`).join("<br>") +
+        `</div>`;
+    }
+    box.innerHTML = html;
+    $("btn-aplicar-plano").style.display = (plano.passos || []).length && !faltas ? "" : "none";
+  }
+
+  async function resolverDemanda() {
+    try {
+      const itens = itensDemanda();
+      if (!itens.length) { msg("Informe ao menos um produto com quantidade."); return; }
+      const destino = $("dm-destino").value.trim().toUpperCase();
+      if (!destino) { msg("Informe o destino final da demanda."); return; }
+      const res = await AuthService.api("/api/admin/wms/regras/demand", {
+        method: "POST",
+        body: JSON.stringify({
+          armazem: $("dm-armazem").value.trim().toUpperCase() || "DC-01",
+          destino,
+          itens,
+          aplicar: false,
+        }),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha ao resolver demanda"); return; }
+      planoAtual = res;
+      renderPlano(res);
+      msg(`Demanda resolvida: ${res.resumo.passos} passo(s) gerados`, res.resumo.nao_resolvido === 0);
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  async function aplicarPlano() {
+    try {
+      if (!planoAtual) { msg("Resolva a demanda primeiro."); return; }
+      const res = await AuthService.api("/api/admin/wms/regras/demand", {
+        method: "POST",
+        body: JSON.stringify({
+          armazem: $("dm-armazem").value.trim().toUpperCase() || "DC-01",
+          destino: $("dm-destino").value.trim().toUpperCase(),
+          itens: itensDemanda(),
+          aplicar: true,
+        }),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha ao aplicar plano"); return; }
+      planoAtual = null;
+      $("dm-result").innerHTML = "";
+      $("btn-aplicar-plano").style.display = "none";
+      msg(`Plano aplicado: ${res.resumo.aplicados} opera&ccedil;&otilde;es criadas · ${res.resumo.pulados} puladas`, res.resumo.pulados === 0);
+      await load();
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  function openModal(regra) {
+    editId = regra ? regra.id : null;
+    $("dlg-title").textContent = regra ? "Editar regra " + regra.id : "Nova regra";
+    $("dlg-msg").textContent = "";
+    $("f-nome").value = regra ? regra.nome : "";
+    $("f-tipo").value = regra ? regra.tipo : "pull";
+    $("f-armazem").value = regra ? regra.armazem : "DC-01";
+    $("f-origem").value = regra ? regra.origem : "";
+    $("f-destino").value = regra ? regra.destino : "";
+    $("f-produto").value = regra ? regra.produto_id || "" : "";
+    $("f-categoria").value = regra ? regra.categoria || "" : "";
+    $("f-nivel-min").value = regra ? regra.nivel_min : 5;
+    $("f-nivel-max").value = regra ? regra.nivel_max : 20;
+    $("f-qtd").value = regra ? regra.qtd_reposicao : 10;
+    $("f-prioridade").value = regra ? regra.prioridade : "normal";
+    $("f-modo").value = regra ? regra.modo_aplicar : "operacao";
+    $("f-ativo").value = regra ? (regra.ativo ? "1" : "0") : "1";
+    syncTipoLabels();
+    $("dlg-regra").classList.add("dialog-open");
+  }
+
+  function closeModal() {
+    $("dlg-regra").classList.remove("dialog-open");
+  }
+
+  function syncTipoLabels() {
+    const t = $("f-tipo").value;
+    $("l-min").textContent = t === "pull" ? "Nível mínimo (pull)" : "Nível mínimo (não usado)";
+    $("l-max").textContent = t === "push" ? "Nível máximo (push)" : "Nível máximo (não usado)";
+    $("l-qtd").textContent = t === "pull" ? "Qtd. de reposição (pull)" : "Qtd. de reposição (não usado)";
+  }
+
+  async function save() {
+    const payload = {
+      nome: $("f-nome").value.trim(),
+      tipo: $("f-tipo").value,
+      armazem: $("f-armazem").value.trim().toUpperCase(),
+      origem: $("f-origem").value.trim().toUpperCase(),
+      destino: $("f-destino").value.trim().toUpperCase(),
+      produto_id: $("f-produto").value.trim(),
+      categoria: $("f-categoria").value.trim(),
+      nivel_min: Number($("f-nivel-min").value || 0),
+      nivel_max: Number($("f-nivel-max").value || 0),
+      qtd_reposicao: Number($("f-qtd").value || 0),
+      prioridade: $("f-prioridade").value,
+      modo_aplicar: $("f-modo").value,
+      ativo: $("f-ativo").value === "1",
+    };
+    try {
+      const res = await AuthService.api(
+        editId ? "/api/admin/wms/regras/" + editId : "/api/admin/wms/regras",
+        { method: "POST", body: JSON.stringify(payload) }
+      );
+      if (res.status !== "ok") { $("dlg-msg").textContent = res.message || "Falha ao salvar"; $("dlg-msg").className = "pc-msg err"; return; }
+      closeModal();
+      msg(editId ? "Regra " + editId + " atualizada" : "Regra " + res.regra.id + " criada", true);
+      await load();
+    } catch (e) { $("dlg-msg").textContent = "Erro: " + e.message; $("dlg-msg").className = "pc-msg err"; }
+  }
+
+  async function acao(act, id) {
+    try {
+      if (act === "excluir" && !confirm("Excluir a regra " + id + "?")) return;
+      const res = await AuthService.api("/api/admin/wms/regras/" + id, {
+        method: "POST",
+        body: JSON.stringify(
+          act === "editar" ? {} : act === "excluir" ? { action: "delete" } : { action: "toggle" }
+        ),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha na ação"); return; }
+      msg(act === "excluir" ? "Regra " + id + " excluída" : "Regra " + id + " " + (act === "toggle" ? "atualizada" : "salva"), true);
+      await load();
+    } catch (e) { msg("Erro: " + e.message); }
+  }
+
+  async function carregarDatalists() {
+    try {
+      const locs = await AuthService.api("/api/wms/localizacoes");
+      if (locs.status === "ok") {
+        const locsArr = locs.localizacoes || [];
+        $("loc-list").innerHTML = locsArr.map((l) => `<option value="${esc(l.codigo)}">`).join("");
+      }
+      const prods = await AuthService.api("/api/admin/produtos");
+      if (prods.status === "ok") {
+        const prodsArr = prods.produtos || [];
+        const cats = new Set();
+        const opts = prodsArr.map((p) => {
+          if (p.categoria) cats.add(p.categoria);
+          return `<option value="${esc(p.id)}">${esc(p.nome || p.id)}</option>`;
+        }).join("");
+        $("prod-list").innerHTML = opts;
+        $("cat-list").innerHTML = Array.from(cats).map((c) => `<option value="${esc(c)}">`).join("");
+      }
+    } catch (e) { /* datalists são opcionais */ }
+  }
+
+  // eventos
+  $("btn-resolver").addEventListener("click", resolverDemanda);
+  $("btn-aplicar-plano").addEventListener("click", aplicarPlano);
+  $("btn-add-item").addEventListener("click", () => {
+    const wrap = $("dm-itens");
+    renderItensDemanda();
+    wrap.insertAdjacentHTML("beforeend",
+      '<div class="dm-item" style="display:flex;gap:8px;align-items:end;margin-bottom:6px">' +
+      '<div class="field"><label>Produto</label><input class="form-input dm-prod" placeholder="id (ex.: 1)" style="width:110px"></div>' +
+      '<div class="field"><label>Qtd</label><input class="form-input dm-qtd" type="number" min="1" value="1" style="width:80px"></div>' +
+      '<button class="btn-xs" data-rm>Remover</button>' +
+      "</div>");
+  });
+  $("dm-itens").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-rm]");
+    if (btn) btn.closest(".dm-item").remove();
+  });
+  $("btn-nova").addEventListener("click", () => openModal(null));
+  $("btn-avaliar").addEventListener("click", avaliar);
+  $("btn-aplicar").addEventListener("click", aplicar);
+  $("btn-save").addEventListener("click", save);
+  $("f-tipo").addEventListener("change", syncTipoLabels);
+  document.querySelectorAll("[data-close]").forEach((b) => b.addEventListener("click", closeModal));
+  document.getElementById("dlg-regra").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+  document.querySelector("#regras-table tbody").addEventListener("click", (e) => {
+    const btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    if (btn.dataset.act === "editar") {
+      const r = regras.find((x) => x.id === btn.dataset.id);
+      if (r) openModal(r);
+    } else {
+      acao(btn.dataset.act, btn.dataset.id);
+    }
+  });
+  ["filtro-q", "filtro-tipo", "filtro-ativo"].forEach((id) => {
+    $(id).addEventListener("input", () => load());
+    $(id).addEventListener("change", () => load());
+  });
+
+  renderItensDemanda();
+  carregarDatalists();
+  load();
+})();
+</script>
+</body>
+</html>

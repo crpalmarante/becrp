@@ -440,6 +440,7 @@ def create_tarefa(payload, usuario=""):
     return _enrich(row)
 
 
+
 def update_tarefa(task_id, payload, usuario=""):
     data = _load_raw()
     key = str(task_id or "").strip().upper()

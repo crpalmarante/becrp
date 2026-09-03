@@ -1,0 +1,66 @@
+{
+  "atualizado_em": "2026-07-31T22:51:57",
+  "regras": [
+    {
+      "codigo": "SALE_CASH",
+      "nome": "Venda à vista (caixa)",
+      "evento": "sale_cash",
+      "diario": "VEN",
+      "conta_debito": "1.01.01.01.01",
+      "conta_credito": "3.01.01.01.01.05",
+      "auto_post": true,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:51:57"
+    },
+    {
+      "codigo": "SALE_BANK",
+      "nome": "Venda (banco/PIX)",
+      "evento": "sale_bank",
+      "diario": "VEN",
+      "conta_debito": "1.01.01.02.01",
+      "conta_credito": "3.01.01.01.01.05",
+      "auto_post": true,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:51:57"
+    },
+    {
+      "codigo": "PURCHASE",
+      "nome": "Compra a prazo (fornecedor)",
+      "evento": "purchase",
+      "diario": "COM",
+      "conta_debito": "1.01.03.01.01",
+      "conta_credito": "2.01.01.03.01",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:51:57"
+    },
+    {
+      "codigo": "INV_ADJ_UP",
+      "nome": "Ajuste estoque (+)",
+      "evento": "inventory_adjust_up",
+      "diario": "EST",
+      "conta_debito": "1.01.03.01.01",
+      "conta_credito": "3.01.01.05.01.99",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:51:57"
+    },
+    {
+      "codigo": "CASH_IN",
+      "nome": "Suprimento de caixa",
+      "evento": "cash_in",
+      "diario": "CXA",
+      "conta_debito": "1.01.01.01.01",
+      "conta_credito": "1.01.01.02.01",
+      "auto_post": true,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-07-31T22:51:57"
+    }
+  ],
+  "total": 5
+}

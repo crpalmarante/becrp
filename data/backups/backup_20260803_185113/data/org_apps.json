@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "onboarding_complete": false,
+  "compat_legacy": false,
+  "package_id": "",
+  "apps": {
+    "pos": {
+      "installed": false,
+      "version": "1.0.0"
+    },
+    "sales": {
+      "installed": false,
+      "version": "1.0.0"
+    },
+    "inventory": {
+      "installed": false,
+      "version": "1.0.0"
+    },
+    "fiscal": {
+      "installed": false,
+      "version": "1.0.0"
+    },
+    "purchases": {
+      "installed": false,
+      "version": "1.0.0"
+    },
+    "wms": {
+      "installed": false,
+      "version": "1.0.0"
+    },
+    "delivery": {
+      "installed": false,
+      "version": "1.0.0"
+    },
+    "accounting": {
+      "installed": false,
+      "version": "1.0.0"
+    },
+    "hr_payroll": {
+      "installed": false,
+      "version": "1.0.0"
+    }
+  },
+  "atualizado_em": "2026-08-03T18:51:13"
+}

@@ -1,0 +1,761 @@
+{
+  "pedidos": [
+    {
+      "id": 15,
+      "numero": "PC00015",
+      "status": "recebido",
+      "data": "",
+      "previsao": "2026-08-16",
+      "fornecedor_id": "",
+      "razao_social": "Forn Teste",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "45",
+      "forma_pg": "Transferencia",
+      "total": 1000.0,
+      "recebimento_id": "6",
+      "recebimento_num": "RCV-6",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "condicao_pg": "45",
+      "receb_id": "6",
+      "receb_num": "RCV-6",
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "P100",
+          "qtd": 100.0,
+          "uom": "UN",
+          "preco": 10.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 1000.0,
+          "subtotal_brl": 1000.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": {
+          "pedido_id": 15,
+          "usuario": "gerente",
+          "data": "2026-08-06T19:57:26",
+          "motivo": "",
+          "valor": 1000.0
+        },
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 1000.0
+    },
+    {
+      "id": 14,
+      "numero": "PC00014",
+      "status": "recebido",
+      "data": "",
+      "previsao": "2026-08-16",
+      "fornecedor_id": "",
+      "razao_social": "Forn Teste",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "45",
+      "forma_pg": "Transferencia",
+      "total": 1000.0,
+      "recebimento_id": "5",
+      "recebimento_num": "RCV-5",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "condicao_pg": "45",
+      "receb_id": "5",
+      "receb_num": "RCV-5",
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "P100",
+          "qtd": 100.0,
+          "uom": "UN",
+          "preco": 10.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 1000.0,
+          "subtotal_brl": 1000.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": {
+          "pedido_id": 14,
+          "usuario": "gerente",
+          "data": "2026-08-06T19:56:52",
+          "motivo": "",
+          "valor": 1000.0
+        },
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 1000.0
+    },
+    {
+      "id": 13,
+      "numero": "PC00013",
+      "status": "aprovado",
+      "data": "",
+      "previsao": "2026-08-16",
+      "fornecedor_id": "",
+      "razao_social": "Forn Teste",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "45",
+      "forma_pg": "Transferencia",
+      "total": 1000.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "condicao_pg": "45",
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "P100",
+          "qtd": 100.0,
+          "uom": "UN",
+          "preco": 10.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 1000.0,
+          "subtotal_brl": 1000.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": {
+          "pedido_id": 13,
+          "usuario": "gerente",
+          "data": "2026-08-06T19:56:29",
+          "motivo": "",
+          "valor": 1000.0
+        },
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 1000.0
+    },
+    {
+      "id": 12,
+      "numero": "PC00012",
+      "status": "aprovado",
+      "data": "",
+      "previsao": "2026-08-16",
+      "fornecedor_id": "",
+      "razao_social": "Forn Teste",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "45",
+      "forma_pg": "Transferencia",
+      "total": 1000.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "12345678901234567890123456789012345678901234",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "condicao_pg": "45",
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "P100",
+          "qtd": 100.0,
+          "uom": "UN",
+          "preco": 10.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 1000.0,
+          "subtotal_brl": 1000.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": {
+          "pedido_id": 12,
+          "usuario": "gerente",
+          "data": "2026-08-06T19:56:14",
+          "motivo": "",
+          "valor": 1000.0
+        },
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 1000.0
+    },
+    {
+      "id": 11,
+      "numero": "PC00011",
+      "status": "enviado",
+      "data": "",
+      "previsao": "2026-08-16",
+      "fornecedor_id": "",
+      "razao_social": "Forn3",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "ana",
+      "payment_terms": "45",
+      "forma_pg": "Transferencia",
+      "total": 100.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "condicao_pg": "45",
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Z",
+          "qtd": 1.0,
+          "uom": "UN",
+          "preco": 100.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 100.0,
+          "subtotal_brl": 100.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": null,
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 100.0
+    },
+    {
+      "id": 10,
+      "numero": "PC00010",
+      "status": "enviado",
+      "data": "",
+      "previsao": "2026-08-16",
+      "fornecedor_id": "",
+      "razao_social": "Forn2",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "ana",
+      "payment_terms": "45",
+      "forma_pg": "Transferencia",
+      "total": 100.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "condicao_pg": "45",
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Y",
+          "qtd": 1.0,
+          "uom": "UN",
+          "preco": 100.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 100.0,
+          "subtotal_brl": 100.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": null,
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 100.0
+    },
+    {
+      "id": 9,
+      "numero": "PC00009",
+      "status": "rascunho",
+      "data": "",
+      "previsao": "2026-08-16",
+      "fornecedor_id": "",
+      "razao_social": "Forn",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "ana",
+      "payment_terms": "45",
+      "forma_pg": "Transferencia",
+      "total": 100.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "condicao_pg": "45",
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "X",
+          "qtd": 1.0,
+          "uom": "UN",
+          "preco": 100.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 100.0,
+          "subtotal_brl": 100.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": null,
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 100.0
+    },
+    {
+      "id": 8,
+      "numero": "PC00008",
+      "status": "pendente",
+      "data": "",
+      "previsao": "",
+      "fornecedor_id": "",
+      "razao_social": "Teste2",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 8000.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Y",
+          "qtd": 1.0,
+          "uom": "UN",
+          "preco": 8000.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 8000.0,
+          "subtotal_brl": 8000.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": null,
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 8000.0
+    },
+    {
+      "id": 7,
+      "numero": "PC00007",
+      "status": "aprovado",
+      "data": "",
+      "previsao": "",
+      "fornecedor_id": "",
+      "razao_social": "Teste",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 8000.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "X",
+          "qtd": 1.0,
+          "uom": "UN",
+          "preco": 8000.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 8000.0,
+          "subtotal_brl": 8000.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": {
+          "pedido_id": 7,
+          "usuario": "joao",
+          "data": "2026-08-06T19:34:13",
+          "motivo": "",
+          "valor": 8000.0
+        },
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 8000.0
+    },
+    {
+      "id": 6,
+      "numero": "PC00006",
+      "status": "rascunho",
+      "data": "2026-08-06",
+      "previsao": "",
+      "fornecedor_id": "",
+      "razao_social": "Blanket anual de papel",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "30",
+      "forma_pg": "Boleto",
+      "total": 0.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "Liberação do blanket AC00005 (acordo 5)",
+      "smart": {
+        "recebimentos": 0
+      },
+      "condicao_pg": "30",
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Papel A4",
+          "qtd": 50.0,
+          "uom": "UN",
+          "preco": 0.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 0.0,
+          "subtotal_brl": 0.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": null,
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 0.0
+    },
+    {
+      "id": 5,
+      "numero": "PC00005",
+      "status": "rascunho",
+      "data": "2026-08-06",
+      "previsao": "",
+      "fornecedor_id": "",
+      "razao_social": "Papelaria X",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "30",
+      "forma_pg": "Boleto",
+      "total": 0.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "Liberação do blanket AC00005 (acordo 5)",
+      "smart": {
+        "recebimentos": 0
+      },
+      "condicao_pg": "30",
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Papel A4",
+          "qtd": 100.0,
+          "uom": "UN",
+          "preco": 0.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 0.0,
+          "subtotal_brl": 0.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": null,
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 0.0
+    },
+    {
+      "id": 4,
+      "numero": "PC00004",
+      "status": "enviado",
+      "data": "",
+      "previsao": "2026-08-01",
+      "fornecedor_id": "",
+      "razao_social": "Fornecedor Atrasado",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 100.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "X",
+          "qtd": 1.0,
+          "uom": "UN",
+          "preco": 100.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 100.0,
+          "subtotal_brl": 100.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": {
+          "pedido_id": 4,
+          "usuario": "gerente",
+          "data": "2026-08-06T19:09:21",
+          "motivo": "",
+          "valor": 100.0
+        },
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 100.0
+    },
+    {
+      "id": 3,
+      "numero": "PC00003",
+      "status": "aprovado",
+      "data": "",
+      "previsao": "",
+      "fornecedor_id": "",
+      "razao_social": "Fornecedor Dell",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 12000.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Notebook",
+          "qtd": 5.0,
+          "uom": "UN",
+          "preco": 2400.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 12000.0,
+          "subtotal_brl": 12000.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": {
+          "pedido_id": 3,
+          "usuario": "gerente",
+          "data": "2026-08-06T18:49:43",
+          "motivo": "",
+          "valor": 12000.0
+        },
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 12000.0
+    },
+    {
+      "id": 2,
+      "numero": "PC00002",
+      "status": "aprovado",
+      "data": "",
+      "previsao": "",
+      "fornecedor_id": "",
+      "razao_social": "Fornecedor HP",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 25000.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Notebook",
+          "qtd": 10.0,
+          "uom": "UN",
+          "preco": 2500.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 25000.0,
+          "subtotal_brl": 25000.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": {
+          "pedido_id": 2,
+          "usuario": "gerente",
+          "data": "2026-08-06T18:49:43",
+          "motivo": "",
+          "valor": 25000.0
+        },
+        "rejeicao": null
+      },
+      "moeda": "BRL",
+      "taxa_cambio": 1.0,
+      "total_brl": 25000.0
+    },
+    {
+      "id": 1,
+      "numero": "PC00001",
+      "status": "aprovado",
+      "data": "",
+      "previsao": "",
+      "fornecedor_id": "",
+      "razao_social": "Fornecedor C",
+      "cnpj": "",
+      "ie": "",
+      "cidade": "",
+      "uf": "",
+      "endereco_entrega": "",
+      "comprador": "joao",
+      "payment_terms": "",
+      "forma_pg": "",
+      "total": 6000.0,
+      "recebimento_id": "",
+      "recebimento_num": "",
+      "nfe_chave": "",
+      "smart_recebimentos": 0,
+      "notas": "",
+      "smart": {
+        "recebimentos": 0
+      },
+      "itens": [
+        {
+          "prod_id": "",
+          "produto": "Item caro",
+          "qtd": 10.0,
+          "uom": "UN",
+          "preco": 600.0,
+          "desconto": 0.0,
+          "imposto": 0.0,
+          "subtotal": 6000.0,
+          "subtotal_brl": 31500.0
+        }
+      ],
+      "aprova": {
+        "aprovacao": {
+          "pedido_id": 1,
+          "usuario": "gerente",
+          "data": "2026-08-06T18:40:38",
+          "motivo": "",
+          "valor": 6000.0
+        },
+        "rejeicao": null
+      },
+      "moeda": "USD",
+      "taxa_cambio": 5.25,
+      "total_brl": 31500.0
+    }
+  ]
+}

@@ -1,52 +1,31 @@
 {
-  "3eb01c6b": {
-    "usuario": "admin",
-    "nome": "Admin",
-    "senha": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-    "email": "admin@test.com",
+  "aprovador": {
+    "usuario": "aprovador",
+    "nome": "Aprovador CI",
+    "email": "aprovador@ci.local",
+    "senha": "481f6cc0511143ccdd7e2d1b1b94faf0a700a8b49cd13922a70b5ae28acaa8c5",
     "role": "admin",
     "empresas": {},
     "ativo": true,
-    "token": ""
+    "token": "ci-token-aprovador-2026"
   },
-  "vended01": {
-    "usuario": "ana",
-    "nome": "Ana Vendedora",
-    "senha": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-    "email": "ana@test.com",
-    "role": "vendedor",
-    "empresas": { "matriz": "vendedor" },
+  "tesouraria": {
+    "usuario": "tesouraria",
+    "nome": "Tesouraria CI",
+    "email": "tesouraria@ci.local",
+    "senha": "96cae35ce8a9b0244178bf28e4966c2ce1b8385723a96a6b838858cdd6ca0a1e",
+    "role": "admin",
+    "empresas": {},
     "ativo": true,
-    "token": ""
+    "token": "ci-token-tesouraria-2026"
   },
-  "caixa001": {
-    "usuario": "carla",
-    "nome": "Carla Caixa",
-    "senha": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-    "email": "carla@test.com",
-    "role": "caixa",
-    "empresas": { "matriz": "caixa" },
-    "ativo": true,
-    "token": ""
-  },
-  "gerent01": {
-    "usuario": "bruno",
-    "nome": "Bruno Gerente",
-    "senha": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-    "email": "bruno@test.com",
-    "role": "gerente",
-    "empresas": { "matriz": "gerente" },
-    "ativo": true,
-    "token": ""
-  },
-  "contab01": {
-    "usuario": "lucia",
-    "nome": "Lúcia Contábil",
-    "senha": "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
-    "email": "lucia@test.com",
-    "role": "contabil",
-    "empresas": { "matriz": "contabil" },
-    "ativo": true,
-    "token": ""
+  "palmarante": {
+    "usuario": "palmarante",
+    "nome": "Palmarante",
+    "email": "bruno@ci.local",
+    "senha": "b250c5afef64fb8fa76887410c8404a5643528a418b5d9880ebe65fc865e5680",
+    "role": "admin",
+    "empresas": {},
+    "ativo": true
   }
 }

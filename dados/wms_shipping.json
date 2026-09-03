@@ -1,0 +1,593 @@
+{
+  "seq": 9,
+  "atualizado_em": "2026-08-06T21:06:55",
+  "expedicoes": [
+    {
+      "id": "SH-SEED-0001",
+      "destino": "customer",
+      "operacao_id": "OP-SEED-0002",
+      "pick_list_id": "PK-SEED-0001",
+      "package_ids": [],
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-100",
+      "parceiro": "Cliente Demo",
+      "transportadora": "TX",
+      "veiculo": "VAN-1",
+      "motorista": "Carlos",
+      "rota": "",
+      "status": "dispatched",
+      "operador": "bruno",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2,
+          "qtd_conferida": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "checked"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "checking",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "conferência via linha"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "start_pack"
+        },
+        {
+          "status": "loading",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "dados de carga"
+        },
+        {
+          "status": "dispatched",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "test",
+          "nota": "despacho"
+        }
+      ],
+      "observacao": "Seed — expedição cliente demo",
+      "cancelamento_motivo": "",
+      "origem_dado": "seed",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "id": "SH-20260806-0002",
+      "destino": "customer",
+      "operacao_id": "OP-20260806-0004",
+      "pick_list_id": "PK-20260806-0002",
+      "package_ids": [],
+      "armazem": "DC-01",
+      "documento_tipo": "",
+      "documento_ref": "PV-TEST-002",
+      "parceiro": "Cliente Teste",
+      "transportadora": "",
+      "veiculo": "",
+      "motorista": "",
+      "rota": "",
+      "status": "created",
+      "operador": "test",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2.0,
+          "qtd_conferida": 0,
+          "loc_origem": "PCK-01",
+          "status": "pending"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-06T21:01:03",
+          "usuario": "test",
+          "nota": "gerado de PK-20260806-0002"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "origem_dado": "from_pick",
+      "criado_em": "2026-08-06T21:01:03",
+      "atualizado_em": "2026-08-06T21:01:03"
+    },
+    {
+      "id": "SH-20260806-0003",
+      "destino": "customer",
+      "operacao_id": "OP-20260806-0005",
+      "pick_list_id": "PK-20260806-0003",
+      "package_ids": [],
+      "armazem": "DC-01",
+      "documento_tipo": "",
+      "documento_ref": "PV-TEST-003",
+      "parceiro": "Cliente Teste",
+      "transportadora": "",
+      "veiculo": "",
+      "motorista": "",
+      "rota": "",
+      "status": "picking",
+      "operador": "test",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2.0,
+          "qtd_conferida": 0,
+          "loc_origem": "PCK-01",
+          "status": "pending"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-06T21:01:09",
+          "usuario": "test",
+          "nota": "gerado de PK-20260806-0003"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:01:18",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:01:18",
+          "usuario": "test",
+          "nota": "start_pick"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "origem_dado": "from_pick",
+      "criado_em": "2026-08-06T21:01:09",
+      "atualizado_em": "2026-08-06T21:01:18"
+    },
+    {
+      "id": "SH-20260806-0004",
+      "destino": "customer",
+      "operacao_id": "OP-20260806-0006",
+      "pick_list_id": "PK-20260806-0004",
+      "package_ids": [],
+      "armazem": "DC-01",
+      "documento_tipo": "",
+      "documento_ref": "PV-TEST-004",
+      "parceiro": "Cliente Teste",
+      "transportadora": "",
+      "veiculo": "",
+      "motorista": "",
+      "rota": "",
+      "status": "checking",
+      "operador": "test",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2.0,
+          "qtd_conferida": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "checked"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-06T21:01:32",
+          "usuario": "test",
+          "nota": "gerado de PK-20260806-0004"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:01:33",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:01:33",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "checking",
+          "em": "2026-08-06T21:01:33",
+          "usuario": "test",
+          "nota": "conferência via linha"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "origem_dado": "from_pick",
+      "criado_em": "2026-08-06T21:01:32",
+      "atualizado_em": "2026-08-06T21:01:33"
+    },
+    {
+      "id": "SH-20260806-0005",
+      "destino": "customer",
+      "operacao_id": "OP-20260806-0007",
+      "pick_list_id": "PK-20260806-0005",
+      "package_ids": [],
+      "armazem": "DC-01",
+      "documento_tipo": "",
+      "documento_ref": "PV-TEST-005",
+      "parceiro": "Cliente Teste",
+      "transportadora": "",
+      "veiculo": "",
+      "motorista": "",
+      "rota": "",
+      "status": "checking",
+      "operador": "test",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2.0,
+          "qtd_conferida": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "checked"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "gerado de PK-20260806-0005"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "checking",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "conferência via linha"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "origem_dado": "from_pick",
+      "criado_em": "2026-08-06T21:01:38",
+      "atualizado_em": "2026-08-06T21:01:38"
+    },
+    {
+      "id": "SH-20260806-0006",
+      "destino": "customer",
+      "operacao_id": "OP-20260806-0008",
+      "pick_list_id": "PK-20260806-0006",
+      "package_ids": [],
+      "armazem": "DC-01",
+      "documento_tipo": "",
+      "documento_ref": "PV-TEST-006",
+      "parceiro": "Cliente Teste",
+      "transportadora": "",
+      "veiculo": "",
+      "motorista": "",
+      "rota": "",
+      "status": "checking",
+      "operador": "test",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2.0,
+          "qtd_conferida": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "checked"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "gerado de PK-20260806-0006"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "checking",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "conferência via linha"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "origem_dado": "from_pick",
+      "criado_em": "2026-08-06T21:02:08",
+      "atualizado_em": "2026-08-06T21:02:08"
+    },
+    {
+      "id": "SH-20260806-0007",
+      "destino": "customer",
+      "operacao_id": "OP-20260806-0009",
+      "pick_list_id": "PK-20260806-0007",
+      "package_ids": [
+        "PKG-20260806-0005"
+      ],
+      "armazem": "DC-01",
+      "documento_tipo": "",
+      "documento_ref": "PV-TEST-007",
+      "parceiro": "Cliente Teste",
+      "transportadora": "Transp Teste",
+      "veiculo": "ABC-1234",
+      "motorista": "João",
+      "rota": "",
+      "status": "loading",
+      "operador": "test",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2.0,
+          "qtd_conferida": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "checked"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "gerado de PK-20260806-0007"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:02:16",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:02:16",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "checking",
+          "em": "2026-08-06T21:02:16",
+          "usuario": "test",
+          "nota": "conferência via linha"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-06T21:02:16",
+          "usuario": "test",
+          "nota": "start_pack"
+        },
+        {
+          "status": "loading",
+          "em": "2026-08-06T21:02:16",
+          "usuario": "test",
+          "nota": "dados de carga"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "origem_dado": "from_pick",
+      "criado_em": "2026-08-06T21:02:15",
+      "atualizado_em": "2026-08-06T21:02:16"
+    },
+    {
+      "id": "SH-20260806-0008",
+      "destino": "customer",
+      "operacao_id": "OP-20260806-0010",
+      "pick_list_id": "PK-20260806-0008",
+      "package_ids": [
+        "PKG-20260806-0006"
+      ],
+      "armazem": "DC-01",
+      "documento_tipo": "",
+      "documento_ref": "PV-TEST-008",
+      "parceiro": "Cliente Teste",
+      "transportadora": "Transp Teste",
+      "veiculo": "ABC-1234",
+      "motorista": "João",
+      "rota": "",
+      "status": "dispatched",
+      "operador": "test",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2.0,
+          "qtd_conferida": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "checked"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-06T21:02:21",
+          "usuario": "test",
+          "nota": "gerado de PK-20260806-0008"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "checking",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "conferência via linha"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "start_pack"
+        },
+        {
+          "status": "loading",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "dados de carga"
+        },
+        {
+          "status": "dispatched",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "despacho"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "origem_dado": "from_pick",
+      "criado_em": "2026-08-06T21:02:21",
+      "atualizado_em": "2026-08-06T21:02:22"
+    },
+    {
+      "id": "SH-20260806-0009",
+      "destino": "customer",
+      "operacao_id": "OP-20260806-0011",
+      "pick_list_id": "PK-20260806-0009",
+      "package_ids": [],
+      "armazem": "DC-01",
+      "documento_tipo": "",
+      "documento_ref": "PV-TEST-FINAL-001",
+      "parceiro": "Cliente Final",
+      "transportadora": "Transp",
+      "veiculo": "XYZ-0000",
+      "motorista": "M",
+      "rota": "",
+      "status": "dispatched",
+      "operador": "test",
+      "loc_expedicao": "SHP-STAGE",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd_esperada": 2.0,
+          "qtd_conferida": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "checked"
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "gerado de PK-20260806-0009"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "checking",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "conferência via linha"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "start_pack"
+        },
+        {
+          "status": "loading",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "dados de carga"
+        },
+        {
+          "status": "dispatched",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "despacho"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "origem_dado": "from_pick",
+      "criado_em": "2026-08-06T21:06:55",
+      "atualizado_em": "2026-08-06T21:06:55"
+    }
+  ],
+  "total": 9
+}

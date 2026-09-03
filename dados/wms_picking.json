@@ -1,0 +1,725 @@
+{
+  "seq_pick": 9,
+  "seq_pkg": 6,
+  "atualizado_em": "2026-08-06T21:06:55",
+  "pick_lists": [
+    {
+      "id": "PK-SEED-0001",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-SEED-0002"
+      ],
+      "armazem": "DC-01",
+      "status": "picking",
+      "operador": "bruno",
+      "documento_ref": "PV-100",
+      "parceiro": "Cliente Demo",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2,
+          "qtd_feita": 0,
+          "loc_origem": "PCK-01",
+          "status": "pending"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-01T15:51:29",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-01T15:51:29",
+          "usuario": "seed",
+          "nota": "iniciada"
+        }
+      ],
+      "observacao": "Seed — picking da expedição demo",
+      "origem": "seed",
+      "criado_em": "2026-08-01T15:51:29",
+      "atualizado_em": "2026-08-01T15:51:29"
+    },
+    {
+      "id": "PK-20260806-0002",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-20260806-0004"
+      ],
+      "armazem": "DC-01",
+      "status": "picking",
+      "operador": "test",
+      "documento_ref": "PV-TEST-002",
+      "parceiro": "Cliente Teste",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "qtd_feita": 0,
+          "loc_origem": "PCK-01",
+          "status": "pending"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:01:03",
+          "usuario": "test",
+          "nota": "gerada de OP-20260806-0004"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:01:03",
+          "usuario": "test",
+          "nota": "start_pick"
+        }
+      ],
+      "observacao": "",
+      "origem": "generated",
+      "criado_em": "2026-08-06T21:01:03",
+      "atualizado_em": "2026-08-06T21:01:03"
+    },
+    {
+      "id": "PK-20260806-0003",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-20260806-0005"
+      ],
+      "armazem": "DC-01",
+      "status": "packing",
+      "operador": "test",
+      "documento_ref": "PV-TEST-003",
+      "parceiro": "Cliente Teste",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "qtd_feita": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "picked"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:01:09",
+          "usuario": "test",
+          "nota": "gerada de OP-20260806-0005"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:01:09",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "picked",
+          "em": "2026-08-06T21:01:09",
+          "usuario": "test",
+          "nota": "complete_pick"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-06T21:01:14",
+          "usuario": "test",
+          "nota": "início packing"
+        }
+      ],
+      "observacao": "",
+      "origem": "generated",
+      "criado_em": "2026-08-06T21:01:09",
+      "atualizado_em": "2026-08-06T21:01:14"
+    },
+    {
+      "id": "PK-20260806-0004",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-20260806-0006"
+      ],
+      "armazem": "DC-01",
+      "status": "packing",
+      "operador": "test",
+      "documento_ref": "PV-TEST-004",
+      "parceiro": "Cliente Teste",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "qtd_feita": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "picked"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:01:32",
+          "usuario": "test",
+          "nota": "gerada de OP-20260806-0006"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:01:32",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "picked",
+          "em": "2026-08-06T21:01:33",
+          "usuario": "test",
+          "nota": "complete_pick"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-06T21:01:33",
+          "usuario": "test",
+          "nota": "início packing"
+        }
+      ],
+      "observacao": "",
+      "origem": "generated",
+      "criado_em": "2026-08-06T21:01:32",
+      "atualizado_em": "2026-08-06T21:01:33"
+    },
+    {
+      "id": "PK-20260806-0005",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-20260806-0007"
+      ],
+      "armazem": "DC-01",
+      "status": "packing",
+      "operador": "test",
+      "documento_ref": "PV-TEST-005",
+      "parceiro": "Cliente Teste",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "qtd_feita": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "picked"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "gerada de OP-20260806-0007"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "picked",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "complete_pick"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "início packing"
+        }
+      ],
+      "observacao": "",
+      "origem": "generated",
+      "criado_em": "2026-08-06T21:01:38",
+      "atualizado_em": "2026-08-06T21:01:38"
+    },
+    {
+      "id": "PK-20260806-0006",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-20260806-0008"
+      ],
+      "armazem": "DC-01",
+      "status": "packing",
+      "operador": "test",
+      "documento_ref": "PV-TEST-006",
+      "parceiro": "Cliente Teste",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "qtd_feita": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "picked"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "gerada de OP-20260806-0008"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "picked",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "complete_pick"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "início packing"
+        }
+      ],
+      "observacao": "",
+      "origem": "generated",
+      "criado_em": "2026-08-06T21:02:08",
+      "atualizado_em": "2026-08-06T21:02:08"
+    },
+    {
+      "id": "PK-20260806-0007",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-20260806-0009"
+      ],
+      "armazem": "DC-01",
+      "status": "packing",
+      "operador": "test",
+      "documento_ref": "PV-TEST-007",
+      "parceiro": "Cliente Teste",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "qtd_feita": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "picked"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "gerada de OP-20260806-0009"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "picked",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "complete_pick"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "início packing"
+        }
+      ],
+      "observacao": "",
+      "origem": "generated",
+      "criado_em": "2026-08-06T21:02:15",
+      "atualizado_em": "2026-08-06T21:02:15"
+    },
+    {
+      "id": "PK-20260806-0008",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-20260806-0010"
+      ],
+      "armazem": "DC-01",
+      "status": "packing",
+      "operador": "test",
+      "documento_ref": "PV-TEST-008",
+      "parceiro": "Cliente Teste",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "qtd_feita": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "picked"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:02:21",
+          "usuario": "test",
+          "nota": "gerada de OP-20260806-0010"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:02:21",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "picked",
+          "em": "2026-08-06T21:02:21",
+          "usuario": "test",
+          "nota": "complete_pick"
+        },
+        {
+          "status": "packing",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "início packing"
+        }
+      ],
+      "observacao": "",
+      "origem": "generated",
+      "criado_em": "2026-08-06T21:02:21",
+      "atualizado_em": "2026-08-06T21:02:22"
+    },
+    {
+      "id": "PK-20260806-0009",
+      "estrategia": "single",
+      "operacao_ids": [
+        "OP-20260806-0011"
+      ],
+      "armazem": "DC-01",
+      "status": "picked",
+      "operador": "test",
+      "documento_ref": "PV-TEST-FINAL-001",
+      "parceiro": "Cliente Final",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "qtd_feita": 2.0,
+          "loc_origem": "PCK-01",
+          "status": "picked"
+        }
+      ],
+      "rota": [
+        "PCK-01"
+      ],
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "gerada de OP-20260806-0011"
+        },
+        {
+          "status": "picking",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "start_pick"
+        },
+        {
+          "status": "picked",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "complete_pick"
+        }
+      ],
+      "observacao": "",
+      "origem": "generated",
+      "criado_em": "2026-08-06T21:06:55",
+      "atualizado_em": "2026-08-06T21:06:55"
+    }
+  ],
+  "packages": [
+    {
+      "id": "PKG-20260806-0001",
+      "pick_list_id": "PK-20260806-0003",
+      "operacao_id": "OP-20260806-0005",
+      "etiqueta": "PKG-20260806-0001",
+      "peso_kg": 1.5,
+      "volume_m3": 0.02,
+      "itens": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0
+        }
+      ],
+      "status": "ready",
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:01:14",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "sealed",
+          "em": "2026-08-06T21:01:14",
+          "usuario": "test",
+          "nota": "seal"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:01:14",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "observacao": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:01:14",
+      "atualizado_em": "2026-08-06T21:01:14"
+    },
+    {
+      "id": "PKG-20260806-0002",
+      "pick_list_id": "PK-20260806-0004",
+      "operacao_id": "OP-20260806-0006",
+      "etiqueta": "PKG-20260806-0002",
+      "peso_kg": 1.5,
+      "volume_m3": 0.02,
+      "itens": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0
+        }
+      ],
+      "status": "ready",
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:01:33",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "sealed",
+          "em": "2026-08-06T21:01:33",
+          "usuario": "test",
+          "nota": "seal"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:01:33",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "observacao": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:01:33",
+      "atualizado_em": "2026-08-06T21:01:33"
+    },
+    {
+      "id": "PKG-20260806-0003",
+      "pick_list_id": "PK-20260806-0005",
+      "operacao_id": "OP-20260806-0007",
+      "etiqueta": "PKG-20260806-0003",
+      "peso_kg": 1.5,
+      "volume_m3": 0.02,
+      "itens": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0
+        }
+      ],
+      "status": "ready",
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "sealed",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "seal"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "observacao": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:01:38",
+      "atualizado_em": "2026-08-06T21:01:38"
+    },
+    {
+      "id": "PKG-20260806-0004",
+      "pick_list_id": "PK-20260806-0006",
+      "operacao_id": "OP-20260806-0008",
+      "etiqueta": "PKG-20260806-0004",
+      "peso_kg": 1.5,
+      "volume_m3": 0.02,
+      "itens": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0
+        }
+      ],
+      "status": "ready",
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "sealed",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "seal"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "observacao": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:02:08",
+      "atualizado_em": "2026-08-06T21:02:08"
+    },
+    {
+      "id": "PKG-20260806-0005",
+      "pick_list_id": "PK-20260806-0007",
+      "operacao_id": "OP-20260806-0009",
+      "etiqueta": "PKG-20260806-0005",
+      "peso_kg": 1.5,
+      "volume_m3": 0.02,
+      "itens": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0
+        }
+      ],
+      "status": "ready",
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "sealed",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "seal"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "observacao": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:02:15",
+      "atualizado_em": "2026-08-06T21:02:15"
+    },
+    {
+      "id": "PKG-20260806-0006",
+      "pick_list_id": "PK-20260806-0008",
+      "operacao_id": "OP-20260806-0010",
+      "etiqueta": "PKG-20260806-0006",
+      "peso_kg": 1.5,
+      "volume_m3": 0.02,
+      "itens": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0
+        }
+      ],
+      "status": "ready",
+      "historico": [
+        {
+          "status": "open",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "sealed",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "seal"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:02:22",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "observacao": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:02:22",
+      "atualizado_em": "2026-08-06T21:02:22"
+    }
+  ],
+  "total_pick": 9,
+  "total_pkg": 6
+}

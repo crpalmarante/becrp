@@ -1,0 +1,489 @@
+{
+  "seq": 11,
+  "atualizado_em": "2026-08-17T19:47:04",
+  "operacoes": [
+    {
+      "id": "OP-SEED-0001",
+      "tipo": "REC-COMPRA",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_compra",
+      "documento_ref": "PC-5001",
+      "parceiro": "Fornecedor Demo",
+      "prioridade": "normal",
+      "status": "draft",
+      "responsavel": "",
+      "data_planejada": "",
+      "observacao": "Recebimento demo — rascunho",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 10,
+          "loc_origem": "",
+          "loc_destino": "REC-DOCK-01"
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "criação seed"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "seed",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "id": "OP-SEED-0002",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-100",
+      "parceiro": "Cliente Demo",
+      "prioridade": "high",
+      "status": "ready",
+      "responsavel": "bruno",
+      "data_planejada": "2026-08-01",
+      "observacao": "Expedição demo — pronta para executar",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2,
+          "loc_origem": "PCK-01",
+          "loc_destino": "SHP-STAGE"
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "planejada"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "tarefas preparadas"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "seed",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "id": "OP-20260806-0003",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-TEST-001",
+      "parceiro": "Cliente Teste",
+      "prioridade": "normal",
+      "status": "draft",
+      "responsavel": "test",
+      "data_planejada": "",
+      "observacao": "",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "loc_origem": "PCK-01",
+          "loc_destino": ""
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:00:38",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:00:38",
+      "atualizado_em": "2026-08-06T21:00:38"
+    },
+    {
+      "id": "OP-20260806-0004",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-TEST-002",
+      "parceiro": "Cliente Teste",
+      "prioridade": "normal",
+      "status": "ready",
+      "responsavel": "test",
+      "data_planejada": "",
+      "observacao": "",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "loc_origem": "PCK-01",
+          "loc_destino": ""
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:01:03",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:01:03",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:01:03",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:01:03",
+      "atualizado_em": "2026-08-06T21:01:03"
+    },
+    {
+      "id": "OP-20260806-0005",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-TEST-003",
+      "parceiro": "Cliente Teste",
+      "prioridade": "normal",
+      "status": "ready",
+      "responsavel": "test",
+      "data_planejada": "",
+      "observacao": "",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "loc_origem": "PCK-01",
+          "loc_destino": ""
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:01:09",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:01:09",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:01:09",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:01:09",
+      "atualizado_em": "2026-08-06T21:01:09"
+    },
+    {
+      "id": "OP-20260806-0006",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-TEST-004",
+      "parceiro": "Cliente Teste",
+      "prioridade": "normal",
+      "status": "ready",
+      "responsavel": "test",
+      "data_planejada": "",
+      "observacao": "",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "loc_origem": "PCK-01",
+          "loc_destino": ""
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:01:32",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:01:32",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:01:32",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:01:32",
+      "atualizado_em": "2026-08-06T21:01:32"
+    },
+    {
+      "id": "OP-20260806-0007",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-TEST-005",
+      "parceiro": "Cliente Teste",
+      "prioridade": "normal",
+      "status": "ready",
+      "responsavel": "test",
+      "data_planejada": "",
+      "observacao": "",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "loc_origem": "PCK-01",
+          "loc_destino": ""
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:01:38",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:01:38",
+      "atualizado_em": "2026-08-06T21:01:38"
+    },
+    {
+      "id": "OP-20260806-0008",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-TEST-006",
+      "parceiro": "Cliente Teste",
+      "prioridade": "normal",
+      "status": "ready",
+      "responsavel": "test",
+      "data_planejada": "",
+      "observacao": "",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "loc_origem": "PCK-01",
+          "loc_destino": ""
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:02:08",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:02:08",
+      "atualizado_em": "2026-08-06T21:02:08"
+    },
+    {
+      "id": "OP-20260806-0009",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-TEST-007",
+      "parceiro": "Cliente Teste",
+      "prioridade": "normal",
+      "status": "ready",
+      "responsavel": "test",
+      "data_planejada": "",
+      "observacao": "",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "loc_origem": "PCK-01",
+          "loc_destino": ""
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:02:15",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:02:15",
+      "atualizado_em": "2026-08-06T21:02:15"
+    },
+    {
+      "id": "OP-20260806-0010",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-TEST-008",
+      "parceiro": "Cliente Teste",
+      "prioridade": "normal",
+      "status": "ready",
+      "responsavel": "test",
+      "data_planejada": "",
+      "observacao": "",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "loc_origem": "PCK-01",
+          "loc_destino": ""
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:02:21",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:02:21",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:02:21",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:02:21",
+      "atualizado_em": "2026-08-06T21:02:21"
+    },
+    {
+      "id": "OP-20260806-0011",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-TEST-FINAL-001",
+      "parceiro": "Cliente Final",
+      "prioridade": "normal",
+      "status": "ready",
+      "responsavel": "test",
+      "data_planejada": "",
+      "observacao": "",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2.0,
+          "loc_origem": "PCK-01",
+          "loc_destino": ""
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "plan"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-06T21:06:55",
+          "usuario": "test",
+          "nota": "ready"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-06T21:06:55",
+      "atualizado_em": "2026-08-06T21:06:55"
+    }
+  ],
+  "total": 14
+}

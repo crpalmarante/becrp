@@ -66,7 +66,7 @@ table.data tr{cursor:pointer}
       <a class="menu-item" href="compras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Compras</span></a>
       <a class="menu-item active" href="acordos-compra.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Acordos</span></a>
       <a class="menu-item" href="vendas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">Vendas</span></a>
-      <a class="menu-item" href="parceiros.html?role=SUPPLIER"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
+      <a class="menu-item" href="fornecedores.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Fornecedores</span></a>
       <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
     </nav>
   </aside>
@@ -130,7 +130,7 @@ table.data tr{cursor:pointer}
     </div>
 
     <div class="dialog-overlay" id="mapa-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:20px">
-      <div class="dialog-box" style="max-width:900px;max-height:90vh;overflow:auto;background:var(--surface-panel);border-radius:var(--radius-panel);padding:20px">
+      <div class="dialog-box" style="max-width:900px;max-height:90vh;overflow:auto;background:var(--surface-modal, var(--surface-panel));border-radius:var(--radius-panel);padding:20px">
         <div class="dialog-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
           <h3 class="dialog-title">Mapa de Cotação</h3>
           <button class="dialog-close" id="btn-mapa-close" style="background:transparent;border:none;color:var(--text-primary);font-size:24px">&times;</button>
@@ -230,6 +230,13 @@ table.data tr{cursor:pointer}
     msg.textContent = "Acordo " + res.acordo.numero + " criado"; msg.style.color = "#86efac";
     await load();
     showView("list");
+    // Destaque verde + scroll ate a linha do acordo recem-criado
+    const _tr = document.querySelector('#tbody tr[data-id="' + res.acordo.id + '"]');
+    if (_tr) {
+      _tr.scrollIntoView({ behavior: "smooth", block: "center" });
+      _tr.classList.add("dg-row-new");
+      setTimeout(() => _tr.classList.remove("dg-row-new"), 2600);
+    }
   }
 
   async function openDetail(id){

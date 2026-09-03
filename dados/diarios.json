@@ -1,5 +1,5 @@
 {
-  "atualizado_em": "2026-07-31T23:07:01",
+  "atualizado_em": "2026-09-03T08:16:01",
   "diarios": [
     {
       "codigo": "VEN",
@@ -11,19 +11,19 @@
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T23:07:01"
+      "atualizado_em": "2026-08-05T00:41:37"
     },
     {
       "codigo": "COM",
       "nome": "Diário de Compras",
       "tipo": "purchase",
       "prefixo": "COM",
-      "proximo": 1,
+      "proximo": 2,
       "conta_padrao": "2.01.01.03.01",
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T23:03:46"
+      "atualizado_em": "2026-09-03T08:16:01"
     },
     {
       "codigo": "CXA",
@@ -59,19 +59,19 @@
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:40:34"
+      "atualizado_em": "2026-08-05T00:41:37"
     },
     {
       "codigo": "GER",
       "nome": "Diário Geral",
       "tipo": "general",
       "prefixo": "GER",
-      "proximo": 1,
+      "proximo": 15,
       "conta_padrao": "",
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:43:11"
+      "atualizado_em": "2026-08-11T19:46:10"
     }
   ],
   "total": 6

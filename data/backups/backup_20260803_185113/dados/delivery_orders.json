@@ -1,0 +1,443 @@
+{
+  "seq": 5,
+  "atualizado_em": "2026-08-02T20:35:31",
+  "orders": [
+    {
+      "id": "DO-SEED-0001",
+      "origem_tipo": "pedido_venda",
+      "origem_ref": "PV-100",
+      "parceiro_id": "bp001",
+      "parceiro": "Cliente Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "Armazém Principal",
+      "status": "delivered",
+      "prioridade": "normal",
+      "data_agendada": "2026-08-02",
+      "janela": "tarde",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "observacao": "Seed — entrega pronta (após WMS)",
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Casa do cliente",
+          "address_type": "SHIPPING",
+          "endereco": "Rua das Flores, 100 — Centro",
+          "cidade": "Passo Fundo",
+          "uf": "RS",
+          "cep": "99010-000",
+          "contato": "João Silva",
+          "telefone": "(54) 99999-0001",
+          "status": "delivered",
+          "itens": [
+            {
+              "produto_id": "1",
+              "produto": "Produto demo",
+              "qtd": 2
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T12:35:47",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T12:35:47",
+          "usuario": "seed",
+          "nota": "confirmada"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T12:35:47",
+          "usuario": "seed",
+          "nota": "estoque ok / WMS"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T12:35:47",
+          "usuario": "seed",
+          "nota": "manifesto MF-SEED-0001"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T12:35:47",
+          "usuario": "test",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "in_transit",
+          "em": "2026-08-02T19:52:24",
+          "usuario": "smoke",
+          "nota": "depart"
+        },
+        {
+          "status": "delivered",
+          "em": "2026-08-02T19:52:25",
+          "usuario": "smoke",
+          "nota": "entregue"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "seed",
+      "criado_em": "2026-08-02T12:35:47",
+      "atualizado_em": "2026-08-02T19:52:25",
+      "manifesto_id": "MF-SEED-0001"
+    },
+    {
+      "id": "DO-20260802-0002",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "",
+      "parceiro": "Cliente Motorista Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "delivered",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "slot_id": "",
+      "scheduling_status": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "observacao": "",
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Av. Brasil, 500",
+          "cidade": "Passo Fundo",
+          "uf": "",
+          "cep": "",
+          "contato": "Maria",
+          "telefone": "54999990002",
+          "status": "delivered",
+          "itens": [
+            {
+              "produto_id": "",
+              "produto": "Caixa A",
+              "qtd": 2.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "confirm"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "ready"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "manifesto MF-20260802-0002"
+        },
+        {
+          "status": "in_transit",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "depart"
+        },
+        {
+          "status": "delivered",
+          "em": "2026-08-02T20:30:57",
+          "usuario": "smoke",
+          "nota": "entregue"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "manual",
+      "criado_em": "2026-08-02T20:30:57",
+      "atualizado_em": "2026-08-02T20:30:57",
+      "manifesto_id": "MF-20260802-0002"
+    },
+    {
+      "id": "DO-20260802-0003",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "",
+      "parceiro": "Cliente UI Demo",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "assigned",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "slot_id": "",
+      "scheduling_status": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "observacao": "",
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Rua XV, 10",
+          "cidade": "Passo Fundo",
+          "uf": "",
+          "cep": "",
+          "contato": "Pedro",
+          "telefone": "54988880001",
+          "status": "pending",
+          "itens": [
+            {
+              "produto_id": "",
+              "produto": "Pacote",
+              "qtd": 1.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "confirm"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "ready"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:31:06",
+          "usuario": "seed",
+          "nota": "manifesto MF-20260802-0003"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "manual",
+      "criado_em": "2026-08-02T20:31:06",
+      "atualizado_em": "2026-08-02T20:31:07",
+      "manifesto_id": "MF-20260802-0003"
+    },
+    {
+      "id": "DO-20260802-0004",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "",
+      "parceiro": "Stop Cliente A",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "delivered",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "slot_id": "",
+      "scheduling_status": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "observacao": "",
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Rua A, 1",
+          "cidade": "Passo Fundo",
+          "uf": "",
+          "cep": "",
+          "contato": "Contato",
+          "telefone": "54999991111",
+          "status": "delivered",
+          "itens": [
+            {
+              "produto_id": "",
+              "produto": "Item",
+              "qtd": 1.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "confirm"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "ready"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "manifesto MF-20260802-0004"
+        },
+        {
+          "status": "in_transit",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "depart"
+        },
+        {
+          "status": "delivered",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "entregue"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "manual",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31",
+      "manifesto_id": "MF-20260802-0004"
+    },
+    {
+      "id": "DO-20260802-0005",
+      "origem_tipo": "manual",
+      "origem_ref": "",
+      "parceiro_id": "",
+      "parceiro": "Stop Cliente B",
+      "fonte": "DC-01",
+      "fonte_nome": "",
+      "status": "delivered",
+      "prioridade": "normal",
+      "data_agendada": "",
+      "janela": "",
+      "slot_id": "",
+      "scheduling_status": "",
+      "recurso_id": "DRV-01",
+      "motorista": "Carlos Motorista",
+      "veiculo": "ABC1D23",
+      "expedicao_id": "",
+      "observacao": "",
+      "paradas": [
+        {
+          "parada": 1,
+          "rotulo": "Entrega",
+          "address_type": "SHIPPING",
+          "endereco": "Rua B, 2",
+          "cidade": "Passo Fundo",
+          "uf": "",
+          "cep": "",
+          "contato": "Contato",
+          "telefone": "54999991111",
+          "status": "delivered",
+          "itens": [
+            {
+              "produto_id": "",
+              "produto": "Item",
+              "qtd": 1.0
+            }
+          ]
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "criação"
+        },
+        {
+          "status": "confirmed",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "confirm"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "ready"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "atribuído Carlos Motorista"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "manifesto MF-20260802-0004"
+        },
+        {
+          "status": "in_transit",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "depart"
+        },
+        {
+          "status": "delivered",
+          "em": "2026-08-02T20:35:31",
+          "usuario": "smoke",
+          "nota": "entregue"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem_dado": "manual",
+      "criado_em": "2026-08-02T20:35:31",
+      "atualizado_em": "2026-08-02T20:35:31",
+      "manifesto_id": "MF-20260802-0004"
+    }
+  ],
+  "total": 5
+}

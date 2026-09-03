@@ -1,5 +1,5 @@
 {
-  "atualizado_em": "2026-07-31T22:51:57",
+  "atualizado_em": "2026-08-11T15:24:47",
   "regras": [
     {
       "codigo": "SALE_CASH",
@@ -11,7 +11,7 @@
       "auto_post": true,
       "ativo": true,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:51:57"
+      "atualizado_em": "2026-08-11T15:24:47"
     },
     {
       "codigo": "SALE_BANK",
@@ -23,7 +23,7 @@
       "auto_post": true,
       "ativo": true,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:51:57"
+      "atualizado_em": "2026-08-11T15:24:47"
     },
     {
       "codigo": "PURCHASE",
@@ -35,7 +35,7 @@
       "auto_post": false,
       "ativo": true,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:51:57"
+      "atualizado_em": "2026-08-11T15:24:47"
     },
     {
       "codigo": "INV_ADJ_UP",
@@ -47,7 +47,7 @@
       "auto_post": false,
       "ativo": true,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:51:57"
+      "atualizado_em": "2026-08-11T15:24:47"
     },
     {
       "codigo": "CASH_IN",
@@ -59,8 +59,56 @@
       "auto_post": true,
       "ativo": true,
       "origem": "manual",
-      "atualizado_em": "2026-07-31T22:51:57"
+      "atualizado_em": "2026-08-11T15:24:47"
+    },
+    {
+      "codigo": "FOLHA_ENC_FGTS",
+      "nome": "FGTS 8% (encargo patronal)",
+      "evento": "folha_encargo_fgts",
+      "diario": "GER",
+      "conta_debito": "3.01.01.07.01.06",
+      "conta_credito": "2.01.01.01.04",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-08-11T15:24:47"
+    },
+    {
+      "codigo": "FOLHA_ENC_INSS_PATRONAL",
+      "nome": "INSS patronal 20% (encargo patronal)",
+      "evento": "folha_encargo_inss_patronal",
+      "diario": "GER",
+      "conta_debito": "3.01.01.07.01.05",
+      "conta_credito": "2.01.01.01.03",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-08-11T15:24:47"
+    },
+    {
+      "codigo": "FOLHA_ENC_RAT",
+      "nome": "RAT/SAT (encargo patronal)",
+      "evento": "folha_encargo_rat",
+      "diario": "GER",
+      "conta_debito": "3.01.01.07.01.05",
+      "conta_credito": "2.01.01.01.03",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-08-11T15:24:47"
+    },
+    {
+      "codigo": "FOLHA_ENC_TERCEIROS",
+      "nome": "Contribuição a terceiros (SESI/SENAI/SENAC)",
+      "evento": "folha_encargo_terceiros",
+      "diario": "GER",
+      "conta_debito": "3.01.01.07.01.07",
+      "conta_credito": "2.01.01.01.09",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-08-11T15:24:47"
     }
   ],
-  "total": 5
+  "total": 9
 }

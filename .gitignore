@@ -38,3 +38,7 @@ Plano Referencial.xls
 Plano Referencial.xlsx
 **/Plano Referencial.xls
 **/Plano Referencial.xlsx
+
+# Runtime gerado (historico de salarios e movimentacoes)
+dados/salarios*.dat
+dados/movimentacoes*.dat

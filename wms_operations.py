@@ -323,7 +323,7 @@ def _build_row(payload, existing=None, op_id=None, usuario=""):
         "linhas": linhas,
         "historico": historico,
         "cancelamento_motivo": (existing or {}).get("cancelamento_motivo") or "",
-        "origem": (existing or {}).get("origem") or "manual",
+        "origem": _field("origem") or (existing or {}).get("origem") or "manual",
         "criado_em": (existing or {}).get("criado_em") or _now(),
         "atualizado_em": _now(),
     }
@@ -401,7 +401,7 @@ def create_operacao(payload, usuario=""):
     if any(str(r.get("id") or "").upper() == oid for r in data["operacoes"]):
         raise ValueError(f"já existe operação {oid}")
     row = _build_row(body, existing=None, op_id=oid, usuario=usuario)
-    row["origem"] = "manual"
+    row["origem"] = str(body.get("origem") or "manual").strip()
     data["operacoes"].append(row)
     _save(data)
     return _enrich(row)

@@ -1,0 +1,223 @@
+{
+  "seq": 6,
+  "atualizado_em": "2026-08-01T14:48:47",
+  "tarefas": [
+    {
+      "id": "TK-SEED-0001",
+      "operacao_id": "OP-SEED-0002",
+      "tipo": "picking",
+      "armazem": "DC-01",
+      "produto_id": "1",
+      "produto": "Produto demo",
+      "qtd": 2,
+      "qtd_feita": 0,
+      "loc_origem": "PCK-01",
+      "loc_destino": "SHP-STAGE",
+      "prioridade": "high",
+      "status": "assigned",
+      "operador": "bruno",
+      "workflow_step": "pick",
+      "observacao": "Seed — picking da expedição demo",
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "seed",
+          "nota": "gerada"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "seed",
+          "nota": "bruno"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "seed",
+      "criado_em": "2026-08-01T14:48:47",
+      "atualizado_em": "2026-08-01T14:48:47"
+    },
+    {
+      "id": "TK-SEED-0002",
+      "operacao_id": "OP-SEED-0002",
+      "tipo": "packing",
+      "armazem": "DC-01",
+      "produto_id": "1",
+      "produto": "Produto demo",
+      "qtd": 2,
+      "qtd_feita": 0,
+      "loc_origem": "SHP-STAGE",
+      "loc_destino": "SHP-STAGE",
+      "prioridade": "high",
+      "status": "created",
+      "operador": "",
+      "workflow_step": "pack",
+      "observacao": "Seed — packing aguardando atribuição",
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "seed",
+          "nota": "gerada"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "seed",
+      "criado_em": "2026-08-01T14:48:47",
+      "atualizado_em": "2026-08-01T14:48:47"
+    },
+    {
+      "id": "TK-20260801-0003",
+      "operacao_id": "OP-SEED-0002",
+      "tipo": "move",
+      "armazem": "DC-01",
+      "produto_id": "",
+      "produto": "X",
+      "qtd": 3.0,
+      "qtd_feita": 3.0,
+      "loc_origem": "",
+      "loc_destino": "",
+      "prioridade": "high",
+      "status": "closed",
+      "operador": "ana",
+      "workflow_step": "",
+      "observacao": "",
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "criação"
+        },
+        {
+          "status": "assigned",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "ana"
+        },
+        {
+          "status": "started",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "start"
+        },
+        {
+          "status": "executing",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "execute"
+        },
+        {
+          "status": "completed",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "complete"
+        },
+        {
+          "status": "validated",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "validate"
+        },
+        {
+          "status": "closed",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "close"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "manual",
+      "criado_em": "2026-08-01T14:48:47",
+      "atualizado_em": "2026-08-01T14:48:47"
+    },
+    {
+      "id": "TK-20260801-0004",
+      "operacao_id": "OP-SEED-0002",
+      "tipo": "picking",
+      "armazem": "DC-01",
+      "produto_id": "1",
+      "produto": "Produto demo",
+      "qtd": 2.0,
+      "qtd_feita": 0.0,
+      "loc_origem": "PCK-01",
+      "loc_destino": "SHP-STAGE",
+      "prioridade": "high",
+      "status": "created",
+      "operador": "",
+      "workflow_step": "pick",
+      "observacao": "Gerada de OP-SEED-0002 / pick",
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "generated",
+      "criado_em": "2026-08-01T14:48:47",
+      "atualizado_em": "2026-08-01T14:48:47"
+    },
+    {
+      "id": "TK-20260801-0005",
+      "operacao_id": "OP-SEED-0002",
+      "tipo": "packing",
+      "armazem": "DC-01",
+      "produto_id": "1",
+      "produto": "Produto demo",
+      "qtd": 2.0,
+      "qtd_feita": 0.0,
+      "loc_origem": "PCK-01",
+      "loc_destino": "SHP-STAGE",
+      "prioridade": "high",
+      "status": "created",
+      "operador": "",
+      "workflow_step": "pack",
+      "observacao": "Gerada de OP-SEED-0002 / pack",
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "generated",
+      "criado_em": "2026-08-01T14:48:47",
+      "atualizado_em": "2026-08-01T14:48:47"
+    },
+    {
+      "id": "TK-20260801-0006",
+      "operacao_id": "OP-SEED-0002",
+      "tipo": "loading",
+      "armazem": "DC-01",
+      "produto_id": "1",
+      "produto": "Produto demo",
+      "qtd": 2.0,
+      "qtd_feita": 0.0,
+      "loc_origem": "PCK-01",
+      "loc_destino": "SHP-STAGE",
+      "prioridade": "high",
+      "status": "created",
+      "operador": "",
+      "workflow_step": "ship",
+      "observacao": "Gerada de OP-SEED-0002 / ship",
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-08-01T14:48:47",
+          "usuario": "test",
+          "nota": "criação"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "generated",
+      "criado_em": "2026-08-01T14:48:47",
+      "atualizado_em": "2026-08-01T14:48:47"
+    }
+  ],
+  "total": 6
+}

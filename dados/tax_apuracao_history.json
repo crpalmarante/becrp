@@ -1,0 +1,62 @@
+{
+  "apuracoes": [
+    {
+      "periodo": {
+        "dt_ini": "2026-01-01",
+        "dt_fim": "2026-12-31"
+      },
+      "competencias": {
+        "2026-07": {
+          "entradas": {
+            "qtd": 0,
+            "valor": 0.0,
+            "icms_cred": 0.0,
+            "pis_cred": 0.0,
+            "cofins_cred": 0.0,
+            "cbs_cred": 0.0,
+            "ibs_cred": 0.0
+          },
+          "saidas": {
+            "qtd": 1,
+            "valor": 0.0,
+            "icms_deb": 0.0,
+            "pis_deb": 0.0,
+            "cofins_deb": 0.0,
+            "cbs_deb": 0.0,
+            "ibs_deb": 0.0
+          }
+        },
+        "2026-08": {
+          "entradas": {
+            "qtd": 2,
+            "valor": 1000.99,
+            "icms_cred": 0.0,
+            "pis_cred": 6.51,
+            "cofins_cred": 30.03,
+            "cbs_cred": 6.0,
+            "ibs_cred": 170.0
+          },
+          "saidas": {
+            "qtd": 1,
+            "valor": 32.9,
+            "icms_deb": 0.0,
+            "pis_deb": 0.21,
+            "cofins_deb": 0.99,
+            "cbs_deb": 0.0,
+            "ibs_deb": 0.0
+          }
+        }
+      },
+      "total_geral": {
+        "icms": 0.0,
+        "pis": -6.3,
+        "cofins": -29.04,
+        "cbs": -6.0,
+        "ibs": -170.0
+      },
+      "apurado_em": "2026-08-06T20:31:52",
+      "apurado_por": ""
+    }
+  ],
+  "updated_at": "2026-08-06T20:31:52"
+}

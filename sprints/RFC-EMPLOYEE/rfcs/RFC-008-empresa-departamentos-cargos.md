@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Cadastros mestres: Empresa, Departamentos e Cargos |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (10/08/2026 — cadastros mestres no COBOL (gerir_empresa/gerir_departamentos/gerir_cargos) + telas empresa-folha.html e departamentos-cargos.html; dados da empresa para a folha §2: CNAE/regime tributário como base para RAT/SAT §5.3; regra de CNAE/regime desativando a folha (org_store, RFC-008 §2); smoke_rfc008_empresa no CI) |
 | **Data** | 01/08/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Cadastros |
@@ -86,4 +86,4 @@ Posição ocupada pelo funcionário (tabela de cargos referenciada no RFC-002).
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |

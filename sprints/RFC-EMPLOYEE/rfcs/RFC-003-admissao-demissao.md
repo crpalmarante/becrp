@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Processos de Admissão e Demissão (Rescisão) |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (09/08/2026 — rescisão com verbas/prazo/guarda do acerto; desligar/reativar com status; bloqueio de processamento de desligado §3.4.1; bloqueio de admissão com exame admissional vencido §2.3.3) |
 | **Data** | 31/07/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Processos |
@@ -107,4 +107,21 @@ documentos e regras próprias — independentes de tecnologia.
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |
+
+## 6. Rastreabilidade da Implementação
+
+| Item | Onde | Verificação |
+|---|---|---|
+| Cálculo do acerto (decisões 1–4) | `folha_pagamento.cbl` — `rescisao-calcular/incluir` | `smoke_rfc003_rescisao.py` (54 checks) |
+| Badge **EM DOBRO** (férias vencidas) na tabela | `pages/folha.html` — `carregarRescisoes` | `check_render_rescisao_node.js` (RENDER OK) |
+| Toast de alerta ao registrar vencidas | `pages/folha.html` — `calcularRescisao` | `check_render_rescisao_node.js` (RENDER OK) |
+| Cenário visual (2 rescisões C/P para navegador) | `scripts/cenario_rescisao_browser.py` | browser-use (badge + botões por estado) |
+
+> **Bug corrigido em 11/08/2026** — o loop de `READ` do `gravar-rescisao`
+> (para calcular o próximo id) sobrescrevia os campos calculados `re-*` com o
+> último registro do arquivo; a 2ª+ rescisão gravava saldo/férias/13º/FGTS do
+> registro anterior. Fix: backup `ws-re-backup` do registro calculado antes do
+> loop e restauração antes do `WRITE`. Coberto pela seção 8 do
+> `smoke_rfc003_rescisao.py` (11 checks de regressão — 2 rescisões em sequência
+> com valores distintos não herdam).

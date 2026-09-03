@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Relatórios gerenciais e fechamento da competência |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (11/08/2026 — relatório de encargos HTML imprimível (CSS print → PDF) gerado no fechamento (§2/§4 regra 2) com **anexo da trilha de auditoria** da competência (RFC-009 §5, imutável — quem/quando/antes/depois/tabelas); verificações de consistência via estados sequenciais (RFC-006) e separação de funções (RFC-009 §4.2); coberto por smoke_rfc009_auditoria (anexo via HTTP) + review_tela_folha no CI) |
 | **Data** | 01/08/2026 |
 | **Versão** | 1.1.0 |
 | **Área** | Conceitos — Saídas |
@@ -122,12 +122,26 @@ ORDER BY s.code, cd.id;
    ✅ 01/08/2026
 3. **Conferência mês a mês obrigatória** antes do fechamento. ✅ 01/08/2026
 4. **Fechamento apenas com validação prévia** (estados sequenciais do RFC-006). ✅ 01/08/2026
+5. **Relatório de encargos anexa a trilha de auditoria da competência** — o
+   relatório gerado no fechamento inclui a seção **Anexo — Trilha de auditoria**
+   (RFC-009 §5, imutável) com os eventos da competência: quando, quem, ação,
+   contexto, antes/depois e a versão das tabelas usadas no cálculo (RFC-005
+   §5.1.2) — permite conferência externa de quem operou a competência.
+   ✅ 11/08/2026
 5. **Relatório de comissões por venda de origem** — detalhe por venda/item sobre
    `commission_details` (db/017) com origem da regra, elegibilidade por status e
    cruzamento com o evento 7; público: conferente e gestão (§2.1). ✅ 05/08/2026
 
-## 6. Aprovação
+## 6. Implementação (rastreabilidade)
+
+| Item | Evidência |
+|---|---|
+| Relatório de encargos HTML imprimível | `POST /api/folha/competencia/fechar` calcula encargos; `GET /api/folha/encargos/relatorio?competencia=` renderiza (RFC-014 §4.4) com botão Imprimir (CSS print → PDF pelo navegador) |
+| Anexo de auditoria no relatório | `server.py::_relatorio_auditoria_html` + `folha_auditoria.listar(competencia)` — eventos imutáveis com quem/quando/antes/depois/tabelas |
+| CI | `scripts/smoke_rfc009_auditoria.py` valida o anexo via HTTP (HTML 200, seção presente, eventos e usuários listados) |
+
+## 7. Aprovação
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | _autor_ | ✅ Aprovado | 11/08/2026 |

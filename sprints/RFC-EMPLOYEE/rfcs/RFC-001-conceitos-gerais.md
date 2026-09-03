@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Conceitos gerais do sistema de Folha de Pagamento |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Concluído (11/08/2026) — documento conceitual, sem código associado |
 | **Data** | 31/07/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos |
@@ -95,8 +95,24 @@ mesmo significado.
 2. **Mensal + complementar + 13º** — a 1ª versão processa folha mensal,
    folha complementar (ajustes de competência fechada) e 13º salário. ✅ 31/07/2026
 
-## 7. Aprovação
+## 7. Rastreabilidade da Conclusão (11/08/2026)
+
+Este RFC é **conceitual** — define a linguagem comum e os princípios do
+módulo. Não possui implementação de código própria (como os demais RFCs
+002–016), pois seu conteúdo foi **materializado em todos eles**: cada conceito
+(competência, evento, tabela, holerite, fluxo) está implementado e coberto pelo
+CI no respectivo RFC. Encerrado como documento de referência do módulo.
+
+| Princípio (RFC-001 §4) | Onde foi materializado |
+|---|---|
+| Competência imutável após fechamento | RFC-006 (processamento) — fechamento bloqueia alterações |
+| Eventos como unidades de provento/desconto | RFC-004 (eventos) + `folha_pagamento.cbl` |
+| Tabelas versionadas por competência | RFC-005 (tabelas) — `folha_config.dat` multi-versão |
+| Holerite rastreável até a origem | RFC-007 (holerite) + `holerite_mostrar` |
+| Mensal + complementar + 13º | RFC-006/010/011/013 — processamento, férias/13º e complementar |
+
+## 8. Aprovação
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | _autor_ | ✅ Aprovado | 11/08/2026 |

@@ -1,0 +1,19 @@
+{
+  "moeda_base": "BRL",
+  "rates": {
+    "BRL": 1.0,
+    "USD": 5.25,
+    "EUR": 5.5,
+    "ARS": 0.02,
+    "CNY": 0.75
+  },
+  "updated_at": "2026-08-06T20:06:08",
+  "history": [
+    {
+      "moeda": "USD",
+      "taxa": 5.25,
+      "usuario": "test",
+      "data": "2026-08-06T20:06:08"
+    }
+  ]
+}

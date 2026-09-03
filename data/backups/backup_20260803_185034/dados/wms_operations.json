@@ -1,0 +1,87 @@
+{
+  "seq": 2,
+  "atualizado_em": "2026-08-01T17:32:37",
+  "operacoes": [
+    {
+      "id": "OP-SEED-0001",
+      "tipo": "REC-COMPRA",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_compra",
+      "documento_ref": "PC-5001",
+      "parceiro": "Fornecedor Demo",
+      "prioridade": "normal",
+      "status": "draft",
+      "responsavel": "",
+      "data_planejada": "",
+      "observacao": "Recebimento demo — rascunho",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 10,
+          "loc_origem": "",
+          "loc_destino": "REC-DOCK-01"
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "criação seed"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "seed",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    },
+    {
+      "id": "OP-SEED-0002",
+      "tipo": "EXP-CLIENTE",
+      "armazem": "DC-01",
+      "documento_tipo": "pedido_venda",
+      "documento_ref": "PV-100",
+      "parceiro": "Cliente Demo",
+      "prioridade": "high",
+      "status": "ready",
+      "responsavel": "bruno",
+      "data_planejada": "2026-08-01",
+      "observacao": "Expedição demo — pronta para executar",
+      "linhas": [
+        {
+          "produto_id": "1",
+          "produto": "Produto demo",
+          "qtd": 2,
+          "loc_origem": "PCK-01",
+          "loc_destino": "SHP-STAGE"
+        }
+      ],
+      "historico": [
+        {
+          "status": "draft",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "criação"
+        },
+        {
+          "status": "planned",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "planejada"
+        },
+        {
+          "status": "ready",
+          "em": "2026-08-01T17:32:37",
+          "usuario": "seed",
+          "nota": "tarefas preparadas"
+        }
+      ],
+      "cancelamento_motivo": "",
+      "origem": "seed",
+      "criado_em": "2026-08-01T17:32:37",
+      "atualizado_em": "2026-08-01T17:32:37"
+    }
+  ],
+  "total": 2
+}

@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Processo de férias: aquisição, gozo e pagamento |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (10/08/2026 — cálculo no COBOL (padrão rescisão) com alerta e salário em dobro para vencidas §2.1/Decisão 4; dobro também na rescisão §6 (RFC-003); aviso de vencidas no RH Dashboard; badges VENCIDA/EM DOBRO + toasts; 4 checks Node de render no CI) |
 | **Data** | 01/08/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Processos |
@@ -76,4 +76,4 @@ incidência própria.
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |

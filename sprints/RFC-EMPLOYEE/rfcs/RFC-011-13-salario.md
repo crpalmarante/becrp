@@ -4,7 +4,7 @@
 |---|---|
 | **Título** | Processo de 13º salário (gratificação natalina) |
 | **Autor** | crpalmarante |
-| **Status** | 📝 Draft (em revisão) |
+| **Status** | ✅ Implementado (10/08/2026 — cálculo no COBOL (padrão rescisão): base = salário/12 × meses; 1ª parcela sem INSS/IRRF §3.1; 2ª parcela e única com INSS/IRRF §3.2; CRUD próprio (calcular/incluir/listar/pagar/excluir) §5; 13º proporcional na rescisão (RFC-003); coberto por smoke e review HTTP no CI) |
 | **Data** | 01/08/2026 |
 | **Versão** | 1.0.0 |
 | **Área** | Conceitos — Processos |
@@ -75,4 +75,4 @@ auditabilidade.
 
 | Revisor | Papel | Voto | Data |
 |---|---|---|---|
-| _em aberto_ | _autor_ | ⏳ | — |
+| crpalmarante | autor | ✅ Aprovado | 10/08/2026 |

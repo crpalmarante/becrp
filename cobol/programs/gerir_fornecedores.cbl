@@ -24,10 +24,14 @@
            05 fn-cnpj           PIC X(18).
            05 fn-nome           PIC X(60).
            05 fn-endereco       PIC X(60).
+           05 fn-cep            PIC X(9).
            05 fn-telefone       PIC X(15).
            05 fn-email          PIC X(40).
            05 fn-ie             PIC X(20).
            05 fn-inscricao-mun  PIC X(20).
+           05 fn-cnae           PIC X(10).
+           05 fn-cnae-desc      PIC X(60).
+           05 fn-logo           PIC X(200).
 
        FD temp-file.
        01 temp-reg.
@@ -35,10 +39,14 @@
            05 tn-cnpj           PIC X(18).
            05 tn-nome           PIC X(60).
            05 tn-endereco       PIC X(60).
+           05 tn-cep            PIC X(9).
            05 tn-telefone       PIC X(15).
            05 tn-email          PIC X(40).
            05 tn-ie             PIC X(20).
            05 tn-inscricao-mun  PIC X(20).
+           05 tn-cnae           PIC X(10).
+           05 tn-cnae-desc      PIC X(60).
+           05 tn-logo           PIC X(200).
 
        WORKING-STORAGE SECTION.
        01 ws-acao            PIC X(15).
@@ -52,12 +60,19 @@
        01 ws-nome            PIC X(60).
        01 ws-cnpj            PIC X(18).
        01 ws-endereco        PIC X(60).
+       01 ws-cep             PIC X(9).
        01 ws-telefone        PIC X(15).
        01 ws-email           PIC X(40).
        01 ws-ie              PIC X(20).
        01 ws-inscricao-mun   PIC X(20).
+       01 ws-cnae            PIC X(10).
+       01 ws-cnae-desc       PIC X(60).
+       01 ws-logo            PIC X(200).
+       01 ws-logo-clear      PIC X(1).
        01 ws-encontrou       PIC X(1).
        01 ws-prox-id         PIC 9(5).
+       01 ws-duplicado       PIC X(1).
+       01 ws-cnpj-cmp        PIC X(18).
        01 ws-cnpj-trim       PIC X(18).
        01 ws-cnpj-arq        PIC X(18).
        01 ws-i               PIC 9(2).
@@ -88,13 +103,22 @@
            ACCEPT ws-nome FROM ENVIRONMENT "NOME"
            ACCEPT ws-cnpj FROM ENVIRONMENT "CNPJ"
            ACCEPT ws-endereco FROM ENVIRONMENT "ENDERECO"
+           ACCEPT ws-cep FROM ENVIRONMENT "CEP"
            ACCEPT ws-telefone FROM ENVIRONMENT "TELEFONE"
            ACCEPT ws-email FROM ENVIRONMENT "EMAIL"
            ACCEPT ws-ie FROM ENVIRONMENT "IE"
            ACCEPT ws-inscricao-mun FROM ENVIRONMENT "INSCRICAO_MUN"
+           ACCEPT ws-cnae FROM ENVIRONMENT "CNAE"
+           ACCEPT ws-cnae-desc FROM ENVIRONMENT "CNAE_DESC"
+           ACCEPT ws-logo FROM ENVIRONMENT "LOGO"
            ACCEPT ws-id-in FROM ENVIRONMENT "ID"
            IF ws-nome = SPACES THEN
                DISPLAY "ERRO: nome obrigatorio" STOP RUN END-IF
+
+           MOVE 0 TO ws-id
+           PERFORM validar-cnpj
+           IF ws-duplicado = "S" THEN
+               DISPLAY "ERRO: CNPJ ja cadastrado" STOP RUN END-IF
 
            IF ws-id-in NOT = SPACES THEN
                COMPUTE ws-prox-id = FUNCTION NUMVAL(ws-id-in)
@@ -122,10 +146,14 @@
            MOVE ws-nome TO fn-nome
            MOVE ws-cnpj TO fn-cnpj
            MOVE ws-endereco TO fn-endereco
+           MOVE ws-cep TO fn-cep
            MOVE ws-telefone TO fn-telefone
            MOVE ws-email TO fn-email
            MOVE ws-ie TO fn-ie
            MOVE ws-inscricao-mun TO fn-inscricao-mun
+           MOVE ws-cnae TO fn-cnae
+           MOVE ws-cnae-desc TO fn-cnae-desc
+           MOVE ws-logo TO fn-logo
            WRITE forn-reg
            CLOSE forn-file
            MOVE ws-prox-id TO ws-id-ed
@@ -137,10 +165,21 @@
            ACCEPT ws-nome FROM ENVIRONMENT "NOME"
            ACCEPT ws-cnpj FROM ENVIRONMENT "CNPJ"
            ACCEPT ws-endereco FROM ENVIRONMENT "ENDERECO"
+           ACCEPT ws-cep FROM ENVIRONMENT "CEP"
            ACCEPT ws-telefone FROM ENVIRONMENT "TELEFONE"
            ACCEPT ws-email FROM ENVIRONMENT "EMAIL"
            ACCEPT ws-ie FROM ENVIRONMENT "IE"
            ACCEPT ws-inscricao-mun FROM ENVIRONMENT "INSCRICAO_MUN"
+           ACCEPT ws-cnae FROM ENVIRONMENT "CNAE"
+           ACCEPT ws-cnae-desc FROM ENVIRONMENT "CNAE_DESC"
+           ACCEPT ws-logo FROM ENVIRONMENT "LOGO"
+           ACCEPT ws-logo-clear FROM ENVIRONMENT "LOGO_CLEAR"
+
+           IF ws-cnpj NOT = SPACES THEN
+               PERFORM validar-cnpj
+               IF ws-duplicado = "S" THEN
+                   DISPLAY "ERRO: CNPJ ja cadastrado" STOP RUN END-IF
+           END-IF
 
            MOVE "N" TO ws-encontrou
            OPEN INPUT forn-file
@@ -159,6 +198,8 @@
                        MOVE ws-cnpj TO fn-cnpj END-IF
                    IF ws-endereco NOT = SPACES THEN
                        MOVE ws-endereco TO fn-endereco END-IF
+                   IF ws-cep NOT = SPACES THEN
+                       MOVE ws-cep TO fn-cep END-IF
                    IF ws-telefone NOT = SPACES THEN
                        MOVE ws-telefone TO fn-telefone END-IF
                    IF ws-email NOT = SPACES THEN
@@ -167,6 +208,16 @@
                        MOVE ws-ie TO fn-ie END-IF
                    IF ws-inscricao-mun NOT = SPACES THEN
                        MOVE ws-inscricao-mun TO fn-inscricao-mun END-IF
+                   IF ws-cnae NOT = SPACES THEN
+                       MOVE ws-cnae TO fn-cnae END-IF
+                   IF ws-cnae-desc NOT = SPACES THEN
+                       MOVE ws-cnae-desc TO fn-cnae-desc END-IF
+                   IF ws-logo-clear = "S" THEN
+                       MOVE SPACES TO fn-logo
+                   ELSE
+                       IF ws-logo NOT = SPACES THEN
+                           MOVE ws-logo TO fn-logo END-IF
+                   END-IF
                END-IF
                MOVE forn-reg TO temp-reg
                WRITE temp-reg
@@ -177,6 +228,48 @@
            END-CALL
            IF ws-encontrou = "S" THEN DISPLAY "OK"
            ELSE DISPLAY "ERRO: fornecedor nao encontrado".
+
+       validar-cnpj.
+           MOVE "N" TO ws-duplicado
+           MOVE SPACES TO ws-cnpj-cmp
+           PERFORM VARYING ws-i FROM 1 BY 1 UNTIL ws-i > 18
+               IF ws-cnpj(ws-i:1) NOT = " " AND ws-cnpj(ws-i:1) NOT = "."
+                   AND ws-cnpj(ws-i:1) NOT = "-" AND ws-cnpj(ws-i:1) NOT = "/"
+               THEN
+                   STRING ws-cnpj-cmp DELIMITED BY SPACES
+                       ws-cnpj(ws-i:1) DELIMITED BY SIZE
+                       INTO ws-cnpj-cmp
+                   END-STRING
+               END-IF
+           END-PERFORM
+           IF ws-cnpj-cmp NOT = SPACES THEN
+               OPEN INPUT forn-file
+               IF ws-file-status NOT = "35" THEN
+                   PERFORM UNTIL 1 = 2
+                       READ forn-file NEXT RECORD
+                           AT END EXIT PERFORM
+                       END-READ
+                       IF fn-id NOT = ws-id THEN
+                           MOVE SPACES TO ws-cnpj-arq
+                           PERFORM VARYING ws-i FROM 1 BY 1 UNTIL ws-i > 18
+                               IF fn-cnpj(ws-i:1) NOT = " " AND fn-cnpj(ws-i:1) NOT = "."
+                                   AND fn-cnpj(ws-i:1) NOT = "-" AND fn-cnpj(ws-i:1) NOT = "/"
+                               THEN
+                                   STRING ws-cnpj-arq DELIMITED BY SPACES
+                                       fn-cnpj(ws-i:1) DELIMITED BY SIZE
+                                       INTO ws-cnpj-arq
+                                   END-STRING
+                               END-IF
+                           END-PERFORM
+                           IF ws-cnpj-arq = ws-cnpj-cmp THEN
+                               MOVE "S" TO ws-duplicado
+                               EXIT PERFORM
+                           END-IF
+                       END-IF
+                   END-PERFORM
+               END-IF
+               CLOSE forn-file
+           END-IF.
 
        excluir.
            ACCEPT ws-id-in FROM ENVIRONMENT "ID"
@@ -228,10 +321,14 @@
                       ',"cnpj":"' FUNCTION TRIM(fn-cnpj) '"'
                       ',"nome":"' FUNCTION TRIM(fn-nome) '"'
                       ',"endereco":"' FUNCTION TRIM(fn-endereco) '"'
+                      ',"cep":"' FUNCTION TRIM(fn-cep) '"'
                       ',"telefone":"' FUNCTION TRIM(fn-telefone) '"'
                       ',"email":"' FUNCTION TRIM(fn-email) '"'
                       ',"ie":"' FUNCTION TRIM(fn-ie) '"'
-                      ',"inscricao_mun":"' FUNCTION TRIM(fn-inscricao-mun) '"}'
+                      ',"inscricao_mun":"' FUNCTION TRIM(fn-inscricao-mun) '"'
+                      ',"cnae":"' FUNCTION TRIM(fn-cnae) '"'
+                      ',"cnae_desc":"' FUNCTION TRIM(fn-cnae-desc) '"'
+                      ',"logo":"' FUNCTION TRIM(fn-logo) '"}'
                    INTO ws-json-linha
                DISPLAY FUNCTION TRIM(ws-json-linha)
            END-PERFORM
@@ -273,11 +370,16 @@
                           ',"cnpj":"' FUNCTION TRIM(fn-cnpj) '"'
                           ',"nome":"' FUNCTION TRIM(fn-nome) '"'
                           ',"endereco":"' FUNCTION TRIM(fn-endereco) '"'
+                          ',"cep":"' FUNCTION TRIM(fn-cep) '"'
                           ',"telefone":"' FUNCTION TRIM(fn-telefone) '"'
                           ',"email":"' FUNCTION TRIM(fn-email) '"'
                           ',"ie":"' FUNCTION TRIM(fn-ie) '"'
                           ',"inscricao_mun":"'
-                              FUNCTION TRIM(fn-inscricao-mun) '"}'
+                              FUNCTION TRIM(fn-inscricao-mun) '"'
+                          ',"cnae":"' FUNCTION TRIM(fn-cnae) '"'
+                          ',"cnae_desc":"'
+                              FUNCTION TRIM(fn-cnae-desc) '"'
+                          ',"logo":"' FUNCTION TRIM(fn-logo) '"}'
                        INTO ws-json-linha
                    DISPLAY FUNCTION TRIM(ws-json-linha)
                    MOVE "S" TO ws-encontrou

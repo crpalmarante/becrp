@@ -1,0 +1,20 @@
+{
+  "cfop": [
+    {"codigo": "1101", "descricao": "Compra para industrialização", "tipo": "entrada", "aplicacao": "Compra de mercadoria para uso industrial", "ativo": true},
+    {"codigo": "1102", "descricao": "Compra para comercialização", "tipo": "entrada", "aplicacao": "Compra de mercadoria para revenda", "ativo": true},
+    {"codigo": "2101", "descricao": "Compra para industrialização de mercadoria recebida anteriormente", "tipo": "entrada", "aplicacao": "Entrada futura de compra industrial", "ativo": true},
+    {"codigo": "2102", "descricao": "Compra para comercialização de mercadoria recebida anteriormente", "tipo": "entrada", "aplicacao": "Entrada futura de compra comercial", "ativo": true},
+    {"codigo": "5101", "descricao": "Venda de produção do estabelecimento", "tipo": "saida", "aplicacao": "Venda de produto próprio", "ativo": true},
+    {"codigo": "5102", "descricao": "Venda de mercadoria adquirida ou recebida de terceiros", "tipo": "saida", "aplicacao": "Venda de mercadoria de revenda", "ativo": true},
+    {"codigo": "5401", "descricao": "Venda de produção do estabelecimento efetuada fora do estado", "tipo": "saida", "aplicacao": "Venda interestadual de produção própria", "ativo": true},
+    {"codigo": "5403", "descricao": "Venda de mercadoria adquirida ou recebida de terceiros efetuada fora do estado", "tipo": "saida", "aplicacao": "Venda interestadual de mercadoria de revenda", "ativo": true},
+    {"codigo": "6101", "descricao": "Venda de produção do estabelecimento efetuada no exterior", "tipo": "saida", "aplicacao": "Exportação de produção própria", "ativo": true},
+    {"codigo": "6102", "descricao": "Venda de mercadoria adquirida ou recebida de terceiros efetuada no exterior", "tipo": "saida", "aplicacao": "Exportação de mercadoria de revenda", "ativo": true},
+    {"codigo": "7101", "descricao": "Venda de produção do estabelecimento a não contribuinte", "tipo": "saida", "aplicacao": "Venda para consumidor final não contribuinte", "ativo": true},
+    {"codigo": "7102", "descricao": "Venda de mercadoria adquirida ou recebida de terceiros a não contribuinte", "tipo": "saida", "aplicacao": "Venda para consumidor final não contribuinte (revenda)", "ativo": true},
+    {"codigo": "1151", "descricao": "Transferência para industrialização", "tipo": "entrada", "aplicacao": "Entrada por transferência entre filiais", "ativo": true},
+    {"codigo": "5151", "descricao": "Transferência de produção do estabelecimento", "tipo": "saida", "aplicacao": "Saída por transferência de produção própria", "ativo": true},
+    {"codigo": "5551", "descricao": "Transferência de mercadoria adquirida ou recebida de terceiros", "tipo": "saida", "aplicacao": "Saída por transferência de revenda", "ativo": true}
+  ],
+  "updated_at": "2026-08-06"
+}

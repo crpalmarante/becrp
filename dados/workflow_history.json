@@ -43,6 +43,182 @@
       "user_role": "admin",
       "notes": "",
       "timestamp": "2026-07-19 09:21:06"
+    },
+    {
+      "id": 5,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 19:21:38"
+    },
+    {
+      "id": 6,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 19:21:49"
+    },
+    {
+      "id": 7,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 19:37:45"
+    },
+    {
+      "id": 8,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 19:40:40"
+    },
+    {
+      "id": 9,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 19:46:28"
+    },
+    {
+      "id": 10,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 19:51:22"
+    },
+    {
+      "id": 11,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 20:10:39"
+    },
+    {
+      "id": 12,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 20:30:43"
+    },
+    {
+      "id": 13,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 20:39:17"
+    },
+    {
+      "id": 14,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 20:42:30"
+    },
+    {
+      "id": 15,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 21:02:07"
+    },
+    {
+      "id": 16,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 21:05:19"
+    },
+    {
+      "id": 17,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 21:11:42"
+    },
+    {
+      "id": 18,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 21:12:49"
+    },
+    {
+      "id": 19,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 21:13:24"
+    },
+    {
+      "id": 20,
+      "module": "licenca",
+      "record_id": 6,
+      "from_status": "S",
+      "to_status": "A",
+      "user_name": "bruno",
+      "user_role": "admin",
+      "notes": "",
+      "timestamp": "2026-08-11 22:30:37"
     }
   ]
 }

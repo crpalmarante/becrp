@@ -18,4 +18,24 @@
 {"id":9,"nome":"Sabao em po 1kg","preco":14.50,"preco_custo":10.80,"stock":35,"margem":34.26,"codigo_barras":"7891234560094","categoria":"Limpeza","sub_categoria":"Saboes","unidade":"UN","ncm":"34025000","fornecedor":"Fornecedor E","localizacao":"C1-01","filial_id":0,"cst":"400","cfop":"6102","icms_alq":18.00,"servico":"N","iss_alq":34.26,"cod_serv_mun":""}
 ,
 {"id":10,"nome":"Detergente 500ml","preco":4.20,"preco_custo":2.90,"stock":90,"margem":44.83,"codigo_barras":"7891234560100","categoria":"Limpeza","sub_categoria":"Detergentes","unidade":"UN","ncm":"34025000","fornecedor":"Fornecedor E","localizacao":"C1-02","filial_id":0,"cst":"400","cfop":"6102","icms_alq":18.00,"servico":"N","iss_alq":44.83,"cod_serv_mun":""}
-],"total":10}
+,
+{"id":11,"nome":"Geladeira Electrolux Frost Free Inverter 490L Expe","preco":7379.74,"preco_custo":3989.05,"stock":8,"margem":85.00,"codigo_barras":"7909569510001","categoria":"EletroDoméstico","sub_categoria":"EletroDoméstico","unidade":"UN","ncm":"84181000","fornecedor":"Electrolux do Brasil","localizacao":"","filial_id":1,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":12,"nome":"Fogão 4 bocas Electrolux Cinza Efficient Mesa Vid","preco":2810.24,"preco_custo":1519.05,"stock":5,"margem":85.00,"codigo_barras":"7909569490464","categoria":"EletroDoméstico","sub_categoria":"EletroDoméstico","unidade":"UN","ncm":"85161000","fornecedor":"Electrolux do Brasil","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":13,"nome":"Produto teste auto 456","preco":16.80,"preco_custo":12.00,"stock":0,"margem":40.00,"codigo_barras":"","categoria":"Alimentacao","sub_categoria":"Alimentacao","unidade":"UN","ncm":"85166000","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":14,"nome":"Produto nova listagem 1786667593315","preco":16.80,"preco_custo":12.00,"stock":0,"margem":40.00,"codigo_barras":"","categoria":"Alimentacao","sub_categoria":"Alimentacao","unidade":"UN","ncm":"85166000","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":15,"nome":"Produto render list 1786667696639","preco":16.80,"preco_custo":12.00,"stock":0,"margem":40.00,"codigo_barras":"","categoria":"Alimentacao","sub_categoria":"Alimentacao","unidade":"UN","ncm":"85166000","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":16,"nome":"Produto render ok 1786667728844","preco":16.80,"preco_custo":12.00,"stock":0,"margem":40.00,"codigo_barras":"","categoria":"Alimentacao","sub_categoria":"Alimentacao","unidade":"UN","ncm":"85166000","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":17,"nome":"Produto teste fiscal 1786667812772","preco":16.80,"preco_custo":12.00,"stock":0,"margem":40.00,"codigo_barras":"","categoria":"Alimentacao","sub_categoria":"Alimentacao","unidade":"UN","ncm":"85166000","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":18,"nome":"Arroz Teste 1kg","preco":20.00,"preco_custo":20.00,"stock":0,"margem":0.00,"codigo_barras":"7899999999001","categoria":"Importacao NF-e","sub_categoria":"Importacao NF-e","unidade":"UN","ncm":"00000000","fornecedor":"11222333000181","localizacao":"","filial_id":0,"cst":"","cfop":"5102","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":19,"nome":"Feijao Teste","preco":15.00,"preco_custo":15.00,"stock":0,"margem":0.00,"codigo_barras":"","categoria":"Importacao NF-e","sub_categoria":"Importacao NF-e","unidade":"UN","ncm":"00000000","fornecedor":"11222333000181","localizacao":"","filial_id":0,"cst":"","cfop":"5102","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":20,"nome":"Produto Alterado","preco":99.90,"preco_custo":50.00,"stock":25,"margem":99.80,"codigo_barras":"7899999999999","categoria":"TesteExtra","sub_categoria":"TesteExtra","unidade":"UN","ncm":"85166000","fornecedor":"Fornecedor Teste","localizacao":"X1-01","filial_id":0,"cst":"000","cfop":"5102","icms_alq":18.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+],"total":20}
