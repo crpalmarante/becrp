@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Atributos de Produtos</title>
+  <meta name="theme-color" content="#0f766e">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    @media(min-width:1025px){
+      #sidebar .sidebar-collapse{display:flex}
+      #sidebar.collapsed{width:64px!important}
+      #sidebar.collapsed .menu-label,
+      #sidebar.collapsed .soon-tag,
+      #sidebar.collapsed .brand-text{opacity:0!important;width:0!important;display:none!important}
+      #sidebar.collapsed .menu-item{justify-content:center;padding-left:0;padding-right:0}
+      #sidebar.collapsed .sidebar-nav{padding:0 var(--space-2)}
+      #sidebar.collapsed .sidebar-collapse .icon{transform:rotate(180deg)}
+      .main-area.collapsed{margin-left:64px!important;width:calc(100% - 64px)!important}
+    }
+    .sidebar-nav{display:flex;flex-direction:column;gap:4px}
+    .menu-item{min-height:42px;border-radius:10px}
+    .menu-item .icon{width:20px;height:20px;flex-shrink:0}
+    .menu-item.soon .soon-tag{margin-left:auto;white-space:nowrap}
+    .menu-item .soon-tag{margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);opacity:.8}
+    .sidebar-collapse{margin:4px 0 10px;color:var(--text-muted)}
+    .sidebar-collapse:hover{color:var(--color-primary)}
+    #sub-config.open{max-height:860px}
+    .workspace{padding-top:0}
+    #workspace-view{padding-top:14px}
+    .so-btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      border:1px solid var(--border-color);background:var(--surface-panel);
+      color:var(--text-primary);padding:0 12px;height:34px;line-height:1;
+      border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;
+    }
+    .so-btn .icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px}
+    .so-btn .icon svg{width:18px;height:18px;fill:currentColor}
+    .so-btn.primary{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
+    .vt-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+    .vt-msg{margin:8px 0;font-size:14px}
+    .vt-msg.err{color:#f87171}
+    .vt-msg.ok{color:#4ade80}
+    .dg-table td.dg-cell{padding-top:3px;padding-bottom:3px}
+    .dg-table .dg-page{width:26px;height:26px;font-size:12px}
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <div class="sidebar-collapse" id="sidebar-collapse" title="Recolher/expandir menu">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-chevron-left"/></svg>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html" title="Visão Geral do Inventário">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Visão Geral</span>
+      </a>
+      <div class="menu-item has-children" id="menu-operacoes" title="Operações">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="menu-label">Operações</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-operacoes">
+        <a class="menu-item" href="ajustes-estoque.html" title="Ajustes de Estoque">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Ajustes de Estoque</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-produtos" title="Produtos">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Produtos</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-produtos">
+        <a class="menu-item" href="produtos.html" title="Cadastro de Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Produto</span>
+        </a>
+        <a class="menu-item" href="variantes.html" title="Variantes de Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-filter"/></svg>
+          <span class="menu-label">Variantes</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-config" title="Configurações">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="menu-label">Configurações</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-config">
+        <a class="menu-item" href="categorias.html" title="Categoria dos Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg>
+          <span class="menu-label">Categoria dos Produtos</span>
+        </a>
+        <a class="menu-item active" href="atributos.html" title="Atributos dos Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Atributos</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+        <span class="topbar-title">Atributos</span>
+      </div>
+      <div class="topbar-search">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+        <input class="topbar-search-input" id="search-input" placeholder="Buscar atributos...">
+      </div>
+      <div class="topbar-user" style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <button type="button" class="so-btn primary" id="btn-new" title="Novo atributo">
+          <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></span>Novo
+        </button>
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <h2 class="workspace-title">Atributos de Produtos</h2>
+        </div>
+        <div class="workspace-content">
+          <div class="vt-toolbar">
+            <button class="so-btn" id="btn-refresh">Atualizar</button>
+          </div>
+          <div id="msg" class="vt-msg"></div>
+          <div id="data-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="item-modal" style="display:none">
+  <div class="dialog-box">
+    <div class="dialog-header">
+      <h3 class="dialog-title" id="modal-title">Novo Atributo</h3>
+      <button class="dialog-close" data-close="item-modal">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <form id="item-form">
+        <div class="field">
+          <label>Produto (ID)</label>
+          <select class="form-input" id="edit-produto" required></select>
+        </div>
+        <div class="field">
+          <label>Nome do Atributo</label>
+          <input class="form-input" id="edit-nome" required placeholder="ex.: Cor, Tamanho, Material">
+        </div>
+        <div class="field">
+          <label>Valor</label>
+          <input class="form-input" id="edit-valor" required placeholder="ex.: Azul, GG, Algodão">
+        </div>
+        <div class="form-error" id="form-error"></div>
+      </form>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn dialog-btn-secondary" data-close="item-modal">Cancelar</button>
+      <button class="dialog-btn dialog-btn-primary" id="btn-save">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let allData = [];
+  let produtos = {};
+  let editingId = null;
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function msg(text, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = text || "";
+    el.className = "vt-msg " + (ok ? "ok" : text ? "err" : "");
+  }
+  function openModal() {
+    document.getElementById("form-error").textContent = "";
+    document.getElementById("item-modal").style.display = "flex";
+  }
+  function closeModal() {
+    document.getElementById("item-modal").style.display = "none";
+  }
+  document.querySelectorAll("[data-close]").forEach((btn) => {
+    btn.addEventListener("click", closeModal);
+  });
+
+  // ── Sidebar toggled ──
+  const sbSidebar = document.getElementById("sidebar");
+  const sbBtn = document.getElementById("sidebar-collapse");
+  function applySidebar(collapsed) {
+    sbSidebar.classList.toggle("collapsed", collapsed);
+    sbSidebar.style.width = collapsed ? "64px" : "";
+    const ma = document.querySelector(".main-area");
+    if (ma) {
+      ma.classList.toggle("collapsed", collapsed);
+      ma.style.marginLeft = collapsed ? "64px" : "";
+      ma.style.width = collapsed ? "calc(100% - 64px)" : "";
+    }
+  }
+  if (sbSidebar && sbBtn) {
+    if (localStorage.getItem("sidebar_collapsed") === "true") applySidebar(true);
+    sbBtn.onclick = () => {
+      const collapsed = !sbSidebar.classList.contains("collapsed");
+      applySidebar(collapsed);
+      localStorage.setItem("sidebar_collapsed", collapsed);
+    };
+  }
+  document.querySelectorAll(".menu-item.has-children").forEach((parent) => {
+    const sub = document.getElementById("sub-" + parent.id.replace("menu-", ""));
+    if (!sub) return;
+    parent.addEventListener("click", () => {
+      sub.classList.toggle("open");
+      const arrow = parent.querySelector(".menu-arrow");
+      if (arrow) arrow.classList.toggle("rotated");
+    });
+  });
+
+  // ── Dados ──
+  async function loadProdutos() {
+    produtos = {};
+    const data = await AuthService.api("/api/pos/produtos");
+    (data.produtos || []).forEach((p) => {
+      produtos[String(p.id)] = p.nome || String(p.id);
+    });
+    const opts = Object.keys(produtos).sort((a, b) => String(produtos[a]).localeCompare(String(produtos[b])))
+      .map((id) => `<option value="${id}">${id} · ${escapeHtml(produtos[id])}</option>`).join("");
+    document.getElementById("edit-produto").innerHTML = opts;
+  }
+
+  async function load() {
+    const data = await AuthService.api("/api/admin/atributos");
+    if (data.status !== "ok") return msg(data.message || "Falha ao carregar");
+    allData = data.atributos || [];
+    render();
+  }
+
+  function render() {
+    const busca = (document.getElementById("search-input").value || "").trim().toLowerCase();
+    let filtered = allData;
+    if (busca) {
+      filtered = filtered.filter((a) =>
+        (a.nome || "").toLowerCase().includes(busca) ||
+        (a.valor || "").toLowerCase().includes(busca) ||
+        String(a.produto_id).includes(busca)
+      );
+    }
+    filtered.sort((a, b) => {
+      const cmp = String(a.produto_id).localeCompare(String(b.produto_id));
+      return cmp !== 0 ? cmp : String(a.nome).localeCompare(String(b.nome));
+    });
+
+    const rows = filtered.map((a) => `
+      <tr class="dg-row">
+        <td class="dg-cell dg-cell-center">${String(a.id).substring(0, 6)}</td>
+        <td class="dg-cell"><strong>${a.produto_id}</strong> · ${escapeHtml(produtos[String(a.produto_id)] || "—")}</td>
+        <td class="dg-cell"><strong>${escapeHtml(a.nome)}</strong></td>
+        <td class="dg-cell">${escapeHtml(a.valor) || "—"}</td>
+        <td class="dg-cell">
+          <button class="dg-page" onclick='edit(${JSON.stringify(a).replace(/'/g, "&#39;")})' title="Editar">✎</button>
+          <button class="dg-page" onclick="remove('${a.id}')" title="Excluir">✕</button>
+        </td>
+      </tr>`).join("");
+
+    document.getElementById("data-container").innerHTML = `
+      <div class="dg-wrapper">
+        <div class="dg-scroll">
+          <table class="dg-table">
+            <thead><tr class="dg-header">
+              <th class="dg-th" style="width:60px"><div class="dg-th-content">#</div></th>
+              <th class="dg-th"><div class="dg-th-content">Produto</div></th>
+              <th class="dg-th"><div class="dg-th-content">Atributo</div></th>
+              <th class="dg-th"><div class="dg-th-content">Valor</div></th>
+              <th class="dg-th" style="width:100px"><div class="dg-th-content">Ações</div></th>
+            </tr></thead>
+            <tbody>
+              ${rows || '<tr><td class="dg-cell" colspan="5" style="text-align:center;padding:2rem">Nenhum atributo cadastrado</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function edit(a) {
+    editingId = String(a.id);
+    document.getElementById("modal-title").textContent = "Editar Atributo";
+    document.getElementById("edit-produto").value = String(a.produto_id);
+    document.getElementById("edit-nome").value = a.nome || "";
+    document.getElementById("edit-valor").value = a.valor || "";
+    openModal();
+  }
+
+  function resetForm() {
+    editingId = null;
+    document.getElementById("modal-title").textContent = "Novo Atributo";
+    document.getElementById("edit-produto").value = Object.keys(produtos)[0] || "";
+    document.getElementById("edit-nome").value = "";
+    document.getElementById("edit-valor").value = "";
+  }
+
+  document.getElementById("btn-new").onclick = () => { resetForm(); openModal(); };
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("search-input").addEventListener("input", render);
+
+  document.getElementById("btn-save").onclick = async () => {
+    const err = document.getElementById("form-error");
+    err.textContent = "";
+    const payload = {
+      produto_id: document.getElementById("edit-produto").value,
+      nome: document.getElementById("edit-nome").value.trim(),
+      valor: document.getElementById("edit-valor").value.trim(),
+    };
+    if (!payload.produto_id) { err.textContent = "Selecione o produto"; return; }
+    if (!payload.nome) { err.textContent = "Informe o nome do atributo"; return; }
+    if (!payload.valor) { err.textContent = "Informe o valor do atributo"; return; }
+    try {
+      if (editingId) {
+        const res = await AuthService.api("/api/admin/atributos/" + editingId, {
+          method: "POST",
+          body: JSON.stringify({ action: "update", ...payload }),
+        });
+        if (res.status !== "ok") { err.textContent = res.message || "Falha ao atualizar"; return; }
+        msg("Atributo atualizado", true);
+      } else {
+        const res = await AuthService.api("/api/admin/atributos", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        if (res.status !== "ok") { err.textContent = res.message || "Falha ao criar"; return; }
+        msg("Atributo criado · id " + res.id, true);
+      }
+      closeModal();
+      await load();
+    } catch (e) {
+      err.textContent = e.message || "Erro de conexão";
+    }
+  };
+
+  async function remove(id) {
+    if (!confirm("Excluir este atributo?")) return;
+    try {
+      const res = await AuthService.api("/api/admin/atributos/" + id, {
+        method: "POST",
+        body: JSON.stringify({ action: "delete" }),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha", false); return; }
+      msg("Atributo excluído", true);
+      await load();
+    } catch (e) {
+      msg(e.message || "Erro de conexão", false);
+    }
+  }
+
+  (async function boot() {
+    await loadProdutos();
+    await load();
+  })();
+})();
+</script>
+</body>
+</html>

@@ -46,7 +46,7 @@
 }
 .pull-menu-item:hover{background:rgba(255,255,255,.06)}
 
-.prod-modal{position:fixed;inset:0;background:rgba(2,6,23,1);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px;}
+.prod-modal{position:fixed;inset:0;background:rgba(2,6,23,.55);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;z-index:60;padding:20px;}
 .prod-modal.hidden{display:none}
 .prod-modal-panel{
   width:min(720px,100%);background:var(--surface-panel);border:1px solid var(--border-color);border-radius:18px;
@@ -199,7 +199,7 @@
         <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
         <span class="menu-label">Clientes</span>
       </a>
-      <a class="menu-item" href="parceiros.html?role=SUPPLIER">
+      <a class="menu-item" href="fornecedores.html">
         <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
         <span class="menu-label">Fornecedores</span>
       </a>
@@ -560,14 +560,7 @@
                   <strong>Absoluto</strong> = preço próprio da variação.
                   PDV/pedido escolherá a linha e aplicará o preço final.
                 </p>
-                <datalist id="dl-var-attr">
-                  <option value="Cor"></option>
-                  <option value="Tamanho"></option>
-                  <option value="Modelo"></option>
-                  <option value="Acabamento"></option>
-                  <option value="Voltagem"></option>
-                  <option value="Opcional"></option>
-                </datalist>
+                <datalist id="dl-var-attr"></datalist>
               </div>
             </div>
 
@@ -861,6 +854,39 @@
     tipo: "todos",
     obs: "",
   };
+  let atributosDisponiveis = []; // [{id, produto_id, nome, valor}]
+
+  // ── Atributos disponíveis (catálogo de nomes de atributo) ──
+  // Defaults globais + nomes encontrados nas variações existentes
+  const ATTR_DEFAULTS = ["Cor", "Tamanho", "Modelo", "Acabamento", "Voltagem", "Opcional"];
+
+  async function loadAtributos() {
+    // 1. Coleta nomes de atributos das variações salvas em produtos extras
+    const nomesExtra = new Set();
+    try {
+      const res = await window.api("/api/admin/produtos");
+      if (res && res.status === "ok") {
+        for (const p of (res.produtos || [])) {
+          const vars = p.variacoes || [];
+          for (const v of vars) {
+            if (v.atributo) nomesExtra.add(v.atributo);
+          }
+        }
+      }
+    } catch (_) { /* ignora */ }
+    // 2. Junta defaults + extras
+    const todos = new Set([...ATTR_DEFAULTS, ...nomesExtra]);
+    atributosDisponiveis = [...todos].sort();
+    renderAtributosDatalist();
+  }
+
+  function renderAtributosDatalist() {
+    const dl = document.getElementById("dl-var-attr");
+    if (!dl) return;
+    dl.innerHTML = atributosDisponiveis
+      .map(n => `<option value="${n.replace(/"/g, '&quot;')}"></option>`)
+      .join("");
+  }
 
   function currentNcmCode() {
     return (ncmLookup && ncmLookup.getCode()) || document.getElementById("f-ncm").value.trim();
@@ -1826,6 +1852,34 @@
             })
           )
         : [];
+      // Fallback: se não há variantes no extra, carrega do COBOL variantes.dat
+      if (!variacoes.length && row.id && !asCopy) {
+        window.api(`/api/admin/variantes?produto_id=${row.id}`)
+          .then((res) => {
+            if (res && res.status === "ok" && (res.variantes || []).length) {
+              variacoes = res.variantes
+                .filter((v) => v.ativo)
+                .map((v) => {
+                  // Converter formato COBOL → inline
+                  const parts = (v.nome || "").split(": ");
+                  const atributo = parts.length > 1 ? parts[0].trim() : "";
+                  const valor = parts.length > 1 ? parts.slice(1).join(": ").trim() : (v.nome || "").trim();
+                  return newVariacao({
+                    id: "c" + v.id,
+                    atributo,
+                    valor,
+                    tipo_preco: "absoluto",
+                    valor_preco: v.preco || 0,
+                    ean: v.codigo || "",
+                    estoque: "",
+                    ativo: true,
+                  });
+                });
+              renderVariacoes();
+            }
+          })
+          .catch(() => {});
+      }
       renderVariacoes();
       document.getElementById("f-stock").value = asCopy ? 0 : row.stock ?? 0;
       document.getElementById("f-estoque_min").value = x.estoque_min ?? "";
@@ -1857,6 +1911,10 @@
       document.getElementById("f-fracionado").checked = !!x.fracionado;
       document.getElementById("f-venda_ok").checked = x.venda_ok !== false;
       document.getElementById("f-compra_ok").checked = x.compra_ok !== false;
+      document.getElementById("f-controla_estoque").checked = x.controla_estoque !== false;
+      document.getElementById("f-estoque_negativo").checked = !!x.estoque_negativo;
+      document.getElementById("f-controla_lote").checked = !!x.controla_lote;
+      document.getElementById("f-controla_serie").checked = !!x.controla_serie;
       document.getElementById("f-lead_time").value = x.lead_time ?? "";
       document.getElementById("f-garantia").value = x.garantia ?? "";
       document.getElementById("f-qtd_min_compra").value = x.qtd_min_compra ?? "";
@@ -2132,6 +2190,7 @@
   bindTabs();
   bindDuplicarMenu();
   initLookups();
+  loadAtributos();
   document.getElementById("btn-novo").addEventListener("click", () => openForm(null));
   document.getElementById("btn-cancel").addEventListener("click", goBack);
   document.getElementById("btn-save").addEventListener("click", save);

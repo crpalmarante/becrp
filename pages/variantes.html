@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — Variantes de Produtos</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Sidebar toggled (recolher/expandir) ── */
+    @media(min-width:1025px){
+      #sidebar .sidebar-collapse{display:flex}
+      #sidebar.collapsed{width:64px!important}
+      #sidebar.collapsed .menu-label,
+      #sidebar.collapsed .soon-tag,
+      #sidebar.collapsed .brand-text{opacity:0!important;width:0!important;display:none!important}
+      #sidebar.collapsed .menu-item{justify-content:center;padding-left:0;padding-right:0}
+      #sidebar.collapsed .sidebar-nav{padding:0 var(--space-2)}
+      #sidebar.collapsed .sidebar-collapse .icon{transform:rotate(180deg)}
+      .main-area.collapsed{margin-left:64px!important;width:calc(100% - 64px)!important}
+    }
+    /* ── Menu equalizado ── */
+    .sidebar-nav{display:flex;flex-direction:column;gap:4px}
+    .menu-item{min-height:42px;border-radius:10px}
+    .menu-item .icon{width:20px;height:20px;flex-shrink:0}
+    .menu-item.soon .soon-tag{margin-left:auto;white-space:nowrap}
+    .menu-item .soon-tag{margin-left:auto;font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);opacity:.8}
+    .sidebar-collapse{margin:4px 0 10px;color:var(--text-muted)}
+    .sidebar-collapse:hover{color:var(--color-primary)}
+    #sub-config.open{max-height:860px} /* submenu grande (14 itens) — só quando aberto */
+    /* ── Página ── */
+    .workspace{padding-top:0}
+    #workspace-view{padding-top:14px}
+    .so-btn{
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      border:1px solid var(--border-color);background:var(--surface-panel);
+      color:var(--text-primary);padding:0 12px;height:34px;line-height:1;
+      border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;white-space:nowrap;
+    }
+    .so-btn .icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px}
+    .so-btn .icon svg{width:18px;height:18px;fill:currentColor}
+    .so-btn.primary{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
+    .vt-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}
+    .vt-toolbar select{min-width:180px}
+    .vt-msg{margin:8px 0;font-size:14px}
+    .vt-msg.err{color:#f87171}
+    .vt-msg.ok{color:#4ade80}
+    /* Ações na mesma linha e linhas mais finas (padrão categorias) */
+    .dg-table td.dg-cell{padding-top:3px;padding-bottom:3px}
+    .dg-table .dg-page{width:26px;height:26px;font-size:12px}
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <div class="sidebar-collapse" id="sidebar-collapse" title="Recolher/expandir menu">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-chevron-left"/></svg>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html" title="Visão Geral do Inventário">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+        <span class="menu-label">Visão Geral</span>
+      </a>
+      <div class="menu-item has-children" id="menu-operacoes" title="Operações">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+        <span class="menu-label">Operações</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-operacoes">
+        <a class="menu-item" href="ajustes-estoque.html" title="Ajustes de Estoque">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Ajustes de Estoque</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Transferências</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-trash"/></svg>
+          <span class="menu-label">Sucatas</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+          <span class="menu-label">Custos Adicionais</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-clock"/></svg>
+          <span class="menu-label">Executar Agendados</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+      <div class="menu-item has-children open" id="menu-produtos" title="Produtos">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+        <span class="menu-label">Produtos</span>
+        <svg class="icon icon-16 menu-arrow rotated"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu open" id="sub-produtos">
+        <a class="menu-item" href="produtos.html" title="Cadastro de Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Produto</span>
+        </a>
+        <a class="menu-item active" href="variantes.html" title="Variantes de Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-filter"/></svg>
+          <span class="menu-label">Variantes</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-relatorios" title="Relatórios">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg>
+        <span class="menu-label">Relatórios</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-relatorios">
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Estoque</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+          <span class="menu-label">Locais</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-clock"/></svg>
+          <span class="menu-label">Histórico de Movimentações</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Movimentação de Estoque</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="valorizacao.html" title="Valorização">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg>
+          <span class="menu-label">Valorização</span>
+        </a>
+      </div>
+      <div class="menu-item has-children" id="menu-config" title="Configurações">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+        <span class="menu-label">Configurações</span>
+        <svg class="icon icon-16 menu-arrow"><use href="../assets/images/icons.svg#icon-chevron-down"/></svg>
+      </div>
+      <div class="menu-submenu" id="sub-config">
+        <a class="menu-item" href="wms-armazens.html" title="Armazéns">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+          <span class="menu-label">Armazéns</span>
+        </a>
+        <a class="menu-item" href="wms-localizacoes.html" title="Locais">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+          <span class="menu-label">Locais</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Rotas</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-lock"/></svg>
+          <span class="menu-label">Regras</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="wms-tipos-operacao.html" title="Tipos de Operação">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-refresh"/></svg>
+          <span class="menu-label">Tipos de Operação</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Categoria de Armazenamento</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-upload"/></svg>
+          <span class="menu-label">Regras de Entrada no Depósito</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item" href="categorias.html" title="Categoria dos Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg>
+          <span class="menu-label">Categoria dos Produtos</span>
+        </a>
+        <a class="menu-item" href="atributos.html" title="Atributos dos Produtos">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-edit"/></svg>
+          <span class="menu-label">Atributos</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg>
+          <span class="menu-label">Embalagem dos Produtos</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-printer"/></svg>
+          <span class="menu-label">Nomenclatura Código de Barras</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Método de Envio</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg>
+          <span class="menu-label">Veículo</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+        <a class="menu-item soon" href="#" title="Em breve">
+          <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+          <span class="menu-label">Prefixo do CEP</span>
+          <span class="soon-tag">Em breve</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="main-area">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-filter"/></svg>
+        <span class="topbar-title">Variantes</span>
+      </div>
+      <div class="topbar-search">
+        <svg class="icon"><use href="../assets/images/icons.svg#icon-search"/></svg>
+        <input class="topbar-search-input" id="search-input" placeholder="Buscar variantes...">
+      </div>
+      <div class="topbar-user" style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <button type="button" class="so-btn primary" id="btn-new" title="Nova variante">
+          <span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 13H13v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></span>Novo
+        </button>
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <div id="workspace-view" style="display:flex">
+        <div class="workspace-header">
+          <h2 class="workspace-title">Variantes de Produtos</h2>
+        </div>
+        <div class="workspace-content">
+          <div class="vt-toolbar">
+            <select class="form-input" id="filter-produto"><option value="">Todos os produtos</option></select>
+            <button class="dialog-btn dialog-btn-secondary" id="btn-refresh">Atualizar</button>
+          </div>
+          <div id="msg" class="vt-msg"></div>
+          <div id="data-container"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="dialog-overlay" id="item-modal" style="display:none">
+  <div class="dialog-box">
+    <div class="dialog-header">
+      <h3 class="dialog-title" id="modal-title">Nova Variante</h3>
+      <button class="dialog-close" data-close="item-modal">&times;</button>
+    </div>
+    <div class="dialog-body">
+      <form id="item-form">
+        <div class="field">
+          <label>Produto</label>
+          <select class="form-input" id="edit-produto" required></select>
+        </div>
+        <div class="field">
+          <label>Nome da variante</label>
+          <input class="form-input" id="edit-nome" required placeholder="ex.: Arroz 5kg Integral">
+        </div>
+        <div class="field">
+          <label>Atributos</label>
+          <input class="form-input" id="edit-atributos" placeholder="ex.: Cor: Marrom; Tipo: Integral">
+        </div>
+        <div class="field">
+          <label>Código (SKU)</label>
+          <input class="form-input" id="edit-codigo" placeholder="ex.: ARZ-INT-5">
+        </div>
+        <div class="field">
+          <label>Preço</label>
+          <input class="form-input" id="edit-preco" type="number" step="0.01" min="0" placeholder="0,00">
+        </div>
+        <div class="form-error" id="form-error"></div>
+      </form>
+    </div>
+    <div class="dialog-footer">
+      <button class="dialog-btn dialog-btn-secondary" data-close="item-modal">Cancelar</button>
+      <button class="dialog-btn dialog-btn-primary" id="btn-save">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+(function () {
+  const auth = AuthService.requireAuth("../index.html");
+  if (!auth) return;
+  document.getElementById("user-name-display").textContent = auth.user.nome || auth.user.usuario || "Usuário";
+
+  let allData = [];
+  let produtos = {};
+  let editingId = null;
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  function fmtBRL(v) {
+    const n = Number(v);
+    return (isNaN(n) ? 0 : n).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+  function msg(text, ok) {
+    const el = document.getElementById("msg");
+    el.textContent = text || "";
+    el.className = "vt-msg " + (ok ? "ok" : text ? "err" : "");
+  }
+  function openModal() {
+    document.getElementById("form-error").textContent = "";
+    document.getElementById("item-modal").style.display = "flex";
+  }
+  function closeModal() {
+    document.getElementById("item-modal").style.display = "none";
+  }
+  document.querySelectorAll("[data-close]").forEach((btn) => {
+    btn.addEventListener("click", closeModal);
+  });
+
+  // ── Sidebar toggled ──
+  const sbSidebar = document.getElementById("sidebar");
+  const sbBtn = document.getElementById("sidebar-collapse");
+  function applySidebar(collapsed) {
+    sbSidebar.classList.toggle("collapsed", collapsed);
+    sbSidebar.style.width = collapsed ? "64px" : "";
+    const ma = document.querySelector(".main-area");
+    if (ma) {
+      ma.classList.toggle("collapsed", collapsed);
+      ma.style.marginLeft = collapsed ? "64px" : "";
+      ma.style.width = collapsed ? "calc(100% - 64px)" : "";
+    }
+  }
+  if (sbSidebar && sbBtn) {
+    if (localStorage.getItem("sidebar_collapsed") === "true") applySidebar(true);
+    sbBtn.onclick = () => {
+      const collapsed = !sbSidebar.classList.contains("collapsed");
+      applySidebar(collapsed);
+      localStorage.setItem("sidebar_collapsed", collapsed);
+    };
+  }
+  document.querySelectorAll(".menu-item.has-children").forEach((parent) => {
+    const sub = document.getElementById("sub-" + parent.id.replace("menu-", ""));
+    if (!sub) return;
+    parent.addEventListener("click", () => {
+      sub.classList.toggle("open");
+      const arrow = parent.querySelector(".menu-arrow");
+      if (arrow) arrow.classList.toggle("rotated");
+    });
+  });
+
+  // ── Dados ──
+  async function loadProdutos() {
+    produtos = {};
+    const data = await AuthService.api("/api/pos/produtos");
+    (data.produtos || []).forEach((p) => {
+      produtos[String(p.id)] = p.nome || String(p.id);
+    });
+    const opts = Object.keys(produtos).sort((a, b) => String(produtos[a]).localeCompare(String(produtos[b])))
+      .map((id) => `<option value="${id}">${id} · ${escapeHtml(produtos[id])}</option>`).join("");
+    document.getElementById("edit-produto").innerHTML = opts;
+    document.getElementById("filter-produto").innerHTML = '<option value="">Todos os produtos</option>' + opts;
+  }
+
+  async function load() {
+    const data = await AuthService.api("/api/admin/variantes");
+    if (data.status !== "ok") return msg(data.message || "Falha ao carregar");
+    allData = data.variantes || [];
+    render();
+  }
+
+  function render() {
+    const filtro = document.getElementById("filter-produto").value;
+    const busca = (document.getElementById("search-input").value || "").trim().toLowerCase();
+    let filtered = allData;
+    if (filtro) filtered = filtered.filter((v) => String(v.produto_id) === filtro);
+    if (busca) {
+      filtered = filtered.filter((v) =>
+        (v.nome || "").toLowerCase().includes(busca) ||
+        (v.codigo || "").toLowerCase().includes(busca) ||
+        (v.atributos || "").toLowerCase().includes(busca) ||
+        String(v.produto_id).includes(busca)
+      );
+    }
+    filtered.sort((a, b) => String(a.produto_id).localeCompare(String(b.produto_id)) || String(a.nome).localeCompare(String(b.nome)));
+
+    const rows = filtered.map((v) => `
+      <tr class="dg-row" style="${v.ativo === false ? "opacity:.5" : ""}">
+        <td class="dg-cell dg-cell-center">${String(v.id).substring(0, 6)}</td>
+        <td class="dg-cell"><strong>${v.produto_id}</strong> · ${escapeHtml(produtos[String(v.produto_id)] || "—")}</td>
+        <td class="dg-cell"><strong>${escapeHtml(v.nome)}</strong></td>
+        <td class="dg-cell">${escapeHtml(v.atributos) || "-"}</td>
+        <td class="dg-cell">${escapeHtml(v.codigo) || "-"}</td>
+        <td class="dg-cell"><strong>${fmtBRL(v.preco)}</strong></td>
+        <td class="dg-cell"><span class="badge badge-${v.ativo !== false ? "success" : "danger"}">${v.ativo !== false ? "Ativo" : "Inativo"}</span></td>
+        <td class="dg-cell">
+          <button class="dg-page" onclick='edit(${JSON.stringify(v).replace(/'/g, "&#39;")})' title="Editar">✎</button>
+          <button class="dg-page" onclick="toggle('${v.id}')" title="${v.ativo !== false ? "Desativar" : "Ativar"}">${v.ativo !== false ? "⏸" : "▶"}</button>
+        </td>
+      </tr>`).join("");
+
+    document.getElementById("data-container").innerHTML = `
+      <div class="dg-wrapper">
+        <div class="dg-scroll">
+          <table class="dg-table">
+            <thead><tr class="dg-header">
+              <th class="dg-th" style="width:60px"><div class="dg-th-content">#</div></th>
+              <th class="dg-th"><div class="dg-th-content">Produto</div></th>
+              <th class="dg-th"><div class="dg-th-content">Variante</div></th>
+              <th class="dg-th"><div class="dg-th-content">Atributos</div></th>
+              <th class="dg-th"><div class="dg-th-content">Código</div></th>
+              <th class="dg-th"><div class="dg-th-content">Preço</div></th>
+              <th class="dg-th"><div class="dg-th-content">Status</div></th>
+              <th class="dg-th" style="width:100px"><div class="dg-th-content">Ações</div></th>
+            </tr></thead>
+            <tbody>
+              ${rows || '<tr><td class="dg-cell" colspan="8" style="text-align:center;padding:2rem">Nenhuma variante cadastrada</td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  function edit(v) {
+    editingId = String(v.id);
+    document.getElementById("modal-title").textContent = "Editar Variante";
+    document.getElementById("edit-produto").value = String(v.produto_id);
+    document.getElementById("edit-nome").value = v.nome || "";
+    document.getElementById("edit-atributos").value = v.atributos || "";
+    document.getElementById("edit-codigo").value = v.codigo || "";
+    document.getElementById("edit-preco").value = v.preco || "";
+    openModal();
+  }
+
+  function resetForm() {
+    editingId = null;
+    document.getElementById("modal-title").textContent = "Nova Variante";
+    document.getElementById("edit-produto").value = Object.keys(produtos)[0] || "";
+    document.getElementById("edit-nome").value = "";
+    document.getElementById("edit-atributos").value = "";
+    document.getElementById("edit-codigo").value = "";
+    document.getElementById("edit-preco").value = "";
+  }
+
+  document.getElementById("btn-new").onclick = () => { resetForm(); openModal(); };
+  document.getElementById("btn-refresh").onclick = load;
+  document.getElementById("filter-produto").onchange = render;
+  document.getElementById("search-input").addEventListener("input", render);
+
+  document.getElementById("btn-save").onclick = async () => {
+    const err = document.getElementById("form-error");
+    err.textContent = "";
+    const payload = {
+      produto_id: document.getElementById("edit-produto").value,
+      nome: document.getElementById("edit-nome").value.trim(),
+      atributos: document.getElementById("edit-atributos").value.trim(),
+      codigo: document.getElementById("edit-codigo").value.trim(),
+      preco: document.getElementById("edit-preco").value,
+    };
+    if (!payload.produto_id) { err.textContent = "Selecione o produto"; return; }
+    if (!payload.nome) { err.textContent = "Informe o nome da variante"; return; }
+    try {
+      if (editingId) {
+        const res = await AuthService.api("/api/admin/variantes/" + editingId, {
+          method: "POST",
+          body: JSON.stringify({ action: "update", ...payload }),
+        });
+        if (res.status !== "ok") { err.textContent = res.message || "Falha ao atualizar"; return; }
+        msg("Variante atualizada", true);
+      } else {
+        const res = await AuthService.api("/api/admin/variantes", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        if (res.status !== "ok") { err.textContent = res.message || "Falha ao criar"; return; }
+        msg("Variante criada · id " + res.id, true);
+      }
+      closeModal();
+      await load();
+    } catch (e) {
+      err.textContent = e.message || "Erro de conexão";
+    }
+  };
+
+  async function toggle(id) {
+    const v = allData.find((x) => String(x.id) === String(id));
+    if (!v) return;
+    try {
+      const res = await AuthService.api("/api/admin/variantes/" + id, {
+        method: "POST",
+        body: JSON.stringify({ action: "toggle" }),
+      });
+      if (res.status !== "ok") { msg(res.message || "Falha", false); return; }
+      msg(v.ativo !== false ? "Variante desativada" : "Variante ativada", true);
+      await load();
+    } catch (e) {
+      msg(e.message || "Erro de conexão", false);
+    }
+  }
+
+  (async function boot() {
+    await loadProdutos();
+    await load();
+  })();
+})();
+</script>
+</body>
+</html>

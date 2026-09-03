@@ -9,9 +9,11 @@ import urllib.parse
 import hashlib
 import re
 import uuid
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import jsonio
 import cobol_bridge
+import folha_auditoria
+import despesas_store
 import inventory_mvp
 import receiving_mvp
 import receiving_pending
@@ -59,6 +61,9 @@ import wms_receiving
 import wms_shipping
 import wms_sales_bridge
 import wms_analytics
+import wms_rental
+import wms_rules
+import wms_routes
 import wms_workspace
 import delivery_orders
 import delivery_resources
@@ -131,6 +136,376 @@ def _digits(val):
 def resolve_empresa_fiscal(estabelecimento_id=None):
     """Emitente NFC-e = estabelecimento (+ overlay fiscal)."""
     return org_store.resolve_empresa_fiscal(estabelecimento_id)
+
+
+def _folha_regime_empresa():
+    """Regime tributário para encargos (RFC-014 §3/Decisão 2): Simples Nacional
+    não calcula INSS patronal separado (recolhimento unificado DAS)."""
+    try:
+        emp = resolve_empresa_fiscal()
+    except Exception:
+        emp = {}
+    tipo = str(emp.get("tipo_fiscal") or "").strip().lower()
+    crt = str(emp.get("crt") or "")
+    if "simples" in tipo or crt == "1":
+        return "simples"
+    return "lucro"
+
+
+def _auditoria_folha(acao, current, contexto, antes=None, depois=None,
+                     tax_table_versions=None):
+    """RFC-009 §5 — registra evento na trilha de auditoria da folha.
+    Auditoria nunca derruba a operação (append-only, imutável)."""
+    try:
+        quem = (current or {}).get("usuario") or "sistema"
+        folha_auditoria.registrar(acao, quem, contexto=contexto,
+                                  antes=antes, depois=depois,
+                                  tax_table_versions=tax_table_versions)
+    except Exception:
+        pass
+
+
+def _gerar_lancamentos_encargos(competencia, encargos, regime="lucro",
+                                prefixo_ref="folha:encargos",
+                                sufixo_historico="folha"):
+    """RFC-014 — lançamentos contábeis dos encargos patronais.
+    Idempotente por referência ({prefixo_ref}:{competencia}:{encargo}): o
+    segundo fechamento/geração não duplica lançamentos. A folha complementar
+    usa prefixo_ref='folha:complementar:encargos' e sufixo_historico
+    'complementar' — encargos apenas sobre a diferença (RFC-013 Decisão 4)."""
+    import accounting_integration
+
+    pares = [
+        ("fgts", "folha_encargo_fgts", f"FGTS 8% ({sufixo_historico} {competencia})"),
+        ("inss_patronal", "folha_encargo_inss_patronal", f"INSS patronal 20% ({sufixo_historico} {competencia})"),
+        ("rat", "folha_encargo_rat", f"RAT/SAT ({sufixo_historico} {competencia})"),
+        ("terceiros", "folha_encargo_terceiros", f"Contribuicao terceiros ({sufixo_historico} {competencia})"),
+    ]
+    saidas = []
+    for chave, evento, historico in pares:
+        valor = float(encargos.get(chave) or 0)
+        if valor <= 0:
+            continue
+        ref = f"{prefixo_ref}:{competencia}:{chave}"
+        deb = cred = ""
+        try:
+            regra = posting_engine.get_rule(evento)
+            if regra:
+                deb = regra.get("conta_debito") or ""
+                cred = regra.get("conta_credito") or ""
+        except Exception:
+            pass
+        try:
+            ev = accounting_integration.publish(
+                domain="folha",
+                evento=evento,
+                valor=valor,
+                referencia=ref,
+                historico=historico,
+                data=f"{competencia[:4]}-{competencia[5:7]}-01",
+                auto_post=False,
+            )
+            saidas.append({
+                "data": f"{competencia[:4]}-{competencia[5:7]}-01",
+                "descricao": historico,
+                "debito": deb,
+                "credito": cred,
+                "diario_contabil": "GER",
+                "regra_distribuicao": evento,
+                "valor": valor,
+                "status": ("duplicado" if ev.get("skipped")
+                            else (ev.get("status") or "ok")),
+            })
+        except Exception:
+            continue
+    return saidas
+
+
+def _relatorio_encargos_html(competencia, encargos, regime="lucro"):
+    """Monta o HTML imprimível do relatório de encargos (RFC-014 §4.4).
+    Encargos NUNCA aparecem no holerite (RFC-007/Decisão 3) — só aqui."""
+    try:
+        emp = resolve_empresa_fiscal()
+    except Exception:
+        emp = {}
+    razao = emp.get("nome_razao") or emp.get("nome") or "EMPRESA"
+    cnpj = emp.get("cnpj") or ""
+    cnpj_txt = ""
+    d = re.sub(r"\D", "", cnpj)
+    if len(d) == 14:
+        cnpj_txt = f"{d[0:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:14]}"
+    cnae = emp.get("cnae_prim_codigo") or "—"
+
+    comp_disp = competencia
+    if "/" in competencia:
+        ano, mes = competencia.split("/", 1)
+        comp_disp = f"{mes}/{ano}"
+
+    b = float(encargos.get("base") or 0)
+    fgts = float(encargos.get("fgts") or 0)
+    inss = float(encargos.get("inss_patronal") or 0)
+    rat = float(encargos.get("rat") or 0)
+    terc = float(encargos.get("terceiros") or 0)
+    total = float(encargos.get("total") or 0)
+
+    cfg = {}
+    try:
+        cfg = cobol_bridge.folha_config_ler(competencia)
+    except Exception:
+        cfg = {}
+    inss_aliq = float(cfg.get("inss_patronal_aliq") or 20.00)
+    rat_aliq = float(cfg.get("rat_aliq") or 2.00)
+    terc_aliq = float(cfg.get("terceiros_aliq") or 0.00)
+
+    regime_nome = {
+        "simples": "Simples Nacional <small>(recolhimento unificado DAS)</small>",
+        "lucro": "Lucro Presumido",
+        "real": "Lucro Real",
+        "presumido": "Lucro Presumido",
+    }.get(regime, regime or "—")
+
+    def brl(v):
+        return f"{v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    cfg_rows = []
+    if regime == "simples":
+        cfg_rows.append(
+            '<tr><td class="descricao">INSS patronal</td><td class="pct">— (DAS)</td>'
+            '<td>—</td><td>—</td></tr>'
+        )
+        cfg_rows.append(
+            '<tr><td class="descricao">RAT/SAT</td><td class="pct">— (DAS)</td>'
+            '<td>—</td><td>—</td></tr>'
+        )
+    else:
+        cfg_rows.append(
+            f'<tr><td class="descricao">INSS patronal</td><td class="pct">{inss_aliq:g}%</td>'
+            f'<td>{brl(b)}</td><td>{brl(inss)}</td></tr>'
+        )
+        cfg_rows.append(
+            f'<tr><td class="descricao">RAT/SAT</td><td class="pct">{rat_aliq:g}%</td>'
+            f'<td>{brl(b)}</td><td>{brl(rat)}</td></tr>'
+        )
+    if terc_aliq > 0:
+        cfg_rows.append(
+            f'<tr><td class="descricao">Terceiros (SESI/SENAI/SENAC)</td>'
+            f'<td class="pct">{terc_aliq:g}%</td><td>{brl(b)}</td><td>{brl(terc)}</td></tr>'
+        )
+    else:
+        cfg_rows.append(
+            '<tr><td class="descricao">Terceiros (SESI/SENAI/SENAC)</td>'
+            '<td class="pct">configurável</td><td>—</td><td>—</td></tr>'
+        )
+
+    return f'''<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Relatório de Encargos — {comp_disp}</title>
+<style>
+  :root {{ --cor-acento: #0d6e64; --cor-tinta: #16324f; --cor-linha: #d7dee8;
+    --cor-nota: #8a94a6; --cor-total: #0d6e64; }}
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{ font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    background: #eef1f5; color: var(--cor-tinta); padding: 24px; }}
+  .folha {{ max-width: 210mm; margin: 0 auto; background: #fff; padding: 40px;
+    box-shadow: 0 6px 24px rgba(22,50,79,.12); border-radius: 8px; }}
+  .barra-acoes {{ max-width: 210mm; margin: 0 auto 16px; text-align: right; }}
+  .botao-imprimir {{ font-size: 14px; font-weight: 600; color: #fff;
+    background: var(--cor-acento); border: none; border-radius: 6px;
+    padding: 10px 18px; cursor: pointer; }}
+  .cabecalho {{ display: flex; justify-content: space-between; gap: 16px;
+    border-bottom: 2px solid var(--cor-tinta); padding-bottom: 16px; }}
+  .empresa h1 {{ font-size: 18px; letter-spacing: .02em; }}
+  .empresa .cnpj {{ font-size: 12px; color: var(--cor-nota); margin-top: 4px; }}
+  .titulo-doc {{ text-align: right; }}
+  .titulo-doc .rotulo {{ font-size: 11px; text-transform: uppercase;
+    letter-spacing: .12em; color: var(--cor-nota); display: block; }}
+  .titulo-doc .competencia {{ font-size: 24px; font-weight: 700; margin-top: 4px; }}
+  .contexto {{ display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
+    gap: 12px; margin: 20px 0; }}
+  .contexto .campo {{ background: #f6f8fb; border: 1px solid var(--cor-linha);
+    border-radius: 6px; padding: 10px 12px; }}
+  .contexto .rotulo {{ font-size: 10px; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--cor-nota); display: block; margin-bottom: 4px; }}
+  .contexto .valor {{ font-weight: 600; font-size: 13px; }}
+  .contexto .valor small {{ color: var(--cor-nota); font-weight: 400; }}
+  table {{ width: 100%; border-collapse: collapse; margin: 8px 0 20px; }}
+  h2 {{ font-size: 13px; margin: 8px 0; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--cor-nota); }}
+  th {{ text-align: left; font-size: 11px; text-transform: uppercase;
+    letter-spacing: .08em; color: var(--cor-nota); border-bottom: 2px solid var(--cor-tinta);
+    padding: 8px; }}
+  td {{ padding: 10px 8px; border-bottom: 1px solid var(--cor-linha); font-size: 13px; }}
+  td.pct {{ font-variant-numeric: tabular-nums; }}
+  td.descricao {{ font-weight: 600; }}
+  tfoot td {{ border-top: 2px solid var(--cor-tinta); font-weight: 700;
+    text-align: right; }}
+  .rodape {{ display: flex; justify-content: space-between; gap: 16px; }}
+  .nota {{ font-size: 11px; color: var(--cor-nota); max-width: 60%; }}
+  .nota .rotulo {{ text-transform: uppercase; letter-spacing: .08em;
+    display: block; margin-bottom: 6px; color: var(--cor-nota); font-weight: 700; }}
+  .total {{ background: #e8f3f1; border: 2px solid var(--cor-total); border-radius: 8px;
+    padding: 14px 20px; text-align: right; }}
+  .total .rotulo {{ font-size: 10px; text-transform: uppercase; letter-spacing: .12em;
+    color: var(--cor-total); font-weight: 700; }}
+  .total .valor {{ font-size: 22px; font-weight: 700; color: var(--cor-total);
+    margin-top: 4px; }}
+  .observacoes {{ margin-top: 20px; padding-top: 12px; border-top: 1px dashed var(--cor-linha);
+    font-size: 11px; color: var(--cor-nota); }}
+  .observacoes .rotulo {{ text-transform: uppercase; letter-spacing: .08em;
+    font-size: 10px; color: var(--cor-nota); }}
+  .observacoes ul {{ list-style: none; margin-top: 6px; }}
+  .observacoes li {{ margin-bottom: 4px; }}
+  .observacoes li::before {{ content: "— "; color: var(--cor-nota); }}
+  .rodape-legal {{ margin-top: 20px; padding-top: 12px; border-top: 1px solid var(--cor-linha);
+    display: flex; justify-content: space-between; font-size: 10px; color: var(--cor-nota); }}
+  @media print {{ @page {{ size: A4; margin: 12mm; }} body {{ background: #fff; padding: 0; }}
+    .folha {{ box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }}
+    .barra-acoes {{ display: none; }} }}
+</style>
+</head>
+<body>
+<div class="barra-acoes">
+  <button class="botao-imprimir" type="button" onclick="window.print()">Imprimir relatório</button>
+</div>
+<main class="folha">
+  <header class="cabecalho">
+    <div class="empresa">
+      <h1>{razao}</h1>
+      <p class="cnpj">{("CNPJ " + cnpj_txt) if cnpj_txt else ""}</p>
+    </div>
+    <div class="titulo-doc">
+      <span class="rotulo">Relatório de encargos</span>
+      <div class="competencia">{comp_disp}</div>
+    </div>
+  </header>
+  <section class="contexto">
+    <div class="campo"><span class="rotulo">Regime tributário</span><span class="valor">{regime_nome}</span></div>
+    <div class="campo"><span class="rotulo">CNAE</span><span class="valor">{cnae}</span></div>
+    <div class="campo"><span class="rotulo">RAT/SAT</span><span class="valor">{rat_aliq:g}% <small>· tabela competência</small></span></div>
+    <div class="campo"><span class="rotulo">Base de encargos</span><span class="valor">R$ {brl(b)}</span></div>
+  </section>
+  <section class="tabela">
+    <h2>Encargos patronais da competência</h2>
+    <table>
+      <thead><tr><th>Encargo</th><th>Percentual</th><th>Base (R$)</th><th>Valor (R$)</th></tr></thead>
+      <tbody>
+        <tr><td class="descricao">FGTS</td><td class="pct">{float(cfg.get("fgts_aliquota") or 8.00):g}%</td><td>{brl(b)}</td><td>{brl(fgts)}</td></tr>
+        {"".join(cfg_rows)}
+      </tbody>
+      <tfoot><tr><td colspan="3">Total de encargos</td><td>{brl(total)}</td></tr></tfoot>
+    </table>
+  </section>
+  <section class="rodape">
+    <div class="nota">
+      <span class="rotulo">Nota</span>
+      Encargos calculados no fechamento da competência (RFC-014 §4.4, RFC-015).
+      {"Empresas optantes pelo <strong>Simples Nacional</strong> têm recolhimento unificado (DAS), sem INSS patronal separado na folha (RFC-014 §3)." if regime == "simples" else "Empresas de lucro real/presumido calculam INSS patronal (20%) e RAT/SAT sobre a base de encargos (RFC-014 §2)."}
+      Contribuições a terceiros (SESI/SENAI/SENAC) ficam como campo configurável (RFC-014 §5, decisão 1).
+    </div>
+    <div class="total">
+      <span class="rotulo">Total de encargos</span>
+      <div class="valor">R$ {brl(total)}</div>
+    </div>
+  </section>
+  <section class="observacoes">
+    <span class="rotulo">Observações</span>
+    <ul>
+      <li>Encargos do empregador — <strong>não</strong> aparecem no holerite do funcionário (RFC-007, decisão 1).</li>
+      <li>Valores calculados sobre a base FGTS do processamento (RFC-004), usando a tabela vigente da competência (RFC-005).</li>
+      <li>RAT/SAT é configurável por CNAE e risco da atividade (RFC-008); o padrão é 2% risco médio.</li>
+    </ul>
+  </section>
+  <footer class="rodape-legal">
+    <span>Documento gerado eletronicamente no fechamento da competência (RFC-015).</span>
+    <span>Competência fechada — valores imutáveis (RFC-006 §4).</span>
+  </footer>
+</main>
+</body>
+</html>'''
+
+def _relatorio_auditoria_html(competencia, eventos):
+    """Monta o anexo de auditoria do relatório de fechamento (RFC-015 §3/§4.2).
+
+    Seção HTML imprimível com a trilha imutável da competência (RFC-009 §5):
+    quando/quem/ação/contexto/antes/depois + versão das tabelas usadas no
+    cálculo (RFC-005 §5.1.2). Anexada ao relatório de encargos gerado no
+    fechamento — permite conferência externa de quem operou a competência.
+    """
+    acoes = {
+        "abrir_competencia": "Abrir competência",
+        "calcular": "Calcular",
+        "concluir": "Concluir",
+        "validar": "Validar",
+        "fechar": "Fechar",
+        "pagar": "Registrar pagamento",
+        "pagar_holerite": "Pagar holerite",
+        "gerar_holerites": "Gerar holerites",
+        "excluir_holerite": "Excluir holerite",
+        "alterar_observacoes": "Alterar observações",
+        "alterar_cadastro": "Alterar cadastro",
+        "alterar_tabela": "Alterar tabela",
+        "lancar": "Lançar",
+    }
+
+    def esc(v):
+        s = "" if v is None else str(v)
+        return (s.replace("&", "&amp;").replace("<", "&lt;")
+                 .replace(">", "&gt;").replace('"', "&quot;"))
+
+    def resumo(d, limite=140):
+        s = json.dumps(d, ensure_ascii=False) if isinstance(d, dict) else str(d or "")
+        return esc(s[:limite] + ("…" if len(s) > limite else ""))
+
+    linhas = []
+    for e in eventos or []:
+        quando = esc(e.get("quando"))
+        quem = esc(e.get("quem"))
+        acao = acoes.get(e.get("acao"), esc(e.get("acao")))
+        ctx = resumo(e.get("contexto"))
+        antes = resumo(e.get("antes")) or "—"
+        depois = resumo(e.get("depois")) or "—"
+        tab = resumo(e.get("tax_table_versions")) if e.get("tax_table_versions") else "—"
+        linhas.append(
+            f'<tr><td style="white-space:nowrap">{quando}</td>'
+            f'<td><strong>{quem}</strong></td>'
+            f'<td><span style="background:#e8f3f1;color:#0d6e64;'
+            f'padding:2px 8px;border-radius:10px;font-size:.72rem;'
+            f'white-space:nowrap">{acao}</span></td>'
+            f'<td style="font-size:.74rem;word-break:break-word">{ctx}</td>'
+            f'<td style="font-size:.74rem;color:#8a94a6;word-break:break-word">{antes}</td>'
+            f'<td style="font-size:.74rem;color:#16324f;word-break:break-word">{depois}</td>'
+            f'<td style="font-size:.7rem;color:#8a94a6;word-break:break-word">{tab}</td></tr>')
+
+    if not linhas:
+        corpo = ('<tr><td colspan="7" style="text-align:center;color:#8a94a6;">'
+                 'Nenhum evento registrado na trilha para esta competência.</td></tr>')
+    else:
+        corpo = "".join(linhas)
+
+    comp_disp = competencia
+    if "/" in competencia:
+        ano, mes = competencia.split("/", 1)
+        comp_disp = f"{mes}/{ano}"
+
+    return f'''
+  <section class="anexo-auditoria" style="margin-top:28px;padding-top:16px;border-top:2px solid #16324f;">
+    <h2>Anexo — Trilha de auditoria da competência (RFC-009 §5)</h2>
+    <p style="font-size:11px;color:#8a94a6;margin-bottom:10px;">
+      Eventos imutáveis (append-only) registrados para {esc(comp_disp)}: lançamento,
+      cálculo, mudança de estado, cadastros e tabelas. Inclui a versão das tabelas
+      usadas no cálculo (RFC-005 §5.1.2) para reproduzir a competência.
+    </p>
+    <div style="overflow-x:auto;">
+    <table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead><tr><th>Quando</th><th>Quem</th><th>Ação</th><th>Contexto</th>
+        <th>Antes</th><th>Depois</th><th>Tabelas</th></tr></thead>
+      <tbody>{corpo}</tbody>
+    </table>
+    </div>
+  </section>'''
+
 
 def _terminal_do_usuario(uid):
     if not uid:
@@ -889,6 +1264,13 @@ ROLES = {
         "pos": None,
         "descricao": "Dono técnico do plano de contas (CRUD; exclusão exclusiva deste perfil + admin).",
     },
+    "funcionario": {
+        "label": "Funcionário",
+        "grupo": "portal",
+        "permissoes": ["portal"],
+        "pos": None,
+        "descricao": "Portal do funcionário: consulta de dados e solicitação de férias do próprio vínculo.",
+    },
 }
 
 # Quem pode criar/editar plano de contas
@@ -914,10 +1296,116 @@ def user_empresas(user):
         return list(load_empresas().keys())
     return list(user.get("empresas", {}).keys())
 
+
+# ── RH Dashboard — férias vencidas (RFC-010 §2.1/Decisão 4) ─────────────
+
+def _add_months(d, months):
+    """Soma meses a uma data, truncando o dia no fim do mês (31/01 + 1m = 28/02)."""
+    m = d.month - 1 + months
+    y = d.year + m // 12
+    m = m % 12 + 1
+    import calendar
+    dia = min(d.day, calendar.monthrange(y, m)[1])
+    return date(y, m, dia)
+
+
+def _aplicar_situacao_vinculo_licenca(lic_id, current, forcar=None):
+    """RFC-012 Decisão 2 — afastamento é situação do vínculo (RFC-002).
+
+    Aprovar marca o funcionário como 'afastado'. Rejeitar/concluir volta para
+    'ativo' apenas quando NÃO houver outra licença aprovada do vínculo.
+    Usada tanto pelo endpoint /api/licenca/aprovar|rejeitar quanto pela
+    transição de workflow (/api/workflow/transition) — o dashboard aprova via
+    workflow e precisa do mesmo efeito no vínculo.
+    """
+    try:
+        lic = next((r for r in cobol_bridge.licencas_listar()
+                    if str(r.get("id")) == str(lic_id)), None)
+        fid = (lic or {}).get("funcionario_id")
+        if not fid:
+            return
+        if forcar is None:
+            forcar = (lic or {}).get("status") or ""
+        nova_situacao = "afastado"
+        if str(forcar).upper() in ("R", "C"):
+            # retorno ao trabalho: só volta para ativo se não houver outra
+            # licença aprovada em aberto do mesmo vínculo
+            outras = [l for l in cobol_bridge.licencas_por_funcionario(fid)
+                      if (l.get("status") or "").strip().upper() == "A"
+                      and str(l.get("id")) != str(lic_id)]
+            nova_situacao = "ativo" if not outras else "afastado"
+        cobol_bridge.funcionario_alterar(fid, {"situacao_vinculo": nova_situacao})
+        _auditoria_folha("alterar_cadastro", current,
+                         {"tipo": "licenca", "id": int(lic_id)},
+                         depois={"funcionario_id": fid,
+                                 "situacao_vinculo": nova_situacao})
+    except Exception:
+        pass
+
+
+def _ferias_vencidas_alertas():
+    """Funcionários com período concessivo já expirado sem gozo registrado.
+
+    Períodos aquisitivos derivados da data de admissão (12 meses cada); um
+    período está coberto quando existe registro de férias cujo aquis_inicio
+    cai dentro dele. Alerta quando o concessivo (aquis_fim + 12 meses) já
+    passou (hoje) e não há cobertura.
+    """
+    hoje = date.today()
+    try:
+        ferias = cobol_bridge.ferias_listar()
+    except Exception:
+        ferias = []
+    cobertas = {}
+    for f in ferias:
+        if str(f.get("situacao") or "").upper() == "R":
+            continue  # excluída não cobre o período
+        cobertas.setdefault(str(f.get("funcionario_id")), set()).add(
+            str(f.get("aquis_inicio") or ""))
+    try:
+        funcs = cobol_bridge.funcionarios_listar()
+    except Exception:
+        funcs = []
+    alertas = []
+    for f in funcs:
+        sit = str(f.get("situacao_vinculo") or "").lower()
+        if sit not in ("ativo", "a", ""):
+            continue
+        adm = str(f.get("data_adm") or "").strip()
+        if len(adm) != 10 or adm[4] != "-":
+            continue
+        try:
+            ini = date(int(adm[0:4]), int(adm[5:7]), int(adm[8:10]))
+        except ValueError:
+            continue
+        fid = str(f.get("id"))
+        cobertas_func = cobertas.get(fid, set())
+        for _ in range(15):  # até ~15 anos de casa
+            fim = _add_months(ini, 12) - timedelta(days=1)
+            concessivo = _add_months(fim, 12)
+            if concessivo >= hoje:
+                break
+            coberta = any(str(ini) <= c <= str(fim) for c in cobertas_func)
+            if not coberta:
+                alertas.append({
+                    "funcionario_id": f.get("id"),
+                    "nome": f.get("nome") or ("#" + str(f.get("id"))),
+                    "tipo": "Ferias vencidas",
+                    "aquis_inicio": str(ini),
+                    "aquis_fim": str(fim),
+                    "data": str(concessivo),
+                    "dias": (hoje - concessivo).days,
+                })
+            ini = _add_months(ini, 12)
+    alertas.sort(key=lambda a: -a["dias"])
+    return alertas
+
+
 class AuthHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
+        method = self.command  # handlers compartilhados checam method == "GET" aqui
 
         if parsed.path == "/api/auth/me":
             token = self.headers.get("X-Auth-Token", "")
@@ -1077,6 +1565,206 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": "Acesso negado"}, 403)
             return self._json({"status": "ok", "rescisoes": cobol_bridge.rescisao_listar()})
 
+        if parsed.path in ("/api/folha/ferias", "/api/folha/decimos"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                if parsed.path == "/api/folha/ferias":
+                    return self._json({"status": "ok", "ferias": cobol_bridge.ferias_listar()})
+                return self._json({"status": "ok", "decimos": cobol_bridge.decimos_listar()})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/folha/complementares":
+            # RFC-013 — folhas complementares (ajustes de competência fechada)
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                comps = cobol_bridge.complementares_listar()
+                # Exibe Operador/Aprovador de cada complementar (RFC-009)
+                for c in comps:
+                    cid = c.get("id")
+                    try:
+                        c["operador"] = folha_auditoria.operador_da_complementar(cid) or ""
+                        c["aprovador"] = folha_auditoria.aprovador_da_complementar(cid) or ""
+                    except Exception:
+                        c["operador"] = ""
+                        c["aprovador"] = ""
+                return self._json({"status": "ok", "complementares": comps})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/folha/complementar/holerite":
+            # RFC-013 Regra 5 — holerite complementar DISTINTO: exibe apenas
+            # as diferenças (não o holerite da competência original).
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            cid = (qs.get("id") or [""])[0]
+            if not cid:
+                return self._json({"status": "error", "message": "ID obrigatorio"}, 400)
+            try:
+                comp = None
+                for c in cobol_bridge.complementares_listar():
+                    if str(c.get("id")) == str(cid):
+                        comp = c
+                        break
+                if not comp:
+                    return self._json({"status": "error", "message": "Complementar nao encontrada"}, 404)
+                return self._json({"status": "ok", "holerite": {
+                    "tipo": "COMPLEMENTAR",
+                    "id": comp.get("id"),
+                    "funcionario_id": comp.get("funcionario_id"),
+                    "nome": comp.get("nome"),
+                    "competencia": comp.get("competencia"),
+                    "competencia_ref": comp.get("competencia_ref"),
+                    "motivo": comp.get("motivo"),
+                    "valor": comp.get("valor"),
+                    "inss": comp.get("inss"),
+                    "irrf": comp.get("irrf"),
+                    "liquido": comp.get("liquido"),
+                    "situacao": comp.get("situacao"),
+                    "data_pagamento": comp.get("data_pagamento"),
+                }})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/folha/complementar/encargos":
+            # RFC-013 Decisão 4 — encargos/recolhimentos apenas sobre a
+            # diferença das complementares fechadas/pagas da competência.
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            competencia = (qs.get("competencia") or [""])[0]
+            if not competencia:
+                return self._json({"status": "error", "message": "Competencia obrigatoria"}, 400)
+            try:
+                regime = _folha_regime_empresa()
+                encargos = cobol_bridge.comp_encargos(competencia, regime=regime)
+                return self._json({"status": "ok", "encargos": encargos, "regime": regime})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/rh/dashboard":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                funcs = cobol_bridge.funcionarios_listar()
+                try:
+                    holerites = cobol_bridge.holerite_listar()
+                except Exception:
+                    holerites = []
+                folha_total = sum(float(h.get("liquido") or 0) for h in holerites)
+                inss_total = sum(float(h.get("inss") or 0) for h in holerites)
+                irrf_total = sum(float(h.get("irrf") or 0) for h in holerites)
+                fgts_total = sum(float(h.get("fgts") or 0) for h in holerites)
+                a_pagar = sum(1 for h in holerites
+                              if str(h.get("situacao") or "") != "P")
+                pagos = sum(1 for h in holerites
+                            if str(h.get("situacao") or "") == "P")
+                licencas_pendentes = len(cobol_bridge.licencas_pendentes())
+                dashboard = {
+                    "total_funcionarios": len(funcs),
+                    "folha_total": round(folha_total, 2),
+                    "inss_total": round(inss_total, 2),
+                    "irrf_total": round(irrf_total, 2),
+                    "fgts_total": round(fgts_total, 2),
+                    "licencas_pendentes": licencas_pendentes,
+                    "a_pagar": a_pagar,
+                    "pagos": pagos,
+                    "ausencias_por_tipo": {},
+                    "alertas_contrato": _ferias_vencidas_alertas(),
+                }
+                return self._json({"status": "ok", "dashboard": dashboard})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path in ("/api/licencas", "/api/licencas/pendentes",
+                           "/api/despesas/pendentes", "/api/timesheets"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                if parsed.path == "/api/licencas":
+                    # RFC-012 — CRUD dedicado: lista todas com nome do vínculo
+                    try:
+                        funcs = {str(f.get("id")): f for f in cobol_bridge.funcionarios_listar()}
+                    except Exception:
+                        funcs = {}
+                    licencas = cobol_bridge.licencas_listar()
+                    for lic in licencas:
+                        f = funcs.get(str(lic.get("funcionario_id")))
+                        if f:
+                            lic["nome"] = f.get("nome") or ("#" + str(lic.get("funcionario_id")))
+                    return self._json({"status": "ok", "licencas": licencas})
+                if parsed.path == "/api/licencas/pendentes":
+                    return self._json({"status": "ok",
+                                       "licencas": cobol_bridge.licencas_pendentes()})
+                if parsed.path == "/api/despesas/pendentes":
+                    return self._json({"status": "ok",
+                                       "despesas": despesas_store.pendentes()})
+                return self._json({"status": "ok",
+                                   "timesheets": cobol_bridge.timesheets_listar()})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path in ("/api/workflow/definitions", "/api/workflow/history"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            if parsed.path == "/api/workflow/definitions":
+                return self._json({"status": "ok",
+                                   "workflows": jsonio.load(os.path.join(BASE_DIR, "dados", "workflow.json"), {})})
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            module = (qs.get("module") or [""])[0]
+            record_id = (qs.get("record_id") or [""])[0]
+            hist = jsonio.load(os.path.join(BASE_DIR, "dados", "workflow_history.json"),
+                               {"entries": []}).get("entries", [])
+            entries = [e for e in hist
+                       if str(e.get("module")) == module
+                       and str(e.get("record_id")) == str(record_id)]
+            return self._json({"status": "ok", "entries": entries})
+
+        if parsed.path == "/api/folha/auditoria":
+            # RFC-009 §5 — trilha de auditoria da folha (imutável, append-only)
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                limite = int((qs.get("limite") or ["200"])[0])
+            except ValueError:
+                limite = 200
+            try:
+                eventos = folha_auditoria.listar(
+                    competencia=(qs.get("competencia") or [None])[0],
+                    acao=(qs.get("acao") or [None])[0],
+                    quem=(qs.get("quem") or [None])[0],
+                    limite=limite,
+                )
+                return self._json({"status": "ok", "eventos": eventos})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
         if parsed.path in ("/api/folha/config", "/api/folha/competencias"):
             token = self.headers.get("X-Auth-Token", "")
             users = load_users()
@@ -1086,8 +1774,105 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 cobol_bridge.folha_config_seed()
                 if parsed.path == "/api/folha/config":
-                    return self._json(cobol_bridge.folha_config_ler())
-                return self._json({"competencias": cobol_bridge.folha_listar()})
+                    qs = urllib.parse.parse_qs(parsed.query or "")
+                    competencia = (qs.get("competencia") or [""])[0]
+                    return self._json(cobol_bridge.folha_config_ler(competencia or None))
+                # RFC-009 — expõe o Operador de cada competência (quem abriu/
+                # calculou) para a tela exibir a separação de funções.
+                comps = cobol_bridge.folha_listar()
+                for c in comps:
+                    try:
+                        c["operador"] = folha_auditoria.operador_da_competencia(
+                            c.get("competencia")) or ""
+                        c["aprovador"] = folha_auditoria.aprovador_da_competencia(
+                            c.get("competencia")) or ""
+                    except Exception:
+                        c["operador"] = ""
+                        c["aprovador"] = ""
+                return self._json({"competencias": comps})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/folha/encargos":
+            # RFC-014 — encargos patronais da competência (FGTS, INSS patronal,
+            # RAT e terceiros), calculados no COBOL com a tabela da competência
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            competencia = (qs.get("competencia") or [""])[0]
+            if not competencia:
+                return self._json({"status": "error", "message": "Competencia obrigatoria"}, 400)
+            try:
+                regime = _folha_regime_empresa()
+                encargos = cobol_bridge.folha_encargos(competencia, regime=regime)
+                return self._json({"status": "ok", "regime": regime, "encargos": encargos})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/folha/encargos/relatorio":
+            # RFC-014 §4.4/Decisão 4 — relatório de encargos (HTML imprimível)
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            competencia = (qs.get("competencia") or [""])[0]
+            if not competencia:
+                return self._json({"status": "error", "message": "Competencia obrigatoria"}, 400)
+            try:
+                regime = _folha_regime_empresa()
+                encargos = cobol_bridge.folha_encargos(competencia, regime=regime)
+                html = _relatorio_encargos_html(competencia, encargos, regime)
+                # RFC-015 §3/§4.2 — anexo com a trilha de auditoria da
+                # competência (imutável, RFC-009 §5) para conferência externa.
+                # Auditoria nunca derruba o relatório: falha na trilha apenas
+                # omite o anexo (padrão _auditoria_folha).
+                try:
+                    eventos = folha_auditoria.listar(competencia=competencia)
+                    anexo = _relatorio_auditoria_html(competencia, eventos)
+                    # Anexo ANTES do rodapé legal (fecha o documento).
+                    html = html.replace('<footer class="rodape-legal">',
+                                        anexo + "\n  <footer class=\"rodape-legal\">")
+                except Exception:
+                    pass
+                return self._html(html, status=200)
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/folha/contabilizar":
+            # RFC-014 — totais da competência para a aba Contábil
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            competencia = (qs.get("competencia") or [""])[0]
+            if not competencia:
+                return self._json({"status": "error", "message": "Competencia obrigatoria"}, 400)
+            try:
+                dados = cobol_bridge.folha_mostrar(competencia)
+                funcs = dados.get("funcionarios") or []
+                total_prov = sum(float(f.get("proventos") or 0) for f in funcs)
+                total_inss = sum(float(f.get("inss") or 0) for f in funcs)
+                total_irrf = sum(float(f.get("irrf") or 0) for f in funcs)
+                total_liquido = sum(float(f.get("liquido") or 0) for f in funcs)
+                # FGTS = alíquota da tabela da competência × base (salários)
+                cfg = cobol_bridge.folha_config_ler(competencia)
+                fgts_aliq = float(cfg.get("fgts_aliquota") or 8.00)
+                base_fgts = sum(float(f.get("salario_base") or 0) for f in funcs)
+                total_fgts = round(base_fgts * fgts_aliq / 100.0, 2)
+                return self._json({"status": "ok", "competencia": competencia,
+                                   "quantidade": len(funcs),
+                                   "total_proventos": total_prov,
+                                   "total_inss": total_inss,
+                                   "total_irrf": total_irrf,
+                                   "total_fgts": total_fgts,
+                                   "total_liquido": total_liquido})
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
@@ -1663,6 +2448,107 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not row:
                 return self._json({"status": "error", "message": "Operação não encontrada"}, 404)
             return self._json({"status": "ok", "operacao": row})
+
+        # ── WMS regras push/pull (RFC-9012 MVP) ──
+        if parsed.path == "/api/wms/regras":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                out = wms_rules.list_regras(
+                    q=(qs.get("q") or [""])[0],
+                    tipo=(qs.get("tipo") or [""])[0] or None,
+                    ativo=(qs.get("ativo") or [None])[0],
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            return self._json({"status": "ok", **out, "meta": wms_rules.meta()})
+
+        if parsed.path == "/api/wms/regras/evaluate":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                out = wms_rules.wms_rules_evaluate(
+                    armazem=(qs.get("armazem") or [""])[0] or None
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            return self._json({"status": "ok", **out})
+
+        if parsed.path.startswith("/api/wms/regras/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if key == "meta":
+                return self._json({"status": "ok", **wms_rules.meta()})
+            row = wms_rules.get_regra(key)
+            if not row:
+                return self._json({"status": "error", "message": "Regra não encontrada"}, 404)
+            return self._json({"status": "ok", "regra": row})
+
+        # ── WMS rotas (RFC-9013 MVP) ──
+        if parsed.path == "/api/wms/rotas":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                out = wms_routes.list_rotas(
+                    q=(qs.get("q") or [""])[0],
+                    tipo=(qs.get("tipo") or [""])[0] or None,
+                    ativo=(qs.get("ativo") or [None])[0],
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            return self._json({"status": "ok", **out, "meta": wms_routes.meta()})
+
+        if parsed.path == "/api/wms/rotas/config":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            return self._json({"status": "ok", "config": wms_routes.config_rotas()})
+
+        if parsed.path == "/api/wms/rotas/locais-padrao":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            out = wms_routes.list_locais_padrao((qs.get("produto_id") or [""])[0] or None)
+            return self._json({"status": "ok", **out})
+
+        if parsed.path.startswith("/api/wms/rotas/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if key == "meta":
+                return self._json({"status": "ok", **wms_routes.meta()})
+            row = wms_routes.get_rota(key)
+            if not row:
+                return self._json({"status": "error", "message": "Rota não encontrada"}, 404)
+            return self._json({"status": "ok", "rota": row})
+
+        # ── WMS aluguel / locações (RFC-9014 MVP) ──
+        if parsed.path == "/api/wms/rental/locacoes":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            out = wms_rental.list_locacoes(
+                q=(qs.get("q") or [""])[0],
+                status=(qs.get("status") or [""])[0] or None,
+            )
+            return self._json({"status": "ok", **out, "meta": wms_rental.meta()})
+
+        if parsed.path == "/api/wms/rental/produtos-alugaveis":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            return self._json({"status": "ok", "produtos": wms_rental.produtos_alugaveis()})
 
         # ── WMS tarefas (RFC-9005 MVP) ──
         if parsed.path == "/api/wms/tarefas":
@@ -2507,7 +3393,22 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             qs = urllib.parse.parse_qs(parsed.query or "")
             estab = (qs.get("estabelecimento_id") or [""])[0].strip()
             pid = (qs.get("produto_id") or [""])[0].strip()
+            por_loc = (qs.get("por_localizacao") or [""])[0].strip() in ("1", "true", "yes")
             balances = inventory_mvp.load_balances()
+            if por_loc:
+                locs = balances.get("por_localizacao") or {}
+                if estab:
+                    return self._json({
+                        "status": "ok",
+                        "estabelecimento_id": estab,
+                        "por_localizacao": locs.get(estab) or {},
+                        "atualizado_em": balances.get("atualizado_em"),
+                    })
+                return self._json({
+                    "status": "ok",
+                    "por_localizacao": locs,
+                    "atualizado_em": balances.get("atualizado_em"),
+                })
             if not estab:
                 return self._json({
                     "status": "ok",
@@ -2542,6 +3443,58 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             rows = inventory_mvp.list_recent_movements(limit=limit, estabelecimento_id=estab, produto_id=pid)
             return self._json({"status": "ok", "movements": rows, "total": len(rows)})
 
+        if parsed.path == "/api/inventory/kpis":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            try:
+                dias = int((qs.get("dias") or ["30"])[0])
+            except (TypeError, ValueError):
+                dias = 30
+            produtos = cobol_bridge.produtos_listar()
+            kpis = inventory_mvp.inventory_kpis(estabelecimento_id=estab, dias=dias, produtos=produtos)
+            return self._json({"status": "ok", **kpis})
+
+        if parsed.path == "/api/inventory/alerts":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            produtos = cobol_bridge.produtos_listar()
+            alerts = inventory_mvp.inventory_alerts(estabelecimento_id=estab, produtos=produtos)
+            return self._json({"status": "ok", "alerts": alerts, "total": len(alerts)})
+
+        if parsed.path == "/api/inventory/report":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            report = inventory_mvp.inventory_movements_report(
+                estabelecimento_id=(qs.get("estabelecimento_id") or [""])[0].strip() or None,
+                produto_id=(qs.get("produto_id") or [""])[0].strip() or None,
+                tipo=(qs.get("tipo") or [""])[0].strip() or None,
+                de=(qs.get("de") or [""])[0].strip() or None,
+                ate=(qs.get("ate") or [""])[0].strip() or None,
+                limit=(qs.get("limit") or ["500"])[0],
+            )
+            return self._json({"status": "ok", **report})
+
+        if parsed.path == "/api/inventory/reservations":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            pid = (qs.get("produto_id") or [""])[0].strip() or None
+            try:
+                rows = sales_reservation.list_reservations(estabelecimento_id=estab, produto_id=pid)
+            except Exception as e:
+                return self._json({"status": "error", "message": f"Falha ao listar reservas: {e}"}, 500)
+            return self._json({"status": "ok", "reservations": rows, "total": len(rows)})
+
         if parsed.path == "/api/inventory/transit":
             token = self.headers.get("X-Auth-Token", "")
             if not self._find_user(token, load_users()):
@@ -2551,6 +3504,108 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if t.get("status") == "open"
             ]
             return self._json({"status": "ok", "itens": itens})
+
+        if parsed.path.startswith("/api/inventory/counts/") and not parsed.path.endswith("/audit"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            cid = parsed.path.rstrip("/").split("/")[-1]
+            count = inventory_mvp.inventory_get_count(cid)
+            if not count:
+                return self._json({"status": "error", "message": "Contagem não encontrada"}, 404)
+            return self._json({"status": "ok", "count": count})
+
+        if parsed.path == "/api/inventory/counts":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            rows = inventory_mvp.load_counts().get("counts") or []
+            if estab:
+                rows = [c for c in rows if c.get("estabelecimento_id") == estab]
+            rows.sort(key=lambda c: c.get("id") or 0, reverse=True)
+            return self._json({"status": "ok", "counts": rows})
+
+        if parsed.path == "/api/inventory/divergences":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            try:
+                min_occ = int((qs.get("min_ocorrencias") or ["2"])[0])
+            except (TypeError, ValueError):
+                min_occ = 2
+            produtos = cobol_bridge.produtos_listar()
+            ana = inventory_mvp.inventory_divergence_analysis(
+                estabelecimento_id=estab,
+                produtos=produtos,
+                min_ocorrencias=min_occ,
+            )
+            return self._json({"status": "ok", **ana})
+
+        if parsed.path.startswith("/api/inventory/counts/") and parsed.path.endswith("/audit"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            cid = parsed.path.rstrip("/").split("/")[-2]
+            produtos = cobol_bridge.produtos_listar()
+            try:
+                audit = inventory_mvp.inventory_count_audit(cid, produtos=produtos)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 404)
+            return self._json({"status": "ok", "audit": audit})
+
+        if parsed.path == "/api/inventory/schedule":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            produtos = cobol_bridge.produtos_listar()
+            due = inventory_mvp.inventory_schedule_due(estabelecimento_id=estab, produtos=produtos)
+            schedule = inventory_mvp.load_schedule()
+            return self._json({"status": "ok", **due, "schedule": schedule})
+
+        if parsed.path == "/api/inventory/abc":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            criterio = (qs.get("criterio") or ["valor"])[0].strip()
+            try:
+                dias = int((qs.get("dias") or ["90"])[0])
+            except (TypeError, ValueError):
+                dias = 90
+            produtos = cobol_bridge.produtos_listar()
+            abc = inventory_mvp.inventory_abc_classify(
+                estabelecimento_id=estab,
+                produtos=produtos,
+                criterio=criterio,
+                dias=dias,
+            )
+            return self._json({"status": "ok", **abc})
+
+        if parsed.path == "/api/inventory/cycles/suggest":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            produtos = cobol_bridge.produtos_listar()
+            sugg = inventory_mvp.inventory_cycle_suggest(estabelecimento_id=estab, produtos=produtos)
+            return self._json({"status": "ok", **sugg})
+
+        if parsed.path == "/api/inventory/cycles":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            estab = (qs.get("estabelecimento_id") or [""])[0].strip() or None
+            rows = inventory_mvp.inventory_cycle_accuracy(estabelecimento_id=estab)
+            return self._json({"status": "ok", "cycles": rows, "total": len(rows)})
 
         if parsed.path == "/api/receiving/pending":
             token = self.headers.get("X-Auth-Token", "")
@@ -3991,9 +5046,33 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "iss": tributos.TABELA_ISS,
             }})
 
+        # Categorias: GET via COBOL (tratado no bloco do CRUD COBOL adiante)
+        if parsed.path == "/api/admin/categorias":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._is_admin(token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            return self._json({"status": "ok", "categorias": cobol_bridge.categorias_listar()})
+
+        if parsed.path == "/api/admin/variantes":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._is_admin(token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            pid_filter = (qs.get("produto_id") or [""])[0].strip()
+            if pid_filter and pid_filter.isdigit():
+                vars_ = cobol_bridge.variantes_listar_por_produto(int(pid_filter))
+            else:
+                vars_ = cobol_bridge.variantes_listar()
+            return self._json({"status": "ok", "variantes": vars_})
+
+        if parsed.path == "/api/admin/atributos":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._is_admin(token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            return self._json({"status": "ok", "atributos": cobol_bridge.atributos_listar()})
+
         # CRUD GET routes (JSON)
         for prefix, data_file, list_key in [
-            ("/api/admin/categorias", CATEGORIAS_FILE, "categorias"),
             ("/api/admin/marcas", MARCAS_FILE, "marcas"),
             ("/api/admin/fabricantes", FABRICANTES_FILE, "fabricantes"),
             ("/api/admin/contatos", CONTATOS_FILE, "contatos"),
@@ -4081,6 +5160,407 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             fid = (qs.get("funcionario_id") or [""])[0]
             return self._json({"status": "ok", "dependentes": cobol_bridge.dependentes_listar(fid)})
 
+        if parsed.path == "/api/funcionario/salario/listar":
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            fid = (qs.get("funcionario_id") or [""])[0]
+            return self._json({"salarios": cobol_bridge.salarios_listar(fid)})
+
+        if parsed.path == "/api/funcionario/salario/vigente":
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            fid = (qs.get("funcionario_id") or [""])[0]
+            comp = (qs.get("competencia") or [""])[0]
+            if not fid or not comp:
+                return self._json({"status": "error",
+                                   "message": "funcionario_id e competencia são obrigatórios"}, 400)
+            return self._json(cobol_bridge.salario_vigente(fid, comp))
+
+        if parsed.path == "/api/funcionario/movimentacao/listar":
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            fid = (qs.get("funcionario_id") or [""])[0]
+            tipo = (qs.get("tipo") or ["cargo"])[0]
+            return self._json({"movimentacoes": cobol_bridge.movimentacoes_listar(fid, tipo)})
+
+        if parsed.path == "/api/funcionario/movimentacao/vigente":
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            fid = (qs.get("funcionario_id") or [""])[0]
+            tipo = (qs.get("tipo") or ["cargo"])[0]
+            comp = (qs.get("competencia") or [""])[0]
+            if not fid or not comp:
+                return self._json({"status": "error",
+                                   "message": "funcionario_id e competencia são obrigatórios"}, 400)
+            return self._json(cobol_bridge.movimentacao_vigente(fid, tipo, comp))
+
+        # Relatórios / exports de produtos (CSV)
+        if parsed.path.startswith("/api/reports/produtos"):
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            report = (qs.get("report") or [""])[0]
+            try:
+                produtos = cobol_bridge.produtos_listar() or []
+            except Exception:
+                produtos = []
+
+            def to_csv(rows, headers):
+                lines = []
+                lines.append(','.join(headers))
+                for r in rows:
+                    vals = []
+                    for h in headers:
+                        v = r.get(h) if isinstance(r, dict) else getattr(r, h, '')
+                        if v is None:
+                            v = ''
+                        s = str(v).replace('"', '""')
+                        if ',' in s or '"' in s or '\n' in s:
+                            s = '"' + s + '"'
+                        vals.append(s)
+                    lines.append(','.join(vals))
+                return '\n'.join(lines).encode('utf-8')
+
+            def html_to_pdf_bytes(html_str):
+                # Use WeasyPrint to render HTML->PDF. Return bytes or None on failure.
+                try:
+                    from weasyprint import HTML
+                    return HTML(string=html_str).write_pdf()
+                except Exception:
+                    return None
+
+            def build_print_html(title, body_html):
+                # builds a printable HTML document with header/footer, logo, company info, signatures and print CSS
+                try:
+                    emp = load_empresa_fiscal() or {}
+                except Exception:
+                    emp = {}
+                razao = emp.get('nome_razao') or emp.get('nome') or 'Empresa'
+                now = datetime.now().strftime('%d/%m/%Y %H:%M')
+                css = """
+                /* Page layout and print-friendly typography */
+                @page { size: A4; margin: 18mm }
+                @page { @bottom-right { content: "" } }
+                body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial; color:#111; font-size:13px; }
+                header.print-header { position: fixed; top: 0; left: 0; right: 0; height: 72px; display:flex; align-items:center; justify-content:space-between; padding:14px 22px; border-bottom:1px solid #e6e9ef; background: #fff }
+                footer.print-footer { position: fixed; bottom: 0; left: 0; right: 0; height:48px; display:flex; align-items:center; justify-content:space-between; padding:10px 22px; border-top:1px solid #eee; color:#666; font-size:12px; background: #fff }
+                main.print-main { display:block; margin-top:98px; margin-bottom:116px; padding:0 8px; }
+                h1.report-title { font-size:18px; margin:0 0 10px 0; color:#16324f }
+                table.report-table { width:100%; border-collapse:collapse; margin-top:10px; font-size:13px }
+                table.report-table thead th { background:#f6f8fb; color:#2b3a4a; text-align:left; padding:10px; border-bottom:2px solid #e6ebf2 }
+                table.report-table th, table.report-table td { padding:10px 8px; border:1px solid #eef2f6; text-align:left }
+                tr { break-inside: avoid; page-break-inside: avoid }
+                .signatures { display:flex; gap:40px; margin-top:34px; }
+                .sig { flex:1; text-align:center }
+                .sig .line { border-bottom:1px solid #999; height:1px; margin-bottom:8px }
+                .brand-logo { height:56px; max-height:56px; margin-right:14px }
+                .brand { display:flex; align-items:center; gap:14px }
+                .brand-name { font-weight:800; font-size:16px }
+                .brand-sub { font-size:12px; color:#556 } 
+                .meta { font-size:12px; color:#444; text-align:right }
+                .page-info { font-size:12px; color:#666 }
+                .small { font-size:12px; color:#666 }
+                /* Page number counters for WeasyPrint */
+                .page-counter:before { content: "Página " counter(page) " de " counter(pages); }
+                @media print {
+                  header.print-header, footer.print-footer { background: #fff }
+                }
+                """
+
+                # try to include logo if available as dados/logo.png
+                logo_img = ''
+                try:
+                    logo_path = os.path.join(BASE_DIR, 'dados', 'logo.png')
+                    if os.path.exists(logo_path):
+                        import base64
+                        with open(logo_path, 'rb') as f:
+                            b = base64.b64encode(f.read()).decode('ascii')
+                        logo_img = f"<img class='brand-logo' src='data:image/png;base64,{b}' alt='logo'/>"
+                except Exception:
+                    logo_img = ''
+
+                # format CNPJ
+                def fmt_cnpj(c):
+                    d = re.sub(r"\D", "", str(c or ""))
+                    if len(d) == 14:
+                        return f"{d[0:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:14]}"
+                    return c or ''
+
+                cnpj_txt = fmt_cnpj(emp.get('cnpj') or '')
+                endereco = emp.get('endereco') or ''
+                bairro = emp.get('bairro') or ''
+                cidade = emp.get('municipio') or emp.get('cidade') or ''
+                uf = emp.get('uf') or ''
+                cep = emp.get('cep') or ''
+
+                left_html = f"<div class='brand'>{logo_img}<div><div class='brand-name'>{razao}</div><div class='brand-sub'>{cnpj_txt}</div></div></div>"
+                right_html = f"<div class='meta'>{endereco} {bairro} {cidade} {uf} {cep}</div>"
+
+                footer_html = f"<div class='page-info small'>Gerado em {now}</div><div class='page-info page-counter'></div>"
+
+                html = f"""<!doctype html><html><head><meta charset='utf-8'><title>{title}</title><style>{css}</style></head><body><header class='print-header'>{left_html}{right_html}</header><footer class='print-footer'>{footer_html}</footer><main class='print-main'><h1 class='report-title'>{title}</h1>{body_html}<div class='signatures'><div class='sig'><div class='line'></div><div class='label'>Responsável</div></div><div class='sig'><div class='line'></div><div class='label'>Aprovado</div></div></div></main></body></html>"""
+                return html
+
+            fmt = (qs.get('format') or ['csv'])[0]
+            cols_param = (qs.get('cols') or [''])[0]
+            cols_selected = [c.strip() for c in cols_param.split(',') if c.strip()]
+
+            def apply_cols_to_rows(rows, available_headers):
+                # available_headers: list of header keys in order
+                if not cols_selected:
+                    return available_headers, rows
+                # keep only requested columns that exist in available_headers
+                headers = [h for h in available_headers if h in cols_selected]
+                # if user passed labels not matching keys, fall back to available_headers
+                if not headers:
+                    return available_headers, rows
+                # build new rows projecting only selected keys
+                new_rows = []
+                for r in rows:
+                    nr = {}
+                    for h in headers:
+                        nr[h] = r.get(h, '') if isinstance(r, dict) else getattr(r, h, '')
+                    new_rows.append(nr)
+                return headers, new_rows
+
+            if report == 'resumo_categoria':
+                cat_map = {}
+                for p in produtos:
+                    c = p.get('categoria') or '—'
+                    item = cat_map.setdefault(c, {'categoria': c, 'qtd': 0, 'valor': 0.0, 'estoque': 0})
+                    item['qtd'] += 1
+                    item['valor'] += float(p.get('preco') or 0)
+                    item['estoque'] += int(p.get('stock') or 0)
+                rows = list(cat_map.values())
+                if fmt == 'html':
+                    # apply selected columns
+                    available = ['categoria', 'qtd', 'estoque', 'valor']
+                    headers, proj_rows = apply_cols_to_rows(rows, available)
+                    labels = {'categoria':'Categoria','qtd':'Qtd','estoque':'Estoque','valor':'Valor'}
+                    thead = ''.join(f"<th>{labels.get(h,h)}</th>" for h in headers)
+                    def row_html(r):
+                        cells = []
+                        for h in headers:
+                            v = r.get(h,'')
+                            if h == 'valor':
+                                try:
+                                    v = f"{float(v):.2f}"
+                                except Exception:
+                                    v = v
+                            cells.append(f"<td>{v}</td>")
+                        return '<tr>' + ''.join(cells) + '</tr>'
+                    html_rows = ''.join(row_html(r) for r in proj_rows)
+                    table = f"<table class='report-table'><thead><tr>{thead}</tr></thead><tbody>{html_rows}</tbody></table>"
+                    html = build_print_html('Resumo por categoria', table)
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Content-Disposition', 'inline; filename="resumo_categoria.html"')
+                    self.end_headers()
+                    self.wfile.write(html.encode('utf-8'))
+                    return
+                if fmt == 'pdf':
+                    available = ['categoria', 'qtd', 'estoque', 'valor']
+                    headers, proj_rows = apply_cols_to_rows(rows, available)
+                    labels = {'categoria':'Categoria','qtd':'Qtd','estoque':'Estoque','valor':'Valor'}
+                    thead = ''.join(f"<th>{labels.get(h,h)}</th>" for h in headers)
+                    def row_html(r):
+                        cells = []
+                        for h in headers:
+                            v = r.get(h,'')
+                            if h == 'valor':
+                                try:
+                                    v = f"{float(v):.2f}"
+                                except Exception:
+                                    v = v
+                            cells.append(f"<td>{v}</td>")
+                        return '<tr>' + ''.join(cells) + '</tr>'
+                    html_rows = ''.join(row_html(r) for r in proj_rows)
+                    html = f"""<!doctype html><html><head><meta charset='utf-8'><title>Resumo por categoria</title><style>body{{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, Arial;}}table{{width:100%;border-collapse:collapse}}th,td{{padding:8px;border:1px solid #ddd;text-align:left}}</style></head><body><h1>Resumo por categoria</h1><table><thead><tr>{thead}</tr></thead><tbody>{html_rows}</tbody></table></body></html>"""
+                    pdf_bytes = html_to_pdf_bytes(html)
+                    if pdf_bytes is not None:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/pdf')
+                        self.send_header('Content-Disposition', 'attachment; filename="resumo_categoria.pdf"')
+                        self.end_headers()
+                        self.wfile.write(pdf_bytes)
+                        return
+                    # fallback to HTML if PDF conversion not available
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Content-Disposition', 'inline; filename="resumo_categoria.html"')
+                    self.end_headers()
+                    self.wfile.write(html.encode('utf-8'))
+                    return
+                headers, proj_rows = apply_cols_to_rows(rows, ['categoria','qtd','estoque','valor'])
+                csv = to_csv(proj_rows, headers)
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/csv; charset=utf-8')
+                self.send_header('Content-Disposition', 'attachment; filename="resumo_categoria.csv"')
+                self.end_headers()
+                self.wfile.write(csv)
+                return
+
+            if report == 'sem_ncm':
+                rows = [p for p in produtos if not p.get('ncm')]
+                if fmt == 'html':
+                    available = ['id','nome','categoria','fornecedor','preco','stock']
+                    headers, proj_rows = apply_cols_to_rows(rows, available)
+                    labels = {'id':'ID','nome':'Nome','categoria':'Categoria','fornecedor':'Fornecedor','preco':'Preço','stock':'Estoque'}
+                    thead = ''.join(f"<th>{labels.get(h,h)}</th>" for h in headers)
+                    def row_html(r):
+                        cells = []
+                        for h in headers:
+                            v = r.get(h,'')
+                            cells.append(f"<td>{v}</td>")
+                        return '<tr>' + ''.join(cells) + '</tr>'
+                    html_rows = ''.join(row_html(r) for r in proj_rows)
+                    table = f"<table class='report-table'><thead><tr>{thead}</tr></thead><tbody>{html_rows}</tbody></table>"
+                    html = build_print_html('Produtos sem NCM', table)
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Content-Disposition', 'inline; filename="produtos_sem_ncm.html"')
+                    self.end_headers()
+                    self.wfile.write(html.encode('utf-8'))
+                    return
+                if fmt == 'pdf':
+                    available = ['id','nome','categoria','fornecedor','preco','stock']
+                    headers, proj_rows = apply_cols_to_rows(rows, available)
+                    labels = {'id':'ID','nome':'Nome','categoria':'Categoria','fornecedor':'Fornecedor','preco':'Preço','stock':'Estoque'}
+                    thead = ''.join(f"<th>{labels.get(h,h)}</th>" for h in headers)
+                    def row_html(r):
+                        cells = []
+                        for h in headers:
+                            v = r.get(h,'')
+                            cells.append(f"<td>{v}</td>")
+                        return '<tr>' + ''.join(cells) + '</tr>'
+                    html_rows = ''.join(row_html(r) for r in proj_rows)
+                    html = f"""<!doctype html><html><head><meta charset='utf-8'><title>Produtos sem NCM</title><style>body{{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, Arial;}}table{{width:100%;border-collapse:collapse}}th,td{{padding:8px;border:1px solid #ddd;text-align:left}}</style></head><body><h1>Produtos sem NCM</h1><table><thead><tr>{thead}</tr></thead><tbody>{html_rows}</tbody></table></body></html>"""
+                    pdf_bytes = html_to_pdf_bytes(html)
+                    if pdf_bytes is not None:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/pdf')
+                        self.send_header('Content-Disposition', 'attachment; filename="produtos_sem_ncm.pdf"')
+                        self.end_headers()
+                        self.wfile.write(pdf_bytes)
+                        return
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Content-Disposition', 'inline; filename="produtos_sem_ncm.html"')
+                    self.end_headers()
+                    self.wfile.write(html.encode('utf-8'))
+                    return
+                headers, proj_rows = apply_cols_to_rows(rows, ['id','nome','categoria','fornecedor','preco','stock'])
+                csv = to_csv(proj_rows, headers)
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/csv; charset=utf-8')
+                self.send_header('Content-Disposition', 'attachment; filename="produtos_sem_ncm.csv"')
+                self.end_headers()
+                self.wfile.write(csv)
+                return
+
+            if report == 'estoque_critico':
+                rows = [p for p in produtos if int(p.get('stock') or 0) <= int(p.get('estoque_min') or 1)]
+                if fmt == 'html':
+                    available = ['id','nome','categoria','preco','stock','estoque_min']
+                    headers, proj_rows = apply_cols_to_rows(rows, available)
+                    labels = {'id':'ID','nome':'Nome','categoria':'Categoria','preco':'Preço','stock':'Estoque','estoque_min':'Min'}
+                    thead = ''.join(f"<th>{labels.get(h,h)}</th>" for h in headers)
+                    def row_html(r):
+                        cells = []
+                        for h in headers:
+                            v = r.get(h,'')
+                            cells.append(f"<td>{v}</td>")
+                        return '<tr>' + ''.join(cells) + '</tr>'
+                    html_rows = ''.join(row_html(r) for r in proj_rows)
+                    table = f"<table class='report-table'><thead><tr>{thead}</tr></thead><tbody>{html_rows}</tbody></table>"
+                    html = build_print_html('Estoque crítico', table)
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Content-Disposition', 'inline; filename="estoque_critico.html"')
+                    self.end_headers()
+                    self.wfile.write(html.encode('utf-8'))
+                    return
+                if fmt == 'pdf':
+                    available = ['id','nome','categoria','preco','stock','estoque_min']
+                    headers, proj_rows = apply_cols_to_rows(rows, available)
+                    labels = {'id':'ID','nome':'Nome','categoria':'Categoria','preco':'Preço','stock':'Estoque','estoque_min':'Min'}
+                    thead = ''.join(f"<th>{labels.get(h,h)}</th>" for h in headers)
+                    def row_html(r):
+                        cells = []
+                        for h in headers:
+                            v = r.get(h,'')
+                            cells.append(f"<td>{v}</td>")
+                        return '<tr>' + ''.join(cells) + '</tr>'
+                    html_rows = ''.join(row_html(r) for r in proj_rows)
+                    html = f"""<!doctype html><html><head><meta charset='utf-8'><title>Estoque crítico</title><style>body{{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, Arial;}}table{{width:100%;border-collapse:collapse}}th,td{{padding:8px;border:1px solid #ddd;text-align:left}}</style></head><body><h1>Estoque crítico</h1><table><thead><tr>{thead}</tr></thead><tbody>{html_rows}</tbody></table></body></html>"""
+                    pdf_bytes = html_to_pdf_bytes(html)
+                    if pdf_bytes is not None:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'application/pdf')
+                        self.send_header('Content-Disposition', 'attachment; filename="estoque_critico.pdf"')
+                        self.end_headers()
+                        self.wfile.write(pdf_bytes)
+                        return
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/html; charset=utf-8')
+                    self.send_header('Content-Disposition', 'inline; filename="estoque_critico.html"')
+                    self.end_headers()
+                    self.wfile.write(html.encode('utf-8'))
+                    return
+                headers, proj_rows = apply_cols_to_rows(rows, ['id','nome','categoria','preco','stock','estoque_min'])
+                csv = to_csv(proj_rows, headers)
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/csv; charset=utf-8')
+                self.send_header('Content-Disposition', 'attachment; filename="estoque_critico.csv"')
+                self.end_headers()
+                self.wfile.write(csv)
+                return
+
+            # default full export
+            if fmt == 'html':
+                available = ['id','nome','categoria','fornecedor','preco','preco_custo','stock','ncm']
+                headers, proj_rows = apply_cols_to_rows(produtos, available)
+                labels = {'id':'ID','nome':'Nome','categoria':'Categoria','fornecedor':'Fornecedor','preco':'Preço','preco_custo':'Preço custo','stock':'Estoque','ncm':'NCM'}
+                thead = ''.join(f"<th>{labels.get(h,h)}</th>" for h in headers)
+                def row_html(p):
+                    cells = []
+                    for h in headers:
+                        v = p.get(h,'') if isinstance(p, dict) else getattr(p, h, '')
+                        cells.append(f"<td>{v}</td>")
+                    return '<tr>' + ''.join(cells) + '</tr>'
+                html_rows = ''.join(row_html(p) for p in proj_rows)
+                table = f"<table class='report-table'><thead><tr>{thead}</tr></thead><tbody>{html_rows}</tbody></table>"
+                html = build_print_html('Produtos — Export', table)
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/html; charset=utf-8')
+                self.send_header('Content-Disposition', 'inline; filename="produtos_export.html"')
+                self.end_headers()
+                self.wfile.write(html.encode('utf-8'))
+                return
+            if fmt == 'pdf':
+                available = ['id','nome','categoria','fornecedor','preco','preco_custo','stock','ncm']
+                headers, proj_rows = apply_cols_to_rows(produtos, available)
+                labels = {'id':'ID','nome':'Nome','categoria':'Categoria','fornecedor':'Fornecedor','preco':'Preço','preco_custo':'Preço custo','stock':'Estoque','ncm':'NCM'}
+                thead = ''.join(f"<th>{labels.get(h,h)}</th>" for h in headers)
+                def row_html(p):
+                    cells = []
+                    for h in headers:
+                        v = p.get(h,'') if isinstance(p, dict) else getattr(p, h, '')
+                        cells.append(f"<td>{v}</td>")
+                    return '<tr>' + ''.join(cells) + '</tr>'
+                html_rows = ''.join(row_html(p) for p in proj_rows)
+                html = f"""<!doctype html><html><head><meta charset='utf-8'><title>Produtos — Export</title><style>body{{font-family:system-ui, -apple-system, 'Segoe UI', Roboto, Arial;}}table{{width:100%;border-collapse:collapse}}th,td{{padding:8px;border:1px solid #ddd;text-align:left}}</style></head><body><h1>Produtos — Export</h1><table><thead><tr>{thead}</tr></thead><tbody>{html_rows}</tbody></table></body></html>"""
+                pdf_bytes = html_to_pdf_bytes(html)
+                if pdf_bytes is not None:
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/pdf')
+                    self.send_header('Content-Disposition', 'attachment; filename="produtos_export.pdf"')
+                    self.end_headers()
+                    self.wfile.write(pdf_bytes)
+                    return
+            headers, proj_rows = apply_cols_to_rows(produtos, ['id','nome','categoria','fornecedor','preco','preco_custo','stock','ncm'])
+            csv = to_csv(proj_rows, headers)
+            self.send_response(200)
+            self.send_header('Content-Type', 'text/csv; charset=utf-8')
+            self.send_header('Content-Disposition', 'attachment; filename="produtos_export.csv"')
+            self.end_headers()
+            self.wfile.write(csv)
+            return
+
         return super().do_GET()
 
     def do_POST(self):
@@ -4096,6 +5576,45 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
         guard_msg = platform_setup.lifecycle_guard(parsed.path)
         if guard_msg:
             return self._json({"status": "error", "message": guard_msg}, 503)
+
+        # ── Settings / Configurações (POST: salvar módulo / chave) ──
+        if parsed.path == "/api/settings":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uname = user.get("usuario") or user.get("nome") or ""
+            modulo = (body or {}).get("modulo")
+            valores = (body or {}).get("valores")
+            chave = (body or {}).get("chave")
+            valor = (body or {}).get("valor")
+            if not modulo:
+                return self._json({"status": "error", "message": "modulo obrigatório"}, 400)
+            try:
+                if isinstance(valores, dict):
+                    cfg = settings_store.set_modulo(modulo, valores, usuario=uname)
+                elif chave is not None:
+                    cfg = settings_store.set_key(modulo, chave, valor, usuario=uname)
+                else:
+                    return self._json({"status": "error", "message": "valores ou chave obrigatório"}, 400)
+                return self._json({"status": "ok", "modulo": modulo, "config": cfg})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 500)
+
+        if parsed.path.startswith("/api/settings/"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            parts = parsed.path.rstrip("/").split("/")
+            if len(parts) >= 4:
+                modulo = parts[3]
+                if (body or {}).get("action") == "reset":
+                    cfg = settings_store.reset_modulo(modulo)
+                    return self._json({"status": "ok", "modulo": modulo, "config": cfg})
+            return self._json({"status": "error", "message": "Rota inválida"}, 400)
 
         if parsed.path == "/api/vendas/b2b":
             token = self.headers.get("X-Auth-Token", "")
@@ -4601,6 +6120,148 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     user_id=uid,
                 )
                 return self._json({"status": "ok", **result})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Inventário: reserva de estoque ──
+        if parsed.path == "/api/inventory/reservations":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            try:
+                reserva = sales_reservation.reserve_stock(
+                    body.get("estabelecimento_id") or body.get("warehouse_id"),
+                    body.get("items") or body.get("linhas") or [],
+                    usuario=(user.get("nome") or uid or ""),
+                    nota=body.get("nota"),
+                    origem=body.get("origem") or "manual",
+                )
+                return self._json({"status": "ok", "reservation": reserva})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/inventory/reservations/") and parsed.path.count("/") == 5:
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            parts = parsed.path.rstrip("/").split("/")
+            rid = parts[-2]
+            action = parts[-1]
+            try:
+                if action == "release":
+                    row = sales_reservation.release_for_order(rid, motivo=body.get("motivo") or "released")
+                    if not row:
+                        # reserva manual (pedido_id = MAN-xxx)
+                        row = sales_reservation.release_reservation(rid, motivo=body.get("motivo") or "released")
+                    if not row:
+                        return self._json({"status": "error", "message": "Reserva não encontrada"}, 404)
+                    return self._json({"status": "ok", "reservation": row})
+                return self._json({"status": "error", "message": "ação inválida"}, 400)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Inventário: agendamento de ciclos ──
+        if parsed.path == "/api/inventory/schedule":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            try:
+                schedule = inventory_mvp.load_schedule()
+                classes_in = body.get("classes") if isinstance(body.get("classes"), dict) else {}
+                for cls, cfg in classes_in.items():
+                    cls = str(cls).strip().upper()
+                    if cls not in ("A", "B", "C"):
+                        continue
+                    cur = schedule.setdefault("classes", {}).setdefault(cls, {})
+                    if "periodicidade" in cfg:
+                        cur["periodicidade"] = str(cfg["periodicidade"]).strip()
+                    if "dia_semana" in cfg:
+                        try:
+                            cur["dia_semana"] = int(cfg["dia_semana"]) % 7
+                        except (TypeError, ValueError):
+                            pass
+                    if "dia_mes" in cfg:
+                        try:
+                            cur["dia_mes"] = max(1, min(int(cfg["dia_mes"]), 28))
+                        except (TypeError, ValueError):
+                            pass
+                    if "ativo" in cfg:
+                        cur["ativo"] = bool(cfg["ativo"])
+                inventory_mvp.save_schedule(schedule)
+                return self._json({"status": "ok", "schedule": schedule})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Inventário: ciclo rotativo ──
+        if parsed.path == "/api/inventory/cycles":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            try:
+                produtos = cobol_bridge.produtos_listar()
+                count = inventory_mvp.inventory_start_cycle_count(
+                    body.get("estabelecimento_id") or body.get("warehouse_id"),
+                    escopo=body.get("escopo") or {},
+                    produtos=produtos,
+                    nota=body.get("nota"),
+                    user_id=uid,
+                    max_itens=body.get("max_itens") or 50,
+                )
+                return self._json({"status": "ok", "count": count})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Inventário: contagem física ──
+        if parsed.path == "/api/inventory/counts":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            try:
+                count = inventory_mvp.inventory_start_count(
+                    body.get("estabelecimento_id") or body.get("warehouse_id"),
+                    nota=body.get("nota"),
+                    user_id=uid,
+                )
+                return self._json({"status": "ok", "count": count})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/inventory/counts/") and parsed.path.count("/") == 5:
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            parts = parsed.path.rstrip("/").split("/")
+            cid = parts[-2]
+            action = parts[-1]
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            try:
+                if action == "itens":
+                    itens = body.get("itens") if isinstance(body.get("itens"), list) else body.get("items") or []
+                    count = inventory_mvp.inventory_count_set_items(cid, itens, user_id=uid)
+                    return self._json({"status": "ok", "count": count})
+                if action == "causas":
+                    causas = body.get("causas") if isinstance(body.get("causas"), list) else []
+                    out = inventory_mvp.inventory_count_set_causas(cid, causas, user_id=uid)
+                    return self._json({"status": "ok", **out})
+                if action == "fechar":
+                    count = inventory_mvp.inventory_close_count(cid, user_id=uid)
+                    return self._json({"status": "ok", "count": count})
+                return self._json({"status": "error", "message": "ação inválida"}, 400)
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
@@ -5275,13 +6936,26 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     u["token"] = make_token()
                     save_users(users)
                     role = u.get("role", "operador")
-                    return self._json({
+                    resp = {
                         "status": "ok", "token": u["token"],
                         "nome": u["nome"], "usuario": u["usuario"],
                         "role": role, "id": uid,
                         "pos": (ROLES.get(role) or {}).get("pos"),
                         "empresas": user_empresas(u)
-                    })
+                    }
+                    # Portal do funcionário: resolve o vínculo pelo usuário do
+                    # cadastro (RFC-002) quando o registro não traz funcionario_id
+                    if role == "funcionario" and not u.get("funcionario_id"):
+                        try:
+                            for f in cobol_bridge.funcionarios_listar():
+                                if str(f.get("usuario") or "").strip() == usuario:
+                                    resp["funcionario_id"] = f.get("id")
+                                    break
+                        except Exception:
+                            pass
+                    elif u.get("funcionario_id") is not None:
+                        resp["funcionario_id"] = u.get("funcionario_id")
+                    return self._json(resp)
             return self._json({"status": "error", "message": "Usuário ou senha incorretos"}, 401)
 
         if parsed.path == "/api/admin/users":
@@ -5473,6 +7147,11 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         except Exception:
                             pass
                         raise
+                    _auditoria_folha("lancar", self._quem_auditoria(),
+                                     {"tipo": "rescisao",
+                                      "funcionario_id": dados.get("funcionario_id")},
+                                     depois={"id": resultado.get("id"),
+                                             "liquido": resultado.get("liquido")})
                     return self._json({"status": "ok",
                                        "message": "Rescisao registrada e funcionario desligado",
                                        **resultado})
@@ -5481,6 +7160,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     if not dados.get("id"):
                         return self._json({"status": "error", "message": "ID da rescisao obrigatorio"}, 400)
                     ok = cobol_bridge.rescisao_pagar(dados.get("id"), dados.get("data_pagamento"))
+                    if ok:
+                        _auditoria_folha("pagar", self._quem_auditoria(),
+                                         {"tipo": "rescisao", "id": dados.get("id")})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Rescisao paga" if ok else "Erro ao pagar rescisao"})
 
@@ -5494,6 +7176,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                             func_id = r.get("funcionario_id")
                             break
                     ok = cobol_bridge.rescisao_excluir(rid)
+                    if ok:
+                        _auditoria_folha("excluir", self._quem_auditoria(),
+                                         {"tipo": "rescisao", "id": rid})
                     msg = "Rescisao excluida e funcionario reativado" if ok else "Erro ao excluir rescisao"
                     if ok and func_id:
                         try:
@@ -5513,6 +7198,12 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     ok = cobol_bridge.funcionario_desligar(dados.get("id"),
                                                            dados.get("data_dem") or "",
                                                            motivo)
+                    if ok:
+                        # RFC-009 §5.1.3 — desligamento também é mutação de cadastro
+                        _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                         {"funcionario_id": dados.get("id"),
+                                          "tipo": "funcionario", "acao": "desligar",
+                                          "motivo": motivo})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Funcionario desligado" if ok else "Erro ao desligar funcionario"})
 
@@ -5520,8 +7211,552 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     if not dados.get("id"):
                         return self._json({"status": "error", "message": "ID do funcionario obrigatorio"}, 400)
                     ok = cobol_bridge.funcionario_reativar(dados.get("id"))
+                    if ok:
+                        _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                         {"funcionario_id": dados.get("id"),
+                                          "tipo": "funcionario", "acao": "reativar"})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Funcionario reativado" if ok else "Erro ao reativar funcionario"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path in (
+            "/api/folha/ferias/calcular",
+            "/api/folha/ferias/incluir",
+            "/api/folha/ferias/pagar",
+            "/api/folha/ferias/excluir",
+            "/api/folha/decimo/calcular",
+            "/api/folha/decimo/incluir",
+            "/api/folha/decimo/pagar",
+            "/api/folha/decimo/excluir",
+        ):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            role = (current or {}).get("role", "")
+            # Portal do funcionário: só pode incluir férias do próprio vínculo;
+            # os demais endpoints de férias/13º continuam admin/instrutor.
+            portal_ok = role == "funcionario" and parsed.path == "/api/folha/ferias/incluir"
+            if not current or (role not in ("admin", "instrutor") and not portal_ok):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            dados = dict(body or {})
+            if "x-www-form-urlencoded" in self.headers.get("Content-Type", ""):
+                qs = urllib.parse.parse_qs(raw)
+                dados = {k: v[0] for k, v in qs.items()}
+            try:
+                # nome/salário vêm do cadastro quando o frontend não envia
+                if dados.get("funcionario_id"):
+                    fobj = None
+                    for f in cobol_bridge.funcionarios_listar():
+                        if str(f.get("id")) == str(dados.get("funcionario_id")):
+                            fobj = f
+                            break
+                    if fobj:
+                        if not dados.get("nome"):
+                            dados["nome"] = fobj.get("nome", "")
+                        if role == "funcionario":
+                            # portal: salário SEMPRE do cadastro (fonte da
+                            # verdade — o cliente não pode inflar a base)
+                            dados["salario_base"] = fobj.get("salario", 0)
+                        else:
+                            # admin/instrutor: usa o valor enviado só quando > 0
+                            sal_b = str(dados.get("salario_base") or "").strip()
+                            if not sal_b or sal_b in ("0", "0.0", "0.00", "0,00"):
+                                dados["salario_base"] = fobj.get("salario", 0)
+                if role == "funcionario":
+                    # guarda de auto-vínculo: o funcionário só registra férias
+                    # para o vínculo dele mesmo (usuário do cadastro RFC-002)
+                    fid = str(dados.get("funcionario_id") or "")
+                    if not fid:
+                        return self._json({"status": "error",
+                                           "message": "funcionario_id obrigatorio"}, 400)
+                    own = str(current.get("funcionario_id") or "")
+                    if not own:
+                        try:
+                            for f in cobol_bridge.funcionarios_listar():
+                                if str(f.get("usuario") or "").strip() == str(current.get("usuario") or ""):
+                                    own = str(f.get("id"))
+                                    break
+                        except Exception:
+                            own = ""
+                    if not own or fid != own:
+                        return self._json({"status": "error",
+                                           "message": "Voce so pode registrar ferias para o seu proprio vinculo"}, 403)
+
+                if parsed.path in ("/api/folha/ferias/calcular", "/api/folha/ferias/incluir"):
+                    ferias_map = {
+                        "funcionario_id": "funcionario_id",
+                        "nome": "nome",
+                        "periodo_inicio": "aquis_inicio",
+                        "periodo_fim": "aquis_fim",
+                        "inicio_ferias": "inicio",
+                        "fim_ferias": "fim",
+                        "dias": "dias",
+                        "dias_abono": "dias_abono",
+                        "salario_base": "salario_base",
+                    }
+                    cobol_dados = {}
+                    for k_orig, k_dest in ferias_map.items():
+                        if dados.get(k_orig) is not None:
+                            cobol_dados[k_dest] = dados[k_orig]
+                    # RFC-012 Decisão 4 — afastamento aprovado >30 dias no
+                    # período aquisitivo suspende a contagem de férias (RFC-010
+                    # §3.4): sinaliza para o usuário antes de registrar o gozo.
+                    suspensao = 0
+                    try:
+                        if cobol_dados.get("aquis_inicio") and cobol_dados.get("aquis_fim"):
+                            suspensao = cobol_bridge.dias_afastamento_no_periodo(
+                                cobol_dados.get("funcionario_id"),
+                                cobol_dados.get("aquis_inicio"),
+                                cobol_dados.get("aquis_fim"))
+                    except Exception:
+                        suspensao = 0
+                    if parsed.path == "/api/folha/ferias/calcular":
+                        resultado = cobol_bridge.ferias_calcular(cobol_dados)
+                    else:
+                        resultado = cobol_bridge.ferias_incluir(cobol_dados)
+                    if suspensao > 30:
+                        resultado["aviso_suspensao_aquisitivo"] = suspensao
+                    if resultado.get("id"):
+                        # RFC-009 §5 — lançamento registrado na trilha
+                        _auditoria_folha("lancar", current,
+                                         {"tipo": "ferias",
+                                          "funcionario_id": cobol_dados.get("funcionario_id")},
+                                         depois={"id": resultado.get("id"),
+                                                 "liquido": resultado.get("liquido")})
+                    return self._json({"status": "ok",
+                                       "message": "Ferias registradas" if resultado.get("id")
+                                                   else "Ferias calculadas",
+                                       **resultado})
+
+                if parsed.path in ("/api/folha/decimo/calcular", "/api/folha/decimo/incluir"):
+                    decimo_map = {
+                        "funcionario_id": "funcionario_id",
+                        "nome": "nome",
+                        "ano": "ano",
+                        "parcela": "parcela",
+                        "meses_trabalhados": "meses",
+                        "meses": "meses",
+                        "salario_base": "salario_base",
+                    }
+                    cobol_dados = {}
+                    for k_orig, k_dest in decimo_map.items():
+                        if dados.get(k_orig) is not None:
+                            cobol_dados[k_dest] = dados[k_orig]
+                    if parsed.path == "/api/folha/decimo/calcular":
+                        resultado = cobol_bridge.decimo_calcular(cobol_dados)
+                    else:
+                        resultado = cobol_bridge.decimo_incluir(cobol_dados)
+                    if resultado.get("id"):
+                        _auditoria_folha("lancar", current,
+                                         {"tipo": "decimo",
+                                          "funcionario_id": cobol_dados.get("funcionario_id")},
+                                         depois={"id": resultado.get("id"),
+                                                 "liquido": resultado.get("liquido")})
+                    return self._json({"status": "ok",
+                                       "message": "13o salario registrado" if resultado.get("id")
+                                                   else "13o calculado",
+                                       **resultado})
+
+                if parsed.path == "/api/folha/ferias/pagar":
+                    if not dados.get("id"):
+                        return self._json({"status": "error", "message": "ID das ferias obrigatorio"}, 400)
+                    ok = cobol_bridge.ferias_pagar(dados.get("id"), dados.get("data_pagamento"))
+                    if ok:
+                        _auditoria_folha("pagar", current,
+                                         {"tipo": "ferias", "id": dados.get("id")})
+                    return self._json({"status": "ok" if ok else "error",
+                                       "message": "Ferias pagas" if ok else "Erro ao pagar ferias"})
+
+                if parsed.path == "/api/folha/ferias/excluir":
+                    if not dados.get("id"):
+                        return self._json({"status": "error", "message": "ID das ferias obrigatorio"}, 400)
+                    ok = cobol_bridge.ferias_excluir(dados.get("id"))
+                    if ok:
+                        _auditoria_folha("excluir", current,
+                                         {"tipo": "ferias", "id": dados.get("id")})
+                    return self._json({"status": "ok" if ok else "error",
+                                       "message": "Ferias excluidas" if ok else "Erro ao excluir ferias"})
+
+                if parsed.path == "/api/folha/decimo/pagar":
+                    if not dados.get("id"):
+                        return self._json({"status": "error", "message": "ID do 13o obrigatorio"}, 400)
+                    ok = cobol_bridge.decimo_pagar(dados.get("id"), dados.get("data_pagamento"))
+                    if ok:
+                        _auditoria_folha("pagar", current,
+                                         {"tipo": "decimo", "id": dados.get("id")})
+                    return self._json({"status": "ok" if ok else "error",
+                                       "message": "13o pago" if ok else "Erro ao pagar 13o"})
+
+                if parsed.path == "/api/folha/decimo/excluir":
+                    if not dados.get("id"):
+                        return self._json({"status": "error", "message": "ID do 13o obrigatorio"}, 400)
+                    ok = cobol_bridge.decimo_excluir(dados.get("id"))
+                    if ok:
+                        _auditoria_folha("excluir", current,
+                                         {"tipo": "decimo", "id": dados.get("id")})
+                    return self._json({"status": "ok" if ok else "error",
+                                       "message": "13o excluido" if ok else "Erro ao excluir 13o"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path in ("/api/folha/complementar/calcular",
+                           "/api/folha/complementar/incluir",
+                           "/api/folha/complementar/validar",
+                           "/api/folha/complementar/fechar",
+                           "/api/folha/complementar/pagar",
+                           "/api/folha/complementar/excluir"):
+            # RFC-013 — folha complementar (ajuste de competência fechada).
+            # A competência fechada permanece intocada; a complementar registra
+            # apenas diferenças. Abrir/fechar são auditadas (RFC-009) e o
+            # fechamento exige Aprovador ≠ Operador (Decisão 1/Regra 6).
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            dados = dict(body or {})
+            if "x-www-form-urlencoded" in self.headers.get("Content-Type", ""):
+                qs = urllib.parse.parse_qs(raw)
+                dados = {k: v[0] for k, v in qs.items()}
+            try:
+                if parsed.path in ("/api/folha/complementar/calcular",
+                                   "/api/folha/complementar/incluir"):
+                    func_id = dados.get("funcionario_id")
+                    competencia = (dados.get("competencia") or "").strip()
+                    competencia_ref = (dados.get("competencia_ref") or "").strip()
+                    motivo = (dados.get("motivo") or "").strip()
+                    valor = dados.get("valor")
+                    # Decisão 1: motivo obrigatório ao abrir (rastreabilidade)
+                    if not competencia or not competencia_ref:
+                        return self._json({"status": "error",
+                                           "message": "Competencia e competencia de referencia obrigatorias"}, 400)
+                    if not motivo:
+                        return self._json({"status": "error",
+                                           "message": "Motivo obrigatorio ao abrir a folha complementar"}, 400)
+                    try:
+                        valor_f = float(str(valor).replace(",", "."))
+                    except (TypeError, ValueError):
+                        return self._json({"status": "error",
+                                           "message": "Valor da diferenca invalido"}, 400)
+                    if valor_f == 0:
+                        return self._json({"status": "error",
+                                           "message": "Valor da diferenca nao pode ser zero"}, 400)
+                    # Decisão 2: valor negativo exige motivo específico validado
+                    if valor_f < 0 and motivo not in cobol_bridge.COMP_NEGATIVO_MOTIVOS:
+                        return self._json({
+                            "status": "error",
+                            "message": ("Valor negativo exige motivo especifico "
+                                        "(erro comprovado, devolucao ou decisao "
+                                        "judicial) - RFC-013 Decisao 2")}, 400)
+                    # nome/salário vêm do cadastro quando o frontend não envia
+                    fobj = None
+                    for f in cobol_bridge.funcionarios_listar():
+                        if str(f.get("id")) == str(func_id):
+                            fobj = f
+                            break
+                    salario = fobj.get("salario", 0) if fobj else dados.get("salario_base", 0)
+                    cobol_dados = {
+                        "funcionario_id": func_id,
+                        "nome": dados.get("nome") or (fobj or {}).get("nome", ""),
+                        "competencia": competencia,
+                        "competencia_ref": competencia_ref,
+                        "motivo": motivo,
+                        "valor": f"{valor_f:.2f}",
+                        "salario_base": salario,
+                    }
+                    if parsed.path.endswith("/calcular"):
+                        resultado = cobol_bridge.comp_calcular(cobol_dados)
+                        return self._json({"status": "ok", **resultado})
+                    resultado = cobol_bridge.comp_incluir(cobol_dados)
+                    _auditoria_folha("incluir_complementar", current,
+                                     {"tipo": "complementar",
+                                      "id": resultado.get("id"),
+                                      "competencia": competencia,
+                                      "competencia_ref": competencia_ref},
+                                     antes={"motivo": motivo,
+                                            "valor": valor_f},
+                                     depois={"id": resultado.get("id"),
+                                             "liquido": resultado.get("liquido")})
+                    return self._json({"status": "ok",
+                                       "message": "Folha complementar registrada",
+                                       **resultado})
+
+                if parsed.path in ("/api/folha/complementar/validar",
+                                   "/api/folha/complementar/fechar"):
+                    if not dados.get("id"):
+                        return self._json({"status": "error", "message": "ID da complementar obrigatorio"}, 400)
+                    cid = dados.get("id")
+                    if parsed.path.endswith("/fechar"):
+                        # RFC-009 §4.2 na complementar: Fechamento exige
+                        # Aprovador ≠ Operador (quem incluiu a complementar).
+                        operador = folha_auditoria.operador_da_complementar(cid)
+                        usuario = (current or {}).get("usuario") or ""
+                        if operador and operador != "sistema" and operador == usuario:
+                            return self._json({
+                                "status": "error",
+                                "code": "aprovador_igual_operador",
+                                "message": ("Fechamento da complementar exige "
+                                            "Aprovador ≠ Operador (RFC-009): quem "
+                                            "incluiu a complementar nao pode fechar.")}, 403)
+                    if parsed.path.endswith("/validar"):
+                        ok = cobol_bridge.comp_validar(cid)
+                    else:
+                        ok = cobol_bridge.comp_fechar(cid)
+                    if ok:
+                        acao = "validar_complementar" if parsed.path.endswith("/validar") \
+                            else "fechar_complementar"
+                        _auditoria_folha(acao, current,
+                                         {"tipo": "complementar", "id": cid})
+                    if ok and parsed.path.endswith("/fechar"):
+                        # RFC-013 Decisão 4: no fechamento, calcula os encargos
+                        # sobre a diferença das complementares da competência e
+                        # gera lançamentos contábeis idempotentes (ref própria,
+                        # sem colidir com os encargos da folha mensal).
+                        try:
+                            comp_atual = None
+                            for c in cobol_bridge.complementares_listar():
+                                if str(c.get("id")) == str(cid):
+                                    comp_atual = c
+                                    break
+                            comp_competencia = (comp_atual or {}).get("competencia") or ""
+                            regime = _folha_regime_empresa()
+                            encargos = cobol_bridge.comp_encargos(
+                                comp_competencia, regime=regime)
+                            lancamentos = []
+                            if encargos:
+                                try:
+                                    lancamentos = _gerar_lancamentos_encargos(
+                                        comp_competencia, encargos, regime,
+                                        prefixo_ref="folha:complementar:encargos",
+                                        sufixo_historico="complementar")
+                                except Exception:
+                                    lancamentos = []
+                        except Exception:
+                            encargos = {}
+                            lancamentos = []
+                        return self._json({"status": "ok",
+                                           "message": "Complementar fechada",
+                                           "encargos_diferenca": encargos,
+                                           "lancamentos_contabeis": lancamentos})
+                    if ok and parsed.path.endswith("/validar"):
+                        return self._json({"status": "ok", "message": "Complementar validada"})
+                    return self._json({"status": "error", "message": "Erro na transicao"})
+
+                if parsed.path == "/api/folha/complementar/pagar":
+                    if not dados.get("id"):
+                        return self._json({"status": "error", "message": "ID da complementar obrigatorio"}, 400)
+                    cid = dados.get("id")
+                    # RFC-009 §4.2 — Tesouraria ≠ Aprovador (quem fechou)
+                    aprovador = folha_auditoria.aprovador_da_complementar(cid)
+                    usuario = (current or {}).get("usuario") or ""
+                    if aprovador and aprovador != "sistema" and aprovador == usuario:
+                        return self._json({
+                            "status": "error",
+                            "code": "tesouraria_igual_aprovador",
+                            "message": ("Pagamento da complementar exige Tesouraria "
+                                        "≠ Aprovador (RFC-009): quem fechou a "
+                                        "complementar nao pode registrar o pagamento.")}, 403)
+                    ok = cobol_bridge.comp_pagar(cid, dados.get("data_pagamento"))
+                    if ok:
+                        _auditoria_folha("pagar", current,
+                                         {"tipo": "complementar", "id": cid})
+                    return self._json({"status": "ok" if ok else "error",
+                                       "message": "Complementar paga" if ok else "Erro ao pagar complementar"})
+
+                if parsed.path == "/api/folha/complementar/excluir":
+                    if not dados.get("id"):
+                        return self._json({"status": "error", "message": "ID da complementar obrigatorio"}, 400)
+                    # Complementar paga é imutável (mesma filosofia do acerto de
+                    # rescisão): excluir apagaria o histórico financeiro.
+                    try:
+                        comp_pg = next((c for c in cobol_bridge.complementares_listar()
+                                        if str(c.get("id")) == str(dados.get("id"))), None)
+                        if comp_pg and (comp_pg.get("situacao") or "") == "P":
+                            return self._json({"status": "error",
+                                               "message": "Complementar paga nao pode ser excluida"}, 400)
+                    except Exception:
+                        pass
+                    ok = cobol_bridge.comp_excluir(dados.get("id"))
+                    if ok:
+                        _auditoria_folha("excluir", current,
+                                         {"tipo": "complementar", "id": dados.get("id")})
+                    return self._json({"status": "ok" if ok else "error",
+                                       "message": "Complementar excluida" if ok else "Erro ao excluir complementar"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path in ("/api/licenca/incluir", "/api/licenca/alterar",
+                           "/api/licenca/excluir"):
+            # RFC-012 — CRUD dedicado de afastamentos/licenças (RH)
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            dados = dict(body or {})
+            if "x-www-form-urlencoded" in self.headers.get("Content-Type", ""):
+                qs = urllib.parse.parse_qs(raw)
+                dados = {k: v[0] for k, v in qs.items()}
+            try:
+                if parsed.path == "/api/licenca/incluir":
+                    if not dados.get("funcionario_id") or not dados.get("tipo"):
+                        return self._json({"status": "error",
+                                           "message": "funcionario_id e tipo obrigatorios"}, 400)
+                    lid = cobol_bridge.licenca_incluir(dados)
+                    _auditoria_folha("lancar", current,
+                                     {"tipo": "licenca",
+                                      "funcionario_id": dados.get("funcionario_id")},
+                                     depois={"id": lid, "acao": "incluir"})
+                    return self._json({"status": "ok", "id": lid,
+                                       "message": "Licenca registrada"})
+                if parsed.path == "/api/licenca/alterar":
+                    if not dados.get("id"):
+                        return self._json({"status": "error", "message": "ID obrigatorio"}, 400)
+                    ok = cobol_bridge.licenca_alterar(dados.get("id"), dados)
+                    if ok:
+                        _auditoria_folha("lancar", current,
+                                         {"tipo": "licenca",
+                                          "funcionario_id": dados.get("funcionario_id")},
+                                         depois={"id": int(dados.get("id")), "acao": "alterar"})
+                    return self._json({"status": "ok" if ok else "error",
+                                       "message": "Licenca alterada" if ok else "Nao encontrada"})
+                # excluir
+                if not dados.get("id"):
+                    return self._json({"status": "error", "message": "ID obrigatorio"}, 400)
+                ok = cobol_bridge.licenca_excluir(dados.get("id"))
+                if ok:
+                    _auditoria_folha("excluir", current,
+                                     {"tipo": "licenca", "id": int(dados.get("id"))},
+                                     depois={"acao": "excluir"})
+                return self._json({"status": "ok" if ok else "error",
+                                   "message": "Licenca excluida" if ok else "Nao encontrada"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path in ("/api/licenca/aprovar", "/api/licenca/rejeitar",
+                           "/api/despesa/aprovar", "/api/despesa/rejeitar"):
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            dados = dict(body or {})
+            if "x-www-form-urlencoded" in self.headers.get("Content-Type", ""):
+                qs = urllib.parse.parse_qs(raw)
+                dados = {k: v[0] for k, v in qs.items()}
+            if not dados.get("id"):
+                return self._json({"status": "error", "message": "ID obrigatorio"}, 400)
+            try:
+                hoje = datetime.now().strftime("%Y-%m-%d")
+                nome = current.get("nome") or current.get("usuario") or ""
+                if parsed.path == "/api/licenca/aprovar":
+                    ok = cobol_bridge.licenca_aprovar(dados.get("id"), nome, hoje)
+                    msg = "Licenca aprovada"
+                elif parsed.path == "/api/licenca/rejeitar":
+                    ok = cobol_bridge.licenca_rejeitar(dados.get("id"), nome, hoje)
+                    msg = "Licenca rejeitada"
+                elif parsed.path == "/api/despesa/aprovar":
+                    ok = despesas_store.aprovar(dados.get("id"), nome, hoje)
+                    msg = "Despesa aprovada"
+                else:
+                    ok = despesas_store.rejeitar(dados.get("id"), nome, hoje)
+                    msg = "Despesa rejeitada"
+                if ok and parsed.path.startswith("/api/licenca/"):
+                    # RFC-012 Decisão 2 — afastamento é situação do vínculo:
+                    # aprovar marca 'afastado'; rejeitar só volta a 'ativo'
+                    # quando não houver outra licença aprovada do vínculo.
+                    _aplicar_situacao_vinculo_licenca(dados.get("id"), current)
+                return self._json({"status": "ok" if ok else "error",
+                                   "message": msg if ok else "Registro nao encontrado"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/workflow/transition":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current:
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            dados = dict(body or {})
+            if "x-www-form-urlencoded" in self.headers.get("Content-Type", ""):
+                qs = urllib.parse.parse_qs(raw)
+                dados = {k: v[0] for k, v in qs.items()}
+            module = (dados.get("module") or "").strip()
+            record_id = (dados.get("record_id") or "").strip()
+            target = (dados.get("target_status") or "").strip().upper()
+            user_name = (dados.get("user_name") or "").strip()
+            user_role = (dados.get("user_role") or "").strip().lower()
+            if not module or not record_id or not target:
+                return self._json({"status": "error",
+                                   "message": "module, record_id e target_status obrigatorios"}, 400)
+            try:
+                defs = jsonio.load(os.path.join(BASE_DIR, "dados", "workflow.json"), {})
+                mod = defs.get(module)
+                if not mod or not mod.get("transitions"):
+                    return self._json({"status": "error",
+                                       "message": "Workflow nao configurado para o modulo"}, 400)
+                # status atual do registro na origem
+                if module == "licenca":
+                    rec = next((r for r in cobol_bridge.licencas_listar()
+                                if str(r.get("id")) == str(record_id)), None)
+                elif module == "despesa":
+                    rec = next((r for r in despesas_store.listar()
+                                if str(r.get("id")) == str(record_id)), None)
+                else:
+                    return self._json({"status": "error",
+                                       "message": "Modulo sem origem de status"}, 400)
+                if not rec:
+                    return self._json({"status": "error",
+                                       "message": "Registro nao encontrado"}, 404)
+                atual = str(rec.get("status") or "").upper()
+                if atual == "P":
+                    atual = "D"  # COBOL usa P (pendente) = Rascunho (D) do workflow
+                trans = (mod.get("transitions") or {}).get(atual, {}).get(target)
+                if not trans:
+                    return self._json({"status": "error",
+                                       "message": f"Transicao {atual} -> {target} nao permitida"}, 400)
+                # autorização: só admin/instrutor podem simular papéis (demo da
+                # tela); os demais usam SEMPRE o papel real do usuário logado
+                real_role = (current.get("role") or "").lower()
+                role_efetivo = user_role
+                if real_role not in ("admin", "instrutor"):
+                    role_efetivo = real_role
+                roles = trans.get("roles") or []
+                if roles and role_efetivo not in roles:
+                    return self._json({"status": "error",
+                                       "message": "Role nao autorizada para esta transicao"}, 403)
+                hoje = datetime.now().strftime("%Y-%m-%d")
+                if module == "licenca":
+                    ok = cobol_bridge.licenca_transitar(record_id, target, user_name, hoje)
+                    # RFC-012 Decisão 2 — mesma regra do endpoint direto: aprovar
+                    # (A) marca o vínculo 'afastado'; rejeitar/concluir (R/C) só
+                    # volta a 'ativo' quando não houver outra licença aprovada.
+                    if ok and target in ("A", "R", "C"):
+                        _aplicar_situacao_vinculo_licenca(record_id, current,
+                                                          forcar=target)
+                else:
+                    ok = despesas_store.transitar(record_id, target, user_name, hoje)
+                if not ok:
+                    return self._json({"status": "error", "message": "Falha ao transicionar"}, 400)
+                # histórico
+                hist_file = os.path.join(BASE_DIR, "dados", "workflow_history.json")
+                hist = jsonio.load(hist_file, {"entries": []})
+                entries = hist.setdefault("entries", [])
+                novo_id = max((int(e.get("id") or 0) for e in entries), default=0) + 1
+                entries.append({
+                    "id": novo_id,
+                    "module": module,
+                    "record_id": int(record_id) if str(record_id).isdigit() else record_id,
+                    "from_status": atual,
+                    "to_status": target,
+                    "user_name": user_name or "Sistema",
+                    "user_role": role_efetivo,
+                    "notes": "",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                })
+                jsonio.save(hist_file, hist)
+                return self._json({"status": "ok", "message": trans.get("label") or target})
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
@@ -5537,7 +7772,20 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 fbody = {k: v[0] for k, v in qs.items()}
             try:
                 cobol_bridge.folha_config_seed()
+                antes = {}
+                try:
+                    cfg_ant = cobol_bridge.folha_config_ler(fbody.get("competencia") or None)
+                    antes = {k: cfg_ant.get(k) for k in cobol_bridge.CONFIG_DEFAULTS
+                             if k in cfg_ant and k in fbody}
+                except Exception:
+                    antes = {}
                 cobol_bridge.folha_config_salvar(fbody)
+                _auditoria_folha("alterar_tabela", current,
+                                 {"competencia": fbody.get("competencia") or "",
+                                  "tabela": "folha_config"},
+                                 antes=antes or None,
+                                 depois={k: v for k, v in fbody.items()
+                                         if k in cobol_bridge.CONFIG_DEFAULTS})
                 return self._json({"status": "ok", "message": "Configuracao salva"})
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
@@ -5566,6 +7814,12 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     if not competencia:
                         return self._json({"status": "error", "message": "Competencia obrigatoria"}, 400)
                     ok = cobol_bridge.folha_abrir(competencia)
+                    if ok:
+                        # RFC-009 §5: quem abre é o Operador da competência
+                        # (usado na regra Aprovador ≠ Operador do fechamento).
+                        _auditoria_folha("abrir_competencia", current,
+                                         {"competencia": competencia},
+                                         depois={"situacao": "A"})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Competencia aberta" if ok else "Erro ao abrir competencia"})
                 if parsed.path == "/api/folha/competencia/calcular":
@@ -5577,26 +7831,191 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                                   "dependentes", "outros_proventos", "outros_descontos"):
                         if fbody.get(campo) not in (None, ""):
                             dados[campo] = fbody.get(campo)
+                    # RFC-002 §3.2: todo campo obrigatório deve estar preenchido
+                    # antes do processamento. Usa o cadastro como fonte da verdade
+                    # e o salário vigente da competência quando não enviado.
+                    try:
+                        funcs = cobol_bridge.funcionarios_listar()
+                    except Exception:
+                        funcs = []
+                    fobj = next((f for f in funcs
+                                 if str(f.get("id")) == str(fbody.get("funcionario_id"))), None)
+                    if fobj is not None:
+                        # RFC-003 §3.4.1: data de demissão bloqueia novos
+                        # processamentos para o funcionário.
+                        if (fobj.get("situacao_vinculo") or "").strip() == "desligado":
+                            return self._json({
+                                "status": "error",
+                                "message": ("Funcionario desligado nao pode ser processado "
+                                            "na folha (RFC-003 §3.4.1)")}, 400)
+                        faltantes = [c for c in (
+                            "data_nasc", "sexo", "nacionalidade", "endereco", "cep",
+                            "cidade", "uf", "ctps", "data_adm", "salario",
+                            "departamento_id", "cargo_id", "forma_pagamento")
+                            if not str(fobj.get(c) or "").strip()]
+                        if faltantes:
+                            return self._json({
+                                "status": "error",
+                                "message": ("Funcionario com cadastro incompleto para a "
+                                            "primeira folha (RFC-002): " + ", ".join(faltantes))}, 400)
+                        if "salario_base" not in dados:
+                            vig = cobol_bridge.salario_vigente(
+                                fobj.get("id"), competencia)
+                            if vig and vig.get("salario"):
+                                dados["salario_base"] = vig["salario"]
+                        # RFC-005 §4: cotas de salário-família = dependentes
+                        # com sal_familia='S' (cálculo no COBOL por faixa).
+                        try:
+                            deps = cobol_bridge.dependentes_listar(fobj.get("id"))
+                            cotas = sum(1 for d in deps
+                                        if str(d.get("sal_familia") or "").strip().upper() == "S")
+                            if cotas:
+                                dados["cotas_sf"] = cotas
+                        except Exception:
+                            pass
+                    # RFC-012 Decisão 3 — pró-rata por dias trabalhados: dias de
+                    # afastamento aprovado (não pagos) entram no cálculo como
+                    # faltas, reduzindo salário proporcionalmente ao período.
+                    dias_afast = 0
+                    try:
+                        dias_afast = cobol_bridge.dias_afastamento_na_competencia(
+                            fbody.get("funcionario_id"), competencia)
+                    except Exception:
+                        dias_afast = 0
+                    if dias_afast > 0:
+                        faltas_atuais = 0
+                        try:
+                            faltas_atuais = int(float(dados.get("faltas") or 0))
+                        except (TypeError, ValueError):
+                            faltas_atuais = 0
+                        dados["faltas"] = faltas_atuais + dias_afast
                     resultado = cobol_bridge.folha_calcular(dados)
+                    if dias_afast > 0:
+                        resultado["dias_afastamento"] = dias_afast
+                    # RFC-009 §5 + RFC-005 §5.1.2: o cálculo registra a versão
+                    # das tabelas usadas para permitir reproduzir a competência.
+                    versao_tab = None
+                    try:
+                        versao_tab = {"competencia_tabela": cobol_bridge.folha_config_ler(competencia).get("competencia")}
+                    except Exception:
+                        versao_tab = None
+                    _auditoria_folha("calcular", current,
+                                     {"competencia": competencia,
+                                      "funcionario_id": dados.get("funcionario_id")},
+                                     depois={
+                                         "proventos": resultado.get("proventos"),
+                                         "inss": resultado.get("inss"),
+                                         "irrf": resultado.get("irrf"),
+                                         "liquido": resultado.get("liquido"),
+                                     },
+                                     tax_table_versions=versao_tab)
                     return self._json({"status": "ok", **resultado})
                 if parsed.path == "/api/folha/competencia/concluir":
                     ok = cobol_bridge.folha_concluir(competencia)
+                    if ok:
+                        _auditoria_folha("concluir", current,
+                                         {"competencia": competencia},
+                                         depois={"situacao": "C"})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Competencia calculada" if ok else "Erro ao concluir"})
                 if parsed.path == "/api/folha/competencia/validar":
+                    # RFC-009 §4.2/Decisão 4: Conferente ≠ Operador (quem valida
+                    # não pode ser quem operou a competência).
+                    operador = folha_auditoria.operador_da_competencia(competencia)
+                    usuario = (current or {}).get("usuario") or ""
+                    if operador and operador != "sistema" and operador == usuario:
+                        return self._json({
+                            "status": "error",
+                            "code": "conferente_igual_operador",
+                            "message": ("Validação exige Conferente ≠ Operador da "
+                                        "competência (RFC-009 §4.2/Decisão 4): quem "
+                                        "abriu/calculou não pode validar.")}, 403)
                     ok = cobol_bridge.folha_validar(competencia)
+                    if ok:
+                        _auditoria_folha("validar", current,
+                                         {"competencia": competencia},
+                                         depois={"situacao": "V"})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Competencia validada" if ok else "Erro ao validar"})
                 if parsed.path == "/api/folha/competencia/fechar":
+                    if not competencia:
+                        return self._json({"status": "error", "message": "Competencia obrigatoria"}, 400)
+                    # RFC-009 §4.2/Decisão 4 (separação de funções moderada):
+                    # Fechamento exige Aprovador ≠ Operador da competência.
+                    operador = folha_auditoria.operador_da_competencia(competencia)
+                    usuario = (current or {}).get("usuario") or ""
+                    if operador and operador != "sistema" and operador == usuario:
+                        return self._json({
+                            "status": "error",
+                            "code": "aprovador_igual_operador",
+                            "message": ("Fechamento exige Aprovador ≠ Operador da "
+                                        "competência (RFC-009 §4.2/Decisão 4): quem "
+                                        "abriu/calculou não pode fechar.")}, 403)
+                    regime = _folha_regime_empresa()
                     ok = cobol_bridge.folha_fechar(competencia)
-                    return self._json({"status": "ok" if ok else "error",
-                                       "message": "Competencia fechada" if ok else "Erro ao fechar"})
+                    if not ok:
+                        return self._json({"status": "error", "message": "Erro ao fechar"})
+                    # RFC-014 §4.4/Decisão 4: encargos calculados e consolidados
+                    # no fechamento; lançamentos contábeis idempotentes.
+                    encargos = cobol_bridge.folha_encargos(competencia, regime=regime)
+                    try:
+                        lancamentos = _gerar_lancamentos_encargos(competencia, encargos, regime)
+                    except Exception:
+                        lancamentos = []
+                    _auditoria_folha("fechar", current,
+                                     {"competencia": competencia},
+                                     antes={"situacao": "V"},
+                                     depois={"situacao": "F"},
+                                     tax_table_versions=folha_auditoria.versao_tabela_usada(competencia))
+                    return self._json({
+                        "status": "ok", "message": "Competencia fechada",
+                        "encargos": encargos, "regime": regime,
+                        "lancamentos_contabeis": lancamentos})
                 if parsed.path == "/api/folha/competencia/pagar":
                     if not competencia:
                         return self._json({"status": "error", "message": "Competencia obrigatoria"}, 400)
+                    # RFC-009 §4.2 (separação de funções — Tesouraria):
+                    # quem registra o pagamento não pode ser o Aprovador da
+                    # competência (quem fechou).
+                    aprovador = folha_auditoria.aprovador_da_competencia(competencia)
+                    usuario = (current or {}).get("usuario") or ""
+                    if aprovador and aprovador != "sistema" and aprovador == usuario:
+                        return self._json({
+                            "status": "error",
+                            "code": "tesouraria_igual_aprovador",
+                            "message": ("Pagamento exige Tesouraria ≠ Aprovador da "
+                                        "competência (RFC-009 §4.2/Decisão 4): quem "
+                                        "fechou a competência não pode registrar o "
+                                        "pagamento.")}, 403)
                     ok = cobol_bridge.folha_pagar(competencia, fbody.get("data_pagamento") or "")
+                    if ok:
+                        _auditoria_folha("pagar", current,
+                                         {"competencia": competencia},
+                                         antes={"situacao": "F"},
+                                         depois={"situacao": "P"})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Pagamento registrado" if ok else "Erro ao registrar pagamento"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/folha/contabilizar/gerar":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current or current.get("role") not in ("admin", "instrutor"):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            fbody = dict(body or {})
+            if "x-www-form-urlencoded" in self.headers.get("Content-Type", ""):
+                qs = urllib.parse.parse_qs(raw)
+                fbody = {k: v[0] for k, v in qs.items()}
+            competencia = (fbody.get("competencia") or "").strip()
+            if not competencia:
+                return self._json({"status": "error", "message": "Competencia obrigatoria"}, 400)
+            try:
+                regime = _folha_regime_empresa()
+                encargos = cobol_bridge.folha_encargos(competencia, regime=regime)
+                lancamentos = _gerar_lancamentos_encargos(competencia, encargos, regime)
+                return self._json({"status": "ok", "lancamentos": lancamentos})
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
@@ -5620,18 +8039,52 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     competencia = (fbody.get("competencia") or "").strip()
                     if not competencia:
                         return self._json({"status": "error", "message": "Competencia obrigatoria"}, 400)
-                    return self._json(cobol_bridge.holerite_gerar(competencia))
+                    resp = cobol_bridge.holerite_gerar(competencia)
+                    # COBOL responde {"status":"ok","gerados":N}
+                    _auditoria_folha("gerar_holerites", current,
+                                     {"competencia": competencia},
+                                     depois={"gerados": resp.get("gerados") or 0})
+                    return self._json(resp)
                 if parsed.path == "/api/folha/holerite/pagar":
                     if not fbody.get("id"):
                         return self._json({"status": "error", "message": "ID do holerite obrigatorio"}, 400)
+                    # RFC-009 §4.2 (Tesouraria): quem paga o holerite não pode
+                    # ser o Aprovador da competência a que ele pertence.
+                    hol_comp = ""
+                    try:
+                        hol_comp = str((cobol_bridge.holerite_mostrar(
+                            fbody.get("id")) or {}).get("competencia") or "").strip()
+                    except Exception:
+                        hol_comp = ""
+                    if hol_comp:
+                        aprovador = folha_auditoria.aprovador_da_competencia(hol_comp)
+                        usuario = (current or {}).get("usuario") or ""
+                        if aprovador and aprovador != "sistema" and aprovador == usuario:
+                            return self._json({
+                                "status": "error",
+                                "code": "tesouraria_igual_aprovador",
+                                "message": ("Pagamento exige Tesouraria ≠ Aprovador da "
+                                            "competência (RFC-009 §4.2/Decisão 4): quem "
+                                            "fechou a competência não pode registrar o "
+                                            "pagamento do holerite.")}, 403)
                     ok = cobol_bridge.holerite_pagar(fbody.get("id"),
                                                      fbody.get("data_pagamento") or "")
+                    if ok:
+                        # hol_comp pode ser None quando o holerite não existe
+                        # (a regra acima é liberada de propósito nesse caso).
+                        _auditoria_folha("pagar_holerite", current,
+                                         {"holerite_id": fbody.get("id"),
+                                          "competencia": hol_comp or None},
+                                         depois={"situacao": "P"})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Holerite pago" if ok else "Erro ao pagar holerite"})
                 if parsed.path == "/api/folha/holerite/excluir":
                     if not fbody.get("id"):
                         return self._json({"status": "error", "message": "ID do holerite obrigatorio"}, 400)
                     ok = cobol_bridge.holerite_excluir(fbody.get("id"))
+                    if ok:
+                        _auditoria_folha("excluir_holerite", current,
+                                         {"holerite_id": fbody.get("id")})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Holerite excluido" if ok else "Erro ao excluir holerite"})
                 if parsed.path == "/api/folha/holerite/detalhes/salvar":
@@ -5639,6 +8092,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         return self._json({"status": "error", "message": "ID do holerite obrigatorio"}, 400)
                     ok = cobol_bridge.holerite_obs(fbody.get("id"),
                                                    fbody.get("observacoes") or "")
+                    if ok:
+                        _auditoria_folha("alterar_observacoes", current,
+                                         {"holerite_id": fbody.get("id")})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Observacoes salvas" if ok else "Erro ao salvar observacoes"})
             except Exception as e:
@@ -6063,6 +8519,249 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 row = wms_operations.update_operacao(key, body or {}, usuario=uname)
                 return self._json({"status": "ok", "operacao": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── WMS regras push/pull: CRUD / avaliar / aplicar (RFC-9012) ──
+        if parsed.path == "/api/admin/wms/regras":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode criar regras",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            try:
+                row = wms_rules.create_regra(body or {})
+                return self._json({"status": "ok", "regra": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/admin/wms/regras/apply":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode aplicar sugestões",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            uname = user.get("usuario") or user.get("nome") or ""
+            try:
+                out = wms_rules.wms_rules_apply(
+                    regra_ids=(body or {}).get("regra_ids") or None,
+                    armazem=(body or {}).get("armazem") or None,
+                    usuario=uname,
+                )
+                return self._json({"status": "ok", **out})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/admin/wms/regras/demand":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode resolver demandas",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            uname = user.get("usuario") or user.get("nome") or ""
+            body_d = body or {}
+            try:
+                if body_d.get("aplicar"):
+                    out = wms_rules.wms_rules_pull_demand_apply(
+                        body_d.get("armazem") or "DC-01",
+                        body_d.get("destino") or body_d.get("destino_final"),
+                        body_d.get("itens") or [],
+                        usuario=uname,
+                    )
+                else:
+                    out = wms_rules.wms_rules_pull_demand(
+                        body_d.get("armazem") or "DC-01",
+                        body_d.get("destino") or body_d.get("destino_final"),
+                        body_d.get("itens") or [],
+                    )
+                return self._json({"status": "ok", **out})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/wms/regras/"):
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode editar regras",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            uname = user.get("usuario") or user.get("nome") or ""
+            action = (body or {}).get("action") if isinstance(body, dict) else None
+            try:
+                if action == "delete":
+                    wms_rules.delete_regra(key)
+                    return self._json({"status": "ok", "message": "Regra excluída"})
+                if action in ("ativar", "pausar"):
+                    row = wms_rules.set_ativo(
+                        key,
+                        action == "ativar",
+                        motivo=(body or {}).get("motivo") or "",
+                    )
+                    return self._json({"status": "ok", "regra": row})
+                row = wms_rules.update_regra(key, body or {})
+                return self._json({"status": "ok", "regra": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── WMS rotas: CRUD / locais padrão / devolução de aluguel (RFC-9013) ──
+        if parsed.path == "/api/admin/wms/rotas":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode criar rotas",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            try:
+                row = wms_routes.create_rota(body or {})
+                return self._json({"status": "ok", "rota": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/admin/wms/rotas/locais-padrao":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode editar locais padrão",
+                }, 403)
+            body_d = body or {}
+            try:
+                if (body_d or {}).get("action") == "delete":
+                    wms_routes.delete_local_padrao(body_d.get("produto_id"))
+                    return self._json({"status": "ok", "message": "Local padrão removido"})
+                out = wms_routes.set_local_padrao(
+                    body_d.get("produto_id"),
+                    body_d.get("armazem") or "DC-01",
+                    body_d.get("localizacao"),
+                )
+                return self._json({"status": "ok", **out})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/admin/wms/rotas/devolucao-aluguel":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode gerar devoluções",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            uname = user.get("usuario") or user.get("nome") or ""
+            body_d = body or {}
+            try:
+                out = wms_routes.wms_routes_devolucao_aluguel(
+                    body_d.get("armazem") or "DC-01",
+                    body_d.get("produto_id"),
+                    body_d.get("qtd"),
+                    rota_id=body_d.get("rota_id") or None,
+                    local_atual=body_d.get("local_atual") or None,
+                    destino_final=body_d.get("destino_final") or None,
+                    usuario=uname,
+                )
+                return self._json({"status": "ok", **out})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/wms/rotas/") and parsed.path.rstrip("/").endswith("/gerar-regras"):
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode gerar regras",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            uname = user.get("usuario") or user.get("nome") or ""
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-2])
+            try:
+                out = wms_routes.wms_routes_gerar_regras(key, usuario=uname)
+                return self._json({"status": "ok", **out})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/wms/rotas/"):
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode editar rotas",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            uname = user.get("usuario") or user.get("nome") or ""
+            action = (body or {}).get("action") if isinstance(body, dict) else None
+            try:
+                if action == "delete":
+                    wms_routes.delete_rota(key)
+                    return self._json({"status": "ok", "message": "Rota excluída"})
+                if action in ("ativar", "pausar"):
+                    row = wms_routes.set_ativo(
+                        key,
+                        action == "ativar",
+                        motivo=(body or {}).get("motivo") or "",
+                    )
+                    return self._json({"status": "ok", "rota": row})
+                row = wms_routes.update_rota(key, body or {})
+                return self._json({"status": "ok", "rota": row})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── WMS aluguel: locações / alugáveis / job de vencidas (RFC-9014) ──
+        if parsed.path == "/api/admin/wms/rental/locacoes":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode criar locações",
+                }, 403)
+            try:
+                row = wms_rental.create_locacao(body or {})
+                return self._json({"status": "ok", "locacao": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/admin/wms/rental/gerar-vencidas":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode gerar devoluções",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            uname = user.get("usuario") or user.get("nome") or ""
+            try:
+                out = wms_rental.gerar_devolucoes_vencidas(usuario=uname)
+                return self._json({"status": "ok", **out})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/admin/wms/rental/produtos-alugaveis":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode editar produtos alugáveis",
+                }, 403)
+            body_d = body or {}
+            try:
+                out = wms_rental.set_alugavel(body_d.get("produto_id"), bool(body_d.get("alugavel")))
+                return self._json({"status": "ok", **out})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/wms/rental/locacoes/"):
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode editar locações",
+                }, 403)
+            action = (body or {}).get("action") if isinstance(body, dict) else None
+            try:
+                if action == "delete":
+                    wms_rental.delete_locacao(key)
+                    return self._json({"status": "ok", "message": "Locação excluída"})
+                if action == "status":
+                    row = wms_rental.set_status(key, (body or {}).get("status"), nota=(body or {}).get("nota") or "")
+                    return self._json({"status": "ok", "locacao": row})
+                row = wms_rental.update_locacao(key, body or {})
+                return self._json({"status": "ok", "locacao": row})
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
@@ -7299,6 +9998,10 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if body.get("action") == "update":
                     cobol_bridge.produtos_alterar(pid, body)
                     return self._json({"status": "ok", "message": "Produto atualizado"})
+                if body.get("action") == "delete":
+                    if not cobol_bridge.produtos_excluir(pid):
+                        return self._json({"status": "error", "message": "Produto não encontrado ou falha na exclusão"}, 404)
+                    return self._json({"status": "ok", "message": "Produto excluído"})
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
@@ -7318,12 +10021,13 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             eid = parsed.path.split("/")[-1]
             try:
                 fid = int(eid)
-                if body.get("action") == "toggle":
-                    cobol_bridge.fornecedores_alterar(fid, {"nome": ""})
-                    return self._json({"status": "ok", "message": "Fornecedor atualizado"})
                 if body.get("action") == "update":
                     cobol_bridge.fornecedores_alterar(fid, body)
                     return self._json({"status": "ok", "message": "Fornecedor atualizado"})
+                if body.get("action") == "delete":
+                    if not cobol_bridge.fornecedores_excluir(fid):
+                        return self._json({"status": "error", "message": "Fornecedor não encontrado"}, 404)
+                    return self._json({"status": "ok", "message": "Fornecedor excluído"})
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
@@ -7806,8 +10510,105 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 500)
 
-        # ── CRUD Genérico: Categorias, Marcas, Fabricantes, Contatos, Partners (JSON) ──
-        for cfg in [self._crud_categorias, self._crud_marcas, self._crud_fabricantes, self._crud_contatos, self._crud_partners]:
+        # ── Categorias (CRUD COBOL — gerir_categorias.cbl / dados/categorias.dat) ──
+        if parsed.path == "/api/admin/categorias":
+            if self.command == "GET":
+                if not self._is_admin(crud_token):
+                    return self._json({"status": "error", "message": "Acesso negado"}, 403)
+                return self._json({"status": "ok", "categorias": cobol_bridge.categorias_listar()})
+            try:
+                pid = cobol_bridge.categorias_incluir(body)
+                return self._json({"status": "ok", "id": str(pid), "message": "Criado com sucesso"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+        if parsed.path.startswith("/api/admin/categorias/"):
+            eid = parsed.path.split("/")[-1]
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                if body.get("action") == "toggle":
+                    cats = cobol_bridge.categorias_listar()
+                    target = next((c for c in cats if str(c.get("id")) == str(eid)), None)
+                    if target is None:
+                        return self._json({"status": "error", "message": "Não encontrado"}, 404)
+                    cobol_bridge.categorias_alterar(eid, {"ativo": target.get("ativo") is not False and False})
+                    return self._json({"status": "ok", "ativo": target.get("ativo") is not False and False})
+                if body.get("action") == "update":
+                    ok = cobol_bridge.categorias_alterar(eid, body)
+                    if not ok:
+                        return self._json({"status": "error", "message": "Já existe um registro com esse nome ou não encontrado"}, 400)
+                    return self._json({"status": "ok", "message": "Atualizado com sucesso"})
+                if body.get("action") == "delete":
+                    if not cobol_bridge.categorias_excluir(eid):
+                        return self._json({"status": "error", "message": "Não encontrado"}, 404)
+                    return self._json({"status": "ok", "message": "Excluído com sucesso"})
+                return self._json({"status": "error", "message": "Ação inválida"}, 400)
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Variantes (CRUD COBOL — gerir_variantes.cbl / dados/variantes.dat) ──
+        if parsed.path == "/api/admin/variantes":
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                vid = cobol_bridge.variantes_incluir(body)
+                return self._json({"status": "ok", "id": str(vid), "message": "Criado com sucesso"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+        if parsed.path.startswith("/api/admin/variantes/"):
+            eid = parsed.path.split("/")[-1]
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                if body.get("action") == "toggle":
+                    vars_ = cobol_bridge.variantes_listar()
+                    target = next((v for v in vars_ if str(v.get("id")) == str(eid)), None)
+                    if target is None:
+                        return self._json({"status": "error", "message": "Não encontrado"}, 404)
+                    cobol_bridge.variantes_alterar(eid, {"ativo": target.get("ativo") is not False and False})
+                    return self._json({"status": "ok", "ativo": target.get("ativo") is not False and False})
+                if body.get("action") == "update":
+                    ok = cobol_bridge.variantes_alterar(eid, body)
+                    if not ok:
+                        return self._json({"status": "error", "message": "Variante não encontrada"}, 400)
+                    return self._json({"status": "ok", "message": "Atualizado com sucesso"})
+                if body.get("action") == "delete":
+                    if not cobol_bridge.variantes_excluir(eid):
+                        return self._json({"status": "error", "message": "Não encontrado"}, 404)
+                    return self._json({"status": "ok", "message": "Excluído com sucesso"})
+                return self._json({"status": "error", "message": "Ação inválida"}, 400)
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── Atributos de Produtos (CRUD COBOL — gerir_atributos.cbl / dados/atributos.dat) ──
+        if parsed.path == "/api/admin/atributos":
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                aid = cobol_bridge.atributos_incluir(body)
+                return self._json({"status": "ok", "id": str(aid), "message": "Atributo criado"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+        if parsed.path.startswith("/api/admin/atributos/"):
+            eid = parsed.path.split("/")[-1]
+            if not self._is_admin(crud_token):
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            try:
+                if body.get("action") == "update":
+                    ok = cobol_bridge.atributos_alterar(eid, body)
+                    if not ok:
+                        return self._json({"status": "error", "message": "Atributo não encontrado"}, 400)
+                    return self._json({"status": "ok", "message": "Atualizado com sucesso"})
+                if body.get("action") == "delete":
+                    if not cobol_bridge.atributos_excluir(eid):
+                        return self._json({"status": "error", "message": "Não encontrado"}, 404)
+                    return self._json({"status": "ok", "message": "Excluído com sucesso"})
+                return self._json({"status": "error", "message": "Ação inválida"}, 400)
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── CRUD Genérico: Marcas, Fabricantes, Contatos, Partners (JSON) ──
+        for cfg in [self._crud_marcas, self._crud_fabricantes, self._crud_contatos, self._crud_partners]:
             result = cfg(parsed.path, body, crud_token)
             if result is not None:
                 return result
@@ -7847,10 +10648,16 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
+        # RFC-009 §5.1.3 — cadastros mestres de RH (departamentos, cargos e
+        # eventos) são auditados na trilha imutável, como funcionários.
         if parsed.path == "/api/departamento/incluir":
             try:
                 fbody = self._form_body(raw) or {}
                 did = cobol_bridge.departamento_incluir(fbody)
+                _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                 {"departamento_id": did, "tipo": "departamento",
+                                  "acao": "incluir"},
+                                 depois={"descricao": fbody.get("descricao", "")})
                 return self._json({"status": "ok", "id": did, "message": "Departamento criado"})
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
@@ -7863,6 +10670,11 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     return self._json({"status": "error", "message": "id é obrigatório"}, 400)
                 ok = cobol_bridge.departamento_alterar(did, fbody)
                 if ok:
+                    _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                     {"departamento_id": did, "tipo": "departamento",
+                                      "acao": "alterar"},
+                                     depois={k: v for k, v in fbody.items()
+                                             if k != "id"})
                     return self._json({"status": "ok", "message": "Departamento atualizado"})
                 return self._json({"status": "error", "message": "Departamento não encontrado"}, 404)
             except Exception as e:
@@ -7876,6 +10688,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     return self._json({"status": "error", "message": "id é obrigatório"}, 400)
                 ok = cobol_bridge.departamento_excluir(did)
                 if ok:
+                    _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                     {"departamento_id": did, "tipo": "departamento",
+                                      "acao": "excluir"})
                     return self._json({"status": "ok", "message": "Departamento inativado"})
                 return self._json({"status": "error", "message": "Departamento não encontrado"}, 404)
             except Exception as e:
@@ -7885,6 +10700,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 fbody = self._form_body(raw) or {}
                 cid = cobol_bridge.cargo_incluir(fbody)
+                _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                 {"cargo_id": cid, "tipo": "cargo", "acao": "incluir"},
+                                 depois={"descricao": fbody.get("descricao", "")})
                 return self._json({"status": "ok", "id": cid, "message": "Cargo criado"})
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
@@ -7897,6 +10715,10 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     return self._json({"status": "error", "message": "id é obrigatório"}, 400)
                 ok = cobol_bridge.cargo_alterar(cid, fbody)
                 if ok:
+                    _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                     {"cargo_id": cid, "tipo": "cargo", "acao": "alterar"},
+                                     depois={k: v for k, v in fbody.items()
+                                             if k != "id"})
                     return self._json({"status": "ok", "message": "Cargo atualizado"})
                 return self._json({"status": "error", "message": "Cargo não encontrado"}, 404)
             except Exception as e:
@@ -7910,6 +10732,8 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     return self._json({"status": "error", "message": "id é obrigatório"}, 400)
                 ok = cobol_bridge.cargo_excluir(cid)
                 if ok:
+                    _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                     {"cargo_id": cid, "tipo": "cargo", "acao": "excluir"})
                     return self._json({"status": "ok", "message": "Cargo inativado"})
                 return self._json({"status": "error", "message": "Cargo não encontrado"}, 404)
             except Exception as e:
@@ -7934,12 +10758,23 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             try:
                 if parsed.path == "/api/evento/incluir":
                     eid = cobol_bridge.evento_incluir(fbody)
+                    # RFC-009 §5.1.3 — cadastro mestre de RH auditado.
+                    _auditoria_folha("alterar_cadastro", current,
+                                     {"evento_id": eid, "tipo": "evento",
+                                      "acao": "incluir"},
+                                     depois={"descricao": fbody.get("descricao", "")})
                     return self._json({"status": "ok", "id": eid, "message": "Evento criado"})
                 if parsed.path == "/api/evento/alterar":
                     eid = fbody.get("id")
                     if eid in (None, ""):
                         return self._json({"status": "error", "message": "ID do evento obrigatorio"}, 400)
                     ok = cobol_bridge.evento_alterar(eid, fbody)
+                    if ok:
+                        _auditoria_folha("alterar_cadastro", current,
+                                         {"evento_id": eid, "tipo": "evento",
+                                          "acao": "alterar"},
+                                         depois={k: v for k, v in fbody.items()
+                                                 if k != "id"})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Evento atualizado" if ok else "Nao encontrado"})
                 if parsed.path == "/api/evento/excluir":
@@ -7947,6 +10782,10 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     if eid in (None, ""):
                         return self._json({"status": "error", "message": "ID do evento obrigatorio"}, 400)
                     ok = cobol_bridge.evento_excluir(eid)
+                    if ok:
+                        _auditoria_folha("alterar_cadastro", current,
+                                         {"evento_id": eid, "tipo": "evento",
+                                          "acao": "excluir"})
                     return self._json({"status": "ok" if ok else "error",
                                        "message": "Evento inativado" if ok else "Nao encontrado"})
                 if parsed.path == "/api/eventos/seed":
@@ -7959,7 +10798,25 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
         if parsed.path == "/api/funcionario/incluir":
             try:
                 fbody = self._form_body(raw) or {}
+                # RFC-003 §2.3.3: exame admissional vencido bloqueia a admissão.
+                exame_venc = (fbody.get("exame_adm_venc") or "").strip()
+                if exame_venc:
+                    data_adm = (fbody.get("data_adm") or "").strip()
+                    ref = data_adm or datetime.now().strftime("%Y-%m-%d")
+                    try:
+                        if exame_venc < ref:
+                            return self._json({
+                                "status": "error",
+                                "message": ("Exame admissional vencido na admissão "
+                                            "bloqueia o cadastro (RFC-003 §2.3.3)")}, 400)
+                    except Exception:
+                        pass
                 fid = cobol_bridge.funcionario_incluir(fbody)
+                # RFC-009 §5.1.3 — auditoria obrigatória de cadastro.
+                _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                 {"funcionario_id": fid, "tipo": "funcionario",
+                                  "acao": "incluir"},
+                                 depois={"nome": fbody.get("nome", "")})
                 return self._json({"status": "ok", "id": fid, "message": "Funcionário criado"})
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
@@ -7972,6 +10829,11 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     return self._json({"status": "error", "message": "id é obrigatório"}, 400)
                 ok = cobol_bridge.funcionario_alterar(fid, fbody)
                 if ok:
+                    _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                     {"funcionario_id": fid, "tipo": "funcionario",
+                                      "acao": "alterar"},
+                                     depois={k: v for k, v in fbody.items()
+                                             if k != "id"})
                     return self._json({"status": "ok", "message": "Funcionário atualizado"})
                 return self._json({"status": "error", "message": "Funcionário não encontrado"}, 404)
             except Exception as e:
@@ -7985,8 +10847,114 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     return self._json({"status": "error", "message": "id é obrigatório"}, 400)
                 ok = cobol_bridge.funcionario_excluir(fid)
                 if ok:
+                    _auditoria_folha("alterar_cadastro", self._quem_auditoria(),
+                                     {"funcionario_id": fid, "tipo": "funcionario",
+                                      "acao": "excluir"})
                     return self._json({"status": "ok", "message": "Funcionário excluído"})
                 return self._json({"status": "error", "message": "Funcionário não encontrado"}, 404)
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # RFC-002 §3.3/Decisão 1 — histórico de salários com vigência
+        if parsed.path == "/api/funcionario/salario/incluir":
+            try:
+                fbody = self._form_body(raw) or {}
+                fid = fbody.get("funcionario_id")
+                salario = (fbody.get("salario") or "").strip()
+                data_inicio = (fbody.get("data_inicio") or "").strip()
+                if fid in (None, "") or not salario or not data_inicio:
+                    return self._json({"status": "error",
+                                       "message": "funcionario_id, salario e data_inicio são obrigatórios"}, 400)
+                # RFC-002 §3.4: não pode retroagir vigência sobre competência
+                # fechada/paga que já tenha processado este funcionário.
+                # Normaliza "YYYY/MM" e "YYYY-MM-DD" para "YYYYMM" (separadores
+                # - e / não devem interferir na comparação).
+                novo_ym = data_inicio.replace("-", "").replace("/", "")[:6]
+                for comp in cobol_bridge.folha_listar():
+                    if comp.get("situacao") not in ("F", "P"):
+                        continue
+                    comp_ym = comp.get("competencia", "").replace("/", "").replace("-", "")[:6]
+                    if comp_ym >= novo_ym:
+                        return self._json({
+                            "status": "error",
+                            "message": ("Vigência retroativa bloqueada: competência "
+                                        + comp.get("competencia", "") + " já está fechada/paga (RFC-002 §3.4)")}, 400)
+                hid = cobol_bridge.salario_incluir(fid, salario, data_inicio)
+                return self._json({"status": "ok", "id": hid, "message": "Salário registrado com vigência"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/funcionario/salario/listar":
+            try:
+                fbody = self._form_body(raw) or {}
+                fid = fbody.get("funcionario_id") or urllib.parse.parse_qs(parsed.query).get("funcionario_id", [""])[0]
+                return self._json({"salarios": cobol_bridge.salarios_listar(fid)})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/funcionario/salario/vigente":
+            try:
+                fbody = self._form_body(raw) or {}
+                fid = fbody.get("funcionario_id") or urllib.parse.parse_qs(parsed.query).get("funcionario_id", [""])[0]
+                comp = fbody.get("competencia") or urllib.parse.parse_qs(parsed.query).get("competencia", [""])[0]
+                if not fid or not comp:
+                    return self._json({"status": "error",
+                                       "message": "funcionario_id e competencia são obrigatórios"}, 400)
+                return self._json(cobol_bridge.salario_vigente(fid, comp))
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # RFC-016/RFC-002 §3.3 — movimentações contratuais com vigência
+        # (cargo | departamento), independentes entre si.
+        if parsed.path == "/api/funcionario/movimentacao/incluir":
+            try:
+                fbody = self._form_body(raw) or {}
+                fid = fbody.get("funcionario_id")
+                tipo = (fbody.get("tipo") or "").strip().lower()
+                valor = (fbody.get("valor_referencia") or "").strip()
+                data_inicio = (fbody.get("data_inicio") or "").strip()
+                if fid in (None, "") or not valor or not data_inicio:
+                    return self._json({"status": "error",
+                                       "message": "funcionario_id, valor_referencia e data_inicio são obrigatórios"}, 400)
+                if tipo not in ("cargo", "departamento"):
+                    return self._json({"status": "error",
+                                       "message": "tipo deve ser cargo ou departamento"}, 400)
+                # RFC-002 §3.4: não pode retroagir vigência sobre competência
+                # fechada/paga que já tenha processado este funcionário.
+                novo_ym = data_inicio.replace("-", "").replace("/", "")[:6]
+                for comp in cobol_bridge.folha_listar():
+                    if comp.get("situacao") not in ("F", "P"):
+                        continue
+                    comp_ym = comp.get("competencia", "").replace("/", "").replace("-", "")[:6]
+                    if comp_ym >= novo_ym:
+                        return self._json({
+                            "status": "error",
+                            "message": ("Vigência retroativa bloqueada: competência "
+                                        + comp.get("competencia", "") + " já está fechada/paga (RFC-002 §3.4)")}, 400)
+                hid = cobol_bridge.movimentacao_incluir(fid, tipo, valor, data_inicio)
+                return self._json({"status": "ok", "id": hid, "message": "Movimentação registrada com vigência"})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/funcionario/movimentacao/listar":
+            try:
+                fbody = self._form_body(raw) or {}
+                fid = fbody.get("funcionario_id") or urllib.parse.parse_qs(parsed.query).get("funcionario_id", [""])[0]
+                tipo = fbody.get("tipo") or urllib.parse.parse_qs(parsed.query).get("tipo", ["cargo"])[0]
+                return self._json({"movimentacoes": cobol_bridge.movimentacoes_listar(fid, tipo)})
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path == "/api/funcionario/movimentacao/vigente":
+            try:
+                fbody = self._form_body(raw) or {}
+                fid = fbody.get("funcionario_id") or urllib.parse.parse_qs(parsed.query).get("funcionario_id", [""])[0]
+                tipo = fbody.get("tipo") or urllib.parse.parse_qs(parsed.query).get("tipo", ["cargo"])[0]
+                comp = fbody.get("competencia") or urllib.parse.parse_qs(parsed.query).get("competencia", [""])[0]
+                if not fid or not comp:
+                    return self._json({"status": "error",
+                                       "message": "funcionario_id e competencia são obrigatórios"}, 400)
+                return self._json(cobol_bridge.movimentacao_vigente(fid, tipo, comp))
             except Exception as e:
                 return self._json({"status": "error", "message": str(e)}, 400)
 
@@ -8081,10 +11049,16 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     entry[field] = val if not isinstance(default, bool) else val
                 else:
                     entry[field] = copy.deepcopy(default) if isinstance(default, (list, dict)) else default
-            if not entry.get(schema.get("_required", "nome")):
+            required = schema.get("_required", "nome")
+            if not str(entry.get(required) or "").strip():
                 return self._json({"status": "error", "message": "Nome é obrigatório"}, 400)
             data = load_json(data_file)
             eid = str(uuid.uuid4())[:8]
+            # Duplicata: compara nome ignorando caixa/espaços
+            nome_novo = str(entry.get(required) or "").strip().lower()
+            for e in data.values():
+                if str(e.get(required) or "").strip().lower() == nome_novo:
+                    return self._json({"status": "error", "message": "Já existe um registro com esse nome"}, 400)
             data[eid] = entry
             save_json(data_file, data)
             return self._json({"status": "ok", "id": eid, "message": "Criado com sucesso"})
@@ -8102,12 +11076,24 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 save_json(data_file, data)
                 return self._json({"status": "ok", "ativo": data[eid]["ativo"]})
             if body.get("action") == "update":
+                required = schema.get("_required", "nome")
+                nome_atual = str(data[eid].get(required) or "").strip().lower()
+                if required in body and not str(body.get(required) or "").strip():
+                    return self._json({"status": "error", "message": "Nome é obrigatório"}, 400)
                 for field in schema:
                     if field.startswith("_"):
                         continue
                     val = body.get(field)
                     if val is not None:
                         data[eid][field] = val
+                # Duplicata no update: ignora o próprio registro
+                nome_novo = str(data[eid].get(required) or "").strip().lower()
+                if nome_novo and nome_novo != nome_atual:
+                    for oid, e in data.items():
+                        if oid == eid:
+                            continue
+                        if str(e.get(required) or "").strip().lower() == nome_novo:
+                            return self._json({"status": "error", "message": "Já existe um registro com esse nome"}, 400)
                 save_json(data_file, data)
                 return self._json({"status": "ok", "message": "Atualizado com sucesso"})
             return self._json({"status": "error", "message": "Ação inválida"}, 400)
@@ -8272,6 +11258,18 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if u.get("token") == token:
                 return u
         return None
+
+    def _quem_auditoria(self):
+        """Usuário atual para a trilha de auditoria (RFC-009 §5) — sem exigir
+        role específica: handlers de cadastro não autenticam explicitamente.
+        Retorna None quando não há token (ação vira 'sistema')."""
+        try:
+            token = self.headers.get("X-Auth-Token", "")
+            if not token:
+                return None
+            return self._find_user(token, load_users())
+        except Exception:
+            return None
 
     def _vendas_b2b_post(self, body, token):
         users = load_users()
@@ -8809,6 +11807,16 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
         self.end_headers()
         self.wfile.write(json.dumps(data, ensure_ascii=False).encode())
+        return data  # CRUD loop usa `if result is not None`; sem isso ele cai no 404 e duplica a resposta
+
+    def _html(self, content, status=200):
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.end_headers()
+        if isinstance(content, str):
+            content = content.encode("utf-8")
+        self.wfile.write(content)
 
     def do_OPTIONS(self):
         self.send_response(204)
@@ -8835,6 +11843,13 @@ def seed_empresas():
 if __name__ == "__main__":
     os.chdir(BASE_DIR)
     seed_empresas()
+    # WMS aluguel: marca locações com prazo estourado (job reativo do boot)
+    try:
+        _rental_due = wms_rental.check_vencidos()
+        if _rental_due.get("marcadas"):
+            print(f"   ⚠ WMS Aluguel: {len(_rental_due['marcadas'])} locação(ões) marcada(s) como vencida(s)")
+    except Exception:
+        pass
     server = http.server.ThreadingHTTPServer((HOST, PORT), AuthHandler)
     print(f"✦ BECRP Dev Server")
     print(f"   → Login:  http://localhost:{PORT}/")

@@ -35,10 +35,10 @@
        01 prod-reg.
            05 pr-id          PIC 9(6).
            05 pr-nome        PIC X(50).
-           05 pr-preco       PIC 9(7)V99.
-           05 pr-preco-custo PIC 9(7)V99.
-           05 pr-stock       PIC 9(6).
-           05 pr-margem      PIC 9(3)V99.
+           05 pr-preco       PIC S9(7)V99 COMP-3.
+           05 pr-preco-custo PIC S9(7)V99 COMP-3.
+           05 pr-stock       PIC S9(6) COMP-3.
+           05 pr-margem      PIC S9(3)V99 COMP-3.
            05 pr-ativo       PIC X.
            05 pr-codigo-barras PIC X(14).
            05 pr-categoria   PIC X(20).
@@ -50,7 +50,7 @@
            05 pr-filial-id   PIC 9(3).
 
        WORKING-STORAGE SECTION.
-       01 ws-acao            PIC X(15).
+       01 ws-acao            PIC X(20).
        01 ws-file-status     PIC X(2).
        01 ws-prod-status     PIC X(2).
        01 ws-encontrou       PIC X(1).

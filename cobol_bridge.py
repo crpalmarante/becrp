@@ -8,6 +8,7 @@ import subprocess
 import sys
 import threading
 import uuid
+from datetime import datetime, timedelta
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 COBOL_BIN = os.path.join(BASE_DIR, "cobol", "bin")
@@ -80,10 +81,14 @@ def fornecedores_incluir(dados):
         "NOME": dados.get("nome", ""),
         "CNPJ": dados.get("cnpj", ""),
         "ENDERECO": dados.get("endereco", ""),
+        "CEP": dados.get("cep", ""),
         "TELEFONE": dados.get("telefone", ""),
         "EMAIL": dados.get("email", ""),
         "IE": dados.get("ie", ""),
         "INSCRICAO_MUN": dados.get("inscricao_mun", ""),
+        "CNAE": dados.get("cnae", ""),
+        "CNAE_DESC": dados.get("cnae_desc", ""),
+        "LOGO": dados.get("logo", ""),
     }
     if dados.get("id") not in (None, ""):
         env["ID"] = str(dados.get("id"))
@@ -92,7 +97,8 @@ def fornecedores_incluir(dados):
         line = line.strip()
         if line.isdigit():
             return int(line)
-    raise Exception("Erro ao criar fornecedor: " + out.strip())
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), "")
+    raise Exception(msg if msg else "Erro ao criar fornecedor: " + out.strip())
 
 def fornecedores_alterar(id_val, dados):
     env = {
@@ -101,17 +107,312 @@ def fornecedores_alterar(id_val, dados):
         "NOME": dados.get("nome", ""),
         "CNPJ": dados.get("cnpj", ""),
         "ENDERECO": dados.get("endereco", ""),
+        "CEP": dados.get("cep", ""),
         "TELEFONE": dados.get("telefone", ""),
         "EMAIL": dados.get("email", ""),
         "IE": dados.get("ie", ""),
         "INSCRICAO_MUN": dados.get("inscricao_mun", ""),
+        "CNAE": dados.get("cnae", ""),
+        "CNAE_DESC": dados.get("cnae_desc", ""),
+        "LOGO": dados.get("logo", ""),
+        "LOGO_CLEAR": "S" if dados.get("logo") == "" else "",
     }
     out, _ = _run("gerir_fornecedores", env)
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), "")
+    if msg:
+        raise Exception(msg)
     return "OK" in out
 
 def fornecedores_excluir(id_val):
     out, _ = _run("gerir_fornecedores", {"ACAO": "excluir", "ID": str(id_val)})
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), "")
+    if msg:
+        raise Exception(msg)
     return "OK" in out
+
+# ── Categorias ──────────────────────────────────────────────
+# Fonte da verdade: dados/categorias.dat (programa gerir_categorias.cbl).
+
+
+def categorias_listar():
+    out, _ = _run("gerir_categorias", {"ACAO": "listar"})
+    try:
+        data = json.loads(out)
+        return data.get("categorias", [])
+    except json.JSONDecodeError:
+        return []
+
+
+def categorias_incluir(dados):
+    env = {
+        "ACAO": "incluir",
+        "NOME": dados.get("nome", ""),
+        "DESCRICAO": dados.get("descricao", ""),
+        "ATIVO": "S" if dados.get("ativo", True) is not False else "N",
+    }
+    pai = dados.get("pai_id", dados.get("pai", 0))
+    if pai not in (None, "", 0, "0"):
+        env["PAI_ID"] = str(pai)
+    if dados.get("id") not in (None, ""):
+        env["ID"] = str(dados.get("id"))
+    out, _ = _run("gerir_categorias", env)
+    for line in out.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            return int(line)
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), out.strip())
+    raise Exception(msg)
+
+
+def categorias_alterar(id_val, dados):
+    env = {
+        "ACAO": "alterar",
+        "ID": str(id_val),
+        "NOME": dados.get("nome", ""),
+        "DESCRICAO": dados.get("descricao", ""),
+    }
+    if "ativo" in dados:
+        env["ATIVO"] = "S" if dados["ativo"] is not False else "N"
+    if "pai_id" in dados or "pai" in dados:
+        pai = dados.get("pai_id", dados.get("pai"))
+        if pai in (None, "", 0, "0"):
+            env["PAI_ID"] = "0"
+        else:
+            env["PAI_ID"] = str(pai)
+    out, _ = _run("gerir_categorias", env)
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), "")
+    if msg:
+        raise Exception(msg)
+    return "OK" in out
+
+
+def categorias_excluir(id_val):
+    out, _ = _run("gerir_categorias", {"ACAO": "excluir", "ID": str(id_val)})
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), "")
+    if msg:
+        raise Exception(msg)
+    return "OK" in out
+
+
+# ── Variantes ───────────────────────────────────────────────
+# Fonte da verdade: dados/variantes.dat (programa gerir_variantes.cbl).
+
+
+def variantes_listar():
+    out, _ = _run("gerir_variantes", {"ACAO": "listar"})
+    try:
+        data = json.loads(out)
+        return data.get("variantes", [])
+    except json.JSONDecodeError:
+        return []
+
+
+def variantes_incluir(dados):
+    env = {
+        "ACAO": "incluir",
+        "PRODUTO_ID": str(dados.get("produto_id", dados.get("produto", ""))),
+        "NOME": dados.get("nome", ""),
+        "ATRIBUTOS": dados.get("atributos", ""),
+        "CODIGO": dados.get("codigo", ""),
+        "PRECO": str(dados.get("preco", "") or ""),
+        "ATIVO": "S" if dados.get("ativo", True) is not False else "N",
+    }
+    if dados.get("id") not in (None, ""):
+        env["ID"] = str(dados.get("id"))
+    out, _ = _run("gerir_variantes", env)
+    for line in out.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            return int(line)
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), out.strip())
+    raise Exception(msg)
+
+
+def variantes_alterar(id_val, dados):
+    env = {
+        "ACAO": "alterar",
+        "ID": str(id_val),
+        "PRODUTO_ID": str(dados.get("produto_id", dados.get("produto", "")) or ""),
+        "NOME": dados.get("nome", ""),
+        "ATRIBUTOS": dados.get("atributos", ""),
+        "CODIGO": dados.get("codigo", ""),
+        "PRECO": str(dados.get("preco", "") or ""),
+        "CODIGO_CLEAR": "S" if dados.get("codigo", "") == "" and "codigo" in dados else "",
+        "ATRIBUTOS_CLEAR": "S" if dados.get("atributos", "") == "" and "atributos" in dados else "",
+    }
+    if "ativo" in dados:
+        env["ATIVO"] = "S" if dados["ativo"] is not False else "N"
+    out, _ = _run("gerir_variantes", env)
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), "")
+    if msg:
+        raise Exception(msg)
+    return "OK" in out
+
+
+def variantes_excluir(id_val):
+    out, _ = _run("gerir_variantes", {"ACAO": "excluir", "ID": str(id_val)})
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), "")
+    if msg:
+        raise Exception(msg)
+    return "OK" in out
+
+
+def sync_variantes_for_produto(produto_id, variacoes, preco_base=0):
+    """Sincroniza variantes inline do formulário com variantes.dat COBOL.
+
+    Para cada variação do formulário, cria ou atualiza o registro
+    correspondente em variantes.dat. Desativa variantes COBOL que não
+    existem mais no formulário (soft-delete).
+    """
+    produto_id = int(produto_id)
+    preco_base = float(preco_base or 0)
+
+    # 1. Carregar variantes existentes no COBOL para este produto
+    existing = variantes_listar()
+    existing_for_product = [v for v in existing
+                            if v.get("produto_id") == produto_id]
+
+    # Mapear por nome normalizado
+    existing_by_name = {}
+    for v in existing_for_product:
+        key = (v.get("nome") or "").strip().lower()
+        if key:
+            existing_by_name[key] = v
+
+    used_names = set()
+
+    for var in (variacoes or []):
+        atributo = (var.get("atributo") or "").strip()
+        valor = (var.get("valor") or "").strip()
+        if atributo and valor:
+            nome = f"{atributo}: {valor}"
+        elif valor:
+            nome = valor
+        elif atributo:
+            nome = atributo
+        else:
+            continue
+
+        tipo_preco = var.get("tipo_preco") or "delta"
+        valor_preco = float(var.get("valor_preco") or 0)
+        if tipo_preco == "absoluto":
+            preco_final = valor_preco
+        else:
+            preco_final = preco_base + valor_preco
+
+        codigo = (var.get("ean") or "").strip()
+        ativo = var.get("ativo", True)
+        nome_norm = nome.strip().lower()
+        used_names.add(nome_norm)
+
+        if nome_norm in existing_by_name:
+            cobol_var = existing_by_name[nome_norm]
+            try:
+                variantes_alterar(cobol_var["id"], {
+                    "nome": nome,
+                    "preco": preco_final,
+                    "codigo": codigo,
+                    "ativo": ativo,
+                })
+            except Exception:
+                pass
+        else:
+            try:
+                vid = variantes_incluir({
+                    "produto_id": produto_id,
+                    "nome": nome,
+                    "preco": preco_final,
+                    "codigo": codigo,
+                    "ativo": ativo,
+                })
+                if vid:
+                    existing_by_name[nome_norm] = {"id": vid, "nome": nome}
+            except Exception:
+                pass
+
+    # Desativar variantes COBOL que não estão no formulário
+    for v in existing_for_product:
+        key = (v.get("nome") or "").strip().lower()
+        if key and key not in used_names and v.get("ativo", True):
+            try:
+                variantes_alterar(v["id"], {"ativo": False})
+            except Exception:
+                pass
+
+
+def variantes_listar_por_produto(produto_id):
+    """Lista variantes COBOL de um produto específico."""
+    all_v = variantes_listar()
+    pid = int(produto_id)
+    return [v for v in all_v if v.get("produto_id") == pid]
+
+
+# ── Atributos de Produtos ────────────────────────────────────
+
+def atributos_listar():
+    out, _ = _run("gerir_atributos", {"ACAO": "listar"})
+    try:
+        data = json.loads(out)
+        return data.get("atributos", [])
+    except json.JSONDecodeError:
+        return []
+
+
+def atributos_listar_por_produto(produto_id):
+    out, _ = _run("gerir_atributos", {
+        "ACAO": "listar-por-produto",
+        "PRODUTO_ID": str(produto_id),
+    })
+    try:
+        data = json.loads(out)
+        return data.get("atributos", [])
+    except json.JSONDecodeError:
+        return []
+
+
+def atributos_incluir(dados):
+    env = {
+        "ACAO": "incluir",
+        "PRODUTO_ID": str(dados.get("produto_id", "")),
+        "NOME": dados.get("nome", ""),
+        "VALOR": dados.get("valor", ""),
+    }
+    if dados.get("id") not in (None, ""):
+        env["ID"] = str(dados.get("id"))
+    out, _ = _run("gerir_atributos", env)
+    for line in out.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            return int(line)
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), out.strip())
+    raise Exception(msg)
+
+
+def atributos_alterar(id_val, dados):
+    env = {
+        "ACAO": "alterar",
+        "ID": str(id_val),
+        "NOME": dados.get("nome", ""),
+        "VALOR": dados.get("valor", ""),
+    }
+    out, _ = _run("gerir_atributos", env)
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), "")
+    if msg:
+        if "nao encontrado" in msg.lower() or "não encontrado" in msg.lower():
+            return False
+        raise Exception(msg)
+    return "OK" in out
+
+
+def atributos_excluir(id_val):
+    out, _ = _run("gerir_atributos", {"ACAO": "excluir", "ID": str(id_val)})
+    msg = next((l.strip() for l in out.splitlines() if "ERRO:" in l), "")
+    if msg:
+        if "nao encontrado" in msg.lower() or "não encontrado" in msg.lower():
+            return False
+        raise Exception(msg)
+    return "OK" in out
+
 
 # ── Funcionários ────────────────────────────────────────────
 
@@ -189,6 +490,98 @@ def funcionario_excluir(id_val):
     return "OK" in out
 
 
+# ── RFC-002 §3.3/Decisão 1 — Histórico de salários com vigência ──
+
+def salario_incluir(funcionario_id, salario, data_inicio):
+    """Registra uma alteração salarial com data de início de vigência.
+    Retorna o id do novo registro do histórico."""
+    out, _ = _run("gerir_salarios", {
+        "ACAO": "incluir",
+        "FUNCIONARIO_ID": str(funcionario_id),
+        "SALARIO": str(salario),
+        "DATA_INICIO": str(data_inicio),
+    })
+    for line in out.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            return int(line)
+    raise Exception("Erro ao registrar salário: " + out.strip())
+
+
+def salarios_listar(funcionario_id):
+    """Histórico de salários de um funcionário (ativos)."""
+    out, _ = _run("gerir_salarios", {
+        "ACAO": "listar", "FUNCIONARIO_ID": str(funcionario_id)})
+    try:
+        return json.loads(out).get("salarios", [])
+    except json.JSONDecodeError:
+        return []
+
+
+def salario_vigente(funcionario_id, competencia):
+    """Salário vigente de um funcionário na competência (YYYY/MM).
+    Retorna {"salario": float, "data_inicio": "YYYY-MM-DD"}; salario 0 se
+    não houver registro ativo para a competência."""
+    out, _ = _run("gerir_salarios", {
+        "ACAO": "vigente",
+        "FUNCIONARIO_ID": str(funcionario_id),
+        "COMPETENCIA": str(competencia),
+    })
+    try:
+        return json.loads(out)
+    except json.JSONDecodeError:
+        return {"salario": 0, "data_inicio": ""}
+
+
+# ── RFC-016/RFC-002 §3.3 — Movimentações contratuais com vigência ──
+# (cargo e departamento; cada tipo é uma movimentação independente)
+
+def movimentacao_incluir(funcionario_id, tipo, valor_referencia, data_inicio):
+    """Registra uma movimentação contratual (cargo|departamento) com data de
+    início de vigência. Retorna o id do novo registro."""
+    out, _ = _run("gerir_movimentacoes", {
+        "ACAO": "incluir",
+        "FUNCIONARIO_ID": str(funcionario_id),
+        "TIPO": str(tipo),
+        "VALOR_REFERENCIA": str(valor_referencia),
+        "DATA_INICIO": str(data_inicio),
+    })
+    for line in out.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            return int(line)
+    raise Exception("Erro ao registrar movimentação: " + out.strip())
+
+
+def movimentacoes_listar(funcionario_id, tipo):
+    """Histórico de movimentações de um tipo (cargo|departamento)."""
+    out, _ = _run("gerir_movimentacoes", {
+        "ACAO": "listar",
+        "FUNCIONARIO_ID": str(funcionario_id),
+        "TIPO": str(tipo),
+    })
+    try:
+        return json.loads(out).get("movimentacoes", [])
+    except json.JSONDecodeError:
+        return []
+
+
+def movimentacao_vigente(funcionario_id, tipo, competencia):
+    """Valor (id de cargo/departamento) vigente na competência (YYYY/MM).
+    Retorna {"valor_referencia": int, "data_inicio": "YYYY-MM-DD"};
+    valor_referencia 0 se não houver registro ativo."""
+    out, _ = _run("gerir_movimentacoes", {
+        "ACAO": "vigente",
+        "FUNCIONARIO_ID": str(funcionario_id),
+        "TIPO": str(tipo),
+        "COMPETENCIA": str(competencia),
+    })
+    try:
+        return json.loads(out)
+    except json.JSONDecodeError:
+        return {"valor_referencia": 0, "data_inicio": ""}
+
+
 # ── RFC-003 — Admissão/Demissão (Rescisão) ─────────────────
 
 RESCISAO_MOTIVOS = [
@@ -242,6 +635,15 @@ def rescisao_calcular(dados):
 
 
 def rescisao_incluir(dados):
+    # O form da tela não envia nome; deriva do funcionário para a tabela
+    # mostrar o nome (não "#id"). Cobrindo aqui, todos os callers (server e
+    # diretos) ganham — ver smoke_rfc003 seção 8.
+    if not dados.get("nome"):
+        fid = dados.get("funcionario_id")
+        for f in funcionarios_listar():
+            if str(f.get("id")) == str(fid):
+                dados["nome"] = f.get("nome", "")
+                break
     out, _ = _run("folha_pagamento", _rescisao_env("rescisao-incluir", dados))
     out = _parse_saida(out)
     try:
@@ -286,6 +688,511 @@ def funcionario_desligar(id_val, data_dem, motivo):
     return "OK" in out
 
 
+# ── RFC-010 — Férias (cálculo no COBOL, padrão rescisão) ──
+# O COBOL calcula a partir dos dados brutos (dias, abono, salário) e devolve
+# JSON com valor base, 1/3, abono, INSS/IRRF e líquido. Incluir calcula e grava.
+
+_FERIAS_FIELD_MAP = {
+    "funcionario_id": "FUNCIONARIO_ID",
+    "nome": "NOME",
+    "aquis_inicio": "AQUIS_INICIO",
+    "aquis_fim": "AQUIS_FIM",
+    "inicio": "INICIO",
+    "fim": "FIM",
+    "dias": "DIAS",
+    "dias_abono": "DIAS_ABONO",
+    "salario_base": "SALARIO_BASE",
+}
+
+
+def _ferias_env(acao, dados):
+    env = {"ACAO": acao}
+    for field, var in _FERIAS_FIELD_MAP.items():
+        val = dados.get(field)
+        if val is not None and val != "":
+            env[var] = str(val)
+    return env
+
+
+def _ferias_json(out):
+    """Parseia a linha JSON do cálculo/registro de férias."""
+    for line in out.splitlines():
+        line = line.strip()
+        if line.startswith("{"):
+            return json.loads(line)
+    raise Exception("Saída inesperada do COBOL (férias): " + out.strip()[:200])
+
+
+def ferias_calcular(dados):
+    out, _ = _run("folha_pagamento", _ferias_env("ferias-calcular", dados))
+    out = _parse_saida(out)
+    return _ferias_json(out)
+
+
+def ferias_incluir(dados):
+    out, _ = _run("folha_pagamento", _ferias_env("ferias-incluir", dados))
+    out = _parse_saida(out)
+    return _ferias_json(out)
+
+
+def ferias_listar():
+    out, _ = _run("folha_pagamento", {"ACAO": "ferias-listar"})
+    try:
+        return json.loads(out).get("ferias", [])
+    except json.JSONDecodeError:
+        raise Exception("Saída inesperada do COBOL (ferias-listar): " + out.strip()[:200])
+
+
+def ferias_pagar(id_val, data_pagamento=None):
+    env = {"ACAO": "ferias-pagar", "ID": str(id_val)}
+    if data_pagamento:
+        env["DATA_PAGAMENTO"] = data_pagamento
+    out, _ = _run("folha_pagamento", env)
+    _parse_saida(out)
+    return "OK" in out
+
+
+def ferias_excluir(id_val):
+    out, _ = _run("folha_pagamento", {"ACAO": "ferias-excluir", "ID": str(id_val)})
+    _parse_saida(out)
+    return "OK" in out
+
+
+# ── RFC-011 — 13º Salário (cálculo no COBOL, padrão rescisão) ──
+# 1ª parcela sem descontos; 2ª parcela/única com INSS e IRRF das tabelas.
+
+_DECIMO_FIELD_MAP = {
+    "funcionario_id": "FUNCIONARIO_ID",
+    "nome": "NOME",
+    "ano": "ANO",
+    "parcela": "PARCELA",
+    "meses": "MESES",
+    "salario_base": "SALARIO_BASE",
+}
+
+
+def _decimo_env(acao, dados):
+    env = {"ACAO": acao}
+    for field, var in _DECIMO_FIELD_MAP.items():
+        val = dados.get(field)
+        if val is not None and val != "":
+            env[var] = str(val)
+    return env
+
+
+def _decimo_json(out):
+    """Parseia a linha JSON do cálculo/registro de 13º."""
+    for line in out.splitlines():
+        line = line.strip()
+        if line.startswith("{"):
+            return json.loads(line)
+    raise Exception("Saída inesperada do COBOL (13º): " + out.strip()[:200])
+
+
+def decimo_calcular(dados):
+    out, _ = _run("folha_pagamento", _decimo_env("decimo-calcular", dados))
+    out = _parse_saida(out)
+    return _decimo_json(out)
+
+
+def decimo_incluir(dados):
+    out, _ = _run("folha_pagamento", _decimo_env("decimo-incluir", dados))
+    out = _parse_saida(out)
+    return _decimo_json(out)
+
+
+def decimos_listar():
+    out, _ = _run("folha_pagamento", {"ACAO": "decimo-listar"})
+    try:
+        return json.loads(out).get("decimos", [])
+    except json.JSONDecodeError:
+        raise Exception("Saída inesperada do COBOL (decimo-listar): " + out.strip()[:200])
+
+
+def decimo_pagar(id_val, data_pagamento=None):
+    env = {"ACAO": "decimo-pagar", "ID": str(id_val)}
+    if data_pagamento:
+        env["DATA_PAGAMENTO"] = data_pagamento
+    out, _ = _run("folha_pagamento", env)
+    _parse_saida(out)
+    return "OK" in out
+
+
+def decimo_excluir(id_val):
+    out, _ = _run("folha_pagamento", {"ACAO": "decimo-excluir", "ID": str(id_val)})
+    _parse_saida(out)
+    return "OK" in out
+
+
+# ── RFC-013 — Folha Complementar (ajuste de competência fechada) ──
+# Ajusta diferenças de uma competência já fechada sem tocar a folha original.
+# Cálculo no COBOL: diferença a favor (positiva) tributa INSS/IRRF sobre a
+# diferença; diferença contra (negativa) exige motivo específico validado
+# (erro comprovado, devolução, decisão judicial) e respeita o limite legal de
+# desconto de 70% do salário. Fluxo de estados: C → V → F → P.
+
+_COMP_FIELD_MAP = {
+    "funcionario_id": "FUNCIONARIO_ID",
+    "nome": "NOME",
+    "competencia": "COMPETENCIA",
+    "competencia_ref": "COMPETENCIA_REF",
+    "motivo": "MOTIVO",
+    "valor": "VALOR",
+    "salario_base": "SALARIO_BASE",
+}
+
+# Motivos válidos para diferença negativa (RFC-013 Decisão 2).
+COMP_NEGATIVO_MOTIVOS = ("erro comprovado", "devolucao", "decisao judicial")
+
+
+def _comp_env(acao, dados):
+    env = {"ACAO": acao}
+    for field, var in _COMP_FIELD_MAP.items():
+        val = dados.get(field)
+        if val is not None and val != "":
+            env[var] = str(val)
+    return env
+
+
+def _comp_json(out):
+    for line in out.splitlines():
+        line = line.strip()
+        if line.startswith("{"):
+            return json.loads(line)
+    raise Exception("Saída inesperada do COBOL (complementar): " + out.strip()[:200])
+
+
+def comp_calcular(dados):
+    """Calcula a diferença da folha complementar sem gravar (RFC-013)."""
+    out, _ = _run("folha_pagamento", _comp_env("comp-calcular", dados))
+    out = _parse_saida(out)
+    return _comp_json(out)
+
+
+def comp_incluir(dados):
+    """Valida (motivo obrigatório + regras de valor negativo) e grava."""
+    out, _ = _run("folha_pagamento", _comp_env("comp-incluir", dados))
+    out = _parse_saida(out)
+    return _comp_json(out)
+
+
+def complementares_listar():
+    """Todas as folhas complementares registradas."""
+    out, _ = _run("folha_pagamento", {"ACAO": "comp-listar"})
+    try:
+        return json.loads(out).get("complementares", [])
+    except json.JSONDecodeError:
+        raise Exception("Saída inesperada do COBOL (comp-listar): " + out.strip()[:200])
+
+
+def comp_transicao(id_val, destino, data_pagamento=None):
+    """Avança o fluxo de estados (C→V→F→P). Retorna True em OK."""
+    acao = {"V": "comp-validar", "F": "comp-fechar", "P": "comp-pagar"}.get(destino)
+    if not acao:
+        return False
+    env = {"ACAO": acao, "ID": str(id_val)}
+    if data_pagamento:
+        env["DATA_PAGAMENTO"] = str(data_pagamento)
+    out, _ = _run("folha_pagamento", env)
+    _parse_saida(out)
+    return "OK" in out
+
+
+def comp_validar(id_val):
+    return comp_transicao(id_val, "V")
+
+
+def comp_fechar(id_val):
+    return comp_transicao(id_val, "F")
+
+
+def comp_pagar(id_val, data_pagamento=None):
+    return comp_transicao(id_val, "P", data_pagamento)
+
+
+def comp_excluir(id_val):
+    out, _ = _run("folha_pagamento", {"ACAO": "comp-excluir", "ID": str(id_val)})
+    _parse_saida(out)
+    return "OK" in out
+
+
+def comp_encargos(competencia, regime=None):
+    """RFC-013 Decisão 4: encargos/recolhimentos apenas sobre a diferença
+    das complementares fechadas/pagas da competência. regime 'simples' zera
+    INSS patronal/RAT/terceiros (DAS) — igual RFC-014. Não grava em
+    encargos.dat (a folha mensal já tem o seu registro)."""
+    env = {"ACAO": "comp-encargos", "COMPETENCIA": str(competencia)}
+    if regime:
+        env["REGIME"] = str(regime)
+    out, _ = _run("folha_pagamento", env)
+    _parse_saida(out)
+    return _comp_json(out)
+
+
+# ── Licenças (RH) — aprovações via COBOL (cobol/programs/licenca.cbl) ──
+# Status: P=pendente (padrão), S=enviado, A=aprovado, R=rejeitado, C=concluído.
+# O dashboard do RH (workflow) trabalha com D/S/A/C/R — o COBOL usa P no
+# cadastro; "pendentes" lista as de status S (enviadas para aprovação).
+
+_LICENCA_FIELD_MAP = {
+    "funcionario_id": "FUNCIONARIO_ID",
+    "tipo": "TIPO",
+    "data_inicio": "DATA_INICIO",
+    "data_fim": "DATA_FIM",
+    "dias": "DIAS",
+    "motivo": "MOTIVO",
+    "status": "STATUS",
+    "observacoes": "OBSERVACOES",
+}
+
+
+def _licenca_env(acao, dados):
+    env = {"ACAO": acao}
+    for field, var in _LICENCA_FIELD_MAP.items():
+        val = dados.get(field)
+        if val is not None and val != "":
+            env[var] = str(val)
+    return env
+
+
+def licenca_incluir(dados):
+    """Registra uma licença. Retorna o id do novo registro."""
+    out, _ = _run("licenca", _licenca_env("incluir", dados))
+    for line in out.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            return int(line)
+    raise Exception("Erro ao registrar licença: " + out.strip())
+
+
+def licencas_listar():
+    """Todas as licenças (JSON do COBOL)."""
+    out, _ = _run("licenca", {"ACAO": "listar"})
+    try:
+        return json.loads(out).get("licencas", [])
+    except json.JSONDecodeError:
+        raise Exception("Saída inesperada do COBOL (licenca-listar): " + out.strip()[:200])
+
+
+def licencas_pendentes():
+    """Licenças enviadas aguardando aprovação (status S)."""
+    out, _ = _run("licenca", {"ACAO": "pendentes"})
+    try:
+        return json.loads(out).get("licencas", [])
+    except json.JSONDecodeError:
+        raise Exception("Saída inesperada do COBOL (licenca-pendentes): " + out.strip()[:200])
+
+
+def _licenca_transicao(acao, id_val, status=None, aprovado_por="", data_aprovacao=""):
+    env = {"ACAO": acao, "ID": str(id_val)}
+    if status is not None:
+        env["STATUS"] = str(status)
+    if aprovado_por:
+        env["APROVADO_POR"] = aprovado_por
+    if data_aprovacao:
+        env["DATA_APROVACAO"] = data_aprovacao
+    out, _ = _run("licenca", env)
+    return "OK" in out
+
+
+def licenca_aprovar(id_val, aprovado_por="", data_aprovacao=""):
+    return _licenca_transicao("aprovar", id_val, aprovado_por=aprovado_por,
+                              data_aprovacao=data_aprovacao)
+
+
+def licenca_rejeitar(id_val, aprovado_por="", data_aprovacao=""):
+    return _licenca_transicao("rejeitar", id_val, aprovado_por=aprovado_por,
+                              data_aprovacao=data_aprovacao)
+
+
+def licenca_transitar(id_val, status, aprovado_por="", data_aprovacao=""):
+    """Transição genérica de status (usada pelo workflow do dashboard)."""
+    return _licenca_transicao("transitar", id_val, status=status,
+                              aprovado_por=aprovado_por,
+                              data_aprovacao=data_aprovacao)
+
+
+def licenca_alterar(id_val, dados):
+    """Altera dados de uma licença (ex.: datas/dias/motivo antes da aprovação).
+    Campos vazios não são sobrescritos (padrão do COBOL alterar)."""
+    out, _ = _run("licenca", _licenca_env("alterar", dados) | {"ID": str(id_val)})
+    return "OK" in out
+
+
+def licenca_excluir(id_val):
+    """Remove uma licença (apenas não aprovadas — guard na tela)."""
+    out, _ = _run("licenca", {"ACAO": "excluir", "ID": str(id_val)})
+    return "OK" in out
+
+
+def licencas_por_funcionario(funcionario_id):
+    """Licenças de um funcionário (JSON do COBOL listar-por-func)."""
+    out, _ = _run("licenca", {"ACAO": "listar-por-func",
+                              "FUNCIONARIO_ID": str(funcionario_id)})
+    try:
+        return json.loads(out).get("licencas", [])
+    except json.JSONDecodeError:
+        raise Exception("Saída inesperada do COBOL (licenca-por-func): " + out.strip()[:200])
+
+
+# ── RFC-012 Decisão 3 — dias de afastamento na competência ──
+# Tipos com pagamento integral (não geram pró-rata): maternidade, paternidade.
+# Auxílio-doença: a empresa paga os 15 primeiros dias (CLT 476 §3) — os dias
+# além de 15 não são pagos pelo empregador. Licença não remunerada: nenhum dia
+# é pago. O cálculo da folha usa os dias efetivamente trabalhados (pró-rata).
+
+_LICENCA_TIPOS_SEM_PRORATA = ("licenca-maternidade", "licenca-paternidade",
+                              "maternidade", "paternidade")
+_LICENCA_TIPOS_AUXILIO = ("auxilio-doenca", "auxilio-doença",
+                          "auxilio-doença-acidentario", "auxilio-doenca-acidentario",
+                          "acidente-trabalho", "acidente de trabalho")
+_LICENCA_TIPOS_SEM_PAGAMENTO = ("licenca-nao-remunerada", "licenca não remunerada",
+                                "nao-remunerada", "suspensao", "suspensão")
+
+
+def _dias_no_mes(data_inicio, data_fim, competencia):
+    """Dias de interseção entre [data_inicio, data_fim] e a competência
+    (YYYY/MM). Retorna 0 quando não há sobreposição."""
+    try:
+        ano, mes = (int(x) for x in competencia.split("/"))
+        ini = datetime.strptime(str(data_inicio)[:10], "%Y-%m-%d").date()
+        fim = datetime.strptime(str(data_fim)[:10], "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return 0
+    import calendar
+    from datetime import date
+    ultimo_dia = calendar.monthrange(ano, mes)[1]
+    primeiro = ini if (ini.year, ini.month) == (ano, mes) else date(ano, mes, 1)
+    fim_mes_d = date(ano, mes, ultimo_dia)
+    if fim < primeiro or ini > fim_mes_d:
+        return 0
+    return max(0, (min(fim, fim_mes_d) - max(ini, primeiro)).days + 1)
+
+
+def dias_afastamento_na_competencia(funcionario_id, competencia):
+    """RFC-012 Decisão 3 — dias NÃO pagos por afastamento na competência.
+
+    Considera apenas licenças aprovadas (status A). Regras por tipo:
+      - maternidade/paternidade: 0 dias (pagamento integral — empresa/INSS)
+      - auxílio-doença/acidente: dias além dos 15 primeiros (empresa paga os
+        15; INSS assume após) — acumula o saldo excedente da licença
+      - licença não remunerada/suspensão: todos os dias da licença no mês
+    Funcionário sem licença aprovada no período retorna 0.
+    """
+    try:
+        licencas = licencas_por_funcionario(funcionario_id)
+    except Exception:
+        return 0
+    total = 0
+    for lic in licencas:
+        if (lic.get("status") or "").strip().upper() != "A":
+            continue
+        tipo = (lic.get("tipo") or "").strip().lower()
+        if tipo in _LICENCA_TIPOS_SEM_PRORATA:
+            continue
+        dias_mes = _dias_no_mes(lic.get("data_inicio"), lic.get("data_fim"), competencia)
+        if dias_mes <= 0:
+            continue
+        if tipo in _LICENCA_TIPOS_AUXILIO:
+            # Os 15 primeiros dias DA LICENÇA (contados do data_inicio, não por
+            # mês) são pagos pela empresa; o excedente não entra na folha (INSS
+            # assume). Em licenças que atravessam meses, os dias pagos em meses
+            # anteriores reduzem a cota restante do mês corrente.
+            from datetime import date as _date
+            try:
+                l_ini = datetime.strptime(str(lic.get("data_inicio"))[:10], "%Y-%m-%d").date()
+                l_fim = datetime.strptime(str(lic.get("data_fim"))[:10], "%Y-%m-%d").date()
+            except (ValueError, TypeError):
+                l_ini = l_fim = None
+            ano, mes = (int(x) for x in competencia.split("/"))
+            if not (l_ini and l_fim):
+                continue
+            import calendar as _cal
+            ultimo_dia = _cal.monthrange(ano, mes)[1]
+            # dias da licença antes do início do mês (já pagos pela empresa)
+            antes_mes = _date(ano, mes, 1) - timedelta(days=1)
+            if l_ini <= antes_mes:
+                pagos_antes = max(0, (min(l_fim, antes_mes) - l_ini).days + 1)
+            else:
+                pagos_antes = 0
+            cota_restante = max(0, 15 - pagos_antes)
+            total += max(0, dias_mes - cota_restante)
+            continue
+        # licença não remunerada / suspensão: pró-rata total no mês
+        total += dias_mes
+    return total
+
+
+def dias_afastamento_no_periodo(funcionario_id, data_inicio, data_fim):
+    """RFC-012 Decisão 4 — dias de afastamento aprovado dentro de um intervalo
+    de datas (ex.: período aquisitivo de férias). Conta todos os dias de
+    licenças aprovadas (qualquer tipo) que intersectam o período — o gatilho
+    de suspensão é >30 dias (RFC-010)."""
+    try:
+        licencas = licencas_por_funcionario(funcionario_id)
+    except Exception:
+        return 0
+    try:
+        p_ini = datetime.strptime(str(data_inicio)[:10], "%Y-%m-%d").date()
+        p_fim = datetime.strptime(str(data_fim)[:10], "%Y-%m-%d").date()
+    except (ValueError, TypeError):
+        return 0
+    total = 0
+    for lic in licencas:
+        if (lic.get("status") or "").strip().upper() != "A":
+            continue
+        try:
+            l_ini = datetime.strptime(str(lic.get("data_inicio"))[:10], "%Y-%m-%d").date()
+            l_fim = datetime.strptime(str(lic.get("data_fim"))[:10], "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            continue
+        if l_fim < p_ini or l_ini > p_fim:
+            continue
+        total += max(0, (min(l_fim, p_fim) - max(l_ini, p_ini)).days + 1)
+    return total
+
+
+# ── Timesheets (RH) — apontamento de horas via COBOL ──
+
+_TIMESHEET_FIELD_MAP = {
+    "funcionario_id": "FUNCIONARIO_ID",
+    "data": "DATA",
+    "projeto": "PROJETO",
+    "tarefa": "TAREFA",
+    "horas": "HORAS",
+    "descricao": "DESCRICAO",
+    "status": "STATUS",
+}
+
+
+def _timesheet_env(acao, dados):
+    env = {"ACAO": acao}
+    for field, var in _TIMESHEET_FIELD_MAP.items():
+        val = dados.get(field)
+        if val is not None and val != "":
+            env[var] = str(val)
+    return env
+
+
+def timesheet_incluir(dados):
+    """Registra um apontamento de horas. Retorna o id."""
+    out, _ = _run("timesheet", _timesheet_env("incluir", dados))
+    for line in out.splitlines():
+        line = line.strip()
+        if line.isdigit():
+            return int(line)
+    raise Exception("Erro ao registrar timesheet: " + out.strip())
+
+
+def timesheets_listar():
+    """Apontamentos de horas (JSON do COBOL)."""
+    out, _ = _run("timesheet", {"ACAO": "listar"})
+    try:
+        return json.loads(out).get("timesheets", [])
+    except json.JSONDecodeError:
+        raise Exception("Saída inesperada do COBOL (timesheet-listar): " + out.strip()[:200])
+
+
 CONFIG_DEFAULTS = {
     "salario_minimo": 1518.00, "inss_f1_teto": 1518.00, "inss_f1_aliq": 7.50,
     "inss_f2_teto": 2793.88, "inss_f2_aliq": 9.00,
@@ -299,6 +1206,12 @@ CONFIG_DEFAULTS = {
     "irrf_f3_ded": 381.44, "irrf_f4_ded": 662.77,
     "irrf_f5_teto": 0.00, "irrf_f5_aliq": 27.50, "irrf_f5_ded": 896.00,
     "fgts_aliquota": 8.00, "hora_extra_aliq": 50.00,
+    # RFC-005 §4 — Salário-Família (2 faixas: teto + valor por cota)
+    "sf_f1_teto": 1905.52, "sf_f1_valor": 62.04,
+    "sf_f2_teto": 3047.00, "sf_f2_valor": 43.17,
+    # RFC-014 — Encargos patronais (INSS patronal 20%, RAT/SAT 2% risco
+    # médio, terceiros configurável) — versionados por competência
+    "inss_patronal_aliq": 20.00, "rat_aliq": 2.00, "terceiros_aliq": 0.00,
 }
 
 _FOLHA_FIELD_MAP = {
@@ -312,6 +1225,7 @@ _FOLHA_FIELD_MAP = {
     "dependentes": "DEPENDENTES",
     "outros_proventos": "OUTROS_PROV",
     "outros_descontos": "OUTROS_DESC",
+    "cotas_sf": "COTAS_SF",
 }
 
 
@@ -335,13 +1249,27 @@ def _folha_json(out):
     raise Exception("Saída inesperada do COBOL (folha): " + out.strip()[:200])
 
 
-def folha_config_ler():
-    out, _ = _run("folha_pagamento", {"ACAO": "config-ler"})
-    return _folha_json(out)
+def folha_config_ler(competencia=None):
+    """Tabela vigente da competência (RFC-005 Regra 1). Sem competencia,
+    retorna a última versão gravada; o JSON traz também 'versoes' (histórico
+    de competências preservado, separado por vírgula)."""
+    env = {"ACAO": "config-ler"}
+    if competencia:
+        env["COMPETENCIA"] = str(competencia)
+    out, _ = _run("folha_pagamento", env)
+    data = _folha_json(out)
+    # 'versoes' é uma string CSV de competências no COBOL; normaliza para lista
+    if isinstance(data.get("versoes"), str):
+        data["versoes"] = [c for c in data["versoes"].split(",") if c.strip()]
+    return data
 
 
 def folha_config_salvar(dados):
+    """Grava (ou substitui) a tabela da competência; guard Regra 2 no COBOL
+    impede sobrescrever competência já fechada/paga."""
     env = {"ACAO": "config-salvar"}
+    competencia = dados.get("competencia") or datetime.now().strftime("%Y/%m")
+    env["COMPETENCIA"] = str(competencia)
     for k, v in CONFIG_DEFAULTS.items():
         val = dados.get(k)
         env[k.upper()] = str(val if val is not None else v)
@@ -351,19 +1279,48 @@ def folha_config_salvar(dados):
 
 
 def folha_config_seed():
-    """Garante o arquivo dados/folha_config.dat no layout atual (idempotente)."""
+    """Garante o arquivo dados/folha_config.dat no layout novo (idempotente).
+    Layout novo = 230 bytes por linha (competência X(7) + 31 campos numéricos:
+    4 faixas INSS + 5 IRRF + FGTS/HE + 2 faixas SF + 3 encargos RFC-014).
+    Arquivo antigo/sem competência é descartado e re-seedado com as tabelas
+    padrão."""
     cfg_path = os.path.join(DADOS_DIR, "folha_config.dat")
-    # o arquivo é só dígitos (sem labels): detectar layout antigo pelo tamanho
-    # (novo = 179 bytes; antigo = 131). Nunca regravar config já no layout novo.
     try:
         with open(cfg_path, encoding="utf-8", errors="replace") as f:
             raw = f.read()
-        precisa = len(raw.strip()) < 170
+        linhas = [l for l in raw.splitlines() if l.strip()]
+        precisa = not linhas or any(len(l.strip()) != 230 for l in linhas)
     except OSError:
         precisa = True
     if precisa:
+        # remove qualquer arquivo em layout antigo (o salvar preserva versões
+        # válidas; um arquivo corrompido seria mantido junto)
+        try:
+            os.remove(cfg_path)
+        except OSError:
+            pass
         folha_config_salvar({})
     return precisa
+
+
+def folha_encargos(competencia, regime=None):
+    """Encargos patronais consolidados da competência (RFC-014). Calcula no
+    COBOL (mesma lógica do fechamento) e retorna o JSON consolidado.
+    regime: 'simples' zera INSS patronal/RAT/terceiros (DAS) no COBOL."""
+    env = {"ACAO": "encargos-calcular", "COMPETENCIA": str(competencia)}
+    if regime:
+        env["REGIME"] = str(regime)
+    out, _ = _run("folha_pagamento", env)
+    _parse_saida(out)
+    return _folha_json(out)
+
+
+def folha_encargos_mostrar(competencia):
+    """Lê o registro de encargos gravado no fechamento (sem recalcular)."""
+    out, _ = _run("folha_pagamento", {"ACAO": "encargos-mostrar",
+                                      "COMPETENCIA": str(competencia)})
+    _parse_saida(out)
+    return _folha_json(out)
 
 
 def folha_abrir(competencia):
@@ -719,11 +1676,11 @@ _PRODUTO_EXTRA_KEYS = {
     "vendavel", "compravel", "pdv", "usa_balanca",
     "controla_estoque", "estoque_negativo", "controla_lote", "controla_serie",
     "compra_ok", "venda_ok", "fracionado", "por_peso",
-    "qtd_min_compra", "qtd_padrao", "lead_time", "garantia",
+    "qtd_min_compra", "qtd_padrao", "lead_time", "garantia", "validade_dias",
     "peso_liq", "peso_bruto", "tipo_embalagem", "embalagem_outro", "qtd_por_embalagem",
     "altura", "largura", "comprimento", "volume",
     "altura_emb", "largura_emb", "comprimento_emb", "volume_emb", "foto",
-    "available_at",
+    "available_at", "alugavel",
 }
 
 
@@ -902,7 +1859,55 @@ def produtos_para_vendas(estabelecimento_id=None):
         if produto_vendavel_b2b(p, estabelecimento_id)
     ]
 
-def produtos_incluir(dados):
+def _validar_produto(dados, obrigatorios=True, flexivel=False):
+    """Valida preço/NCM/CFOP.
+
+    - Inclusão (obrigatorios=True): preço e NCM são obrigatórios.
+    - Edição (obrigatorios=False): valida apenas os campos presentes no payload.
+    - Importação (flexivel=True): dados vindos de NF-e já validada pela SEFAZ
+      não travam o cadastro — aceita preço 0 (bonificação) e NCM ausente.
+      Formato continua validado quando houver valor.
+    - CFOP é sempre OPCIONAL: é contextual (compra/venda) e, na importação
+      de NF-e de fornecedor via XML, vem da nota, não do cadastro do produto.
+      Quando informado, o formato é validado (4 dígitos).
+    """
+    if not isinstance(dados, dict):
+        raise ValueError("ERRO: dados invalidos")
+
+    # Preço: numérico e > 0 (flexivel aceita 0, ex.: bonificação na importação)
+    if obrigatorios or "preco" in dados:
+        preco = dados.get("preco")
+        if preco in (None, ""):
+            if not flexivel:
+                raise ValueError("ERRO: preco obrigatorio")
+        else:
+            try:
+                preco_num = float(str(preco).replace(",", ".").strip())
+            except (TypeError, ValueError):
+                raise ValueError("ERRO: preco deve ser numerico")
+            if preco_num <= 0 and not flexivel:
+                raise ValueError("ERRO: preco deve ser maior que zero")
+
+    # NCM: exatamente 8 dígitos quando informado (obrigatório na inclusão).
+    # No modo flexível (importação NF-e), NCM ausente OU curto é aceito —
+    # a nota já passou pela validação da SEFAZ e não deve travar o cadastro.
+    if obrigatorios or "ncm" in dados:
+        ncm = re.sub(r"\D", "", str(dados.get("ncm", "")))
+        if not ncm:
+            if not flexivel:
+                raise ValueError("ERRO: NCM obrigatorio")
+        elif len(ncm) != 8 and not flexivel:
+            raise ValueError("ERRO: NCM deve ter 8 digitos")
+
+    # CFOP: OPCIONAL (contextual compra/venda; na importação de NF-e via XML
+    # vem da nota). Quando informado, exige 4 dígitos.
+    cfop = str(dados.get("cfop", "") or "").strip()
+    if cfop and not re.fullmatch(r"\d{4}", cfop):
+        raise ValueError("ERRO: CFOP deve ter 4 digitos")
+
+
+def produtos_incluir(dados, importacao=False):
+    _validar_produto(dados, obrigatorios=not importacao, flexivel=importacao)
     extra = _extract_produto_extra(dados)
     env = {
         "ACAO": "incluir",
@@ -936,10 +1941,16 @@ def produtos_incluir(dados):
             pid = int(line)
             if extra:
                 produtos_extra_set(pid, extra)
+                # Sincronizar variantes inline com COBOL variantes.dat
+                vars_raw = extra.get("variacoes") or []
+                if vars_raw:
+                    sync_variantes_for_produto(
+                        pid, vars_raw, dados.get("preco", 0))
             return pid
     raise Exception("Erro ao criar produto: " + out.strip())
 
 def produtos_alterar(id_val, dados):
+    _validar_produto(dados, obrigatorios=False)
     extra = _extract_produto_extra(dados)
     env = {
         "ACAO": "alterar",
@@ -974,6 +1985,19 @@ def produtos_alterar(id_val, dados):
     ok = "OK" in out
     if ok and extra:
         produtos_extra_set(id_val, extra)
+        # Sincronizar variantes inline com COBOL variantes.dat
+        vars_raw = extra.get("variacoes") or []
+        if vars_raw:
+            sync_variantes_for_produto(
+                id_val, vars_raw, dados.get("preco", 0))
+        else:
+            # Sem variantes no form — desativar todas no COBOL
+            for v in variantes_listar_por_produto(id_val):
+                if v.get("ativo", True):
+                    try:
+                        variantes_alterar(v["id"], {"ativo": False})
+                    except Exception:
+                        pass
     return ok
 
 def produtos_excluir(id_val):
@@ -1283,3 +2307,64 @@ def sync_json():
     except Exception:
         pass
     return {"synced": True}
+
+# ── Localizações WMS (gerir_localizacoes.cbl) ────────────────────────────
+# Fonte da verdade: dados/localizacoes.dat (programa COBOL). Isolamento em
+# testes via env vars LOCALIZACOES_DAT / LOCALIZACOES_TMP.
+
+_LOC_FIELD_MAP = {
+    "capacidade_qtd": "CAPACIDADE",
+    "peso_max_kg": "PESO_MAX",
+    "volume_max_m3": "VOLUME_MAX",
+    "bloqueio_motivo": "BLOQUEIO",
+    "atualizado_em": "ATUALIZADO",
+}
+
+
+def _loc_env(acao, dados):
+    env = {"ACAO": acao}
+    for key, val in (dados or {}).items():
+        ekey = _LOC_FIELD_MAP.get(key, str(key).upper())
+        env[ekey] = "" if val is None else str(val)
+    return env
+
+
+def _loc_check(out):
+    lines = [l.strip() for l in out.splitlines() if l.strip()]
+    err = next((l for l in lines if l.startswith("ERRO:")), None)
+    if err:
+        raise ValueError(err)
+    return lines[-1] if lines else ""
+
+
+def localizacoes_listar():
+    out, _ = _run("gerir_localizacoes", {"ACAO": "listar"})
+    try:
+        data = json.loads(out)
+        return data.get("localizacoes", [])
+    except json.JSONDecodeError:
+        return []
+
+
+def localizacoes_buscar(codigo):
+    out, _ = _run("gerir_localizacoes", _loc_env("buscar", {"codigo": codigo}))
+    try:
+        data = json.loads(out)
+        return data if data.get("status") != "erro" else None
+    except json.JSONDecodeError:
+        return None
+
+
+def localizacoes_incluir(dados):
+    out, _ = _run("gerir_localizacoes", _loc_env("incluir", dados))
+    return _loc_check(out)
+
+
+def localizacoes_alterar(dados):
+    out, _ = _run("gerir_localizacoes", _loc_env("alterar", dados))
+    return _loc_check(out)
+
+
+def localizacoes_excluir(codigo):
+    out, _ = _run("gerir_localizacoes", _loc_env("excluir", {"codigo": codigo}))
+    return _loc_check(out)
