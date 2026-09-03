@@ -42,3 +42,8 @@ Plano Referencial.xlsx
 # Runtime gerado (historico de salarios e movimentacoes)
 dados/salarios*.dat
 dados/movimentacoes*.dat
+
+# Backup files
+*.bak
+*.bak_*
+*_bak/
