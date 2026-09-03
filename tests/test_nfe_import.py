@@ -3,8 +3,8 @@
 Tests the full lifecycle without touching the HTTP server — uses Python
 modules directly (same pattern as the rest of the test suite).
 
-Uses synthetic XML so tests are self-contained and don't depend on
-sample files that might already be marked as duplicates.
+Uses both synthetic XML (for unit-level tests) and the real XML files from
+data/nfe_inbound/ (for integration-level tests against actual NF-e data).
 """
 import sys
 import os
@@ -362,3 +362,135 @@ class TestNfeImportFullFlow:
         assert len(rec_c["items"]) == 2
         for it in rec_c["items"]:
             assert it["qty_verified"] == it["qty_expected"]
+
+
+class TestNfeImportRealXml:
+    """Integration tests using real NF-e XML files from data/nfe_inbound/."""
+
+    INBOUND_DIR = os.path.join(DATA_DIR, "nfe_inbound")
+
+    def setup_method(self):
+        self.originals = _save_originals()
+        # Find XMLs not yet in the monitor
+        monitor_data = json.load(open(MONITOR_FILE)) if os.path.exists(MONITOR_FILE) else {}
+        monitor_chaves = {d.get("chave") for d in monitor_data.get("documents", [])}
+        self.available = []
+        if os.path.isdir(self.INBOUND_DIR):
+            for f in sorted(os.listdir(self.INBOUND_DIR)):
+                if not f.endswith(".xml"):
+                    continue
+                path = os.path.join(self.INBOUND_DIR, f)
+                with open(path) as fh:
+                    txt = fh.read()
+                import re
+                m = re.search(r'Id="NFe(\d+)"', txt)
+                if m and m.group(1) not in monitor_chaves:
+                    self.available.append(path)
+        # Use at most 3 for speed
+        self.test_files = self.available[:3]
+
+    def teardown_method(self):
+        _restore(self.originals)
+
+    def test_real_xml_ingest_and_process(self):
+        """Ingest + process each real XML file creates receiving drafts."""
+        for path in self.test_files:
+            with open(path, "rb") as f:
+                xml = f.read()
+
+            result = nfe_monitor.ingest_xml(xml, filename=os.path.basename(path),
+                                            source="test_real", user_id="test_user")
+            if result.get("duplicate"):
+                continue  # skip already-imported
+            doc = result["document"]
+            assert doc["status"] == "new"
+
+            processed = nfe_monitor.process_document(doc["id"], user_id="test_user")
+            assert processed["status"] == "done"
+            assert processed["receiving_id"] is not None
+
+            recs = receiving_mvp.list_receivings()
+            rec = next((r for r in recs if r["id"] == processed["receiving_id"]), None)
+            assert rec is not None
+            assert rec["origem"] == "nfe"
+            assert len(rec["items"]) > 0
+
+    def test_real_xml_full_e2e(self):
+        """Full E2E on first available real XML: ingest → process → verify → complete."""
+        if not self.test_files:
+            return  # no unprocessed XMLs available
+
+        path = self.test_files[0]
+        with open(path, "rb") as f:
+            xml = f.read()
+
+        # 1. Ingest
+        result = nfe_monitor.ingest_xml(xml, filename=os.path.basename(path),
+                                        source="test_real_e2e", user_id="test_user")
+        if result.get("duplicate"):
+            return  # already imported
+        assert result["duplicate"] is False
+
+        # 2. Process
+        doc = nfe_monitor.process_document(result["document"]["id"],
+                                           user_id="test_user")
+        assert doc["status"] == "done"
+        rid = doc["receiving_id"]
+
+        # 3. Verify
+        recs = receiving_mvp.list_receivings()
+        rec = next(r for r in recs if r["id"] == rid)
+        verify_payload = {
+            "items": [
+                {"item_index": i, "produto_id": it["produto_id"],
+                 "qty_verified": it["qty_expected"]}
+                for i, it in enumerate(rec["items"])
+            ]
+        }
+        rec_v = receiving_mvp.verify_receiving(rid, verify_payload,
+                                               user_id="test_user")
+        assert rec_v["status"] == "verified"
+
+        # 4. Complete
+        rec_c = receiving_mvp.complete_receiving(rid, user_id="test_user")
+        assert rec_c["status"] == "completed"
+        assert len(rec_c["items"]) > 0
+        for it in rec_c["items"]:
+            assert it["qty_verified"] == it["qty_expected"]
+
+    def test_sample_xml_full_e2e(self):
+        """Full E2E on the sample XML: ingest → process → verify → complete."""
+        sample_path = os.path.join(DATA_DIR, "samples", "nfe-entrada-demo.xml")
+        if not os.path.exists(sample_path):
+            return
+
+        with open(sample_path, "rb") as f:
+            xml = f.read()
+
+        result = nfe_monitor.ingest_xml(xml, filename="nfe-entrada-demo.xml",
+                                        source="test_sample", user_id="test_user")
+        if result.get("duplicate"):
+            return
+
+        doc = nfe_monitor.process_document(result["document"]["id"],
+                                           user_id="test_user")
+        if doc.get("status") == "duplicate":
+            return
+        assert doc["status"] == "done"
+        rid = doc["receiving_id"]
+
+        recs = receiving_mvp.list_receivings()
+        rec = next(r for r in recs if r["id"] == rid)
+        verify_payload = {
+            "items": [
+                {"item_index": i, "produto_id": it["produto_id"],
+                 "qty_verified": it["qty_expected"]}
+                for i, it in enumerate(rec["items"])
+            ]
+        }
+        rec_v = receiving_mvp.verify_receiving(rid, verify_payload,
+                                               user_id="test_user")
+        assert rec_v["status"] == "verified"
+
+        rec_c = receiving_mvp.complete_receiving(rid, user_id="test_user")
+        assert rec_c["status"] == "completed"
