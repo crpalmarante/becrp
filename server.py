@@ -567,6 +567,65 @@ def _pdv_user_conflict(terminais, usuario_id, exclude_id=None):
             return t
     return None
 
+
+def _terminais_permitidos(uid, users=None, terminais=None, empresas=None):
+    """Retorna terminais POS que o usuário pode visualizar/operar.
+
+    Regras (espelhando o descritivo do módulo de restrição de PDV):
+    - admin: todos os terminais ativos.
+    - gerente: todos os terminais ativos dos estabelecimentos aos quais está vinculado.
+    - vendedor / caixa / operador: terminais explicitamente permitidos (pos_terminal_ids)
+      mais terminais com vínculo legado usuario_id == uid.
+    - demais roles: sem acesso a PDV.
+    """
+    if not uid:
+        return []
+    users = users if users is not None else load_users()
+    user = users.get(uid)
+    if not user:
+        return []
+    role = (user.get("role") or "operador").lower()
+    terminais = terminais if terminais is not None else load_pos_terminais().get("terminais", [])
+    ativos = [t for t in terminais if t.get("ativo", True)]
+    if role == "admin":
+        return ativos
+    if role == "gerente":
+        empresas = empresas if empresas is not None else load_empresas()
+        user_empresas = set(user.get("empresas", {}).keys())
+        # estabelecimentos derivados dos terminais vinculados ao usuário (legado)
+        for t in ativos:
+            if t.get("usuario_id") == uid and t.get("estabelecimento_id"):
+                user_empresas.add(t.get("estabelecimento_id"))
+        return [t for t in ativos if t.get("estabelecimento_id") in user_empresas]
+    if role in ("vendedor", "caixa", "operador"):
+        allowed_ids = set(user.get("pos_terminal_ids") or [])
+        # compatibilidade legado: vínculo 1:1 no terminal
+        for t in ativos:
+            if t.get("usuario_id") == uid:
+                allowed_ids.add(t.get("id"))
+        return [t for t in ativos if t.get("id") in allowed_ids]
+    return []
+
+
+def _terminal_do_usuario(uid, users=None, terminais=None, empresas=None):
+    """Retorna o terminal primário do usuário (primeiro permitido)."""
+    permitidos = _terminais_permitidos(uid, users=users, terminais=terminais, empresas=empresas)
+    return permitidos[0] if permitidos else None
+
+
+def _filtrar_por_terminais_permitidos(uid, rows, key="terminal_id", users=None, terminais=None):
+    """Filtra uma lista de registros deixando apenas os dos terminais permitidos."""
+    if not uid:
+        return []
+    users = users if users is not None else load_users()
+    user = users.get(uid) or {}
+    role = (user.get("role") or "").lower()
+    if role == "admin":
+        return rows
+    allowed = {t.get("id") for t in _terminais_permitidos(uid, users=users, terminais=terminais)}
+    return [r for r in rows if (r.get(key) or r.get("terminal_id") or r.get("terminal_caixa_id")) in allowed]
+
+
 def promise_produto(estabelecimento_id, produto_id, empresas=None):
     """Promise Engine (POS) — lê ledger/cache do Inventário MVP."""
     return inventory_mvp.inventory_promise(
@@ -1511,7 +1570,8 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 item = {"id": uid, "usuario": u["usuario"], "nome": u.get("nome", ""),
                         "role": role, "role_label": role_label(role),
                         "ativo": u.get("ativo", True),
-                        "email": u.get("email", ""), "empresas": u.get("empresas", {})}
+                        "email": u.get("email", ""), "empresas": u.get("empresas", {}),
+                        "pos_terminal_ids": u.get("pos_terminal_ids", [])}
                 lista.append(item)
             return self._json({"status": "ok", "users": lista, "roles": ROLES})
 
@@ -2012,23 +2072,8 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     break
             role = (current.get("role") or "operador").lower()
             empresas = load_empresas()
-            data = load_pos_terminais()
-            terminais = [
-                t for t in data.get("terminais", [])
-                if t.get("ativo", True) and t.get("usuario_id") == uid
-            ]
-            # Gerente/caixa/admin no mesmo estabelecimento: listar todos os terminais da loja
-            loja_ids = {t.get("estabelecimento_id") for t in terminais if t.get("estabelecimento_id")}
-            visao_ampla = []
-            if role in ("caixa", "gerente", "admin") and loja_ids:
-                visao_ampla = [
-                    t for t in data.get("terminais", [])
-                    if t.get("ativo", True) and t.get("estabelecimento_id") in loja_ids
-                ]
-            elif role == "admin" and not terminais:
-                # Admin sem terminal: contexto da matriz (demo / supervisão)
-                visao_ampla = [t for t in data.get("terminais", []) if t.get("ativo", True)]
-
+            terminais = _terminais_permitidos(uid, users=users, empresas=empresas)
+            visao_ampla = list(terminais)  # todos os permitidos são visíveis
             primary = terminais[0] if terminais else None
             if not primary and role == "admin":
                 # fallback estabelecimento matriz
@@ -2145,8 +2190,11 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/pos/vendas":
             token = self.headers.get("X-Auth-Token", "")
-            if not self._find_user(token, load_users()):
+            users = load_users()
+            current = self._find_user(token, users)
+            if not current:
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
             qs = urllib.parse.parse_qs(parsed.query or "")
             q = (qs.get("q") or [""])[0].strip().lower()
             q_digits = "".join(ch for ch in q if ch.isdigit())
@@ -2157,6 +2205,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             limit = max(1, min(limit, 100))
             vendas = load_json(os.path.join(BASE_DIR, "dados", "vendas.json"))
             lista = list((vendas.get("vendas") if isinstance(vendas, dict) else []) or [])
+            lista = _filtrar_por_terminais_permitidos(uid, lista, key="terminal_id")
             # NFC-e números por venda_id (se houver)
             nfce_by_venda = {}
             try:
@@ -2226,12 +2275,18 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/pos/caixa/movimentos":
             token = self.headers.get("X-Auth-Token", "")
-            if not self._find_user(token, load_users()):
+            users = load_users()
+            if not self._find_user(token, users):
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
             qs = urllib.parse.parse_qs(parsed.query or "")
             tid = (qs.get("terminal_id") or [""])[0].strip() or None
             eid = (qs.get("estabelecimento_id") or [""])[0].strip() or None
             sid = (qs.get("sessao_id") or [""])[0].strip() or None
+            if tid:
+                allowed = {t.get("id") for t in _terminais_permitidos(uid)}
+                if tid not in allowed:
+                    return self._json({"status": "error", "message": "Terminal não permitido"}, 403)
             try:
                 limit = int((qs.get("limit") or ["50"])[0])
             except (TypeError, ValueError):
@@ -2239,6 +2294,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             rows = pos_caixa.list_movimentos(
                 terminal_id=tid, estabelecimento_id=eid, sessao_id=sid, limit=limit
             )
+            rows = _filtrar_por_terminais_permitidos(uid, rows, key="terminal_id")
             return self._json({"status": "ok", "movimentos": rows, "total": len(rows)})
 
         if parsed.path == "/api/pos/caixa/sessao":
@@ -2251,6 +2307,10 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             qs = urllib.parse.parse_qs(parsed.query or "")
             tid = (qs.get("terminal_id") or [""])[0].strip()
             eid = (qs.get("estabelecimento_id") or [""])[0].strip()
+            if tid:
+                allowed = {t.get("id") for t in _terminais_permitidos(uid)}
+                if tid not in allowed:
+                    return self._json({"status": "error", "message": "Terminal não permitido"}, 403)
             if not tid or not eid:
                 term = _terminal_do_usuario(uid)
                 if term:
@@ -2269,19 +2329,27 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
 
         if parsed.path == "/api/pos/caixa/sessoes":
             token = self.headers.get("X-Auth-Token", "")
-            if not self._find_user(token, load_users()):
+            users = load_users()
+            if not self._find_user(token, users):
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
             qs = urllib.parse.parse_qs(parsed.query or "")
             try:
                 limit = int((qs.get("limit") or ["30"])[0] or 30)
             except (TypeError, ValueError):
                 limit = 30
+            tid = (qs.get("terminal_id") or [""])[0].strip() or None
+            if tid:
+                allowed = {t.get("id") for t in _terminais_permitidos(uid)}
+                if tid not in allowed:
+                    return self._json({"status": "error", "message": "Terminal não permitido"}, 403)
             rows = pos_caixa.list_sessoes(
-                terminal_id=(qs.get("terminal_id") or [""])[0].strip() or None,
+                terminal_id=tid,
                 estabelecimento_id=(qs.get("estabelecimento_id") or [""])[0].strip() or None,
                 status=(qs.get("status") or [""])[0].strip() or None,
                 limit=limit,
             )
+            rows = _filtrar_por_terminais_permitidos(uid, rows, key="terminal_id")
             return self._json({"status": "ok", "sessoes": rows, "total": len(rows)})
 
         # ── WMS armazéns (RFC-9001 MVP) ──
@@ -3774,18 +3842,24 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
         # ── POS: fila PDV → Caixa ──
         if parsed.path == "/api/pos/fila":
             token = self.headers.get("X-Auth-Token", "")
-            if not self._find_user(token, load_users()):
+            users = load_users()
+            if not self._find_user(token, users):
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
             fila = load_pos_fila()
             pid = self._get_query_param(parsed.query, "id", "").strip()
             if pid:
                 hit = next((p for p in fila["pedidos"] if str(p.get("id")) == pid), None)
                 if not hit:
                     return self._json({"status": "error", "message": "Pedido não encontrado"}, 404)
+                allowed = {t.get("id") for t in _terminais_permitidos(uid)}
+                if (hit.get("terminal_id") or hit.get("terminal_caixa_id")) not in allowed:
+                    return self._json({"status": "error", "message": "Pedido não permitido"}, 403)
                 return self._json({"status": "ok", "pedido": hit})
             states_raw = self._get_query_param(parsed.query, "state", "aguardando,pagamento")
             states = {s.strip().lower() for s in states_raw.split(",") if s.strip()}
             pedidos = [p for p in fila["pedidos"] if str(p.get("state", "")).lower() in states]
+            pedidos = _filtrar_por_terminais_permitidos(uid, pedidos, key="terminal_id")
             pedidos.sort(key=lambda p: p.get("createdAt") or "", reverse=True)
             return self._json({"status": "ok", "pedidos": pedidos, "next_num": fila.get("next_num")})
 
@@ -6279,6 +6353,11 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     if term:
                         payload.setdefault("terminal_id", term.get("id") or "")
                         payload.setdefault("estabelecimento_id", term.get("estabelecimento_id") or "")
+                term_id = payload.get("terminal_id")
+                if term_id:
+                    allowed = {t.get("id") for t in _terminais_permitidos(uid)}
+                    if term_id not in allowed:
+                        return self._json({"status": "error", "message": "Terminal não permitido"}, 403)
                 payload.setdefault("user_nome", user.get("nome") or user.get("usuario") or "")
                 # amarra à sessão aberta
                 open_s = pos_caixa.get_sessao_aberta(terminal_id=payload.get("terminal_id"))
@@ -6305,6 +6384,11 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if term:
                     payload.setdefault("terminal_id", term.get("id") or "")
                     payload.setdefault("estabelecimento_id", term.get("estabelecimento_id") or "")
+                term_id = payload.get("terminal_id")
+                if term_id:
+                    allowed = {t.get("id") for t in _terminais_permitidos(uid)}
+                    if term_id not in allowed:
+                        return self._json({"status": "error", "message": "Terminal não permitido"}, 403)
                 payload.setdefault("user_nome", user.get("nome") or user.get("usuario") or "")
                 sessao = pos_caixa.abrir_sessao(payload, user_id=uid)
                 return self._json({"status": "ok", "sessao": sessao, "resumo": pos_caixa.resumo_sessao(sessao)}, 201)
@@ -6331,6 +6415,11 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     if not open_s:
                         return self._json({"status": "error", "message": "nenhuma sessão aberta"}, 400)
                     sid = open_s.get("id")
+                sessao = pos_caixa.get_sessao(sid)
+                if sessao:
+                    allowed = {t.get("id") for t in _terminais_permitidos(uid)}
+                    if sessao.get("terminal_id") not in allowed:
+                        return self._json({"status": "error", "message": "Sessão não permitida"}, 403)
                 out = pos_caixa.fechar_sessao(sid, body, user_id=uid)
                 return self._json({"status": "ok", **out})
             except ValueError as e:
@@ -6640,6 +6729,10 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             term = _terminal_do_usuario(pdv_uid)
             estab_id = (body.get("estabelecimento_id") or "").strip()
             term_id = (body.get("terminal_id") or "").strip()
+            if term_id:
+                allowed = {t.get("id") for t in _terminais_permitidos(pdv_uid)}
+                if term_id not in allowed:
+                    return self._json({"status": "error", "message": "Terminal não permitido"}, 403)
             if term:
                 if not estab_id:
                     estab_id = (term.get("estabelecimento_id") or "").strip()
@@ -6689,11 +6782,15 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             user = self._find_user(token, users)
             if not user:
                 return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
             pid = parsed.path.rstrip("/").split("/")[-1]
             fila = load_pos_fila()
             pedido = next((p for p in fila["pedidos"] if str(p.get("id")) == pid), None)
             if not pedido:
                 return self._json({"status": "error", "message": "Pedido não encontrado"}, 404)
+            allowed = {t.get("id") for t in _terminais_permitidos(uid)}
+            if (pedido.get("terminal_id") or pedido.get("terminal_caixa_id")) not in allowed:
+                return self._json({"status": "error", "message": "Pedido não permitido"}, 403)
             action = (body.get("action") or "").strip().lower()
 
             if action == "finalizar":
@@ -6984,6 +7081,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "email": body.get("email", ""),
                 "role": role,
                 "empresas": empresas,
+                "pos_terminal_ids": list(body.get("pos_terminal_ids") or []),
                 "ativo": True,
                 "token": ""
             }
@@ -7016,6 +7114,8 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if body.get("senha"): users[uid]["senha"] = hash_password(body["senha"])
                 if "empresas" in body:
                     users[uid]["empresas"] = body["empresas"]
+                if "pos_terminal_ids" in body:
+                    users[uid]["pos_terminal_ids"] = list(body.get("pos_terminal_ids") or [])
                 if "email" in body:
                     users[uid]["email"] = body.get("email") or ""
                 save_users(users)

@@ -134,6 +134,11 @@
                     <label>Acesso a Empresas</label>
                     <div id="empresas-checkbox-list" class="empresas-list"></div>
                 </div>
+                <div class="field" id="pos-terminals-field">
+                    <label>PDVs Permitidos</label>
+                    <div id="pos-terminals-list" class="empresas-list"></div>
+                    <span class="form-help" id="pos-terminals-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px"></span>
+                </div>
                 <div class="form-error" id="user-form-error"></div>
             </form>
         </div>
@@ -155,6 +160,7 @@
     const TOKEN = localStorage.getItem("auth_token");
     let editingUserId = null;
     let empresasDisponiveis = [];
+    let posTerminaisDisponiveis = [];
 
     function labelRole(role) {
         const map = {
@@ -261,6 +267,7 @@
             const res=await api("/api/admin/empresas");
             if(res.status==="ok") empresasDisponiveis=res.empresas||[];
         }
+        await loadPosTerminais();
 
         const userEmpresas=data&&data.empresas?data.empresas:{};
         const list=document.getElementById("empresas-checkbox-list");
@@ -289,6 +296,7 @@
             });
         }
         updateRoleHint();
+        renderPosTerminals(data && data.pos_terminal_ids ? data.pos_terminal_ids : []);
         document.getElementById("user-modal").classList.add("dialog-open");
     }
 
@@ -306,6 +314,37 @@
         const role = document.getElementById("edit-role").value;
         const el = document.getElementById("role-hint");
         if (el) el.textContent = ROLE_HINTS[role] || "";
+    }
+
+    async function loadPosTerminais() {
+        if (posTerminaisDisponiveis.length > 0) return;
+        const res = await api("/api/admin/pos/terminais");
+        if (res.status === "ok") posTerminaisDisponiveis = res.terminais || [];
+    }
+
+    function renderPosTerminals(userTerminalIds) {
+        const container = document.getElementById("pos-terminals-list");
+        const field = document.getElementById("pos-terminals-field");
+        const role = document.getElementById("edit-role").value;
+        if (!field || !container) return;
+        // admin e gerente já têm acesso amplo; não precisam de seleção individual
+        if (role === "admin" || role === "gerente") {
+            field.hidden = true;
+            return;
+        }
+        field.hidden = false;
+        const allowed = new Set(userTerminalIds || []);
+        if (posTerminaisDisponiveis.length === 0) {
+            container.innerHTML = '<span style="color:var(--text-disabled);font-size:var(--font-sm)">Nenhum terminal POS cadastrado. Crie terminais em Configurações → POS.</span>';
+            return;
+        }
+        container.innerHTML = posTerminaisDisponiveis.map(t => `
+            <label class="empresa-check">
+                <input type="checkbox" class="pos-terminal-chk" value="${t.id}" ${allowed.has(t.id) ? 'checked' : ''}>
+                <span>${t.codigo || t.id} — ${t.nome}</span>
+                <span class="muted" style="margin-left:auto;font-size:11px">${t.estabelecimento_id || ''}</span>
+            </label>
+        `).join('');
     }
 
     function closeUserModal() {
@@ -335,16 +374,23 @@
             });
         }
 
+        const posTerminalIds = [];
+        if (role !== 'admin' && role !== 'gerente') {
+            document.querySelectorAll('.pos-terminal-chk').forEach(cb => {
+                if (cb.checked) posTerminalIds.push(cb.value);
+            });
+        }
+
         let data;
         if (editingUserId) {
             data = await api("/api/admin/users/" + editingUserId, {
                 method: "POST",
-                body: JSON.stringify({ action: "update", nome, role, senha, email, empresas })
+                body: JSON.stringify({ action: "update", nome, role, senha, email, empresas, pos_terminal_ids: posTerminalIds })
             });
         } else {
             data = await api("/api/admin/users", {
                 method: "POST",
-                body: JSON.stringify({ nome, usuario, senha, role, email, empresas })
+                body: JSON.stringify({ nome, usuario, senha, role, email, empresas, pos_terminal_ids: posTerminalIds })
             });
         }
 
@@ -371,7 +417,10 @@
         document.getElementById("user-search").addEventListener("input", function () {
             renderUsers(window._lastUsers || []);
         });
-        document.getElementById("edit-role").addEventListener("change", updateRoleHint);
+        document.getElementById("edit-role").addEventListener("change", () => {
+            updateRoleHint();
+            renderPosTerminals([]);
+        });
         const stored = localStorage.getItem("user_data");
         if (stored) {
             try {
