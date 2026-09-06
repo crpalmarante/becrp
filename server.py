@@ -3873,6 +3873,37 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "all": campaigns.list_all(),
             })
 
+        # ── POS: QR code do recibo ──
+        if parsed.path == "/api/pos/recibo/qrcode":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            if not self._find_user(token, users):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            data = body.get("data") or {}
+            pedido_id = data.get("pedido_id") or data.get("id") or ""
+            if pedido_id:
+                fila = load_pos_fila()
+                hit = next((p for p in fila.get("pedidos", []) if str(p.get("id")) == str(pedido_id)), None)
+                if hit:
+                    allowed = {t.get("id") for t in _terminais_permitidos(uid)}
+                    if (hit.get("terminal_id") or hit.get("terminal_caixa_id")) not in allowed:
+                        return self._json({"status": "error", "message": "Pedido não permitido"}, 403)
+            try:
+                import qrcode
+                import io
+                import base64
+                qr = qrcode.QRCode(version=None, box_size=4, border=2, error_correction=qrcode.constants.ERROR_CORRECT_M)
+                qr.add_data(json.dumps(data, ensure_ascii=False, default=str))
+                qr.make(fit=True)
+                img = qr.make_image(fill_color="black", back_color="white")
+                buf = io.BytesIO()
+                img.save(buf, format="PNG")
+                b64 = base64.b64encode(buf.getvalue()).decode("ascii")
+                return self._json({"status": "ok", "image": "data:image/png;base64," + b64})
+            except Exception as e:
+                return self._json({"status": "error", "message": "Falha ao gerar QR code: " + str(e)}, 500)
+
         # ── Plano de contas (sistema) ──
         if parsed.path == "/api/planocontas":
             token = self.headers.get("X-Auth-Token", "")

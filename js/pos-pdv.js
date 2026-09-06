@@ -420,6 +420,14 @@
   const money = (v) =>
     "R$ " + (Number(v) || 0).toFixed(2).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
+  const escapeHtml = (s) =>
+    String(s == null ? "" : s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
   function parseNumpadRaw(raw, allowDecimal) {
     if (!raw || raw === ".") return 0;
     const n = allowDecimal ? parseFloat(raw) : parseInt(raw, 10);
@@ -3396,6 +3404,169 @@
     clearSessionAfterSend(s);
   }
 
+  // ── Recibo PDV: código de barras + QR code ─────────────────
+  const CODE39_CHARS = {
+    "0": "101001101101", "1": "110100101011", "2": "101100101011", "3": "110110010101",
+    "4": "101001101011", "5": "110100110101", "6": "101100110101", "7": "101001011011",
+    "8": "110100101101", "9": "101100101101", "A": "110101001011", "B": "101101001011",
+    "C": "110110100101", "D": "101011001011", "E": "110101100101", "F": "101101100101",
+    "G": "101010011011", "H": "110101001101", "I": "101101001101", "J": "101011001101",
+    "K": "110101010011", "L": "101101010011", "M": "110110101001", "N": "101011010011",
+    "O": "110101011001", "P": "101101011001", "Q": "101010110011", "R": "110101001101",
+    "S": "101101001101", "T": "101011001101", "U": "110010101011", "V": "100110101011",
+    "W": "110011010101", "X": "100101101011", "Y": "110010110101", "Z": "100110110101",
+    "-": "100101011011", ".": "110010101101", " ": "100110101101", "$": "100100100101",
+    "/": "100100101001", "+": "100101001001", "%": "101001001001", "*": "100101101101",
+  };
+
+  function code39Svg(text) {
+    const normalized = String(text || "").toUpperCase().replace(/[^0-9A-Z\-. $\/+%]/g, "");
+    const payload = "*" + (normalized || "0") + "*";
+    let bits = "";
+    for (const ch of payload) {
+      const map = CODE39_CHARS[ch];
+      if (!map) continue;
+      bits += map + "0";
+    }
+    const narrow = 2;
+    let x = 0;
+    let rects = "";
+    for (const bit of bits) {
+      if (bit === "1") {
+        rects += `<rect x="${x}" y="0" width="${narrow}" height="60" fill="currentColor"/>`;
+      }
+      x += narrow;
+    }
+    return `<svg class="barcode-svg" viewBox="0 0 ${x} 60" xmlns="http://www.w3.org/2000/svg">${rects}<text x="${x/2}" y="72" text-anchor="middle" font-size="10" fill="currentColor">${escapeHtml(normalized)}</text></svg>`;
+  }
+
+  function receiptData(pedido, extra) {
+    const ctx = posContexto || {};
+    const estab = ctx.estabelecimento || {};
+    const term = ctx.terminal || {};
+    const op = ctx.usuario_id ? ((ctx.usuario_nome) || ctx.usuario_id) : "";
+    return {
+      empresa: estab.nome || estab.razao_social || "BECRP",
+      cnpj: estab.cnpj || "",
+      endereco: [estab.logradouro, estab.numero, estab.bairro, estab.cidade, estab.uf].filter(Boolean).join(", ") || "",
+      operador: op,
+      terminal: `${term.codigo || ""} · ${term.nome || ""}`.trim() || "—",
+      cliente: pedido.client ? (pedido.client.nome || pedido.cliente || "Consumidor final") : "Consumidor final",
+      cpf: pedido.client ? (pedido.client.cpf || "") : "",
+      pedido_id: pedido.id,
+      order_num: pedido.orderNum,
+      rastreamento: pedido.id,
+      forma_pg: extra.forma_pg || caixaFormaPg || "Dinheiro",
+      data: pedido.createdAt || new Date().toISOString(),
+      itens: (pedido.lines || []).map((l) => ({ nome: l.nome || l.produto || "Item", qtd: l.qtd, preco: l.preco })),
+      subtotal: pedido.subtotal || 0,
+      desconto: pedido.discount || 0,
+      acrescimo: pedido.surcharge || 0,
+      total: pedido.total || 0,
+      troco: extra.troco || 0,
+      recebido: extra.recebido || 0,
+      nfce: extra.nfce || "",
+    };
+  }
+
+  async function generateReceiptQrCode(pedido, extra) {
+    const api = window.AuthService && window.AuthService.api;
+    if (!api) return null;
+    try {
+      const data = receiptData(pedido, extra);
+      const res = await api("/api/pos/recibo/qrcode", {
+        method: "POST",
+        body: JSON.stringify({ data, pedido_id: pedido.id }),
+      });
+      return res && res.status === "ok" ? res.image : null;
+    } catch (e) {
+      console.warn("[POS] QR code recibo", e);
+      return null;
+    }
+  }
+
+  function printReceipt() {
+    const printWindow = window.open("", "_blank", "width=320,height=600");
+    if (!printWindow) return;
+    const receipt = document.getElementById("nfce-result");
+    const clone = receipt.cloneNode(true);
+    clone.querySelectorAll(".receipt-actions").forEach((el) => el.remove());
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html><head><meta charset="utf-8"><title>Recibo PDV</title>
+      <style>
+        body { font-family: monospace; margin: 0; padding: 12px; color: #000; background: #fff; }
+        .nfce-result { border: 1px dashed #999; padding: 12px; border-radius: 6px; text-align: center; }
+        .barcode-svg { width: 100%; height: 60px; }
+        .qr-img { width: 160px; height: 160px; margin: 8px auto; display: block; }
+        .receipt-line { font-size: 12px; margin: 2px 0; text-align: left; }
+        .receipt-line b { display: inline-block; width: 90px; }
+        .totals { border-top: 1px dashed #999; margin-top: 8px; padding-top: 6px; }
+        .total { font-size: 14px; font-weight: bold; }
+        @media print { body { padding: 0; } .no-print { display: none; } }
+      </style></head><body>
+      <div class="no-print" style="text-align:center;margin-bottom:10px">
+        <button onclick="window.print()">Imprimir</button>
+      </div>
+      ${clone.outerHTML}
+      </body></html>
+    `);
+    printWindow.document.close();
+  }
+
+  async function renderNfceReceipt(res, pedido, extra) {
+    const box = document.getElementById("nfce-result");
+    if (!box) return;
+    if (!res) {
+      box.hidden = true;
+      box.innerHTML = "";
+      return;
+    }
+    const nfce = res.nfce || {};
+    const resultado = nfce.resultado || res.pedido?.nfce || {};
+    const cStat = resultado.cStat || nfce.cStat || "";
+    const xMotivo = resultado.xMotivo || nfce.xMotivo || res.aviso || "";
+    const chave = nfce.chave || resultado.chave || "";
+    const numero = nfce.numero || "";
+    const ok = String(cStat) === "100" || String(resultado.status || "").toUpperCase() === "AUTORIZADA";
+    const data = receiptData(pedido, extra || {});
+    const qrImage = await generateReceiptQrCode(pedido, extra || {});
+
+    box.hidden = false;
+    box.className = "nfce-result " + (ok ? "ok" : "err");
+    let html = `<strong>${ok ? "NFC-e autorizada" : "Pagamento ok · NFC-e pendente/erro"}</strong>`;
+    html += `<div class="receipt-section">`;
+    html += `<div class="receipt-line"><b>Empresa:</b> ${escapeHtml(data.empresa)}</div>`;
+    html += `<div class="receipt-line"><b>Operador:</b> ${escapeHtml(data.operador)}</div>`;
+    html += `<div class="receipt-line"><b>Terminal:</b> ${escapeHtml(data.terminal)}</div>`;
+    html += `<div class="receipt-line"><b>Cliente:</b> ${escapeHtml(data.cliente)}</div>`;
+    if (data.cpf) html += `<div class="receipt-line"><b>CPF:</b> ${escapeHtml(data.cpf)}</div>`;
+    html += `<div class="receipt-line"><b>Pedido:</b> #${escapeHtml(String(data.order_num || data.pedido_id || ""))}</div>`;
+    html += `<div class="receipt-line"><b>Data:</b> ${escapeHtml(new Date(data.data).toLocaleString("pt-BR"))}</div>`;
+    html += `<div class="receipt-line"><b>Forma PG:</b> ${escapeHtml(data.forma_pg)}</div>`;
+    html += `<div class="totals">`;
+    html += `<div class="receipt-line"><b>Subtotal:</b> ${money(data.subtotal)}</div>`;
+    if (data.desconto) html += `<div class="receipt-line"><b>Desconto:</b> -${money(data.desconto)}</div>`;
+    if (data.acrescimo) html += `<div class="receipt-line"><b>Acréscimo:</b> +${money(data.acrescimo)}</div>`;
+    html += `<div class="receipt-line total"><b>Total:</b> ${money(data.total)}</div>`;
+    if (extra && extra.recebido > data.total) html += `<div class="receipt-line"><b>Troco:</b> ${money(extra.troco || 0)}</div>`;
+    html += `</div>`;
+    html += `</div>`;
+    html += `<div class="receipt-barcodes">`;
+    html += code39Svg(String(data.order_num || data.pedido_id || ""));
+    if (qrImage) html += `<img class="qr-img" src="${qrImage}" alt="QR Code">`;
+    html += `</div>`;
+    if (numero) html += `<div>Número: ${numero}</div>`;
+    if (chave) html += `<div class="nfce-chave">${chave}</div>`;
+    if (cStat) html += `<div>cStat ${cStat}${xMotivo ? " — " + xMotivo : ""}</div>`;
+    else if (xMotivo) html += `<div>${xMotivo}</div>`;
+    if (res.aviso && !xMotivo.includes(res.aviso)) html += `<div class="nfce-aviso">${res.aviso}</div>`;
+    html += `<div class="receipt-actions" style="margin-top:10px;display:flex;gap:8px;justify-content:center">`;
+    html += `<button type="button" class="pos-cta secondary" onclick="window.__printPosReceipt()">Imprimir recibo</button>`;
+    html += `</div>`;
+    box.innerHTML = html;
+  }
+
   function showNfceResult(res) {
     const box = document.getElementById("nfce-result");
     if (!box) return;
@@ -3421,6 +3592,8 @@
       (res.aviso && !xMotivo.includes(res.aviso) ? `<div class="nfce-aviso">${res.aviso}</div>` : "");
   }
 
+  window.__printPosReceipt = printReceipt;
+
   async function confirmCaixaPayment() {
     if (!activeFilaPedido) {
       document.getElementById("status-hint").textContent = "Selecione um pedido na fila";
@@ -3439,10 +3612,14 @@
       renderFilaList(filaPedidos);
       activeFilaPedido = null;
       btn.textContent = prevLabel;
-      showNfceResult({
-        aviso: "Fila local/treino — NFC-e não emitida",
-        nfce: { status: "DEMO", xMotivo: "Sem envio à SEFAZ no modo demo/treino" },
-      });
+      await renderNfceReceipt(
+        {
+          aviso: "Fila local/treino — NFC-e não emitida",
+          nfce: { status: "DEMO", xMotivo: "Sem envio à SEFAZ no modo demo/treino" },
+        },
+        pedido,
+        { forma_pg: caixaFormaPg || "Dinheiro", recebido: cashReceived, troco: Math.max(0, cashReceived - (pedido.total || 0)) }
+      );
       document.getElementById("status-hint").textContent =
         "Pagamento confirmado (demo) — Pedido #" + pedido.orderNum;
       return;
@@ -3475,7 +3652,11 @@
       }
       syncSessionQueueFromPedido(res.pedido || { id: pedido.id, orderNum: pedido.orderNum, state: "pago" });
       activeFilaPedido = null;
-      showNfceResult(res);
+      await renderNfceReceipt(
+        res,
+        pedido,
+        { forma_pg: caixaFormaPg || "Dinheiro", recebido: cashReceived, troco: Math.max(0, cashReceived - (pedido.total || 0)) }
+      );
       await refreshFilaCaixa();
       const chave = (res.nfce && res.nfce.chave) || (res.pedido && res.pedido.nfce && res.pedido.nfce.chave) || "";
       let hint = chave

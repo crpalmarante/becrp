@@ -2150,3 +2150,61 @@ body.training #pos-topbar,
   margin-top: 6px;
   opacity: 0.9;
 }
+
+.nfce-result .receipt-section {
+  text-align: left;
+  margin: 10px 0;
+  border-top: 1px dashed rgba(255,255,255,0.2);
+  padding-top: 8px;
+}
+
+.nfce-result .receipt-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 2px 0;
+  font-size: 11px;
+}
+
+.nfce-result .receipt-line b {
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+.nfce-result .totals {
+  border-top: 1px dashed rgba(255,255,255,0.2);
+  margin-top: 6px;
+  padding-top: 4px;
+}
+
+.nfce-result .total {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.nfce-result .receipt-barcodes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.nfce-result .barcode-svg {
+  width: 100%;
+  max-width: 220px;
+  height: 50px;
+  color: currentColor;
+}
+
+.nfce-result .qr-img {
+  width: 120px;
+  height: 120px;
+  background: #fff;
+  padding: 4px;
+  border-radius: 6px;
+}
+
+.nfce-result .receipt-actions {
+  margin-top: 10px;
+}
