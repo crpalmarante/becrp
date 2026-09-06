@@ -147,6 +147,8 @@
 }
 .field textarea.form-input{min-height:110px;resize:vertical}
 .soon-note{font-size:12px;color:var(--text-muted);margin-top:8px}
+/* Descrição do NCM: quebra linha e fica legível após a escolha */
+.lookup-hint{white-space:normal;line-height:1.45;color:var(--text-secondary)}
 .pf-section-title{
   margin:18px 0 10px;font-size:13px;font-weight:700;color:var(--text-primary);
   letter-spacing:.02em;
@@ -888,15 +890,67 @@
       .join("");
   }
 
+  // ── Máscara NCM (xxxx.xx.xx) ──────────────────────────────
+  function ncmDigits(v) {
+    return String(v == null ? "" : v).replace(/\D/g, "").slice(0, 8);
+  }
+  function maskNcm(v) {
+    const d = ncmDigits(v);
+    if (!d) return "";
+    if (d.length <= 4) return d;
+    if (d.length <= 6) return d.slice(0, 4) + "." + d.slice(4);
+    return d.slice(0, 4) + "." + d.slice(4, 6) + "." + d.slice(6);
+  }
+
+  // ── Máscara CEST (xx.xxx.xx) ──────────────────────────────
+  function cestDigits(v) {
+    return String(v == null ? "" : v).replace(/\D/g, "").slice(0, 7);
+  }
+  function maskCest(v) {
+    const d = cestDigits(v);
+    if (!d) return "";
+    if (d.length <= 2) return d;
+    if (d.length <= 5) return d.slice(0, 2) + "." + d.slice(2);
+    return d.slice(0, 2) + "." + d.slice(2, 5) + "." + d.slice(5);
+  }
+
+  // ── Máscara CFOP (xxxx) ─────────────────────────────────────
+  function cfopDigits(v) {
+    return String(v == null ? "" : v).replace(/\D/g, "").slice(0, 4);
+  }
+  function maskCfop(v) {
+    return cfopDigits(v);
+  }
+
+  // ── Máscara CST ICMS (xxx) ──────────────────────────────────
+  function cstDigits(v) {
+    return String(v == null ? "" : v).replace(/\D/g, "").slice(0, 3);
+  }
+  function maskCst(v) {
+    return cstDigits(v);
+  }
+
+  // ── EAN/GTIN — apenas dígitos ───────────────────────────────
+  function eanDigits(v) {
+    return String(v == null ? "" : v).replace(/\D/g, "").slice(0, 14);
+  }
+
   function currentNcmCode() {
-    return (ncmLookup && ncmLookup.getCode()) || document.getElementById("f-ncm").value.trim();
+    const raw = (ncmLookup && ncmLookup.getCode()) || document.getElementById("f-ncm").value.trim();
+    return ncmDigits(raw);
   }
 
   function applyCestItem(item) {
     if (!cestLookup) return;
     applyingCest = true;
-    if (item) cestLookup.setValue(item);
-    else cestLookup.clear();
+    if (item) {
+      const masked = item && typeof item === "object"
+        ? { ...item, codigo: maskCest(item.codigo || "") }
+        : maskCest(String(item || ""));
+      cestLookup.setValue(masked);
+    } else {
+      cestLookup.clear();
+    }
     applyingCest = false;
   }
 
@@ -912,7 +966,7 @@
       .map(
         (o, i) =>
           `<button type="button" class="lookup-cest-option" data-index="${i}">
-            <strong>${o.codigo || ""}</strong>
+            <strong>${maskCest(o.codigo || "")}</strong>
             <span>${o.descricao || o.label || ""}${o.obrigatorio ? " · obrigatório" : ""}</span>
           </button>`
       )
@@ -981,8 +1035,27 @@
       minChars: 2,
       debounce: 280,
       placeholder: "código ou descrição (ex: arroz)",
-      onSelect: (item) => resolveCestFromNcm(item),
+      onSelect: (item) => {
+        // Máscara xxxx.xx.xx no campo + descrição no hint após a escolha
+        const el = document.getElementById("f-ncm");
+        el.value = maskNcm(item.codigo || "");
+        if (ncmLookup) ncmLookup._setHint(item.descricao || item.label || "");
+        resolveCestFromNcm(item);
+      },
       onClear: () => applyCestItem(null),
+    });
+    // Máscara progressiva ao digitar (só quando o conteúdo é numérico;
+    // busca por descrição como "arroz" não é afetada).
+    const ncmInput = document.getElementById("f-ncm");
+    ncmInput.addEventListener("input", () => {
+      const v = ncmInput.value;
+      if (!v || !/^[\d.]+$/.test(v)) return;
+      const m = maskNcm(v);
+      if (m !== v) ncmInput.value = m;
+    });
+    ncmInput.addEventListener("blur", () => {
+      const v = ncmInput.value;
+      if (v && /^[\d.]+$/.test(v)) ncmInput.value = maskNcm(v);
     });
     cestLookup = new Lookup("#f-cest", {
       provider: {
@@ -991,13 +1064,48 @@
       minChars: 1,
       debounce: 280,
       placeholder: "preenchido pelo NCM ou digite",
+      onSelect: (item) => {
+        const el = document.getElementById("f-cest");
+        el.value = maskCest(item.codigo || "");
+        if (cestLookup) cestLookup._setHint(item.descricao || item.label || "");
+      },
+      onClear: () => { /* lookup já limpa o campo */ },
     });
+    const cestInput = document.getElementById("f-cest");
+    cestInput.addEventListener("input", () => {
+      const v = cestInput.value;
+      if (!v || !/^[\d.]+$/.test(v)) return;
+      const m = maskCest(v);
+      if (m !== v) cestInput.value = m;
+    });
+    cestInput.addEventListener("blur", () => {
+      const v = cestInput.value;
+      if (v && /^[\d.]+$/.test(v)) cestInput.value = maskCest(v);
+    });
+
     cfopLookup = new Lookup("#f-cfop", {
       provider: LookupService.CfopProvider,
       minChars: 1,
       debounce: 200,
       placeholder: "CFOP padrão",
+      onSelect: (item) => {
+        const el = document.getElementById("f-cfop");
+        el.value = maskCfop(item.codigo || "");
+        if (cfopLookup) cfopLookup._setHint(item.descricao || item.label || "");
+      },
     });
+    const cfopInput = document.getElementById("f-cfop");
+    cfopInput.addEventListener("input", () => {
+      const v = cfopInput.value;
+      if (!v || !/^\d+$/.test(v)) return;
+      const m = maskCfop(v);
+      if (m !== v) cfopInput.value = m;
+    });
+    cfopInput.addEventListener("blur", () => {
+      const v = cfopInput.value;
+      if (v && /^\d+$/.test(v)) cfopInput.value = maskCfop(v);
+    });
+
     cstLookup = new Lookup("#f-cst", {
       provider: {
         search: (text) => LookupService.CstProvider.search(text, "icms"),
@@ -1005,6 +1113,22 @@
       minChars: 1,
       debounce: 200,
       placeholder: "CST ICMS",
+      onSelect: (item) => {
+        const el = document.getElementById("f-cst");
+        el.value = maskCst(item.codigo || "");
+        if (cstLookup) cstLookup._setHint(item.descricao || item.label || "");
+      },
+    });
+    const cstInput = document.getElementById("f-cst");
+    cstInput.addEventListener("input", () => {
+      const v = cstInput.value;
+      if (!v || !/^\d+$/.test(v)) return;
+      const m = maskCst(v);
+      if (m !== v) cstInput.value = m;
+    });
+    cstInput.addEventListener("blur", () => {
+      const v = cstInput.value;
+      if (v && /^\d+$/.test(v)) cstInput.value = maskCst(v);
     });
     document.getElementById("cest-picker-cancel").addEventListener("click", closeCestPicker);
     document.getElementById("cest-picker-clear").addEventListener("click", () => {
@@ -1228,6 +1352,9 @@
         _status: p.ativo === false ? "inativo" : "ativo",
         _tipo: p.servico === "S" || x.tipo === "servico" ? "servico" : "produto",
         _categoria_raw: (p.categoria || "").trim(),
+        cest: x.cest || p.cest || "",
+        cfop: p.cfop || "",
+        cst: p.cst || "",
        };
     });
   }
@@ -1266,7 +1393,7 @@
       if (filters.tipo !== "todos" && row._tipo !== filters.tipo) return false;
 
       if (filters.obs) {
-        const haystack = [row.nome, row.categoria, row.ncm, row.codigo_barras, row.localizacao, row.descricao]
+        const haystack = [row.nome, row.categoria, row.ncm, maskNcm(row.ncm), row.cest, maskCest(row.cest), row.cfop, row.cst, row.codigo_barras, row.localizacao, row.descricao]
           .join(" ")
           .toLowerCase();
         if (!haystack.includes(filters.obs.toLowerCase())) return false;
@@ -1282,7 +1409,10 @@
       { field: "sku", label: "Código", width: 120 },
       { field: "nome", label: "Produto" },
       { field: "codigo_barras", label: "EAN", width: 130 },
-      { field: "ncm", label: "NCM", width: 100 },
+      { field: "ncm", label: "NCM", width: 110, formatter: (raw) => (raw ? maskNcm(raw) : "") },
+      { field: "cest", label: "CEST", width: 100, formatter: (raw) => (raw ? maskCest(raw) : "") },
+      { field: "cfop", label: "CFOP", width: 70, formatter: (raw) => (raw ? maskCfop(raw) : "") },
+      { field: "cst", label: "CST", width: 70, formatter: (raw) => (raw ? maskCst(raw) : "") },
       { field: "categoria", label: "Categoria", width: 140 },
       { field: "unidade", label: "Un", width: 60 },
       { field: "preco_fmt", label: "Preço", width: 110, align: "right" },
@@ -1826,7 +1956,7 @@
         const fab = x.fabricante || "";
         fabricanteLookup.setValue(fab ? { nome: fab, label: fab } : null);
       }
-      document.getElementById("f-codigo_barras").value = asCopy ? "" : row.codigo_barras || "";
+      document.getElementById("f-codigo_barras").value = asCopy ? "" : eanDigits(row.codigo_barras || "");
       document.getElementById("f-unidade").value = row.unidade || "UN";
       document.getElementById("f-unidade_compra").value = x.unidade_compra || row.unidade || "UN";
       document.getElementById("f-tipo").value = row.servico === "S" ? "servico" : (x.tipo || "produto");
@@ -1889,12 +2019,29 @@
       document.getElementById("f-localizacao").value = row.localizacao || "";
       document.getElementById("f-filial_id").value = row.filial_id ?? 0;
       ensureAvailAtOptions().then(() => setAvailableAt(x.available_at || []));
-      document.getElementById("f-ncm").value = row.ncm || "";
-      document.getElementById("f-cest").value = x.cest || "";
-      if (ncmLookup) ncmLookup.setValue(row.ncm || "", row.ncm ? "NCM cadastrado" : "");
-      if (cestLookup) cestLookup.setValue(x.cest || "", x.cest ? "CEST cadastrado" : "");
-      if (cfopLookup) cfopLookup.setValue(row.cfop || "", row.cfop ? "CFOP cadastrado" : "");
-      if (cstLookup) cstLookup.setValue(row.cst || "", row.cst ? "CST cadastrado" : "");
+      document.getElementById("f-ncm").value = maskNcm(row.ncm || "");
+      document.getElementById("f-cest").value = maskCest(x.cest || "");
+      document.getElementById("f-cfop").value = maskCfop(row.cfop || "");
+      document.getElementById("f-cst").value = maskCst(row.cst || "");
+      if (ncmLookup) {
+        ncmLookup.setValue(maskNcm(row.ncm || ""), row.ncm ? "NCM cadastrado" : "");
+        // Busca a descrição real do NCM salvo para exibir no hint
+        if (row.ncm) {
+          LookupService.NcmProvider.get(row.ncm)
+            .then((item) => {
+              if (!item || !ncmLookup) return;
+              const el = document.getElementById("f-ncm");
+              if (el && el.value) {
+                ncmLookup.setValue({ codigo: maskNcm(item.codigo || row.ncm), descricao: item.descricao || "" });
+                el.value = maskNcm(item.codigo || row.ncm);
+              }
+            })
+            .catch(() => {});
+        }
+      }
+      if (cestLookup) cestLookup.setValue(maskCest(x.cest || ""), x.cest ? "CEST cadastrado" : "");
+      if (cfopLookup) cfopLookup.setValue(maskCfop(row.cfop || ""), row.cfop ? "CFOP cadastrado" : "");
+      if (cstLookup) cstLookup.setValue(maskCst(row.cst || ""), row.cst ? "CST cadastrado" : "");
       document.getElementById("f-icms_alq").value = row.icms_alq ?? "";
       document.getElementById("f-origem").value = x.origem || "0";
       document.getElementById("f-servico").value = row.servico || "N";
@@ -1999,7 +2146,7 @@
       estoque_min: document.getElementById("f-estoque_min").value,
       validade_dias: document.getElementById("f-validade_dias").value,
       estoque_max: document.getElementById("f-estoque_max").value,
-      cest: document.getElementById("f-cest").value.trim(),
+      cest: cestDigits(document.getElementById("f-cest").value),
       origem: document.getElementById("f-origem").value,
       ativo: document.getElementById("f-ativo").checked,
       vendavel: document.getElementById("f-vendavel").checked,
@@ -2040,15 +2187,15 @@
     const tipo = document.getElementById("f-tipo").value;
     const body = {
       nome: document.getElementById("f-nome").value.trim(),
-      codigo_barras: document.getElementById("f-codigo_barras").value.trim(),
+      codigo_barras: eanDigits(document.getElementById("f-codigo_barras").value),
       unidade: document.getElementById("f-unidade").value,
-      ncm: document.getElementById("f-ncm").value.trim(),
+      ncm: ncmDigits(document.getElementById("f-ncm").value),
       categoria: document.getElementById("f-categoria").value.trim(),
       sub_categoria: document.getElementById("f-categoria").value.trim(),
       fornecedor: document.getElementById("f-fornecedor").value.trim() || document.getElementById("f-fabricante").value.trim(),
       localizacao: document.getElementById("f-localizacao").value.trim(),
-      cst: document.getElementById("f-cst").value.trim(),
-      cfop: document.getElementById("f-cfop").value.trim(),
+      cst: cstDigits(document.getElementById("f-cst").value),
+      cfop: cfopDigits(document.getElementById("f-cfop").value),
       servico: tipo === "servico" ? "S" : document.getElementById("f-servico").value,
       cod_serv_mun: document.getElementById("f-cod_serv_mun").value.trim(),
       extra: collectExtra(),
@@ -2084,7 +2231,7 @@
         "/api/lookup/ncm-cest/validate?ncm=" +
           encodeURIComponent(body.ncm) +
           "&cest=" +
-          encodeURIComponent(document.getElementById("f-cest").value.trim())
+          encodeURIComponent(cestDigits(document.getElementById("f-cest").value))
       );
       if (v.status !== "ok" && v.ok === false) {
         err.textContent = v.message || "NCM/CEST inválidos";
@@ -2147,6 +2294,10 @@
     await window.api("/api/admin/produtos/sync", { method: "POST" }).catch(() => {});
     const data = await window.api("/api/admin/produtos");
     if (data.status !== "ok") {
+      // Container substituído pela mensagem de erro: a instância antiga fica
+      // órfã com _loading preso em true (renderGrid posterior mostraria o
+      // skeleton eterno). Descarta para o próximo load criar um grid novo.
+      grid = null;
       document.getElementById("grid-container").innerHTML =
         '<div class="glass-panel" style="padding:2rem;text-align:center;color:#fca5a5">Acesso negado</div>';
       return;
@@ -2154,6 +2305,9 @@
     allData = data.produtos || [];
     fillDatalist(allData);
     renderGrid();
+    // Skeleton só é removido após o grid renderizar os dados novos
+    // (setData não limpa _loading — sem isso o skeleton ficava eterno).
+    if (grid) grid.setLoading(false);
 
     // Entrada canônica via query (outros módulos). Usa a URL atual, não o valor
     // capturado na inicialização, para evitar reabrir o formulário após salvar.
@@ -2288,8 +2442,17 @@
     renderVariacoes();
   });
 
-  document.getElementById("f-codigo_barras").addEventListener("input", updateEanHint);
-  document.getElementById("f-codigo_barras").addEventListener("blur", updateEanHint);
+  document.getElementById("f-codigo_barras").addEventListener("input", () => {
+    const el = document.getElementById("f-codigo_barras");
+    const norm = eanDigits(el.value);
+    if (norm !== el.value) el.value = norm;
+    updateEanHint();
+  });
+  document.getElementById("f-codigo_barras").addEventListener("blur", () => {
+    const el = document.getElementById("f-codigo_barras");
+    el.value = eanDigits(el.value);
+    updateEanHint();
+  });
   document.getElementById("btn-sugerir-estoque").addEventListener("click", () => sugerirEstoque(true));
   document.getElementById("f-stock").addEventListener("change", () => sugerirEstoque(false));
   document.getElementById("f-estoque_min").addEventListener("input", () => {
