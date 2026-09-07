@@ -174,6 +174,34 @@ class PosCommissionTest(unittest.TestCase):
         found = pc.get_commission_by_sale(123)
         self.assertEqual(found["status"], "cancelada")
 
+    def test_build_report(self):
+        self._make_rules(users={
+            "vendedor1": {
+                "default_rate": 2.0,
+                "rules": [
+                    {"type": "produto", "target": "1", "rate_percent": 10.0, "active": True},
+                ],
+            }
+        })
+        for venda_id in [10, 11]:
+            venda = self._make_venda([
+                {"prod_id": 1, "produto": "Arroz", "categoria": "Alimentacao", "qtd": 1, "preco": 100.0},
+                {"prod_id": 2, "produto": "Feijao", "categoria": "Alimentacao", "qtd": 1, "preco": 50.0},
+            ])
+            venda["id"] = venda_id
+            pedido = self._make_pedido()
+            pedido["pdvUserId"] = "vendedor1"
+            pc.record_commission(pc.calculate_sale_commission(venda, pedido, "vendedor1"))
+        report = pc.build_report(employee_id="vendedor1", period="2026-09")
+        self.assertEqual(report["count"], 2)
+        # Arroz: 10% de 100 = 10; Feijao: 2% de 50 = 1; por venda = 11; total = 22
+        self.assertEqual(report["total_commission"], 22.0)
+        self.assertEqual(len(report["por_vendedor"]), 1)
+        self.assertEqual(report["por_vendedor"][0]["comissao"], 22.0)
+        self.assertEqual(len(report["por_produto"]), 2)
+        arroz = next(p for p in report["por_produto"] if p["prod_id"] == "1")
+        self.assertEqual(arroz["comissao"], 20.0)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -254,3 +254,65 @@ def cancel_sale_commission(venda_id: Any) -> dict | None:
             save_commissions(data)
             return c
     return None
+
+
+def build_report(employee_id: str | None = None, period: str | None = None) -> dict:
+    """
+    Gera relatório consolidado de comissões.
+
+    Retorna resumo geral, ranking de vendedores, ranking de produtos e lista
+    detalhada de comissões por venda.
+    """
+    rows = list_commissions(employee_id=employee_id, period=period)
+
+    total_commission = 0.0
+    total_sales = 0.0
+    by_employee = {}
+    by_product = {}
+    detail = []
+
+    for r in rows:
+        if r.get("status") == "cancelada":
+            continue
+        emp = r.get("employee_id") or "sem_vendedor"
+        emp_name = r.get("employee_name") or emp
+        sale_total = float(r.get("total_venda") or 0)
+        comm_total = float(r.get("total_commission") or 0)
+        total_commission = round(total_commission + comm_total, 2)
+        total_sales = round(total_sales + sale_total, 2)
+
+        if emp not in by_employee:
+            by_employee[emp] = {"employee_id": emp, "employee_name": emp_name, "vendas": 0, "comissao": 0.0}
+        by_employee[emp]["vendas"] += 1
+        by_employee[emp]["comissao"] = round(by_employee[emp]["comissao"] + comm_total, 2)
+
+        for item in r.get("items") or []:
+            pid = item.get("prod_id") or item.get("produto") or "?"
+            pname = item.get("produto") or "Produto"
+            key = str(pid)
+            if key not in by_product:
+                by_product[key] = {"prod_id": key, "produto": pname, "qtd": 0.0, "comissao": 0.0}
+            by_product[key]["qtd"] = round(by_product[key]["qtd"] + float(item.get("qtd") or 0), 3)
+            by_product[key]["comissao"] = round(by_product[key]["comissao"] + float(item.get("commission_value") or 0), 2)
+
+        detail.append({
+            "venda_id": r.get("venda_id"),
+            "pedido_id": r.get("pedido_id"),
+            "sale_date": r.get("sale_date"),
+            "employee_id": emp,
+            "employee_name": emp_name,
+            "total_venda": sale_total,
+            "total_commission": comm_total,
+            "forma_pg": r.get("forma_pg") or "Dinheiro",
+            "items": r.get("items") or [],
+        })
+
+    return {
+        "period": period or "todos",
+        "count": len(detail),
+        "total_vendas": total_sales,
+        "total_commission": total_commission,
+        "por_vendedor": sorted(by_employee.values(), key=lambda x: x["comissao"], reverse=True),
+        "por_produto": sorted(by_product.values(), key=lambda x: x["comissao"], reverse=True),
+        "detalhes": detail,
+    }

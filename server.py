@@ -740,6 +740,97 @@ def _pedido_para_venda(pedido, forma_pg="Dinheiro"):
         "itens": itens,
     }
 
+def _html_to_pdf_bytes(html_str):
+    """Converte HTML em PDF via WeasyPrint (fallback None)."""
+    try:
+        from weasyprint import HTML
+        return HTML(string=html_str).write_pdf()
+    except Exception:
+        return None
+
+
+def _commission_report_html(report, users=None):
+    """Gera HTML para o relatório de comissões (visualização e PDF)."""
+    users = users or {}
+    money = lambda n: f"R$ {float(n or 0):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    esc = lambda s: str(s).replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    period = esc(report.get("period") or "todos")
+
+    rows_vendedor = "".join(
+        f"<tr><td>{esc(r.get('employee_name') or r.get('employee_id') or '—')}</td>"
+        f"<td style='text-align:center'>{r.get('vendas')}</td>"
+        f"<td style='text-align:right'>{money(r.get('comissao'))}</td></tr>"
+        for r in report.get("por_vendedor") or []
+    )
+    rows_produto = "".join(
+        f"<tr><td>{esc(r.get('produto') or r.get('prod_id') or '—')}</td>"
+        f"<td style='text-align:center'>{r.get('qtd'):,.3f}</td>"
+        f"<td style='text-align:right'>{money(r.get('comissao'))}</td></tr>"
+        for r in report.get("por_produto") or []
+    )
+
+    detail_rows = []
+    for d in report.get("detalhes") or []:
+        user_name = d.get("employee_name") or "—"
+        if users and d.get("employee_id") in users:
+            user_name = users[d.get("employee_id")].get("nome") or user_name
+        for item in d.get("items") or []:
+            detail_rows.append(
+                f"<tr><td>{esc(d.get('venda_id') or '—')}</td>"
+                f"<td>{esc(d.get('sale_date') or '—')}</td>"
+                f"<td>{esc(user_name)}</td>"
+                f"<td>{esc(item.get('produto') or '—')}</td>"
+                f"<td style='text-align:center'>{float(item.get('qtd') or 0):,.3f}</td>"
+                f"<td style='text-align:right'>{money(item.get('subtotal'))}</td>"
+                f"<td style='text-align:right'>{float(item.get('rate_percent') or 0):,.2f}%</td>"
+                f"<td>{esc(item.get('rate_source') or '—')}</td>"
+                f"<td style='text-align:right'>{money(item.get('commission_value'))}</td></tr>"
+            )
+
+    detail_html = "".join(detail_rows)
+
+    return f"""<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Relatório de Comissões</title>
+<style>
+body{{font-family:system-ui,-apple-system,'Segoe UI',Roboto,Arial,sans-serif;margin:24px;color:#222}}
+h1{{font-size:20px;margin-bottom:4px}}h2{{font-size:16px;margin:24px 0 8px}}
+.kpi{{display:flex;gap:16px;margin-bottom:16px}}
+.kpi-card{{border:1px solid #ddd;border-radius:8px;padding:12px;min-width:140px}}
+.kpi-label{{font-size:12px;color:#666}}.kpi-value{{font-size:18px;font-weight:700}}
+table{{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:13px}}
+th,td{{padding:8px;border-bottom:1px solid #ddd;text-align:left}}
+th{{background:#f5f5f5;font-weight:600}}
+.money{{text-align:right;font-variant-numeric:tabular-nums}}
+.center{{text-align:center}}
+</style>
+</head>
+<body>
+<h1>Relatório de Comissões</h1>
+<p style="color:#666;font-size:12px">Período: {period} · Gerado em {datetime.now().strftime('%d/%m/%Y %H:%M')}</p>
+<div class="kpi">
+  <div class="kpi-card"><div class="kpi-label">Vendas</div><div class="kpi-value">{report.get('count')}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Total Vendas</div><div class="kpi-value">{money(report.get('total_vendas'))}</div></div>
+  <div class="kpi-card"><div class="kpi-label">Total Comissão</div><div class="kpi-value">{money(report.get('total_commission'))}</div></div>
+</div>
+
+<h2>Comissão por Vendedor</h2>
+<table><thead><tr><th>Vendedor</th><th class="center">Vendas</th><th class="money">Comissão</th></tr></thead>
+<tbody>{rows_vendedor}</tbody></table>
+
+<h2>Comissão por Produto</h2>
+<table><thead><tr><th>Produto</th><th class="center">Qtd</th><th class="money">Comissão</th></tr></thead>
+<tbody>{rows_produto}</tbody></table>
+
+<h2>Detalhamento por Venda</h2>
+<table><thead><tr><th>Venda</th><th>Data</th><th>Vendedor</th><th>Produto</th><th class="center">Qtd</th><th class="money">Subtotal</th><th class="money">Taxa</th><th>Origem</th><th class="money">Comissão</th></tr></thead>
+<tbody>{detail_html}</tbody></table>
+</body>
+</html>"""
+
+
 def _avancar_numero_nfce(estabelecimento_id=None):
     eid = str(estabelecimento_id or "").strip()
     if eid:
@@ -2301,6 +2392,35 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             employee_id = None if role in ("admin", "gerente") else uid
             rows = pos_commission.list_commissions(employee_id=employee_id, period=period)
             return self._json({"status": "ok", "comissoes": rows, "total": len(rows)})
+
+        if parsed.path == "/api/pos/comissoes/relatorio":
+            token = self.headers.get("X-Auth-Token", "")
+            if not token:
+                qs = urllib.parse.parse_qs(parsed.query or "")
+                token = (qs.get("X-Auth-Token") or [""])[0]
+            users = load_users()
+            if not self._find_user(token, users):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            period = (qs.get("periodo") or [""])[0].strip() or None
+            role = self._user_role(token)
+            employee_id = None if role in ("admin", "gerente") else uid
+
+            report = pos_commission.build_report(employee_id=employee_id, period=period)
+            fmt = (qs.get("formato") or ["json"])[0].strip().lower()
+            if fmt == "pdf":
+                html = _commission_report_html(report, users)
+                pdf_bytes = _html_to_pdf_bytes(html)
+                if pdf_bytes is not None:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/pdf")
+                    self.send_header("Content-Disposition", 'attachment; filename="relatorio_comissoes.pdf"')
+                    self.end_headers()
+                    self.wfile.write(pdf_bytes)
+                    return
+                return self._json({"status": "error", "message": "Geração de PDF indisponível"}, 500)
+            return self._json({"status": "ok", "relatorio": report})
 
         if parsed.path == "/api/pos/caixa/movimentos":
             token = self.headers.get("X-Auth-Token", "")

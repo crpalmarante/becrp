@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Relatório de Comissões</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:block}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel);margin-bottom:16px}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(20,184,166,.15);color:#5eead4}
+.money{font-variant-numeric:tabular-nums;font-family:ui-monospace,monospace;text-align:right}
+.center{text-align:center}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.kpi{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.kpi-card{padding:12px;border:1px solid var(--border-color);border-radius:8px;background:var(--surface-panel)}
+.kpi-value{font-size:20px;font-weight:700}
+.source-produto{background:rgba(34,197,94,.15);color:#86efac}
+.source-categoria{background:rgba(59,130,246,.15);color:#93c5fd}
+.source-padrao{background:rgba(168,162,158,.15);color:#d6d3d1}
+.source-global{background:rgba(245,158,11,.15);color:#fcd34d}
+@media print{
+  .no-print{display:none!important}
+  body{background:#fff;color:#000}
+  .table-wrap{border:none}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar" class="no-print">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="pos-pdv.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">PDV</span></a>
+      <a class="menu-item" href="vendas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Vendas</span></a>
+      <a class="menu-item active" href="relatorio-comissoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Comissões</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar no-print"><div class="topbar-brand"><span class="topbar-title">Relatório de Comissões</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="workspace-header no-print">
+        <div class="workspace-breadcrumb">BECRP / PDV / Comissões / Relatório</div>
+        <h2 class="workspace-title">Relatório de Comissões</h2>
+      </div>
+      <div class="toolbar no-print">
+        <label style="font-size:12px;color:var(--text-muted)">Período<input class="form-input" id="f-periodo" type="month" value="2026-09"></label>
+        <button type="button" class="so-btn primary" id="btn-gerar">Gerar</button>
+        <button type="button" class="so-btn" id="btn-limpar">Limpar</button>
+        <button type="button" class="so-btn" id="btn-imprimir">Imprimir</button>
+        <button type="button" class="so-btn" id="btn-pdf">Exportar PDF</button>
+      </div>
+      <div id="resultado">
+        <p class="empty">Clique em Gerar para visualizar o relatório.</p>
+      </div>
+    </div>
+    <div class="status-bar no-print" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+      <div class="status-bar-left"><span id="status-user-info">Usuário: —</span></div>
+      <div class="status-bar-right"><span>Relatório de Comissões · BECRP v1.0</span></div>
+    </div>
+  </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+(function(){
+  const API = "/api/pos/comissoes/relatorio";
+  const money = n => (Number(n)||0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+  const escapeHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  const SOURCE_LABEL = {produto:"Produto", categoria:"Categoria", padrao:"Padrão vendedor", global:"Padrão global"};
+  const SOURCE_CLASS = {produto:"source-produto", categoria:"source-categoria", padrao:"source-padrao", global:"source-global"};
+
+  async function api(path, opts={}){
+    const token = AuthService.getToken();
+    const res = await fetch(path, {method: opts.method||"GET", headers: Object.assign({"X-Auth-Token": token, "Content-Type": "application/json"}, opts.headers||{}), body: opts.body});
+    return res.json();
+  }
+
+  async function gerar(){
+    const qs = new URLSearchParams();
+    const periodo = document.getElementById("f-periodo").value;
+    if(periodo) qs.set("periodo", periodo);
+    const res = await api(API + "?" + qs.toString());
+    const box = document.getElementById("resultado");
+    if(res.status !== "ok"){ box.innerHTML = `<p class="empty">${escapeHtml(res.message || "Erro")}</p>`; return; }
+    const r = res.relatorio;
+
+    const rowsVendedor = (r.por_vendedor || []).map(row => `
+      <tr>
+        <td>${escapeHtml(row.employee_name || row.employee_id || "—")}</td>
+        <td class="center">${row.vendas}</td>
+        <td class="money">${money(row.comissao)}</td>
+      </tr>
+    `).join("");
+
+    const rowsProduto = (r.por_produto || []).map(row => `
+      <tr>
+        <td>${escapeHtml(row.produto || row.prod_id || "—")}</td>
+        <td class="center">${Number(row.qtd || 0).toLocaleString("pt-BR", {minimumFractionDigits:3})}</td>
+        <td class="money">${money(row.comissao)}</td>
+      </tr>
+    `).join("");
+
+    const rowsDetalhe = (r.detalhes || []).map(d => {
+      const items = (d.items || []).map(it => `
+        <tr>
+          <td><span class="badge">${escapeHtml(d.venda_id || "—")}</span></td>
+          <td>${escapeHtml(d.sale_date || "—")}</td>
+          <td>${escapeHtml(d.employee_name || d.employee_id || "—")}</td>
+          <td>${escapeHtml(it.produto || "—")}</td>
+          <td class="center">${Number(it.qtd || 0).toLocaleString("pt-BR", {minimumFractionDigits:3})}</td>
+          <td class="money">${money(it.subtotal)}</td>
+          <td class="money">${(Number(it.rate_percent)||0).toLocaleString("pt-BR", {minimumFractionDigits:2})}%</td>
+          <td class="center"><span class="badge ${SOURCE_CLASS[it.rate_source] || "source-padrao"}">${escapeHtml(SOURCE_LABEL[it.rate_source] || it.rate_source || "—")}</span></td>
+          <td class="money">${money(it.commission_value)}</td>
+        </tr>
+      `).join("");
+      return items;
+    }).join("");
+
+    box.innerHTML = `
+      <div class="kpi">
+        <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Vendas</div><div class="kpi-value">${r.count}</div></div>
+        <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Total Vendas</div><div class="kpi-value money">${money(r.total_vendas)}</div></div>
+        <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Total Comissão</div><div class="kpi-value money">${money(r.total_commission)}</div></div>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Período: ${escapeHtml(r.period)}</p>
+
+      <h3 style="font-size:14px;margin:16px 0 8px">Comissão por Vendedor</h3>
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Vendedor</th><th class="center">Vendas</th><th class="money">Comissão</th></tr></thead>
+          <tbody>${rowsVendedor || '<tr><td colspan="3" class="empty">Nenhum dado</td></tr>'}</tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:14px;margin:16px 0 8px">Comissão por Produto</h3>
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Produto</th><th class="center">Qtd</th><th class="money">Comissão</th></tr></thead>
+          <tbody>${rowsProduto || '<tr><td colspan="3" class="empty">Nenhum dado</td></tr>'}</tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size:14px;margin:16px 0 8px">Detalhamento por Venda</h3>
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Venda</th><th>Data</th><th>Vendedor</th><th>Produto</th><th class="center">Qtd</th><th class="money">Subtotal</th><th class="money">Taxa</th><th class="center">Origem</th><th class="money">Comissão</th></tr></thead>
+          <tbody>${rowsDetalhe || '<tr><td colspan="9" class="empty">Nenhum dado</td></tr>'}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function limpar(){
+    document.getElementById("resultado").innerHTML = '<p class="empty">Clique em Gerar para visualizar o relatório.</p>';
+  }
+
+  function exportarPdf(){
+    const qs = new URLSearchParams();
+    const periodo = document.getElementById("f-periodo").value;
+    if(periodo) qs.set("periodo", periodo);
+    qs.set("formato", "pdf");
+    const token = AuthService.getToken();
+    window.open(API + "?" + qs.toString() + "&X-Auth-Token=" + encodeURIComponent(token), "_blank");
+  }
+
+  document.getElementById("btn-gerar").onclick = gerar;
+  document.getElementById("btn-limpar").onclick = limpar;
+  document.getElementById("btn-imprimir").onclick = () => window.print();
+  document.getElementById("btn-pdf").onclick = exportarPdf;
+})();
+</script>
+</body>
+</html>
