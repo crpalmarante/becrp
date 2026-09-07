@@ -80,6 +80,15 @@ SEED_RULES = (
         "conta_credito": "2.01.01.03.01",
         "auto_post": False,
     },
+    {
+        "codigo": "COMMISSION_PAYABLE_REV",
+        "nome": "Estorno de fatura de comissão a pagar",
+        "evento": "commission_payable_reversal",
+        "diario": "GER",
+        "conta_debito": "2.01.01.03.01",
+        "conta_credito": "3.01.01.07.01.03",
+        "auto_post": False,
+    },
     # RFC-014 — Encargos patronais da folha (gerados no fechamento)
     {
         "codigo": "FOLHA_ENC_FGTS",

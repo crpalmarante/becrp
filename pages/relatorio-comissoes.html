@@ -79,6 +79,9 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
         <label style="font-size:12px;color:var(--text-muted)">Vencimento<input class="form-input" id="f-vencimento" type="date"></label>
         <button type="button" class="so-btn primary" id="btn-faturar">Faturar comissões do período</button>
       </div>
+      <div class="toolbar no-print" id="evento7-bar" style="display:none">
+        <button type="button" class="so-btn" id="btn-evento7">Enviar comissão do período para folha (evento 7)</button>
+      </div>
       <div id="resultado">
         <p class="empty">Clique em Gerar para visualizar o relatório.</p>
       </div>
@@ -106,6 +109,13 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
   }
 
   let currentReport = null;
+  let currentUser = null;
+
+  function podeFaturar() {
+    if (!currentUser) return false;
+    const role = String(currentUser.role || "").toLowerCase();
+    return role === "admin" || role === "gerente";
+  }
 
   async function gerar(){
     const qs = new URLSearchParams();
@@ -115,7 +125,18 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
     const box = document.getElementById("resultado");
     if(res.status !== "ok"){ box.innerHTML = `<p class="empty">${escapeHtml(res.message || "Erro")}</p>`; return; }
     currentReport = res.relatorio;
-    document.getElementById("faturar-bar").style.display = currentReport && currentReport.total_commission > 0 ? "flex" : "none";
+    const bar = document.getElementById("faturar-bar");
+    if (podeFaturar() && currentReport && currentReport.total_commission > 0) {
+      bar.style.display = "flex";
+    } else {
+      bar.style.display = "none";
+    }
+    const bar7 = document.getElementById("evento7-bar");
+    if (podeFaturar() && currentReport && currentReport.total_commission > 0 && currentReport.por_vendedor && currentReport.por_vendedor.length) {
+      bar7.style.display = "flex";
+    } else {
+      bar7.style.display = "none";
+    }
 
     const r = res.relatorio;
 
@@ -200,7 +221,94 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
           <tbody>${rowsDetalhe || '<tr><td colspan="10" class="empty">Nenhum dado</td></tr>'}</tbody>
         </table>
       </div>
+
+      <h3 style="font-size:14px;margin:16px 0 8px">Faturas de Comissão</h3>
+      <div id="faturas-lista"><p class="empty" style="margin-top:8px">Carregando...</p></div>
     `;
+    await carregarFaturas();
+  }
+
+  let currentFaturas = [];
+
+  async function carregarFaturas(){
+    if(!podeFaturar()) return;
+    const periodo = document.getElementById("f-periodo").value;
+    const res = await api("/api/pos/comissoes/faturas?" + new URLSearchParams({periodo: periodo || ""}).toString());
+    currentFaturas = (res.status === "ok" ? res.faturas : []) || [];
+    const container = document.getElementById("faturas-lista");
+    if(!container) return;
+    if(!currentFaturas.length){
+      container.innerHTML = '<p class="empty" style="margin-top:8px">Nenhuma fatura de comissão no período.</p>';
+      return;
+    }
+    const rows = currentFaturas.map(f => `
+      <tr>
+        <td>${escapeHtml(f.id)}</td>
+        <td>${escapeHtml(f.fornecedor || f.employee_name || "—")}</td>
+        <td>${escapeHtml(f.periodo || "—")}</td>
+        <td class="money">${money(f.valor)}</td>
+        <td>${escapeHtml(f.vencimento || "—")}</td>
+        <td><span class="badge ${f.status === "aberto" ? "source-produto" : (f.status === "cancelado" ? "source-padrao" : "source-categoria")}">${escapeHtml(f.status || "—")}</span></td>
+        <td class="center">${f.status === "aberto" ? `<button type="button" class="so-btn" onclick="estornarFatura('${escapeHtml(f.id)}')">Estornar</button>` : '—'}</td>
+      </tr>
+    `).join("");
+    container.innerHTML = `
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Título</th><th>Fornecedor</th><th>Período</th><th class="money">Valor</th><th>Vencimento</th><th>Status</th><th class="center">Ação</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  async function estornarFatura(titulo_id){
+    if(!confirm(`Estornar fatura ${titulo_id}? As comissões vinculadas voltarão a ficar abertas.`)) return;
+    const res = await api("/api/pos/comissoes/estornar-fatura", {
+      method: "POST",
+      body: JSON.stringify({titulo_id: titulo_id}),
+    });
+    if(res.status === "ok"){
+      alert(`Fatura ${titulo_id} estornada. Comissões reabertas: ${res.comissoes_reabertas || 0}`);
+      await gerar();
+    } else {
+      alert("Erro: " + (res.message || "falha ao estornar"));
+    }
+  }
+
+  async function enviarEvento7(){
+    if(!currentReport || !currentReport.total_commission > 0){
+      alert("Não há comissão a enviar.");
+      return;
+    }
+    if(!confirm(`Enviar ${money(currentReport.total_commission)} de comissão do período ${escapeHtml(currentReport.period)} para folha como evento 7?`)) return;
+    const periodo = document.getElementById("f-periodo").value;
+    let okCount = 0;
+    let errors = [];
+    for(const row of (currentReport.por_vendedor || [])){
+      if(!row.comissao) continue;
+      try {
+        const res = await api("/api/pos/comissoes/evento7", {
+          method: "POST",
+          body: JSON.stringify({
+            employee_id: row.employee_id,
+            employee_name: row.employee_name,
+            periodo: periodo,
+            valor: row.comissao,
+          }),
+        });
+        if(res.status === "ok") okCount++;
+        else errors.push(`${row.employee_name}: ${res.message}`);
+      } catch(e){
+        errors.push(`${row.employee_name}: ${e.message}`);
+      }
+    }
+    if(errors.length){
+      alert(`${okCount} enviado(s). Erros:\n${errors.join("\n")}`);
+    } else {
+      alert(`${okCount} registro(s) de evento 7 gerado(s).`);
+    }
+    await gerar();
   }
 
   function limpar(){
@@ -241,6 +349,16 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
   document.getElementById("btn-imprimir").onclick = () => window.print();
   document.getElementById("btn-pdf").onclick = exportarPdf;
   document.getElementById("btn-faturar").onclick = faturar;
+  document.getElementById("btn-evento7").onclick = enviarEvento7;
+
+  (async function init(){
+    try {
+      currentUser = await AuthService.getUser();
+      const name = currentUser ? (currentUser.nome || currentUser.usuario || "—") : "—";
+      document.getElementById("user-name-display").textContent = name;
+      document.getElementById("status-user-info").textContent = "Usuário: " + name;
+    } catch (e) {}
+  })();
 })();
 </script>
 </body>

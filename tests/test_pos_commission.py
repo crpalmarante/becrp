@@ -353,5 +353,75 @@ class PosCommissionTest(unittest.TestCase):
         purchase_finance.DATA_FILE = self._pf_orig
 
 
+    def test_estornar_fatura_reabre_comissoes(self):
+        import purchase_finance
+        self._pf_orig = purchase_finance.DATA_FILE
+        purchase_finance.DATA_FILE = os.path.join(self.tmpdir, "titulos_ap.json")
+        purchase_finance._save({"titulos": [], "seq": 0})
+
+        self._make_rules(global_rate=2.0)
+        venda = self._make_venda([
+            {"prod_id": 70, "produto": "P", "categoria": "C", "qtd": 1, "preco": 100.0},
+        ])
+        venda["id"] = 70
+        venda["data"] = "2026-12-01"
+        pedido = self._make_pedido()
+        pedido["pdvUserId"] = "vendedor1"
+        pc.record_commission(pc.calculate_sale_commission(venda, pedido, "vendedor1"))
+
+        result = pc.faturar_comissoes("vendedor1", "Vendedor Um", "2026-12")
+        titulo_id = result["titulo"]["id"]
+        self.assertEqual(result["total_comissao"], 2.0)
+        comissoes_antes = pc.list_commissions(employee_id="vendedor1", period="2026-12")
+        self.assertTrue(all(c.get("status") == "faturada" for c in comissoes_antes))
+
+        estorno = pc.estornar_fatura(titulo_id, usuario="admin")
+        self.assertEqual(estorno["titulo"]["status"], "cancelado")
+        self.assertEqual(estorno["titulo"]["id"], titulo_id)
+        self.assertEqual(estorno["comissoes_reabertas"], 1)
+
+        comissoes_depois = pc.list_commissions(employee_id="vendedor1", period="2026-12")
+        self.assertTrue(all(c.get("status") == "aberta" for c in comissoes_depois))
+        self.assertIsNone(comissoes_depois[0].get("fatura_ap_id"))
+
+        # Re-faturar após estorno deve funcionar
+        result2 = pc.faturar_comissoes("vendedor1", "Vendedor Um", "2026-12")
+        self.assertEqual(result2["total_comissao"], 2.0)
+        self.assertNotEqual(result2["titulo"]["id"], titulo_id)
+
+        purchase_finance.DATA_FILE = self._pf_orig
+
+
+    def test_registrar_evento_7(self):
+        self._make_rules(global_rate=3.0)
+        venda = self._make_venda([
+            {"prod_id": 80, "produto": "P", "categoria": "C", "qtd": 1, "preco": 100.0},
+        ])
+        venda["id"] = 80
+        venda["data"] = "2027-01-01"
+        pedido = self._make_pedido()
+        pedido["pdvUserId"] = "vendedor1"
+        pc.record_commission(pc.calculate_sale_commission(venda, pedido, "vendedor1"))
+
+        reg = pc.registrar_evento_7("vendedor1", "Vendedor Um", "2027-01", 3.0, venda_ids=[80], usuario="admin")
+        self.assertEqual(reg["evento"], 7)
+        self.assertEqual(reg["valor"], 3.0)
+        self.assertEqual(reg["status"], "pendente")
+
+        rows = pc.listar_eventos_7(employee_id="vendedor1", period="2027-01")
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["valor"], 3.0)
+
+        # Idempotência: registrar novamente com mesmas vendas substitui
+        reg2 = pc.registrar_evento_7("vendedor1", "Vendedor Um", "2027-01", 3.5, venda_ids=[80], usuario="admin")
+        rows2 = pc.listar_eventos_7(employee_id="vendedor1", period="2027-01")
+        self.assertEqual(len(rows2), 1)
+        self.assertEqual(rows2[0]["valor"], 3.5)
+        self.assertEqual(rows2[0]["id"], reg2["id"])
+
+        marcado = pc.marcar_evento_7_importado(reg2["id"])
+        self.assertEqual(marcado["status"], "importado")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,6 +1,1041 @@
 {
   "calculos": [
     {
+      "valor": 300.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-07T18:39:36",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-07T18:39:36",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 145.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 145.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.87,
+        "ibs": 24.65,
+        "total_com_impostos": 170.52
+      },
+      "calculado_em": "2026-09-07T18:39:35",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 45.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 45.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.27,
+        "ibs": 7.65,
+        "total_com_impostos": 52.92
+      },
+      "calculado_em": "2026-09-07T18:39:35",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 100.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 100.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "total_com_impostos": 117.6
+      },
+      "calculado_em": "2026-09-07T18:39:35",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 145.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 145.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.87,
+        "ibs": 24.65,
+        "total_com_impostos": 170.52
+      },
+      "calculado_em": "2026-09-07T18:39:35",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 45.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 45.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.27,
+        "ibs": 7.65,
+        "total_com_impostos": 52.92
+      },
+      "calculado_em": "2026-09-07T18:39:35",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 100.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 100.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "total_com_impostos": 117.6
+      },
+      "calculado_em": "2026-09-07T18:39:35",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 145.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 145.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.87,
+        "ibs": 24.65,
+        "total_com_impostos": 170.52
+      },
+      "calculado_em": "2026-09-07T18:39:35",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 45.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 45.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.27,
+        "ibs": 7.65,
+        "total_com_impostos": 52.92
+      },
+      "calculado_em": "2026-09-07T18:39:35",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 100.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 100.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "total_com_impostos": 117.6
+      },
+      "calculado_em": "2026-09-07T18:39:35",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T11:23:45",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T11:23:45",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 145.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 145.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.87,
+        "ibs": 24.65,
+        "total_com_impostos": 170.52
+      },
+      "calculado_em": "2026-09-03T11:23:45",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 45.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 45.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.27,
+        "ibs": 7.65,
+        "total_com_impostos": 52.92
+      },
+      "calculado_em": "2026-09-03T11:23:45",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 100.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 100.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "total_com_impostos": 117.6
+      },
+      "calculado_em": "2026-09-03T11:23:45",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 145.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 145.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.87,
+        "ibs": 24.65,
+        "total_com_impostos": 170.52
+      },
+      "calculado_em": "2026-09-03T11:23:44",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 45.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 45.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.27,
+        "ibs": 7.65,
+        "total_com_impostos": 52.92
+      },
+      "calculado_em": "2026-09-03T11:23:44",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 100.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 100.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "total_com_impostos": 117.6
+      },
+      "calculado_em": "2026-09-03T11:23:44",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 145.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 145.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.87,
+        "ibs": 24.65,
+        "total_com_impostos": 170.52
+      },
+      "calculado_em": "2026-09-03T11:23:44",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 45.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 45.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.27,
+        "ibs": 7.65,
+        "total_com_impostos": 52.92
+      },
+      "calculado_em": "2026-09-03T11:23:44",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 100.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 100.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "total_com_impostos": 117.6
+      },
+      "calculado_em": "2026-09-03T11:23:44",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:40:25",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:40:25",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 145.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 145.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.87,
+        "ibs": 24.65,
+        "total_com_impostos": 170.52
+      },
+      "calculado_em": "2026-09-03T08:40:25",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 45.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 45.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.27,
+        "ibs": 7.65,
+        "total_com_impostos": 52.92
+      },
+      "calculado_em": "2026-09-03T08:40:25",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 100.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 100.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "total_com_impostos": 117.6
+      },
+      "calculado_em": "2026-09-03T08:40:25",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 145.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 145.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.87,
+        "ibs": 24.65,
+        "total_com_impostos": 170.52
+      },
+      "calculado_em": "2026-09-03T08:40:24",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 45.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 45.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.27,
+        "ibs": 7.65,
+        "total_com_impostos": 52.92
+      },
+      "calculado_em": "2026-09-03T08:40:24",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 100.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 100.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "total_com_impostos": 117.6
+      },
+      "calculado_em": "2026-09-03T08:40:24",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 145.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 145.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.87,
+        "ibs": 24.65,
+        "total_com_impostos": 170.52
+      },
+      "calculado_em": "2026-09-03T08:40:24",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 45.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 45.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.27,
+        "ibs": 7.65,
+        "total_com_impostos": 52.92
+      },
+      "calculado_em": "2026-09-03T08:40:24",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 100.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 100.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "total_com_impostos": 117.6
+      },
+      "calculado_em": "2026-09-03T08:40:24",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:40:16",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:40:16",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:39:33",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:39:33",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:38:05",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:38:05",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:37:18",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:37:18",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:36:31",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:36:31",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:35:46",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
+      "valor": 300.0,
+      "ncm": "00000000",
+      "aliquotas": {
+        "cbs": 0.6,
+        "ibs": 17.0,
+        "reducao": 0.0
+      },
+      "resultado": {
+        "status": "ok",
+        "ncm": "00000000",
+        "valor_operacao": 300.0,
+        "aliquota_cbs": 0.6,
+        "aliquota_ibs": 17.0,
+        "reducao_base": 0.0,
+        "cbs": 1.8,
+        "ibs": 51.0,
+        "total_com_impostos": 352.8
+      },
+      "calculado_em": "2026-09-03T08:35:46",
+      "calculado_por": "",
+      "contexto": "nfe_entrada"
+    },
+    {
       "valor": 145.0,
       "ncm": "",
       "aliquotas": {
@@ -967,5 +2002,5 @@
       "contexto": ""
     }
   ],
-  "updated_at": "2026-09-03T08:29:47"
+  "updated_at": "2026-09-07T18:39:36"
 }

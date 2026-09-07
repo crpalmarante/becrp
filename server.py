@@ -2493,6 +2493,24 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": "Geração de PDF indisponível"}, 500)
             return self._json({"status": "ok", "relatorio": report})
 
+        if parsed.path == "/api/pos/comissoes/faturas":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            if not self._find_user(token, users):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            role = self._user_role(token)
+            if role not in ("admin", "gerente"):
+                return self._json({"status": "error", "message": "Apenas admin ou gerente pode listar faturas"}, 403)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            period = (qs.get("periodo") or [""])[0].strip() or None
+            import purchase_finance
+            rows = purchase_finance.listar(status=None)
+            if period:
+                rows = [r for r in rows if r.get("origem") == "comissao" and str(r.get("periodo") or "").startswith(period)]
+            else:
+                rows = [r for r in rows if r.get("origem") == "comissao"]
+            return self._json({"status": "ok", "faturas": rows})
+
         if parsed.path == "/api/pos/comissoes/faturar":
             token = self.headers.get("X-Auth-Token", "")
             users = load_users()
@@ -2510,8 +2528,8 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": "Período é obrigatório"}, 400)
             if not target_id:
                 target_id = uid
-            if role not in ("admin", "gerente") and target_id != uid:
-                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+            if role not in ("admin", "gerente"):
+                return self._json({"status": "error", "message": "Apenas admin ou gerente pode faturar comissões"}, 403)
 
             target_user = users.get(target_id) or {}
             employee_name = target_user.get("nome") or target_user.get("usuario") or target_id
@@ -2529,6 +2547,80 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     user_id=target_id,
                     users=users,
                 )
+                return self._json({"status": "ok", **result})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 500)
+
+        if parsed.path == "/api/pos/comissoes/evento7":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            if not self._find_user(token, users):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            role = self._user_role(token)
+            if role not in ("admin", "gerente"):
+                return self._json({"status": "error", "message": "Apenas admin ou gerente pode gerenciar evento 7"}, 403)
+            actor = (self._find_user(token, users) or {}).get("usuario") or ""
+
+            if method == "GET":
+                qs = urllib.parse.parse_qs(parsed.query or "")
+                period = (qs.get("periodo") or [""])[0].strip() or None
+                employee_id = (qs.get("employee_id") or [""])[0].strip() or None
+                rows = pos_commission.listar_eventos_7(employee_id=employee_id, period=period)
+                return self._json({"status": "ok", "registros": rows})
+
+            if method == "POST":
+                body = self._read_body()
+                employee_id = (body.get("employee_id") or "").strip()
+                employee_name = (body.get("employee_name") or "").strip()
+                period = (body.get("periodo") or "").strip()
+                valor = body.get("valor")
+                venda_ids = body.get("venda_ids") or []
+                if not employee_id or not period:
+                    return self._json({"status": "error", "message": "employee_id e periodo são obrigatórios"}, 400)
+                try:
+                    reg = pos_commission.registrar_evento_7(
+                        employee_id=employee_id,
+                        employee_name=employee_name,
+                        period=period,
+                        valor=valor,
+                        venda_ids=venda_ids,
+                        usuario=actor,
+                    )
+                    return self._json({"status": "ok", "registro": reg})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+                except Exception as e:
+                    return self._json({"status": "error", "message": str(e)}, 500)
+
+            if method == "PUT":
+                body = self._read_body()
+                reg_id = (body.get("id") or "").strip()
+                if not reg_id:
+                    return self._json({"status": "error", "message": "id é obrigatório"}, 400)
+                updated = pos_commission.marcar_evento_7_importado(reg_id)
+                if updated:
+                    return self._json({"status": "ok", "registro": updated})
+                return self._json({"status": "error", "message": "Registro não encontrado"}, 404)
+
+            return self._json({"status": "error", "message": "Método não permitido"}, 405)
+
+        if parsed.path == "/api/pos/comissoes/estornar-fatura":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            if not self._find_user(token, users):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            role = self._user_role(token)
+            if role not in ("admin", "gerente"):
+                return self._json({"status": "error", "message": "Apenas admin ou gerente pode estornar fatura"}, 403)
+            body = self._read_body()
+            titulo_id = (body.get("titulo_id") or "").strip()
+            if not titulo_id:
+                return self._json({"status": "error", "message": "titulo_id é obrigatório"}, 400)
+            actor = (self._find_user(token, users) or {}).get("usuario") or ""
+            try:
+                result = pos_commission.estornar_fatura(titulo_id, usuario=actor)
                 return self._json({"status": "ok", **result})
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)

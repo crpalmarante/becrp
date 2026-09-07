@@ -15,13 +15,17 @@ from __future__ import annotations
 
 import json
 import os
+import uuid
 from datetime import datetime, date
 from typing import Any
+
+import json_lock
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 RULES_FILE = os.path.join(DATA_DIR, "commission_rules.json")
 COMMISSIONS_FILE = os.path.join(BASE_DIR, "dados", "pos_commissions.json")
+PAYROLL_FILE = os.path.join(BASE_DIR, "dados", "pos_commission_payroll.json")
 
 DEFAULT_EMPTY_RULES = {
     "version": 1,
@@ -41,8 +45,9 @@ def _now() -> str:
 def _load_json(path: str, default: Any) -> Any:
     if not os.path.exists(path):
         return default
-    with open(path, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    with json_lock.acquire(path, shared=True):
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
     if not isinstance(data, dict):
         return default
     return data
@@ -50,8 +55,9 @@ def _load_json(path: str, default: Any) -> Any:
 
 def _save_json(path: str, data: Any) -> None:
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    with json_lock.acquire(path, shared=False):
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def load_rules() -> dict:
@@ -498,6 +504,47 @@ def cancel_sale_commission(venda_id: Any) -> dict | None:
     return None
 
 
+def estornar_fatura(titulo_id: str, *, usuario: str = "") -> dict:
+    """
+    Cancela um título AP de comissão e reabre as comissões vinculadas.
+    """
+    import purchase_finance
+    import accounting_integration
+
+    titulo = purchase_finance.get(titulo_id)
+    if not titulo:
+        raise ValueError(f"Título {titulo_id} não encontrado")
+    if titulo.get("origem") != "comissao":
+        raise ValueError("Estorno permitido apenas para títulos de comissão")
+
+    cancelado = purchase_finance.cancelar(titulo_id, usuario=usuario, motivo="Estorno de fatura de comissão")
+
+    data = load_commissions()
+    reabertas = 0
+    for c in data.get("comissoes", []):
+        if str(c.get("fatura_ap_id")) == str(titulo_id):
+            c["status"] = "aberta"
+            c.pop("fatura_ap_id", None)
+            c["estornado_em"] = _now()
+            c["estornado_por"] = usuario
+            reabertas += 1
+    save_commissions(data)
+
+    contab = None
+    try:
+        contab = accounting_integration.on_commission_payable_reversal(
+            cancelado, actor=usuario
+        )
+    except Exception:
+        contab = None
+
+    return {
+        "titulo": cancelado,
+        "comissoes_reabertas": reabertas,
+        "contabilidade": contab,
+    }
+
+
 def faturar_comissoes(employee_id: str, employee_name: str, period: str,
                       vencimento: str | None = None, usuario: str = "",
                       user_id: str = "", users: dict | None = None) -> dict:
@@ -630,3 +677,75 @@ def build_report(employee_id: str | None = None, period: str | None = None) -> d
         "por_produto": sorted(by_product.values(), key=lambda x: x["comissao"], reverse=True),
         "detalhes": detail,
     }
+
+
+def _load_payroll() -> dict:
+    return _load_json(PAYROLL_FILE, {"registros": [], "version": 1})
+
+
+def _save_payroll(data: dict) -> None:
+    _save_json(PAYROLL_FILE, data)
+
+
+def registrar_evento_7(employee_id: str, employee_name: str, period: str, valor: float,
+                       venda_ids: list | None = None, usuario: str = "") -> dict:
+    """
+    Registra comissão como evento 7 (Comissão/Vendas) para integração com folha.
+    Cria um registro por competência/funcionário; idempotente por venda_ids.
+    """
+    if not employee_id or not period:
+        raise ValueError("employee_id e period são obrigatórios")
+    valor = round(float(valor or 0), 2)
+    if valor <= 0:
+        raise ValueError("valor deve ser positivo")
+    venda_ids = list(venda_ids or [])
+    data = _load_payroll()
+    registros = data.get("registros", [])
+    # Remove registros anteriores do mesmo funcionário/período com mesmas vendas
+    chaves = set(str(v) for v in venda_ids)
+    registros = [
+        r for r in registros
+        if not (str(r.get("employee_id")) == str(employee_id)
+                and str(r.get("period")) == str(period)
+                and set(str(v) for v in (r.get("venda_ids") or [])) == chaves)
+    ]
+    registro = {
+        "id": str(uuid.uuid4()),
+        "evento": 7,
+        "evento_nome": "Comissão / Vendas",
+        "employee_id": str(employee_id),
+        "employee_name": str(employee_name or employee_id),
+        "period": str(period),
+        "valor": valor,
+        "venda_ids": venda_ids,
+        "usuario": str(usuario or ""),
+        "status": "pendente",
+        "criado_em": _now(),
+    }
+    registros.append(registro)
+    data["registros"] = registros
+    _save_payroll(data)
+    return registro
+
+
+def listar_eventos_7(employee_id: str | None = None, period: str | None = None) -> list:
+    """Lista registros de evento 7 para folha, opcionalmente filtrados."""
+    data = _load_payroll()
+    rows = list(data.get("registros") or [])
+    if employee_id:
+        rows = [r for r in rows if str(r.get("employee_id")) == str(employee_id)]
+    if period:
+        rows = [r for r in rows if str(r.get("period")) == str(period)]
+    return rows
+
+
+def marcar_evento_7_importado(registro_id: str, *, importado_em: str | None = None) -> dict | None:
+    """Marca um registro de evento 7 como importado para folha."""
+    data = _load_payroll()
+    for r in data.get("registros", []):
+        if str(r.get("id")) == str(registro_id):
+            r["status"] = "importado"
+            r["importado_em"] = importado_em or _now()
+            _save_payroll(data)
+            return r
+    return None

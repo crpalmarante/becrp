@@ -1,5 +1,5 @@
 {
-  "next_id": 15,
+  "next_id": 21,
   "items": [
     {
       "id": 1,
@@ -478,6 +478,210 @@
         },
         {
           "at": "2026-09-03T08:29:47",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: NFC-e (65) ignorada no monitor de entrada — use NF-e 55",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "43260762832155000141550010000000000000000004",
+        "error": "NFC-e (65) ignorada no monitor de entrada — use NF-e 55"
+      },
+      "dedupe_key": "xml_error||4|chave:43260762832155000141550010000000000000000004",
+      "created_at": "2026-09-03T08:40:24",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:40:24",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:40:24",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:40:24",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: estrutura inválida: infNFe não encontrado",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "",
+        "error": "estrutura inválida: infNFe não encontrado"
+      },
+      "dedupe_key": "xml_error||4",
+      "created_at": "2026-09-03T08:40:24",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T08:40:24",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T08:40:24",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T08:40:24",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: NFC-e (65) ignorada no monitor de entrada — use NF-e 55",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "43260762832155000141550010000000000000000004",
+        "error": "NFC-e (65) ignorada no monitor de entrada — use NF-e 55"
+      },
+      "dedupe_key": "xml_error||4|chave:43260762832155000141550010000000000000000004",
+      "created_at": "2026-09-03T11:23:44",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T11:23:44",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T11:23:44",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T11:23:44",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: estrutura inválida: infNFe não encontrado",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "",
+        "error": "estrutura inválida: infNFe não encontrado"
+      },
+      "dedupe_key": "xml_error||4",
+      "created_at": "2026-09-03T11:23:44",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-03T11:23:44",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-03T11:23:44",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-03T11:23:44",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: NFC-e (65) ignorada no monitor de entrada — use NF-e 55",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "43260762832155000141550010000000000000000004",
+        "error": "NFC-e (65) ignorada no monitor de entrada — use NF-e 55"
+      },
+      "dedupe_key": "xml_error||4|chave:43260762832155000141550010000000000000000004",
+      "created_at": "2026-09-07T18:39:35",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-07T18:39:35",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-07T18:39:35",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-07T18:39:35",
+          "tipo": "resolved",
+          "by": "test_user",
+          "note": "auto"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "receiving_id": null,
+      "monitor_id": 4,
+      "category": "xml",
+      "type": "xml_error",
+      "priority": "high",
+      "status": "resolved",
+      "description": "XML monitor #4: estrutura inválida: infNFe não encontrado",
+      "assigned_to": null,
+      "metadata": {
+        "chave": "",
+        "error": "estrutura inválida: infNFe não encontrado"
+      },
+      "dedupe_key": "xml_error||4",
+      "created_at": "2026-09-07T18:39:35",
+      "created_by": "test_user",
+      "resolved_at": "2026-09-07T18:39:35",
+      "resolved_by": "test_user",
+      "resolution": "processed",
+      "events": [
+        {
+          "at": "2026-09-07T18:39:35",
+          "tipo": "created",
+          "by": "test_user"
+        },
+        {
+          "at": "2026-09-07T18:39:35",
           "tipo": "resolved",
           "by": "test_user",
           "note": "auto"

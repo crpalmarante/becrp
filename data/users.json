@@ -7,7 +7,7 @@
     "role": "admin",
     "empresas": {},
     "ativo": true,
-    "token": "ci-token-aprovador-2026"
+    "token": "64e6ab0c34ec824f7de3e73773961616"
   },
   "tesouraria": {
     "usuario": "tesouraria",
@@ -26,6 +26,7 @@
     "senha": "b250c5afef64fb8fa76887410c8404a5643528a418b5d9880ebe65fc865e5680",
     "role": "admin",
     "empresas": {},
-    "ativo": true
+    "ativo": true,
+    "token": "b440815e6cbc8270b57f78f00453fd6b"
   }
 }

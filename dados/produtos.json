@@ -25,8 +25,6 @@
 ,
 {"id":13,"nome":"Produto teste auto 456","preco":16.80,"preco_custo":12.00,"stock":0,"margem":40.00,"codigo_barras":"","categoria":"Alimentacao","sub_categoria":"Alimentacao","unidade":"UN","ncm":"85166000","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
 ,
-{"id":14,"nome":"Produto nova listagem 1786667593315","preco":16.80,"preco_custo":12.00,"stock":0,"margem":40.00,"codigo_barras":"","categoria":"Alimentacao","sub_categoria":"Alimentacao","unidade":"UN","ncm":"85166000","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
-,
 {"id":15,"nome":"Produto render list 1786667696639","preco":16.80,"preco_custo":12.00,"stock":0,"margem":40.00,"codigo_barras":"","categoria":"Alimentacao","sub_categoria":"Alimentacao","unidade":"UN","ncm":"85166000","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
 ,
 {"id":16,"nome":"Produto render ok 1786667728844","preco":16.80,"preco_custo":12.00,"stock":0,"margem":40.00,"codigo_barras":"","categoria":"Alimentacao","sub_categoria":"Alimentacao","unidade":"UN","ncm":"85166000","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
@@ -37,5 +35,11 @@
 ,
 {"id":19,"nome":"Feijao Teste","preco":15.00,"preco_custo":15.00,"stock":0,"margem":0.00,"codigo_barras":"","categoria":"Importacao NF-e","sub_categoria":"Importacao NF-e","unidade":"UN","ncm":"00000000","fornecedor":"11222333000181","localizacao":"","filial_id":0,"cst":"","cfop":"5102","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
 ,
-{"id":20,"nome":"Produto Alterado","preco":99.90,"preco_custo":50.00,"stock":25,"margem":99.80,"codigo_barras":"7899999999999","categoria":"TesteExtra","sub_categoria":"TesteExtra","unidade":"UN","ncm":"85166000","fornecedor":"Fornecedor Teste","localizacao":"X1-01","filial_id":0,"cst":"000","cfop":"5102","icms_alq":18.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
-],"total":20}
+{"id":20,"nome":"Produto A","preco":25.00,"preco_custo":25.00,"stock":0,"margem":0.00,"codigo_barras":"","categoria":"Importacao NF-e","sub_categoria":"Importacao NF-e","unidade":"UN","ncm":"00000000","fornecedor":"11222333000181","localizacao":"","filial_id":0,"cst":"","cfop":"5102","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":21,"nome":"Produto B","preco":50.00,"preco_custo":50.00,"stock":0,"margem":0.00,"codigo_barras":"","categoria":"Importacao NF-e","sub_categoria":"Importacao NF-e","unidade":"UN","ncm":"00000000","fornecedor":"11222333000181","localizacao":"","filial_id":0,"cst":"","cfop":"5102","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":22,"nome":"Produto Teste Freebuff","preco":49.90,"preco_custo":30.00,"stock":10,"margem":0.00,"codigo_barras":"7899999999999","categoria":"Teste","sub_categoria":"Teste","unidade":"UN","ncm":"12345678","fornecedor":"","localizacao":"","filial_id":0,"cst":"","cfop":"5102","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+,
+{"id":23,"nome":"Geladeira Electrolux Frost Free Inverter 484L Effi","preco":8098.20,"preco_custo":4499.00,"stock":12,"margem":80.00,"codigo_barras":"7909569449158","categoria":"EletroDoméstico","sub_categoria":"EletroDoméstico","unidade":"UN","ncm":"84181000","fornecedor":"Electrolux do Brasil","localizacao":"","filial_id":0,"cst":"","cfop":"","icms_alq":0.00,"servico":"N","iss_alq":0.00,"cod_serv_mun":""}
+],"total":22}

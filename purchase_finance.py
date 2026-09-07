@@ -12,6 +12,8 @@ import os
 from datetime import datetime, timedelta
 from decimal import Decimal, ROUND_HALF_UP
 
+import json_lock
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_FILE = os.path.join(BASE_DIR, "dados", "titulos_ap.json")
 
@@ -38,8 +40,9 @@ def _digits(val):
 def _load():
     if not os.path.exists(DATA_FILE):
         return {"titulos": [], "seq": 0}
-    with open(DATA_FILE, "r", encoding="utf-8") as f:
-        data = json.load(f)
+    with json_lock.acquire(DATA_FILE, shared=True):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
     if not isinstance(data, dict):
         return {"titulos": [], "seq": 0}
     data.setdefault("titulos", [])
@@ -51,8 +54,9 @@ def _save(data):
     os.makedirs(os.path.dirname(DATA_FILE) or ".", exist_ok=True)
     data["atualizado_em"] = _now()
     data["total"] = len(data.get("titulos") or [])
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    with json_lock.acquire(DATA_FILE, shared=False):
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def listar(status=None, partner_id=None):
@@ -188,3 +192,31 @@ def create_from_commission(*, employee_id, employee_name, partner_id=None, perio
     data["seq"] = seq
     _save(data)
     return {"titulo": row, "already": False, "source": "titulos_ap.json"}
+
+
+def get(titulo_id):
+    """Retorna um título AP pelo id, ou None."""
+    for t in listar():
+        if str(t.get("id")) == str(titulo_id):
+            return t
+    return None
+
+
+def cancelar(titulo_id, *, usuario="", motivo=""):
+    """
+    Cancela um título AP existente (status 'cancelado').
+    Não altera saldo (não estorno parcial). Retorna o título atualizado.
+    """
+    data = _load()
+    for t in data.get("titulos") or []:
+        if str(t.get("id")) == str(titulo_id):
+            if t.get("status") == "cancelado":
+                raise ValueError(f"Título {titulo_id} já está cancelado")
+            t["status"] = "cancelado"
+            t["saldo"] = 0.0
+            t["cancelado_em"] = _now()
+            t["cancelado_por"] = str(usuario or "")
+            t["motivo_cancelamento"] = str(motivo or "")
+            _save(data)
+            return t
+    raise ValueError(f"Título {titulo_id} não encontrado")

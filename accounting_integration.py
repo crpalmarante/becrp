@@ -251,6 +251,30 @@ def on_commission_payable(titulo, actor=None):
     )
 
 
+def on_commission_payable_reversal(titulo, actor=None):
+    """Hook: estorno de fatura de comissão (lançamento contábil reverso)."""
+    titulo = titulo if isinstance(titulo, dict) else {}
+    valor = _safe_float(titulo.get("valor") or titulo.get("total_commission"), 0)
+    if valor <= 0:
+        return _with_message({
+            "ok": True, "skipped": True, "reason": "valor zero",
+            "domain": "commission_payable_reversal",
+        })
+    data = str(titulo.get("cancelado_em") or titulo.get("vencimento") or date.today().isoformat())[:10]
+    ref = titulo.get("id") or ""
+    historico = f"Estorno de fatura de comissão — {titulo.get('fornecedor') or titulo.get('employee_name') or 'vendedor'} (período {titulo.get('periodo') or ''})"
+    return publish(
+        domain="commission_payable",
+        evento="commission_payable_reversal",
+        valor=valor,
+        referencia=ref,
+        historico=historico,
+        data=data,
+        actor=actor,
+        auto_post=False,
+    )
+
+
 def on_pos_sale(venda, forma_pg=None, actor=None):
     """Hook: venda POS finalizada."""
     venda = venda if isinstance(venda, dict) else {}

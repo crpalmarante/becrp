@@ -1,6 +1,222 @@
 {
   "nfe_entradas": [
     {
+      "chave": "43260762832155000141550010000000000000008507",
+      "numero": "8807",
+      "serie": "1",
+      "data_emissao": "2026-09-01",
+      "data_importacao": "2026-09-03 08:38:05",
+      "receiving_id": 15,
+      "estabelecimento_id": "matriz",
+      "fornecedor": {
+        "cnpj": "11222333000181",
+        "nome": "Dist Demo",
+        "ie": "",
+        "partner_id": "bp004"
+      },
+      "total": {
+        "vNF": "300.00",
+        "vProd": "300.00",
+        "vBC": "0.00",
+        "vICMS": "0.00",
+        "vCBS": "1.80",
+        "vIBS": "51.00",
+        "pCBS": "0.60",
+        "pIBS": "17.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "P001",
+          "nome": "Produto A",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "",
+          "unidade": "UN",
+          "quantidade": "10.0000",
+          "vl_unitario": "30.0000000000",
+          "vl_total": "300.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 300.0,
+            "pCBS": 0.6,
+            "vCBS": 1.8,
+            "pIBS": 17.0,
+            "vIBS": 51.0
+          }
+        }
+      ],
+      "duplicatas": [],
+      "status": "ESCRITURADA",
+      "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000000000000008507.xml"
+    },
+    {
+      "chave": "43260762832155000141550010000000000000008506",
+      "numero": "8806",
+      "serie": "1",
+      "data_emissao": "2026-09-01",
+      "data_importacao": "2026-09-03 08:37:18",
+      "receiving_id": 15,
+      "estabelecimento_id": "matriz",
+      "fornecedor": {
+        "cnpj": "11222333000181",
+        "nome": "Dist Demo",
+        "ie": "",
+        "partner_id": "bp004"
+      },
+      "total": {
+        "vNF": "300.00",
+        "vProd": "300.00",
+        "vBC": "0.00",
+        "vICMS": "0.00",
+        "vCBS": "1.80",
+        "vIBS": "51.00",
+        "pCBS": "0.60",
+        "pIBS": "17.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "P001",
+          "nome": "Produto A",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "",
+          "unidade": "UN",
+          "quantidade": "10.0000",
+          "vl_unitario": "30.0000000000",
+          "vl_total": "300.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 300.0,
+            "pCBS": 0.6,
+            "vCBS": 1.8,
+            "pIBS": 17.0,
+            "vIBS": 51.0
+          }
+        }
+      ],
+      "duplicatas": [],
+      "status": "ESCRITURADA",
+      "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000000000000008506.xml"
+    },
+    {
+      "chave": "43260762832155000141550010000000000000008501",
+      "numero": "8801",
+      "serie": "1",
+      "data_emissao": "2026-09-01",
+      "data_importacao": "2026-09-03 08:36:31",
+      "receiving_id": 15,
+      "estabelecimento_id": "matriz",
+      "fornecedor": {
+        "cnpj": "11222333000181",
+        "nome": "Dist Demo",
+        "ie": "",
+        "partner_id": "bp004"
+      },
+      "total": {
+        "vNF": "300.00",
+        "vProd": "300.00",
+        "vBC": "0.00",
+        "vICMS": "0.00",
+        "vCBS": "1.80",
+        "vIBS": "51.00",
+        "pCBS": "0.60",
+        "pIBS": "17.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "P001",
+          "nome": "Produto A",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "",
+          "unidade": "UN",
+          "quantidade": "10.0000",
+          "vl_unitario": "30.0000000000",
+          "vl_total": "300.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 300.0,
+            "pCBS": 0.6,
+            "vCBS": 1.8,
+            "pIBS": 17.0,
+            "vIBS": 51.0
+          }
+        }
+      ],
+      "duplicatas": [],
+      "status": "ESCRITURADA",
+      "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000000000000008501.xml"
+    },
+    {
+      "chave": "43260762832155000141550010000000000000009006",
+      "numero": "8006",
+      "serie": "1",
+      "data_emissao": "2026-09-01",
+      "data_importacao": "2026-09-03 08:35:46",
+      "receiving_id": 15,
+      "estabelecimento_id": "matriz",
+      "fornecedor": {
+        "cnpj": "11222333000181",
+        "nome": "Dist Demo",
+        "ie": "",
+        "partner_id": "bp004"
+      },
+      "total": {
+        "vNF": "300.00",
+        "vProd": "300.00",
+        "vBC": "0.00",
+        "vICMS": "0.00",
+        "vCBS": "1.80",
+        "vIBS": "51.00",
+        "pCBS": "0.60",
+        "pIBS": "17.00"
+      },
+      "itens": [
+        {
+          "n_item": "1",
+          "codigo": "P001",
+          "nome": "Produto A",
+          "ncm": "00000000",
+          "cfop": "5102",
+          "cest": "",
+          "ean": "",
+          "unidade": "UN",
+          "quantidade": "10.0000",
+          "vl_unitario": "30.0000000000",
+          "vl_total": "300.00",
+          "icms_cst": "",
+          "icms_csosn": "",
+          "icms_aliquota": "",
+          "icms_valor": "",
+          "ibs_cbs": {
+            "vBC": 300.0,
+            "pCBS": 0.6,
+            "vCBS": 1.8,
+            "pIBS": 17.0,
+            "vIBS": 51.0
+          }
+        }
+      ],
+      "duplicatas": [],
+      "status": "ESCRITURADA",
+      "xml_path": "/home/palmarante/projetos_cobol/becrp/data/nfe_inbound/43260762832155000141550010000000000000009006.xml"
+    },
+    {
       "chave": "43260762832155000141550010000000000000000007",
       "numero": "9107",
       "serie": "1",
