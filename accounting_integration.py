@@ -227,6 +227,30 @@ def publish(domain, evento, valor, referencia, historico=None, data=None, actor=
         return ev
 
 
+def on_commission_payable(titulo, actor=None):
+    """Hook: gera lançamento contábil para comissão a pagar (fatura de fornecedor)."""
+    titulo = titulo if isinstance(titulo, dict) else {}
+    valor = _safe_float(titulo.get("valor") or titulo.get("total_commission"), 0)
+    if valor <= 0:
+        return _with_message({
+            "ok": True, "skipped": True, "reason": "valor zero",
+            "domain": "commission_payable",
+        })
+    data = str(titulo.get("vencimento") or titulo.get("criado_em") or date.today().isoformat())[:10]
+    ref = titulo.get("id") or titulo.get("fatura_ap_id") or ""
+    historico = f"Comissão a pagar — {titulo.get('fornecedor') or titulo.get('employee_name') or 'vendedor'} (período {titulo.get('periodo') or ''})"
+    return publish(
+        domain="commission_payable",
+        evento="commission_payable",
+        valor=valor,
+        referencia=ref,
+        historico=historico,
+        data=data,
+        actor=actor,
+        auto_post=False,
+    )
+
+
 def on_pos_sale(venda, forma_pg=None, actor=None):
     """Hook: venda POS finalizada."""
     venda = venda if isinstance(venda, dict) else {}

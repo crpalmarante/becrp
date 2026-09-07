@@ -68,6 +68,155 @@ def save_rules(data: dict) -> None:
     _save_json(RULES_FILE, data)
 
 
+def list_rules(users_filter: list[str] | None = None) -> list[dict]:
+    """Lista todas as regras ativas, opcionalmente filtradas por usuário."""
+    data = load_rules()
+    out = []
+    global_rate = float(data.get("global_rate") or 0)
+    if users_filter is None or "__global__" in users_filter:
+        out.append({
+            "id": "global",
+            "user_id": "__global__",
+            "type": "global",
+            "target": "",
+            "rate_percent": global_rate,
+            "valid_from": "",
+            "valid_until": "",
+            "active": True,
+        })
+    for uid, ur in (data.get("users") or {}).items():
+        if users_filter is not None and uid not in users_filter:
+            continue
+        if not isinstance(ur, dict):
+            continue
+        default_rate = ur.get("default_rate")
+        if default_rate is not None and (users_filter is None or uid in users_filter):
+            out.append({
+                "id": f"{uid}:padrao",
+                "user_id": uid,
+                "type": "padrao",
+                "target": "",
+                "rate_percent": float(default_rate),
+                "valid_from": "",
+                "valid_until": "",
+                "active": True,
+            })
+        for idx, rule in enumerate(ur.get("rules", []) or []):
+            if rule.get("active") is False:
+                continue
+            out.append({
+                "id": f"{uid}:{idx}",
+                "user_id": uid,
+                "type": rule.get("type") or "produto",
+                "target": rule.get("target") or "",
+                "rate_percent": float(rule.get("rate_percent") or 0),
+                "valid_from": rule.get("valid_from") or "",
+                "valid_until": rule.get("valid_until") or "",
+                "active": rule.get("active") is not False,
+            })
+    return out
+
+
+def save_rule(rule: dict) -> dict:
+    """
+    Cria ou atualiza uma regra de comissão.
+
+    Campos esperados em rule:
+      - id (opcional): "global", "{uid}:padrao" ou "{uid}:{idx}"
+      - user_id: id do usuário (ou "__global__")
+      - type: "global", "padrao", "produto" ou "categoria"
+      - target: código do produto ou nome da categoria
+      - rate_percent
+      - valid_from, valid_until (opcional)
+      - active (opcional)
+    """
+    data = load_rules()
+    rid = rule.get("id") or ""
+    uid = (rule.get("user_id") or "").strip()
+    rtype = (rule.get("type") or "").strip().lower()
+
+    if rtype == "global":
+        data["global_rate"] = float(rule.get("rate_percent") or 0)
+        save_rules(data)
+        return {"id": "global", "user_id": "__global__", "type": "global", "rate_percent": data["global_rate"]}
+
+    if not uid or uid == "__global__":
+        raise ValueError("user_id é obrigatório para regras de usuário")
+
+    if "users" not in data or not isinstance(data["users"], dict):
+        data["users"] = {}
+    if uid not in data["users"] or not isinstance(data["users"][uid], dict):
+        data["users"][uid] = {"default_rate": None, "rules": []}
+
+    user_rules = data["users"][uid]
+    if rtype == "padrao":
+        user_rules["default_rate"] = float(rule.get("rate_percent") or 0)
+        save_rules(data)
+        return {"id": f"{uid}:padrao", "user_id": uid, "type": "padrao", "rate_percent": user_rules["default_rate"]}
+
+    if rtype not in ("produto", "categoria"):
+        raise ValueError("type deve ser global, padrao, produto ou categoria")
+
+    target = (rule.get("target") or "").strip()
+    if not target:
+        raise ValueError("target é obrigatório para regras de produto/categoria")
+
+    new_rule = {
+        "type": rtype,
+        "target": target,
+        "rate_percent": float(rule.get("rate_percent") or 0),
+        "valid_from": (rule.get("valid_from") or "").strip(),
+        "valid_until": (rule.get("valid_until") or "").strip(),
+        "active": rule.get("active", True) is not False,
+    }
+
+    # Atualiza por id se existir
+    if rid and rid.startswith(f"{uid}:") and not rid.endswith(":padrao"):
+        try:
+            idx = int(rid.split(":", 1)[1])
+            rules_list = user_rules.setdefault("rules", [])
+            if 0 <= idx < len(rules_list):
+                rules_list[idx] = new_rule
+                save_rules(data)
+                return {**new_rule, "id": rid, "user_id": uid}
+        except (ValueError, IndexError):
+            pass
+
+    user_rules.setdefault("rules", []).append(new_rule)
+    save_rules(data)
+    idx = len(user_rules["rules"]) - 1
+    return {**new_rule, "id": f"{uid}:{idx}", "user_id": uid}
+
+
+def delete_rule(rid: str) -> bool:
+    """Inativa (remove da lista) uma regra de comissão."""
+    data = load_rules()
+    if rid == "global":
+        data["global_rate"] = 0.0
+        save_rules(data)
+        return True
+    if not rid or ":" not in rid:
+        return False
+    uid, suffix = rid.split(":", 1)
+    if uid not in data.get("users", {}):
+        return False
+    user_rules = data["users"][uid]
+    if suffix == "padrao":
+        user_rules["default_rate"] = None
+        save_rules(data)
+        return True
+    try:
+        idx = int(suffix)
+        rules_list = user_rules.get("rules", [])
+        if 0 <= idx < len(rules_list):
+            rules_list.pop(idx)
+            save_rules(data)
+            return True
+    except ValueError:
+        pass
+    return False
+
+
 def load_commissions() -> dict:
     """Carrega comissões já calculadas."""
     data = _load_json(COMMISSIONS_FILE, {"comissoes": []})
@@ -96,6 +245,22 @@ def _rule_is_active(rule: dict, sale_date: str) -> bool:
 def _normalize_category(category: str) -> str:
     """Normaliza nome de categoria para comparação."""
     return " ".join(str(category or "").lower().split())
+
+
+def _resolve_employee(user_id: str, users: dict) -> tuple[str, str]:
+    """
+    Resolve o vínculo do usuário PDV com funcionário e parceiro.
+
+    Retorna (employee_id, employee_name) e guarda partner_id no registro se
+    houver. Se o usuário tiver funcionario_id, usa-o como employee_id; senão,
+    fallback para user_id.
+    """
+    u = users.get(user_id) or {}
+    fid = (u.get("funcionario_id") or "").strip()
+    name = u.get("nome") or u.get("usuario") or user_id
+    if fid:
+        return fid, name
+    return user_id, name
 
 
 def _find_rate_for_item(item: dict, rules: dict, user_id: str) -> tuple[float, str]:
@@ -151,6 +316,8 @@ def calculate_sale_commission(
     pedido: dict,
     user_id: str,
     rules: dict | None = None,
+    employee_id: str | None = None,
+    employee_name: str | None = None,
 ) -> dict:
     """
     Calcula comissão para uma venda fechada.
@@ -197,7 +364,9 @@ def calculate_sale_commission(
         "venda_id": venda.get("id"),
         "pedido_id": pedido.get("id"),
         "sale_date": sale_date,
-        "employee_id": user_id,
+        "user_id": user_id,
+        "employee_id": employee_id or user_id,
+        "employee_name": employee_name or "",
         "caixa_user_id": pedido.get("caixaUserId") or pedido.get("caixaUser") or "",
         "estabelecimento_id": venda.get("estabelecimento_id") or "",
         "terminal_id": pedido.get("terminal_id") or "",
@@ -257,12 +426,14 @@ def cancel_sale_commission(venda_id: Any) -> dict | None:
 
 
 def faturar_comissoes(employee_id: str, employee_name: str, period: str,
-                      vencimento: str | None = None, usuario: str = "") -> dict:
+                      vencimento: str | None = None, usuario: str = "",
+                      user_id: str = "", users: dict | None = None) -> dict:
     """
     Gera um título a pagar (fatura de fornecedor) consolidando as comissões
-    abertas do vendedor no período.
+    abertas do vendedor no período, e publica o lançamento contábil.
     """
     import purchase_finance
+    import accounting_integration
 
     rows = list_commissions(employee_id=employee_id, period=period)
     pendentes = [r for r in rows if r.get("status") in ("aberta", None, "")]
@@ -274,9 +445,13 @@ def faturar_comissoes(employee_id: str, employee_name: str, period: str,
         raise ValueError("Total de comissão deve ser positivo")
 
     comissao_ids = [r.get("venda_id") for r in pendentes if r.get("venda_id") is not None]
+    partner_id = ""
+    if users and user_id:
+        partner_id = (users.get(user_id) or {}).get("partner_id") or ""
     result = purchase_finance.create_from_commission(
         employee_id=employee_id,
         employee_name=employee_name or employee_id,
+        partner_id=partner_id or employee_id,
         period=period,
         valor=total,
         vencimento=vencimento,
@@ -293,10 +468,20 @@ def faturar_comissoes(employee_id: str, employee_name: str, period: str,
             c["fatura_ap_id"] = result["titulo"]["id"]
     save_commissions(data)
 
+    # Publica lançamento contábil (não bloqueia se falhar)
+    contab = None
+    try:
+        contab = accounting_integration.on_commission_payable(
+            result["titulo"], actor=usuario
+        )
+    except Exception:
+        contab = None
+
     return {
         "titulo": result["titulo"],
         "total_comissao": total,
         "comissoes_faturadas": len(comissao_ids),
+        "contabilidade": contab,
     }
 
 

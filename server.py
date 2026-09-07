@@ -1663,7 +1663,9 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         "role": role, "role_label": role_label(role),
                         "ativo": u.get("ativo", True),
                         "email": u.get("email", ""), "empresas": u.get("empresas", {}),
-                        "pos_terminal_ids": u.get("pos_terminal_ids", [])}
+                        "pos_terminal_ids": u.get("pos_terminal_ids", []),
+                        "funcionario_id": u.get("funcionario_id", ""),
+                        "partner_id": u.get("partner_id", "")}
                 lista.append(item)
             return self._json({"status": "ok", "users": lista, "roles": ROLES})
 
@@ -2393,6 +2395,58 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             rows = pos_commission.list_commissions(employee_id=employee_id, period=period)
             return self._json({"status": "ok", "comissoes": rows, "total": len(rows)})
 
+        if parsed.path == "/api/pos/comissoes/regras":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            user = self._find_user(token, users)
+            if not user:
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            role = self._user_role(token)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+
+            if self.command == "GET":
+                qs = urllib.parse.parse_qs(parsed.query or "")
+                user_filter = (qs.get("user_id") or [""])[0].strip() or None
+                if role in ("admin", "gerente"):
+                    filter_list = [user_filter] if user_filter else None
+                else:
+                    filter_list = [user_filter] if user_filter and user_filter == uid else [uid]
+                rows = pos_commission.list_rules(users_filter=filter_list)
+                return self._json({"status": "ok", "regras": rows, "total": len(rows)})
+
+            if self.command in ("POST", "PUT"):
+                if role not in ("admin", "gerente"):
+                    # usuário comum só pode editar próprias regras
+                    body = self._read_body()
+                    if (body.get("user_id") or "").strip() not in ("", uid):
+                        return self._json({"status": "error", "message": "Acesso negado"}, 403)
+                else:
+                    body = self._read_body()
+                try:
+                    rule = pos_commission.save_rule(body)
+                    return self._json({"status": "ok", "regra": rule})
+                except ValueError as e:
+                    return self._json({"status": "error", "message": str(e)}, 400)
+
+            if self.command == "DELETE":
+                rid = parsed.path.rstrip("/").split("/")[-1]
+                if rid == "regras":
+                    try:
+                        rid = (self._read_body() or {}).get("id") or ""
+                    except Exception:
+                        rid = ""
+                if not rid:
+                    return self._json({"status": "error", "message": "id é obrigatório"}, 400)
+                if role not in ("admin", "gerente"):
+                    rules = pos_commission.list_rules(users_filter=[uid])
+                    if not any(r.get("id") == rid for r in rules):
+                        return self._json({"status": "error", "message": "Acesso negado"}, 403)
+                if pos_commission.delete_rule(rid):
+                    return self._json({"status": "ok", "id": rid})
+                return self._json({"status": "error", "message": "Regra não encontrada"}, 404)
+
+            return self._json({"status": "error", "message": "Método não permitido"}, 405)
+
         if parsed.path == "/api/pos/comissoes/relatorio":
             token = self.headers.get("X-Auth-Token", "")
             if not token:
@@ -2447,12 +2501,16 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             actor = (self._find_user(token, users) or {}).get("usuario") or ""
 
             try:
+                # resolve employee_id a partir do usuário PDV
+                employee_id, _ = pos_commission._resolve_employee(target_id, users)
                 result = pos_commission.faturar_comissoes(
-                    employee_id=target_id,
+                    employee_id=employee_id,
                     employee_name=employee_name,
                     period=period,
                     vencimento=vencimento,
                     usuario=actor,
+                    user_id=target_id,
+                    users=users,
                 )
                 return self._json({"status": "ok", **result})
             except ValueError as e:
@@ -7118,8 +7176,12 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 commission = None
                 try:
                     pdv_user_id = pedido.get("pdvUserId") or uid or ""
+                    employee_id, employee_name = pos_commission._resolve_employee(
+                        pdv_user_id, users
+                    )
                     commission = pos_commission.calculate_sale_commission(
-                        venda, pedido, pdv_user_id
+                        venda, pedido, pdv_user_id,
+                        employee_id=employee_id, employee_name=employee_name,
                     )
                     pos_commission.record_commission(commission)
                 except Exception as e:
@@ -7233,6 +7295,16 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             pedido["state"] = new_state
             pedido["updatedAt"] = datetime.now().isoformat(timespec="seconds")
             pedido["caixaUser"] = user.get("nome") or user.get("usuario") or ""
+
+            # Cancela comissão vinculada quando a venda é cancelada/estornada
+            if new_state == "cancelado":
+                try:
+                    venda_id = pedido.get("venda_id")
+                    if venda_id is not None:
+                        pos_commission.cancel_sale_commission(venda_id)
+                except Exception:
+                    pass
+
             save_pos_fila(fila)
             return self._json({"status": "ok", "pedido": pedido})
 
@@ -7312,6 +7384,8 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 "role": role,
                 "empresas": empresas,
                 "pos_terminal_ids": list(body.get("pos_terminal_ids") or []),
+                "funcionario_id": (body.get("funcionario_id") or "").strip(),
+                "partner_id": (body.get("partner_id") or "").strip(),
                 "ativo": True,
                 "token": ""
             }
@@ -7348,6 +7422,10 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     users[uid]["pos_terminal_ids"] = list(body.get("pos_terminal_ids") or [])
                 if "email" in body:
                     users[uid]["email"] = body.get("email") or ""
+                if "funcionario_id" in body:
+                    users[uid]["funcionario_id"] = (body.get("funcionario_id") or "").strip()
+                if "partner_id" in body:
+                    users[uid]["partner_id"] = (body.get("partner_id") or "").strip()
                 save_users(users)
                 return self._json({"status": "ok", "message": "Usuário atualizado"})
 

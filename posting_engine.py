@@ -71,6 +71,15 @@ SEED_RULES = (
         "conta_credito": "1.01.01.02.01",
         "auto_post": True,
     },
+    {
+        "codigo": "COMMISSION_PAYABLE",
+        "nome": "Comissão de venda a pagar (fornecedor/vendedor)",
+        "evento": "commission_payable",
+        "diario": "GER",
+        "conta_debito": "3.01.01.07.01.03",
+        "conta_credito": "2.01.01.03.01",
+        "auto_post": False,
+    },
     # RFC-014 — Encargos patronais da folha (gerados no fechamento)
     {
         "codigo": "FOLHA_ENC_FGTS",

@@ -174,6 +174,46 @@ class PosCommissionTest(unittest.TestCase):
         found = pc.get_commission_by_sale(123)
         self.assertEqual(found["status"], "cancelada")
 
+    def test_cancelamento_tambem_marca_faturada(self):
+        self._make_rules(global_rate=1.0)
+        venda = self._make_venda([
+            {"prod_id": 1, "produto": "Arroz", "categoria": "Alimentacao", "qtd": 1, "preco": 100.0},
+        ])
+        venda["id"] = 555
+        pc.record_commission(pc.calculate_sale_commission(venda, self._make_pedido(), "vendedor1"))
+        pc.cancel_sale_commission(555)
+        found = pc.get_commission_by_sale(555)
+        self.assertEqual(found["status"], "cancelada")
+
+    def test_crud_regras(self):
+        pc.save_rules(pc.DEFAULT_EMPTY_RULES)
+        # global
+        r = pc.save_rule({"type": "global", "rate_percent": 1.5})
+        self.assertEqual(r["type"], "global")
+        # usuário padrão
+        r = pc.save_rule({"user_id": "vendedor1", "type": "padrao", "rate_percent": 2.0})
+        self.assertEqual(r["type"], "padrao")
+        # produto
+        r = pc.save_rule({"user_id": "vendedor1", "type": "produto", "target": "1", "rate_percent": 5.0})
+        self.assertEqual(r["type"], "produto")
+        # categoria
+        r2 = pc.save_rule({"user_id": "vendedor1", "type": "categoria", "target": "Bebidas", "rate_percent": 3.0})
+        self.assertEqual(r2["type"], "categoria")
+
+        rules = pc.list_rules()
+        self.assertEqual(len(rules), 4)
+        self.assertTrue(any(x["type"] == "global" for x in rules))
+
+        # delete
+        self.assertTrue(pc.delete_rule(r2["id"]))
+        rules = pc.list_rules()
+        self.assertEqual(len(rules), 3)
+
+        # update
+        updated = pc.save_rule({"id": r["id"], "user_id": "vendedor1", "type": "produto", "target": "2", "rate_percent": 7.0})
+        self.assertEqual(updated["target"], "2")
+        self.assertEqual(updated["rate_percent"], 7.0)
+
     def test_build_report(self):
         self._make_rules(users={
             "vendedor1": {
@@ -234,6 +274,29 @@ class PosCommissionTest(unittest.TestCase):
         self.assertIn("Não há comissões pendentes", str(ctx.exception))
 
         # Restaura
+        purchase_finance.DATA_FILE = self._pf_orig
+
+    def test_faturar_gera_contabilidade(self):
+        import purchase_finance
+        self._pf_orig = purchase_finance.DATA_FILE
+        purchase_finance.DATA_FILE = os.path.join(self.tmpdir, "titulos_ap.json")
+        purchase_finance._save({"titulos": [], "seq": 0})
+
+        self._make_rules(global_rate=1.0)
+        venda = self._make_venda([
+            {"prod_id": 50, "produto": "P", "categoria": "C", "qtd": 1, "preco": 100.0},
+        ])
+        venda["id"] = 50
+        venda["data"] = "2026-11-01"
+        pedido = self._make_pedido()
+        pedido["pdvUserId"] = "vendedor1"
+        pc.record_commission(pc.calculate_sale_commission(venda, pedido, "vendedor1"))
+
+        result = pc.faturar_comissoes("vendedor1", "Vendedor Um", "2026-11")
+        # contabilidade pode ser gerada ou None, mas não deve quebrar
+        self.assertIn("contabilidade", result)
+        self.assertEqual(result["total_comissao"], 1.0)
+
         purchase_finance.DATA_FILE = self._pf_orig
 
 

@@ -139,6 +139,18 @@
                     <div id="pos-terminals-list" class="empresas-list"></div>
                     <span class="form-help" id="pos-terminals-hint" style="font-size:12px;color:var(--text-muted);margin-top:4px"></span>
                 </div>
+                <div class="field">
+                    <label>Funcionário vinculado (para comissão/folha)</label>
+                    <select class="form-input" id="edit-funcionario" style="min-width:220px">
+                        <option value="">— nenhum —</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label>Parceiro/Fornecedor vinculado (para título AP)</label>
+                    <select class="form-input" id="edit-partner" style="min-width:220px">
+                        <option value="">— nenhum —</option>
+                    </select>
+                </div>
                 <div class="form-error" id="user-form-error"></div>
             </form>
         </div>
@@ -161,6 +173,8 @@
     let editingUserId = null;
     let empresasDisponiveis = [];
     let posTerminaisDisponiveis = [];
+    let funcionariosDisponiveis = [];
+    let partnersDisponiveis = [];
 
     function labelRole(role) {
         const map = {
@@ -216,6 +230,8 @@
                             <th class="dg-th"><div class="dg-th-content">Nome</div></th>
                             <th class="dg-th"><div class="dg-th-content">Usuário</div></th>
                             <th class="dg-th"><div class="dg-th-content">Perfil</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Funcionário</div></th>
+                            <th class="dg-th"><div class="dg-th-content">Parceiro</div></th>
                             <th class="dg-th"><div class="dg-th-content">Empresas</div></th>
                             <th class="dg-th"><div class="dg-th-content">Status</div></th>
                             <th class="dg-th" style="width:120px"><div class="dg-th-content">Ações</div></th>
@@ -227,14 +243,16 @@
                                 <td class="dg-cell">${u.nome}</td>
                                 <td class="dg-cell">${u.usuario}</td>
                                 <td class="dg-cell"><span class="badge badge-${roleBadge(u.role)}">${u.role_label || labelRole(u.role)}</span></td>
+                                <td class="dg-cell" style="font-size:var(--font-xs)">${u.funcionario_id ? `<span class="badge badge-info">${u.funcionario_id}</span>` : '<span style="color:var(--text-disabled)">—</span>'}</td>
+                                <td class="dg-cell" style="font-size:var(--font-xs)">${u.partner_id ? `<span class="badge badge-success">${u.partner_id}</span>` : '<span style="color:var(--text-disabled)">—</span>'}</td>
                                 <td class="dg-cell" style="font-size:var(--font-xs)">${(()=>{const es=u.empresas||{};const ks=Object.keys(es);return ks.length?ks.map(k=>`<span class="badge badge-default">${k.substring(0,6)}</span>`).join(' '):'<span style="color:var(--text-disabled)">—</span>'})()}</td>
                                 <td class="dg-cell"><span class="badge badge-${u.ativo ? 'success' : 'danger'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
                                 <td class="dg-cell">
-                                    <button class="dg-page" onclick="openUserModal(this.dataset.user)" data-user='${JSON.stringify({id:u.id,nome:u.nome,usuario:u.usuario,role:u.role,email:u.email||"",ativo:u.ativo,empresas:u.empresas})}' title="Editar">✎</button>
+                                    <button class="dg-page" onclick="openUserModal(this.dataset.user)" data-user='${JSON.stringify({id:u.id,nome:u.nome,usuario:u.usuario,role:u.role,email:u.email||"",ativo:u.ativo,empresas:u.empresas,funcionario_id:u.funcionario_id,partner_id:u.partner_id})}' title="Editar">✎</button>
                                     <button class="dg-page" onclick="toggleUser('${u.id}')" title="${u.ativo ? 'Desativar' : 'Ativar'}">${u.ativo ? '⏸' : '▶'}</button>
                                 </td>
                             </tr>`).join('')}
-                            ${filtered.length === 0 ? '<tr><td class="dg-cell" colspan="7" style="text-align:center;padding:2rem">Nenhum usuário encontrado</td></tr>' : ''}
+                            ${filtered.length === 0 ? '<tr><td class="dg-cell" colspan="9" style="text-align:center;padding:2rem">Nenhum usuário encontrado</td></tr>' : ''}
                         </tbody>
                     </table>
                 </div>
@@ -252,6 +270,8 @@
         document.getElementById("edit-role").value = data ? data.role : "vendedor";
         document.getElementById("edit-pass").value = "";
         document.getElementById("edit-user").disabled = !!editingUserId;
+        document.getElementById("edit-funcionario").value = data ? (data.funcionario_id || "") : "";
+        document.getElementById("edit-partner").value = data ? (data.partner_id || "") : "";
         document.getElementById("user-form-error").classList.remove("visible");
         // ensure role option exists if unexpected
         const roleSel = document.getElementById("edit-role");
@@ -268,6 +288,10 @@
             if(res.status==="ok") empresasDisponiveis=res.empresas||[];
         }
         await loadPosTerminais();
+        await loadFuncionarios();
+        await loadPartners();
+        renderSelectFuncionario(data ? data.funcionario_id : "");
+        renderSelectPartner(data ? data.partner_id : "");
 
         const userEmpresas=data&&data.empresas?data.empresas:{};
         const list=document.getElementById("empresas-checkbox-list");
@@ -320,6 +344,42 @@
         if (posTerminaisDisponiveis.length > 0) return;
         const res = await api("/api/admin/pos/terminais");
         if (res.status === "ok") posTerminaisDisponiveis = res.terminais || [];
+    }
+
+    async function loadFuncionarios() {
+        if (funcionariosDisponiveis.length > 0) return;
+        const res = await api("/api/funcionarios");
+        if (res.status === "ok") funcionariosDisponiveis = res.funcionarios || [];
+    }
+
+    async function loadPartners() {
+        if (partnersDisponiveis.length > 0) return;
+        const res = await api("/api/admin/partners");
+        if (res.status === "ok") partnersDisponiveis = res.partners || [];
+    }
+
+    function renderSelectFuncionario(selectedId) {
+        const sel = document.getElementById("edit-funcionario");
+        sel.innerHTML = '<option value="">— nenhum —</option>';
+        funcionariosDisponiveis.forEach(f => {
+            const opt = document.createElement("option");
+            opt.value = f.id;
+            opt.textContent = `${f.nome || f.name || f.id} (${f.cpf || f.matricula || ""})`.trim();
+            if (String(selectedId) === String(f.id)) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    }
+
+    function renderSelectPartner(selectedId) {
+        const sel = document.getElementById("edit-partner");
+        sel.innerHTML = '<option value="">— nenhum —</option>';
+        partnersDisponiveis.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.id;
+            opt.textContent = `${p.display_name || p.legal_name || p.trade_name || p.id}`;
+            if (String(selectedId) === String(p.id)) opt.selected = true;
+            sel.appendChild(opt);
+        });
     }
 
     function renderPosTerminals(userTerminalIds) {
@@ -380,17 +440,19 @@
                 if (cb.checked) posTerminalIds.push(cb.value);
             });
         }
+        const funcionario_id = document.getElementById("edit-funcionario").value || "";
+        const partner_id = document.getElementById("edit-partner").value || "";
 
         let data;
         if (editingUserId) {
             data = await api("/api/admin/users/" + editingUserId, {
                 method: "POST",
-                body: JSON.stringify({ action: "update", nome, role, senha, email, empresas, pos_terminal_ids: posTerminalIds })
+                body: JSON.stringify({ action: "update", nome, role, senha, email, empresas, pos_terminal_ids: posTerminalIds, funcionario_id, partner_id })
             });
         } else {
             data = await api("/api/admin/users", {
                 method: "POST",
-                body: JSON.stringify({ nome, usuario, senha, role, email, empresas, pos_terminal_ids: posTerminalIds })
+                body: JSON.stringify({ nome, usuario, senha, role, email, empresas, pos_terminal_ids: posTerminalIds, funcionario_id, partner_id })
             });
         }
 

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BECRP — Regras de Comissão</title>
+<meta name="theme-color" content="#0f766e">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:block}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:var(--space-4)}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-bottom:12px}
+.form-row label{font-size:12px;color:var(--text-muted);display:flex;flex-direction:column;gap:4px}
+.table-wrap{overflow:auto;border:1px solid var(--border-color);border-radius:var(--radius-panel);margin-bottom:16px}
+table.data{width:100%;border-collapse:collapse;font-size:var(--font-sm)}
+table.data th{text-align:left;padding:10px 12px;background:rgba(255,255,255,.04);color:var(--text-muted);font-weight:600;border-bottom:1px solid var(--border-color);white-space:nowrap}
+table.data td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top}
+table.data tr:hover td{background:rgba(255,255,255,.03)}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(20,184,166,.15);color:#5eead4}
+.source-global{background:rgba(245,158,11,.15);color:#fcd34d}
+.source-padrao{background:rgba(168,162,158,.15);color:#d6d3d1}
+.source-produto{background:rgba(34,197,94,.15);color:#86efac}
+.source-categoria{background:rgba(59,130,246,.15);color:#93c5fd}
+.so-btn{border:1px solid var(--border-color);background:var(--surface-panel);color:var(--text-primary);padding:8px 16px;border-radius:999px;cursor:pointer;font-size:13px}
+.so-btn.primary{background:rgba(20,184,166,.16);border-color:rgba(20,184,166,.45);color:#99f6e4}
+.so-btn.danger{background:rgba(239,68,68,.16);border-color:rgba(239,68,68,.45);color:#fecaca}
+.empty{text-align:center;padding:3rem;color:var(--text-muted)}
+.panel{border:1px solid var(--border-color);border-radius:var(--radius-panel);padding:16px;margin-bottom:16px;background:var(--surface-panel)}
+.panel h3{margin:0 0 12px;font-size:14px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar" class="no-print">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="brand-text">BECRP</span></div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="pos-pdv.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-dollar"/></svg><span class="menu-label">PDV</span></a>
+      <a class="menu-item" href="relatorio-comissoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Relatório</span></a>
+      <a class="menu-item active" href="comissao-regras.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg><span class="menu-label">Regras</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="topbar no-print"><div class="topbar-brand"><span class="topbar-title">Regras de Comissão</span></div>
+      <div class="topbar-user" style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <span class="topbar-user-info"><span id="user-name-display">—</span></span>
+        <button class="topbar-icon-btn" data-logout title="Sair">Sair</button>
+      </div>
+    </header>
+    <div class="main-content" style="padding:var(--space-5)">
+      <div class="workspace-header no-print">
+        <div class="workspace-breadcrumb">BECRP / PDV / Comissões / Regras</div>
+        <h2 class="workspace-title">Regras de Comissão</h2>
+      </div>
+
+      <div class="panel no-print">
+        <h3 id="form-title">Nova regra</h3>
+        <div class="form-row">
+          <input type="hidden" id="r-id">
+          <label>Usuário
+            <select class="form-input" id="r-user" style="min-width:180px"></select>
+          </label>
+          <label>Tipo
+            <select class="form-input" id="r-type" style="min-width:160px">
+              <option value="global">Taxa global</option>
+              <option value="padrao">Taxa padrão do usuário</option>
+              <option value="produto">Produto específico</option>
+              <option value="categoria">Categoria</option>
+            </select>
+          </label>
+          <label id="l-target">Alvo (código produto ou categoria)
+            <input class="form-input" id="r-target" placeholder="ex: 11 ou Alimentacao" style="min-width:180px">
+          </label>
+          <label>Taxa (%)
+            <input class="form-input" id="r-rate" type="number" step="0.01" min="0" max="100" value="0" style="min-width:100px">
+          </label>
+          <label>Vigência de
+            <input class="form-input" id="r-from" type="date" style="min-width:140px">
+          </label>
+          <label>até
+            <input class="form-input" id="r-until" type="date" style="min-width:140px">
+          </label>
+          <label>Ativa
+            <input class="form-input" id="r-active" type="checkbox" checked style="width:auto">
+          </label>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="so-btn primary" id="btn-salvar">Salvar</button>
+          <button type="button" class="so-btn" id="btn-novo">Novo</button>
+        </div>
+      </div>
+
+      <div class="toolbar no-print">
+        <button type="button" class="so-btn primary" id="btn-refresh">Atualizar</button>
+      </div>
+      <div id="resultado"><p class="empty">Carregando regras...</p></div>
+    </div>
+    <div class="status-bar no-print" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+      <div class="status-bar-left"><span id="status-user-info">Usuário: —</span></div>
+      <div class="status-bar-right"><span>Regras de Comissão · BECRP v1.0</span></div>
+    </div>
+  </div>
+</div>
+<script src="../js/services/AuthService.js"></script>
+<script src="../js/auth/page-boot.js"></script>
+<script>
+(function(){
+  const API = "/api/pos/comissoes/regras";
+  const USERS_API = "/api/admin/users";
+  const money = n => (Number(n)||0).toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2});
+  const escapeHtml = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  const TYPE_LABEL = {global:"Global", padrao:"Padrão usuário", produto:"Produto", categoria:"Categoria"};
+  const TYPE_CLASS = {global:"source-global", padrao:"source-padrao", produto:"source-produto", categoria:"source-categoria"};
+  let currentUser = {};
+  let usersList = [];
+
+  async function api(path, opts={}){
+    const token = AuthService.getToken();
+    const res = await fetch(path, {method: opts.method||"GET", headers: Object.assign({"X-Auth-Token": token, "Content-Type": "application/json"}, opts.headers||{}), body: opts.body});
+    return res.json();
+  }
+
+  async function loadUsers(){
+    const res = await api(USERS_API);
+    if(res.status !== "ok") return;
+    usersList = res.users || [];
+    const sel = document.getElementById("r-user");
+    sel.innerHTML = "";
+    const globalOpt = document.createElement("option");
+    globalOpt.value = "__global__";
+    globalOpt.textContent = "(Taxa global)";
+    sel.appendChild(globalOpt);
+    usersList.forEach(u => {
+      const opt = document.createElement("option");
+      opt.value = u.id;
+      opt.textContent = `${u.nome || u.usuario} (${u.usuario})`;
+      sel.appendChild(opt);
+    });
+  }
+
+  function targetVisible(){
+    const t = document.getElementById("r-type").value;
+    document.getElementById("l-target").style.display = (t === "produto" || t === "categoria") ? "flex" : "none";
+  }
+
+  function setForm(rule){
+    document.getElementById("r-id").value = rule ? rule.id : "";
+    document.getElementById("r-user").value = rule ? (rule.user_id || "") : (currentUser.id || "");
+    document.getElementById("r-type").value = rule ? rule.type : "produto";
+    document.getElementById("r-target").value = rule ? rule.target : "";
+    document.getElementById("r-rate").value = rule ? rule.rate_percent : 0;
+    document.getElementById("r-from").value = rule ? rule.valid_from : "";
+    document.getElementById("r-until").value = rule ? rule.valid_until : "";
+    document.getElementById("r-active").checked = rule ? rule.active !== false : true;
+    document.getElementById("form-title").textContent = rule ? "Editar regra" : "Nova regra";
+    targetVisible();
+  }
+
+  function novo(){
+    setForm(null);
+  }
+
+  async function salvar(){
+    const body = {
+      id: document.getElementById("r-id").value || undefined,
+      user_id: document.getElementById("r-user").value,
+      type: document.getElementById("r-type").value,
+      target: document.getElementById("r-target").value.trim(),
+      rate_percent: parseFloat(document.getElementById("r-rate").value) || 0,
+      valid_from: document.getElementById("r-from").value || undefined,
+      valid_until: document.getElementById("r-until").value || undefined,
+      active: document.getElementById("r-active").checked,
+    };
+    if(body.type === "global" || body.type === "padrao"){
+      body.target = undefined;
+    }
+    if(body.type === "produto" || body.type === "categoria"){
+      if(!body.target){
+        alert("Informe o alvo da regra.");
+        return;
+      }
+    }
+    const res = await api(API, {method: "POST", body: JSON.stringify(body)});
+    if(res.status === "ok"){
+      alert("Regra salva.");
+      await render();
+      setForm(null);
+    } else {
+      alert("Erro: " + (res.message || "falha ao salvar"));
+    }
+  }
+
+  async function excluir(id){
+    if(!confirm("Excluir esta regra?")) return;
+    const res = await api(API, {method: "DELETE", body: JSON.stringify({id})});
+    if(res.status === "ok"){
+      await render();
+    } else {
+      alert("Erro: " + (res.message || "falha ao excluir"));
+    }
+  }
+
+  async function render(){
+    const res = await api(API);
+    const box = document.getElementById("resultado");
+    if(res.status !== "ok"){
+      box.innerHTML = `<p class="empty">${escapeHtml(res.message || "Erro")}</p>`;
+      return;
+    }
+    const rows = res.regras || [];
+    if(!rows.length){
+      box.innerHTML = `<p class="empty">Nenhuma regra cadastrada.</p>`;
+      return;
+    }
+    const tbody = rows.map(r => {
+      const userName = r.user_id === "__global__" ? "(global)" : escapeHtml(usersList.find(u => u.id === r.user_id)?.nome || r.user_id);
+      return `
+        <tr>
+          <td><span class="badge ${TYPE_CLASS[r.type] || ''}">${TYPE_LABEL[r.type] || r.type}</span></td>
+          <td>${userName}</td>
+          <td>${escapeHtml(r.target || "—")}</td>
+          <td>${money(r.rate_percent)}%</td>
+          <td>${escapeHtml(r.valid_from || "—")}</td>
+          <td>${escapeHtml(r.valid_until || "—")}</td>
+          <td>${r.active ? "Sim" : "Não"}</td>
+          <td>
+            <button type="button" class="so-btn" onclick="window.editRule('${r.id}')">Editar</button>
+            <button type="button" class="so-btn danger" onclick="window.deleteRule('${r.id}')">Excluir</button>
+          </td>
+        </tr>
+      `;
+    }).join("");
+    box.innerHTML = `
+      <div class="table-wrap">
+        <table class="data">
+          <thead><tr><th>Tipo</th><th>Usuário</th><th>Alvo</th><th>Taxa</th><th>Vigência de</th><th>até</th><th>Ativa</th><th></th></tr></thead>
+          <tbody>${tbody}</tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  window.editRule = async function(id){
+    const res = await api(API);
+    const r = (res.regras || []).find(x => x.id === id);
+    if(r) setForm(r);
+  };
+  window.deleteRule = excluir;
+
+  document.getElementById("r-type").onchange = targetVisible;
+  document.getElementById("btn-salvar").onclick = salvar;
+  document.getElementById("btn-novo").onclick = novo;
+  document.getElementById("btn-refresh").onclick = render;
+
+  (async function init(){
+    try {
+      const u = await AuthService.getUser();
+      currentUser = u || {};
+    } catch(e) {}
+    await loadUsers();
+    targetVisible();
+    await render();
+  })();
+})();
+</script>
+</body>
+</html>

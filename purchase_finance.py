@@ -141,8 +141,8 @@ def create_from_receiving(rec, *, usuario=""):
     return {"titulos": created, "already": False, "source": "titulos_ap.json"}
 
 
-def create_from_commission(*, employee_id, employee_name, period, valor, vencimento=None,
-                           comissao_ids=None, usuario=""):
+def create_from_commission(*, employee_id, employee_name, partner_id=None, period, valor,
+                           vencimento=None, comissao_ids=None, usuario=""):
     """
     Gera um título a pagar (AP) para um vendedor/operador a partir do total de
     comissões de um período. O vendedor é tratado como fornecedor de serviço de
@@ -164,7 +164,7 @@ def create_from_commission(*, employee_id, employee_name, period, valor, vencime
     row = {
         "id": tid,
         "seq": seq,
-        "partner_id": str(employee_id),
+        "partner_id": str(partner_id or employee_id),
         "fornecedor": str(employee_name or employee_id),
         "cnpj": "",
         "receiving_id": None,
