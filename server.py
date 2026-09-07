@@ -40,6 +40,7 @@ import tax_apuracao_store
 from modules.lookup import fiscal_tables_service
 import partners_store
 import pos_caixa
+import pos_commission
 import price_lists
 import campaigns
 import planocontas
@@ -2272,6 +2273,34 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 if len(out) >= limit:
                     break
             return self._json({"status": "ok", "vendas": out, "total": len(out)})
+
+        if parsed.path == "/api/pos/comissoes":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            if not self._find_user(token, users):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            venda_id = (qs.get("venda_id") or [""])[0].strip() or None
+            if venda_id:
+                try:
+                    venda_id = int(venda_id)
+                except (TypeError, ValueError):
+                    pass
+                commission = pos_commission.get_commission_by_sale(venda_id)
+                if not commission:
+                    return self._json({"status": "error", "message": "Comissão não encontrada"}, 404)
+                # Restringe acesso: próprio vendedor ou admin/gerente
+                role = self._user_role(token)
+                if role not in ("admin", "gerente") and commission.get("employee_id") != uid:
+                    return self._json({"status": "error", "message": "Acesso negado"}, 403)
+                return self._json({"status": "ok", "comissao": commission})
+            # listagem
+            period = (qs.get("periodo") or [""])[0].strip() or None
+            role = self._user_role(token)
+            employee_id = None if role in ("admin", "gerente") else uid
+            rows = pos_commission.list_commissions(employee_id=employee_id, period=period)
+            return self._json({"status": "ok", "comissoes": rows, "total": len(rows)})
 
         if parsed.path == "/api/pos/caixa/movimentos":
             token = self.headers.get("X-Auth-Token", "")
@@ -6927,6 +6956,17 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 save_json(vendas_path, vendas_data)
                 pedido["venda_id"] = next_vid
 
+                # Comissão do PDV (RFC-COMISSION/005): calcula por item ao fechar venda
+                commission = None
+                try:
+                    pdv_user_id = pedido.get("pdvUserId") or uid or ""
+                    commission = pos_commission.calculate_sale_commission(
+                        venda, pedido, pdv_user_id
+                    )
+                    pos_commission.record_commission(commission)
+                except Exception as e:
+                    commission = {"error": str(e)}
+
                 # Inventário MVP: movimento sale (ledger)
                 try:
                     baixar_estoque_local(
@@ -7011,6 +7051,7 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                     "nfce": nfce_out,
                     "aviso": aviso.strip(),
                     "contabilidade": contab,
+                    "comissao": commission,
                 })
 
             if action != "status":

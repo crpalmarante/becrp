@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "global_rate": 1.0,
+  "users": {
+    "palmarante": {
+      "default_rate": 2.0,
+      "rules": [
+        {
+          "type": "produto",
+          "target": "11",
+          "rate_percent": 5.0,
+          "valid_from": "2026-01-01",
+          "active": true
+        },
+        {
+          "type": "categoria",
+          "target": "Alimentacao",
+          "rate_percent": 3.0,
+          "valid_from": "2026-01-01",
+          "active": true
+        }
+      ]
+    }
+  }
+}
