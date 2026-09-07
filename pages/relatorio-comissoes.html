@@ -144,18 +144,35 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
           <td>${escapeHtml(it.produto || "—")}</td>
           <td class="center">${Number(it.qtd || 0).toLocaleString("pt-BR", {minimumFractionDigits:3})}</td>
           <td class="money">${money(it.subtotal)}</td>
+          <td class="money">—</td>
           <td class="money">${(Number(it.rate_percent)||0).toLocaleString("pt-BR", {minimumFractionDigits:2})}%</td>
           <td class="center"><span class="badge ${SOURCE_CLASS[it.rate_source] || "source-padrao"}">${escapeHtml(SOURCE_LABEL[it.rate_source] || it.rate_source || "—")}</span></td>
           <td class="money">${money(it.commission_value)}</td>
         </tr>
       `).join("");
-      return items;
+      const trocas = (d.itens_troca || []).map(it => `
+        <tr style="opacity:.7">
+          <td><span class="badge">${escapeHtml(d.venda_id || "—")}</span></td>
+          <td>${escapeHtml(d.sale_date || "—")}</td>
+          <td>${escapeHtml(d.employee_name || d.employee_id || "—")}</td>
+          <td>${escapeHtml(it.produto || "—")} <span class="badge source-padrao">troca</span></td>
+          <td class="center">${Number(it.qtd || 0).toLocaleString("pt-BR", {minimumFractionDigits:3})}</td>
+          <td class="money">—</td>
+          <td class="money" style="color:#f87171">−${money(it.subtotal)}</td>
+          <td class="money">—</td>
+          <td class="center">—</td>
+          <td class="money">—</td>
+        </tr>
+      `).join("");
+      return items + trocas;
     }).join("");
 
-    box.innerHTML = `
+      box.innerHTML = `
       <div class="kpi">
         <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Vendas</div><div class="kpi-value">${r.count}</div></div>
-        <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Total Vendas</div><div class="kpi-value money">${money(r.total_vendas)}</div></div>
+        <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Total Bruto</div><div class="kpi-value money">${money(r.total_bruto)}</div></div>
+        <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Trocas</div><div class="kpi-value money" style="color:#f87171">−${money(r.total_troca)}</div></div>
+        <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Total Líquido</div><div class="kpi-value money">${money(r.total_vendas)}</div></div>
         <div class="kpi-card"><div style="font-size:12px;color:var(--text-muted)">Total Comissão</div><div class="kpi-value money">${money(r.total_commission)}</div></div>
       </div>
       <p style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Período: ${escapeHtml(r.period)}</p>
@@ -179,8 +196,8 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
       <h3 style="font-size:14px;margin:16px 0 8px">Detalhamento por Venda</h3>
       <div class="table-wrap">
         <table class="data">
-          <thead><tr><th>Venda</th><th>Data</th><th>Vendedor</th><th>Produto</th><th class="center">Qtd</th><th class="money">Subtotal</th><th class="money">Taxa</th><th class="center">Origem</th><th class="money">Comissão</th></tr></thead>
-          <tbody>${rowsDetalhe || '<tr><td colspan="9" class="empty">Nenhum dado</td></tr>'}</tbody>
+          <thead><tr><th>Venda</th><th>Data</th><th>Vendedor</th><th>Produto</th><th class="center">Qtd</th><th class="money">Subtotal</th><th class="money">Troca</th><th class="money">Taxa</th><th class="center">Origem</th><th class="money">Comissão</th></tr></thead>
+          <tbody>${rowsDetalhe || '<tr><td colspan="10" class="empty">Nenhum dado</td></tr>'}</tbody>
         </table>
       </div>
     `;

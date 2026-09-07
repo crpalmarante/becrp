@@ -694,6 +694,7 @@ def _pedido_para_venda(pedido, forma_pg="Dinheiro"):
     agora = datetime.now()
     client = pedido.get("client") or {}
     itens = []
+    itens_troca = []
     catalog = {}
     try:
         for p in cobol_bridge.produtos_listar() or []:
@@ -702,12 +703,26 @@ def _pedido_para_venda(pedido, forma_pg="Dinheiro"):
         catalog = {}
     for line in pedido.get("lines") or []:
         qtd = _safe_float(line.get("qtd"), 1)
-        if qtd <= 0 or line.get("troca"):
-            # troca/devolução não entra na NFC-e de venda
-            continue
         pid = line.get("id")
         prod = catalog.get(str(pid), {})
         preco = _safe_float(line.get("preco"), 0)
+        if qtd <= 0 or line.get("troca"):
+            # troca/devolução não entra na NFC-e de venda, mas fica registrada
+            # para ajuste de comissão sobre valor líquido
+            itens_troca.append({
+                "prod_id": pid,
+                "produto": line.get("nome") or prod.get("nome") or f"Produto {pid}",
+                "qtd": abs(qtd),
+                "preco": preco,
+                "subtotal": round(abs(qtd) * preco, 2),
+                "unidade": "KG" if line.get("peso") else (prod.get("unidade") or "UN"),
+                "ncm": prod.get("ncm") or "00000000",
+                "ean": prod.get("codigo_barras") or line.get("ean") or "",
+                "cfop": prod.get("cfop") or "5102",
+                "cst": prod.get("cst") or "400",
+                "filial_id": 0,
+            })
+            continue
         subtotal = round(qtd * preco, 2)
         itens.append({
             "prod_id": pid,
@@ -738,6 +753,8 @@ def _pedido_para_venda(pedido, forma_pg="Dinheiro"):
         "caixaUser": pedido.get("caixaUser") or "",
         "pos_pedido_id": pedido.get("id"),
         "itens": itens,
+        "itens_troca": itens_troca,
+        "valor_troca": round(sum(t.get("subtotal") or 0 for t in itens_troca), 2),
     }
 
 def _html_to_pdf_bytes(html_str):

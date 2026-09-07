@@ -139,6 +139,59 @@ class PosCommissionTest(unittest.TestCase):
         result = pc.calculate_sale_commission(venda, self._make_pedido(), "vendedor1")
         self.assertEqual(result["total_commission"], 0.5)
 
+    def test_troca_parcial_mesmo_produto(self):
+        self._make_rules(users={
+            "vendedor1": {
+                "default_rate": 2.0,
+                "rules": [
+                    {"type": "produto", "target": "1", "rate_percent": 10.0, "active": True},
+                ],
+            }
+        })
+        venda = self._make_venda([
+            {"prod_id": 1, "produto": "Arroz", "categoria": "Alimentacao", "qtd": 3, "preco": 10.0},
+        ])
+        venda["itens_troca"] = [
+            {"prod_id": "1", "produto": "Arroz", "categoria": "Alimentacao", "qtd": 1, "preco": 10.0, "subtotal": 10.0},
+        ]
+        venda["valor_troca"] = 10.0
+        result = pc.calculate_sale_commission(venda, self._make_pedido(), "vendedor1")
+        # base líquida: 30 - 10 = 20; taxa 10% = 2
+        self.assertEqual(result["total_commission"], 2.0)
+        self.assertEqual(result["valor_troca"], 10.0)
+        self.assertEqual(len(result["items"]), 1)
+        self.assertEqual(result["items"][0]["subtotal"], 20.0)
+        self.assertEqual(result["items"][0]["commission_value"], 2.0)
+
+    def test_troca_parcial_rateio_entre_produtos(self):
+        self._make_rules(global_rate=2.0)
+        venda = self._make_venda([
+            {"prod_id": 1, "produto": "Arroz", "categoria": "Alimentacao", "qtd": 1, "preco": 100.0},
+            {"prod_id": 2, "produto": "Feijao", "categoria": "Alimentacao", "qtd": 1, "preco": 100.0},
+        ])
+        venda["itens_troca"] = [
+            {"prod_id": "3", "produto": "Outro", "categoria": "Alimentacao", "qtd": 1, "preco": 50.0, "subtotal": 50.0},
+        ]
+        venda["valor_troca"] = 50.0
+        result = pc.calculate_sale_commission(venda, self._make_pedido(), "vendedor1")
+        # base bruta 200; crédito 50 rateado 50/50 = 25 cada; liquido 75 cada; 2% = 1,5 cada; total 3
+        self.assertEqual(result["total_commission"], 3.0)
+        self.assertEqual(len(result["items"]), 2)
+        self.assertEqual(sum(i["subtotal"] for i in result["items"]), 150.0)
+
+    def test_troca_total_zerando_comissao(self):
+        self._make_rules(global_rate=2.0)
+        venda = self._make_venda([
+            {"prod_id": 1, "produto": "Arroz", "categoria": "Alimentacao", "qtd": 1, "preco": 100.0},
+        ])
+        venda["itens_troca"] = [
+            {"prod_id": "1", "produto": "Arroz", "categoria": "Alimentacao", "qtd": 1, "preco": 100.0, "subtotal": 100.0},
+        ]
+        venda["valor_troca"] = 100.0
+        result = pc.calculate_sale_commission(venda, self._make_pedido(), "vendedor1")
+        self.assertEqual(result["total_commission"], 0.0)
+        self.assertEqual(len(result["items"]), 0)
+
     def test_record_e_get_by_sale(self):
         self._make_rules(global_rate=1.0)
         venda = self._make_venda([

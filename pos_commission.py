@@ -311,6 +311,78 @@ def _find_rate_for_item(item: dict, rules: dict, user_id: str) -> tuple[float, s
     return 0.0, "padrao"
 
 
+def _calcular_base_liquida(itens_venda: list, itens_troca: list) -> list:
+    """
+    Calcula a base líquida para comissão, descontando itens de troca.
+
+    1. Para cada produto, subtrai o valor trocado do mesmo produto vendido.
+    2. Crédito de troca remanescente é rateado proporcionalmente entre os
+       demais itens vendidos (até zerar).
+    3. Retorna itens com subtotal_liquido >= 0.
+    """
+    vendas = []
+    for line in itens_venda or []:
+        if not isinstance(line, dict):
+            continue
+        qtd = float(line.get("qtd") or 0)
+        preco = float(line.get("preco") or 0)
+        subtotal = round(qtd * preco, 2)
+        if subtotal <= 0:
+            continue
+        vendas.append({
+            "prod_id": str(line.get("prod_id") or line.get("id") or ""),
+            "produto": line.get("produto") or "Produto",
+            "categoria": line.get("categoria") or "",
+            "qtd": qtd,
+            "preco": preco,
+            "subtotal": subtotal,
+        })
+
+    if not vendas:
+        return []
+
+    # crédito de troca por produto
+    credito_por_produto = {}
+    for t in itens_troca or []:
+        if not isinstance(t, dict):
+            continue
+        pid = str(t.get("prod_id") or t.get("id") or "").strip()
+        if not pid:
+            continue
+        credito_por_produto[pid] = round(credito_por_produto.get(pid, 0.0) + float(t.get("subtotal") or 0), 2)
+
+    # passo 1: abater crédito do mesmo produto
+    total_vendas = round(sum(v["subtotal"] for v in vendas), 2)
+    for v in vendas:
+        credito = credito_por_produto.get(v["prod_id"], 0.0)
+        if credito <= 0:
+            continue
+        usado = min(v["subtotal"], credito)
+        v["subtotal"] = round(v["subtotal"] - usado, 2)
+        credito_por_produto[v["prod_id"]] = round(credito - usado, 2)
+
+    # crédito remanescente total (produtos trocados não vendidos ou excedente)
+    credito_total_remanescente = round(sum(c for c in credito_por_produto.values() if c > 0), 2)
+
+    # passo 2: ratear crédito remanescente sobre todos os itens com subtotal > 0
+    subtotal_positivo = round(sum(v["subtotal"] for v in vendas if v["subtotal"] > 0), 2)
+    if credito_total_remanescente > 0 and subtotal_positivo > 0:
+        for v in vendas:
+            if v["subtotal"] <= 0:
+                continue
+            rateio = round(v["subtotal"] / subtotal_positivo * credito_total_remanescente, 2)
+            v["subtotal"] = round(max(0.0, v["subtotal"] - rateio), 2)
+
+    # Recalcula qtd proporcional ao subtotal líquido (para relatório)
+    for v in vendas:
+        if v["preco"] > 0 and v["subtotal"] > 0:
+            v["qtd"] = round(v["subtotal"] / v["preco"], 3)
+        elif v["subtotal"] <= 0:
+            v["qtd"] = 0.0
+
+    return [v for v in vendas if v["subtotal"] > 0]
+
+
 def calculate_sale_commission(
     venda: dict,
     pedido: dict,
@@ -324,6 +396,7 @@ def calculate_sale_commission(
 
     Recebe o dicionário da venda (`venda`), o pedido da fila (`pedido`) e o
     identificador do vendedor (`user_id` — geralmente `pedido["pdvUserId"]`).
+    A comissão é calculada sobre o valor LÍQUIDO da venda (desconta trocas).
     Retorna um dicionário com os detalhes da comissão, sem persistir.
     """
     if rules is None:
@@ -333,12 +406,10 @@ def calculate_sale_commission(
     itens = []
     total_commission = 0.0
 
-    for line in venda.get("itens") or []:
-        if not isinstance(line, dict):
-            continue
-        qtd = float(line.get("qtd") or 0)
-        preco = float(line.get("preco") or 0)
-        subtotal = round(qtd * preco, 2)
+    base_liquida = _calcular_base_liquida(venda.get("itens"), venda.get("itens_troca"))
+
+    for line in base_liquida:
+        subtotal = float(line.get("subtotal") or 0)
         if subtotal <= 0:
             continue
 
@@ -351,8 +422,8 @@ def calculate_sale_commission(
             "prod_id": line.get("prod_id") or line.get("id"),
             "produto": line.get("produto") or "Produto",
             "categoria": line.get("categoria") or "",
-            "qtd": qtd,
-            "preco": preco,
+            "qtd": line.get("qtd"),
+            "preco": line.get("preco"),
             "subtotal": subtotal,
             "rate_percent": rate,
             "rate_source": source,
@@ -372,6 +443,8 @@ def calculate_sale_commission(
         "terminal_id": pedido.get("terminal_id") or "",
         "terminal_caixa_id": pedido.get("terminal_caixa_id") or "",
         "forma_pg": venda.get("forma_pg") or "Dinheiro",
+        "itens_troca": venda.get("itens_troca") or [],
+        "valor_troca": float(venda.get("valor_troca") or 0),
         "total_venda": float(venda.get("total") or 0),
         "total_commission": total_commission,
         "status": "aberta",
@@ -496,6 +569,8 @@ def build_report(employee_id: str | None = None, period: str | None = None) -> d
 
     total_commission = 0.0
     total_sales = 0.0
+    total_gross = 0.0
+    total_troca = 0.0
     by_employee = {}
     by_product = {}
     detail = []
@@ -506,14 +581,19 @@ def build_report(employee_id: str | None = None, period: str | None = None) -> d
         emp = r.get("employee_id") or "sem_vendedor"
         emp_name = r.get("employee_name") or emp
         sale_total = float(r.get("total_venda") or 0)
+        valor_troca = float(r.get("valor_troca") or 0)
+        gross_total = round(sale_total + valor_troca, 2)
         comm_total = float(r.get("total_commission") or 0)
         total_commission = round(total_commission + comm_total, 2)
         total_sales = round(total_sales + sale_total, 2)
+        total_gross = round(total_gross + gross_total, 2)
+        total_troca = round(total_troca + valor_troca, 2)
 
         if emp not in by_employee:
-            by_employee[emp] = {"employee_id": emp, "employee_name": emp_name, "vendas": 0, "comissao": 0.0}
+            by_employee[emp] = {"employee_id": emp, "employee_name": emp_name, "vendas": 0, "comissao": 0.0, "troca": 0.0}
         by_employee[emp]["vendas"] += 1
         by_employee[emp]["comissao"] = round(by_employee[emp]["comissao"] + comm_total, 2)
+        by_employee[emp]["troca"] = round(by_employee[emp]["troca"] + valor_troca, 2)
 
         for item in r.get("items") or []:
             pid = item.get("prod_id") or item.get("produto") or "?"
@@ -531,15 +611,20 @@ def build_report(employee_id: str | None = None, period: str | None = None) -> d
             "employee_id": emp,
             "employee_name": emp_name,
             "total_venda": sale_total,
+            "total_bruto": gross_total,
+            "valor_troca": valor_troca,
             "total_commission": comm_total,
             "forma_pg": r.get("forma_pg") or "Dinheiro",
             "items": r.get("items") or [],
+            "itens_troca": r.get("itens_troca") or [],
         })
 
     return {
         "period": period or "todos",
         "count": len(detail),
         "total_vendas": total_sales,
+        "total_bruto": total_gross,
+        "total_troca": total_troca,
         "total_commission": total_commission,
         "por_vendedor": sorted(by_employee.values(), key=lambda x: x["comissao"], reverse=True),
         "por_produto": sorted(by_product.values(), key=lambda x: x["comissao"], reverse=True),
