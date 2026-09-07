@@ -2422,6 +2422,44 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                 return self._json({"status": "error", "message": "Geração de PDF indisponível"}, 500)
             return self._json({"status": "ok", "relatorio": report})
 
+        if parsed.path == "/api/pos/comissoes/faturar":
+            token = self.headers.get("X-Auth-Token", "")
+            users = load_users()
+            if not self._find_user(token, users):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            uid = next((k for k, u in users.items() if u.get("token") == token), None)
+            role = self._user_role(token)
+
+            body = self._read_body()
+            target_id = (body.get("employee_id") or "").strip()
+            period = (body.get("periodo") or "").strip()
+            vencimento = (body.get("vencimento") or "").strip() or None
+
+            if not period:
+                return self._json({"status": "error", "message": "Período é obrigatório"}, 400)
+            if not target_id:
+                target_id = uid
+            if role not in ("admin", "gerente") and target_id != uid:
+                return self._json({"status": "error", "message": "Acesso negado"}, 403)
+
+            target_user = users.get(target_id) or {}
+            employee_name = target_user.get("nome") or target_user.get("usuario") or target_id
+            actor = (self._find_user(token, users) or {}).get("usuario") or ""
+
+            try:
+                result = pos_commission.faturar_comissoes(
+                    employee_id=target_id,
+                    employee_name=employee_name,
+                    period=period,
+                    vencimento=vencimento,
+                    usuario=actor,
+                )
+                return self._json({"status": "ok", **result})
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            except Exception as e:
+                return self._json({"status": "error", "message": str(e)}, 500)
+
         if parsed.path == "/api/pos/caixa/movimentos":
             token = self.headers.get("X-Auth-Token", "")
             users = load_users()

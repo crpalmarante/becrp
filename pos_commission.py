@@ -256,6 +256,50 @@ def cancel_sale_commission(venda_id: Any) -> dict | None:
     return None
 
 
+def faturar_comissoes(employee_id: str, employee_name: str, period: str,
+                      vencimento: str | None = None, usuario: str = "") -> dict:
+    """
+    Gera um título a pagar (fatura de fornecedor) consolidando as comissões
+    abertas do vendedor no período.
+    """
+    import purchase_finance
+
+    rows = list_commissions(employee_id=employee_id, period=period)
+    pendentes = [r for r in rows if r.get("status") in ("aberta", None, "")]
+    if not pendentes:
+        raise ValueError("Não há comissões pendentes no período para faturar")
+
+    total = round(sum(float(r.get("total_commission") or 0) for r in pendentes), 2)
+    if total <= 0:
+        raise ValueError("Total de comissão deve ser positivo")
+
+    comissao_ids = [r.get("venda_id") for r in pendentes if r.get("venda_id") is not None]
+    result = purchase_finance.create_from_commission(
+        employee_id=employee_id,
+        employee_name=employee_name or employee_id,
+        period=period,
+        valor=total,
+        vencimento=vencimento,
+        comissao_ids=comissao_ids,
+        usuario=usuario,
+    )
+
+    # Marca comissões como faturadas
+    data = load_commissions()
+    venda_ids = {str(v) for v in comissao_ids}
+    for c in data.get("comissoes", []):
+        if str(c.get("venda_id")) in venda_ids and c.get("employee_id") == employee_id:
+            c["status"] = "faturada"
+            c["fatura_ap_id"] = result["titulo"]["id"]
+    save_commissions(data)
+
+    return {
+        "titulo": result["titulo"],
+        "total_comissao": total,
+        "comissoes_faturadas": len(comissao_ids),
+    }
+
+
 def build_report(employee_id: str | None = None, period: str | None = None) -> dict:
     """
     Gera relatório consolidado de comissões.

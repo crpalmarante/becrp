@@ -75,6 +75,10 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
         <button type="button" class="so-btn" id="btn-imprimir">Imprimir</button>
         <button type="button" class="so-btn" id="btn-pdf">Exportar PDF</button>
       </div>
+      <div class="toolbar no-print" id="faturar-bar" style="display:none">
+        <label style="font-size:12px;color:var(--text-muted)">Vencimento<input class="form-input" id="f-vencimento" type="date"></label>
+        <button type="button" class="so-btn primary" id="btn-faturar">Faturar comissões do período</button>
+      </div>
       <div id="resultado">
         <p class="empty">Clique em Gerar para visualizar o relatório.</p>
       </div>
@@ -101,6 +105,8 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
     return res.json();
   }
 
+  let currentReport = null;
+
   async function gerar(){
     const qs = new URLSearchParams();
     const periodo = document.getElementById("f-periodo").value;
@@ -108,6 +114,9 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
     const res = await api(API + "?" + qs.toString());
     const box = document.getElementById("resultado");
     if(res.status !== "ok"){ box.innerHTML = `<p class="empty">${escapeHtml(res.message || "Erro")}</p>`; return; }
+    currentReport = res.relatorio;
+    document.getElementById("faturar-bar").style.display = currentReport && currentReport.total_commission > 0 ? "flex" : "none";
+
     const r = res.relatorio;
 
     const rowsVendedor = (r.por_vendedor || []).map(row => `
@@ -190,10 +199,31 @@ table.data tr:hover td{background:rgba(255,255,255,.03)}
     window.open(API + "?" + qs.toString() + "&X-Auth-Token=" + encodeURIComponent(token), "_blank");
   }
 
+  async function faturar(){
+    if(!currentReport || currentReport.total_commission <= 0){
+      alert("Não há comissão a faturar no período.");
+      return;
+    }
+    if(!confirm(`Faturar ${money(currentReport.total_commission)} de comissão do período ${escapeHtml(currentReport.period)}?`)) return;
+    const periodo = document.getElementById("f-periodo").value;
+    const vencimento = document.getElementById("f-vencimento").value;
+    const res = await api("/api/pos/comissoes/faturar", {
+      method: "POST",
+      body: JSON.stringify({periodo: periodo, vencimento: vencimento || undefined}),
+    });
+    if(res.status === "ok"){
+      alert(`Fatura gerada: ${res.titulo.id} — ${money(res.total_comissao)}`);
+      await gerar();
+    } else {
+      alert("Erro: " + (res.message || "falha ao faturar"));
+    }
+  }
+
   document.getElementById("btn-gerar").onclick = gerar;
   document.getElementById("btn-limpar").onclick = limpar;
   document.getElementById("btn-imprimir").onclick = () => window.print();
   document.getElementById("btn-pdf").onclick = exportarPdf;
+  document.getElementById("btn-faturar").onclick = faturar;
 })();
 </script>
 </body>

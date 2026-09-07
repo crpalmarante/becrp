@@ -202,6 +202,40 @@ class PosCommissionTest(unittest.TestCase):
         arroz = next(p for p in report["por_produto"] if p["prod_id"] == "1")
         self.assertEqual(arroz["comissao"], 20.0)
 
+    def test_faturar_comissoes(self):
+        import purchase_finance
+        # isola purchase_finance em arquivo temporário para não poluir o repo
+        self._pf_orig = purchase_finance.DATA_FILE
+        purchase_finance.DATA_FILE = os.path.join(self.tmpdir, "titulos_ap.json")
+        purchase_finance._save({"titulos": [], "seq": 0})
+
+        self._make_rules(global_rate=1.0)
+        for venda_id in [20, 21]:
+            venda = self._make_venda([
+                {"prod_id": venda_id, "produto": "P", "categoria": "C", "qtd": 1, "preco": 100.0},
+            ])
+            venda["id"] = venda_id
+            venda["data"] = "2026-10-01"
+            pedido = self._make_pedido()
+            pedido["pdvUserId"] = "vendedor1"
+            pc.record_commission(pc.calculate_sale_commission(venda, pedido, "vendedor1"))
+
+        result = pc.faturar_comissoes("vendedor1", "Vendedor Um", "2026-10", vencimento="2026-10-30")
+        self.assertEqual(result["total_comissao"], 2.0)  # 1% de 100 + 1% de 100
+        self.assertEqual(result["comissoes_faturadas"], 2)
+        self.assertEqual(result["titulo"]["fornecedor"], "Vendedor Um")
+        self.assertEqual(result["titulo"]["origem"], "comissao")
+        self.assertEqual(result["titulo"]["periodo"], "2026-10")
+        self.assertEqual(result["titulo"]["status"], "aberto")
+
+        # Idempotência: tentar faturar novamente deve falhar
+        with self.assertRaises(ValueError) as ctx:
+            pc.faturar_comissoes("vendedor1", "Vendedor Um", "2026-10")
+        self.assertIn("Não há comissões pendentes", str(ctx.exception))
+
+        # Restaura
+        purchase_finance.DATA_FILE = self._pf_orig
+
 
 if __name__ == "__main__":
     unittest.main()
