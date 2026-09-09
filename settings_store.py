@@ -54,6 +54,10 @@ DEFAULTS = {
         "estoque_negativo": False,
         "rotas_multiplas_etapas": False,
     },
+    "wms": {
+        "contagem_requer_aprovacao": True,
+        "contagem_dupla_divergencia": False,
+    },
     "vendas": {
         "pedido_precisa_aprovacao": False,
         "limite_credito_auto": True,

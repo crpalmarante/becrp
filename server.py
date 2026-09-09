@@ -66,6 +66,7 @@ import wms_rental
 import wms_rules
 import wms_routes
 import wms_workspace
+import wms_counting
 import delivery_orders
 import delivery_resources
 import delivery_tasks
@@ -3212,6 +3213,44 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not row:
                 return self._json({"status": "error", "message": "Expedição WMS não encontrada"}, 404)
             return self._json({"status": "ok", "expedicao": row})
+
+        # ── WMS cycle count / inventário físico (RFC-5009) ──
+        if parsed.path == "/api/wms/contagens":
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            qs = urllib.parse.parse_qs(parsed.query or "")
+            try:
+                out = wms_counting.list_sessoes(
+                    q=(qs.get("q") or [""])[0],
+                    status=(qs.get("status") or [""])[0] or None,
+                    tipo=(qs.get("tipo") or [""])[0] or None,
+                    armazem=(qs.get("armazem") or [""])[0] or None,
+                )
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+            role = self._user_role(token)
+            return self._json({
+                "status": "ok",
+                **out,
+                "permissoes": {
+                    "pode_escrever": role in WMS_WRITE_ROLES,
+                    "pode_excluir": role in WMS_DELETE_ROLES,
+                    "role": role,
+                },
+            })
+
+        if parsed.path.startswith("/api/wms/contagens/"):
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            if key == "meta":
+                return self._json({"status": "ok", **wms_counting.meta()})
+            row = wms_counting.get_sessao(key)
+            if not row:
+                return self._json({"status": "error", "message": "Sessão de contagem não encontrada"}, 404)
+            return self._json({"status": "ok", "sessao": row})
 
         # ── WMS analytics (RFC-9009) + workspace (RFC-9010) — read-only ──
         if parsed.path == "/api/wms/analytics":
@@ -9641,6 +9680,69 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                         rota=(body or {}).get("rota"),
                     )
                     return self._json({"status": "ok", "expedicao": row})
+                return self._json({"status": "error", "message": "ação inválida"}, 400)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        # ── WMS cycle count / inventário físico (RFC-5009) ──
+        if parsed.path == "/api/admin/wms/contagens":
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode criar contagens WMS",
+                }, 403)
+            user = self._find_user(crud_token, load_users()) or {}
+            uname = user.get("usuario") or user.get("nome") or ""
+            try:
+                row = wms_counting.create_sessao(body or {}, usuario=uname)
+                return self._json({"status": "ok", "sessao": row}, 201)
+            except ValueError as e:
+                return self._json({"status": "error", "message": str(e)}, 400)
+
+        if parsed.path.startswith("/api/admin/wms/contagens/"):
+            key = urllib.parse.unquote(parsed.path.rstrip("/").split("/")[-1])
+            user = self._find_user(crud_token, load_users()) or {}
+            uname = user.get("usuario") or user.get("nome") or ""
+            if not self._can_write_wms(crud_token):
+                return self._json({
+                    "status": "error",
+                    "message": "Apenas admin, gerente ou supervisor pode alterar contagens WMS",
+                }, 403)
+            action = (body or {}).get("action") if isinstance(body, dict) else None
+            try:
+                if action == "count_line":
+                    row = wms_counting.count_line(
+                        key,
+                        (body or {}).get("linha"),
+                        (body or {}).get("qtd_contada"),
+                        usuario=uname,
+                        causa=(body or {}).get("causa") or "",
+                        observacao=(body or {}).get("observacao") or "",
+                    )
+                    return self._json({"status": "ok", "sessao": row})
+                if action == "add_line":
+                    row = wms_counting.add_line(key, body or {}, usuario=uname)
+                    return self._json({"status": "ok", "sessao": row})
+                if action == "set_causa":
+                    row = wms_counting.set_causa(
+                        key,
+                        (body or {}).get("linha"),
+                        (body or {}).get("causa") or "",
+                        observacao=(body or {}).get("observacao") or "",
+                        usuario=uname,
+                    )
+                    return self._json({"status": "ok", "sessao": row})
+                if action in (
+                    "start", "submit_review", "recount", "request_adjust",
+                    "approve", "reject", "apply", "close", "cancel",
+                ):
+                    row = wms_counting.transition(
+                        key,
+                        action,
+                        usuario=uname,
+                        motivo=(body or {}).get("motivo") or "",
+                    )
+                    return self._json({"status": "ok", "sessao": row})
                 return self._json({"status": "error", "message": "ação inválida"}, 400)
             except ValueError as e:
                 return self._json({"status": "error", "message": str(e)}, 400)

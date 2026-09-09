@@ -356,11 +356,17 @@
     "icon": "icon-truck",
     "href": "pages/wms-recebimento.html"
    },
-   {
+    {
     "id": "wms-expedicao",
     "label": "Expedição",
     "icon": "icon-truck",
     "href": "pages/wms-expedicao.html"
+   },
+   {
+    "id": "wms-contagem",
+    "label": "Contagem / Inventário",
+    "icon": "icon-box",
+    "href": "pages/wms-contagem.html"
    },
    {
     "id": "estoque-wms",

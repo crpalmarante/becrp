@@ -1,0 +1,274 @@
+{
+  "seq": 3,
+  "sessoes": [
+    {
+      "id": "CT-20260909-0001",
+      "tipo": "location",
+      "armazem": "DC-01",
+      "estabelecimento_id": "DC-01",
+      "localizacoes": [
+        "PCK-01"
+      ],
+      "produtos_filtro": [
+        "WMS-CT-1"
+      ],
+      "status": "applied",
+      "responsavel": "contador",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "WMS-CT-1",
+          "produto": "WMS-CT-1",
+          "loc_origem": "PCK-01",
+          "loc_nome": "Face Picking 01",
+          "qtd_sistema": 10.0,
+          "qtd_contada": 8.0,
+          "divergencia": -2.0,
+          "status": "loss",
+          "causa": "quebra_perda",
+          "observacao": "",
+          "contado_por": "contador",
+          "contado_em": "2026-09-09T14:35:37"
+        }
+      ],
+      "ajustes": [
+        {
+          "linha": 1,
+          "produto_id": "WMS-CT-1",
+          "loc_origem": "PCK-01",
+          "qtd_sistema": 10.0,
+          "qtd_contada": 8.0,
+          "divergencia": -2.0,
+          "causa": "quebra_perda",
+          "movement_id": 94
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "contador",
+          "nota": "snapshot de saldos"
+        },
+        {
+          "status": "counting",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "contador",
+          "nota": "start"
+        },
+        {
+          "status": "review",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "contador",
+          "nota": "1 linhas, 1 divergências"
+        },
+        {
+          "status": "pending_approval",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "contador",
+          "nota": "1 ajuste(s) para aprovação"
+        },
+        {
+          "status": "approved",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "supervisor",
+          "nota": "aprovado"
+        },
+        {
+          "status": "applied",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "supervisor",
+          "nota": "1 movimento(s)"
+        }
+      ],
+      "observacao": "teste ciclo",
+      "cancelamento_motivo": "",
+      "aprovado_por": "supervisor",
+      "aprovado_em": "2026-09-09T14:35:37",
+      "criado_em": "2026-09-09T14:35:37",
+      "atualizado_em": "2026-09-09T14:35:37"
+    },
+    {
+      "id": "CT-20260909-0002",
+      "tipo": "spot",
+      "armazem": "DC-01",
+      "estabelecimento_id": "DC-01",
+      "localizacoes": [
+        "PCK-01"
+      ],
+      "produtos_filtro": [
+        "WMS-CT-2"
+      ],
+      "status": "closed",
+      "responsavel": "c",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "WMS-CT-2",
+          "produto": "WMS-CT-2",
+          "loc_origem": "PCK-01",
+          "loc_nome": "Face Picking 01",
+          "qtd_sistema": 5.0,
+          "qtd_contada": 5.0,
+          "divergencia": 0.0,
+          "status": "match",
+          "causa": "",
+          "observacao": "",
+          "contado_por": "c",
+          "contado_em": "2026-09-09T14:35:37"
+        }
+      ],
+      "ajustes": [],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "c",
+          "nota": "snapshot de saldos"
+        },
+        {
+          "status": "counting",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "c",
+          "nota": "início via linha"
+        },
+        {
+          "status": "review",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "c",
+          "nota": "1 linhas, 0 divergências"
+        },
+        {
+          "status": "closed",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "c",
+          "nota": "encerrada sem ajuste"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "aprovado_por": "",
+      "aprovado_em": "",
+      "criado_em": "2026-09-09T14:35:37",
+      "atualizado_em": "2026-09-09T14:35:37"
+    },
+    {
+      "id": "CT-20260909-0003",
+      "tipo": "location",
+      "armazem": "DC-01",
+      "estabelecimento_id": "DC-01",
+      "localizacoes": [
+        "PCK-01"
+      ],
+      "produtos_filtro": [],
+      "status": "applied",
+      "responsavel": "c",
+      "linhas": [
+        {
+          "linha": 1,
+          "produto_id": "WMS-CT-1",
+          "produto": "WMS-CT-1",
+          "loc_origem": "PCK-01",
+          "loc_nome": "Face Picking 01",
+          "qtd_sistema": 8.0,
+          "qtd_contada": 8.0,
+          "divergencia": 0.0,
+          "status": "match",
+          "causa": "",
+          "observacao": "",
+          "contado_por": "c",
+          "contado_em": "2026-09-09T14:35:37"
+        },
+        {
+          "linha": 2,
+          "produto_id": "WMS-CT-2",
+          "produto": "WMS-CT-2",
+          "loc_origem": "PCK-01",
+          "loc_nome": "Face Picking 01",
+          "qtd_sistema": 5.0,
+          "qtd_contada": 5.0,
+          "divergencia": 0.0,
+          "status": "match",
+          "causa": "",
+          "observacao": "",
+          "contado_por": "c",
+          "contado_em": "2026-09-09T14:35:37"
+        },
+        {
+          "linha": 3,
+          "produto_id": "WMS-CT-NEW",
+          "produto": "WMS-CT-NEW",
+          "loc_origem": "PCK-01",
+          "loc_nome": "PCK-01",
+          "qtd_sistema": 0.0,
+          "qtd_contada": 3.0,
+          "divergencia": 3.0,
+          "status": "gain",
+          "causa": "encontrado",
+          "observacao": "",
+          "contado_por": "c",
+          "contado_em": "2026-09-09T14:35:37",
+          "origem": "encontrado"
+        }
+      ],
+      "ajustes": [
+        {
+          "linha": 3,
+          "produto_id": "WMS-CT-NEW",
+          "loc_origem": "PCK-01",
+          "qtd_sistema": 0.0,
+          "qtd_contada": 3.0,
+          "divergencia": 3.0,
+          "causa": "encontrado",
+          "movement_id": 96
+        }
+      ],
+      "historico": [
+        {
+          "status": "created",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "c",
+          "nota": "snapshot de saldos"
+        },
+        {
+          "status": "counting",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "c",
+          "nota": "item encontrado WMS-CT-NEW@PCK-01"
+        },
+        {
+          "status": "review",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "c",
+          "nota": "3 linhas, 1 divergências"
+        },
+        {
+          "status": "pending_approval",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "c",
+          "nota": "1 ajuste(s) para aprovação"
+        },
+        {
+          "status": "approved",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "sup",
+          "nota": "aprovado"
+        },
+        {
+          "status": "applied",
+          "em": "2026-09-09T14:35:37",
+          "usuario": "sup",
+          "nota": "1 movimento(s)"
+        }
+      ],
+      "observacao": "",
+      "cancelamento_motivo": "",
+      "aprovado_por": "sup",
+      "aprovado_em": "2026-09-09T14:35:37",
+      "criado_em": "2026-09-09T14:35:37",
+      "atualizado_em": "2026-09-09T14:35:37"
+    }
+  ],
+  "atualizado_em": "2026-09-09T14:35:37",
+  "total": 3
+}

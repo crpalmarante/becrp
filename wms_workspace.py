@@ -16,6 +16,7 @@ import wms_receiving
 import wms_shipping
 import wms_tasks
 import wms_warehouses
+import wms_counting
 
 
 def _now():
@@ -32,6 +33,9 @@ SHIP_PENDING = frozenset({
 })
 PICK_PENDING = frozenset({
     "open", "picking", "picked", "packing", "packed", "ready_ship",
+})
+COUNT_PENDING = frozenset({
+    "created", "counting", "review", "pending_approval", "approved",
 })
 
 # Tipos de operação usados nos cards de processo (RFC §7)
@@ -158,6 +162,7 @@ def workspace(armazem=None, operador=None, perfil=None):
     ops = _filter_arm(wms_operations.list_operacoes().get("operacoes") or [], ak)
     tasks = _filter_arm(wms_tasks.list_tarefas().get("tarefas") or [], ak)
     picks = _filter_arm(wms_picking.list_pick_lists().get("pick_lists") or [], ak)
+    counts = _filter_arm(wms_counting.list_sessoes().get("sessoes") or [], ak)
     recs = _filter_arm(wms_receiving.list_recebimentos().get("recebimentos") or [], ak)
     ships = _filter_arm(wms_shipping.list_expedicoes().get("expedicoes") or [], ak)
 
@@ -181,6 +186,7 @@ def workspace(armazem=None, operador=None, perfil=None):
     rec_open = [r for r in recs if r.get("status") in REC_PENDING]
     ship_open = [s for s in ships if s.get("status") in SHIP_PENDING]
     pick_open = [p for p in picks if p.get("status") in PICK_PENDING]
+    count_open = [c for c in counts if c.get("status") in COUNT_PENDING]
     op_open = [o for o in ops if o.get("status") in OP_PENDING]
     task_open = [t for t in tasks if t.get("status") in TASK_PENDING]
     trf_open = _tipo_ops(TIPO_TRANSFER)
@@ -218,6 +224,14 @@ def workspace(armazem=None, operador=None, perfil=None):
             "urgentes": sum(1 for p in pick_open if p.get("status") in ("open", "picking")),
             "href": "wms-picking.html",
             "prioridade": "normal",
+        },
+        {
+            "id": "contagem",
+            "titulo": "Contagem",
+            "pendentes": len(count_open),
+            "urgentes": sum(1 for c in count_open if c.get("status") in ("pending_approval", "review")),
+            "href": "wms-contagem.html",
+            "prioridade": "high" if any(c.get("status") == "pending_approval" for c in count_open) else "normal",
         },
         {
             "id": "transferencia",
@@ -329,6 +343,7 @@ def workspace(armazem=None, operador=None, perfil=None):
         {"label": "Recebimento", "href": "wms-recebimento.html"},
         {"label": "Expedição", "href": "wms-expedicao.html"},
         {"label": "Picking", "href": "wms-picking.html"},
+        {"label": "Contagem", "href": "wms-contagem.html"},
         {"label": "Tarefas", "href": "wms-tarefas.html"},
         {"label": "Operações", "href": "wms-operacoes.html"},
     ]
@@ -425,6 +440,7 @@ def meta():
             "wms-recebimento.html",
             "wms-expedicao.html",
             "wms-picking.html",
+            "wms-contagem.html",
             "wms-operacoes.html",
             "wms-tarefas.html",
         ],

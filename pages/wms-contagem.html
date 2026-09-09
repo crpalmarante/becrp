@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECRP — WMS Contagem / Inventário Físico</title>
+  <meta name="theme-color" content="#714B67">
+  <link rel="stylesheet" href="../css/fonts.css">
+  <link rel="stylesheet" href="../css/variaveis.css">
+  <link rel="stylesheet" href="../css/reset.css">
+  <link rel="stylesheet" href="../css/layout.css">
+  <link rel="stylesheet" href="../css/icons.css">
+  <link rel="stylesheet" href="../css/grid.css">
+  <link rel="stylesheet" href="../css/forms.css">
+  <link rel="stylesheet" href="../css/motion.css">
+  <link rel="stylesheet" href="../css/responsive.css">
+  <link rel="stylesheet" href="../css/themes.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .pc-toolbar { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:end; }
+    .pc-toolbar .field { margin:0; min-width:110px; }
+    .pc-toolbar .grow { flex:1; min-width:160px; }
+    .pc-msg { margin:8px 0; font-size:14px; }
+    .pc-msg.err { color:#f87171; }
+    .pc-msg.ok { color:#4ade80; }
+    .pc-meta { font-size:13px; opacity:.7; margin-bottom:10px; }
+    .pc-form { display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:10px; margin:0 0 16px; padding:14px; border:1px solid rgba(255,255,255,.1); border-radius:8px; }
+    .pc-form .field { margin:0; }
+    .pc-form .actions { display:flex; gap:8px; flex-wrap:wrap; grid-column:1/-1; }
+    .pc-table { width:100%; border-collapse:collapse; }
+    .pc-table th, .pc-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.08); text-align:left; font-size:13px; vertical-align:top; }
+    .pc-table th { font-size:11px; text-transform:uppercase; opacity:.7; }
+    .badge-sa { font-size:11px; padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,.15); white-space:nowrap; }
+    .diff-bad { color:#f87171; font-weight:600; }
+    .diff-ok { color:#4ade80; }
+    .kpi { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin:0 0 14px; }
+    .kpi-card { padding:12px; border:1px solid rgba(255,255,255,.12); border-radius:8px; }
+    .kpi-value { font-size:20px; font-weight:700; }
+    .act-btns { display:flex; flex-wrap:wrap; gap:4px; }
+    .detail { margin-top:12px; padding:12px; border:1px dashed rgba(255,255,255,.15); border-radius:8px; }
+    .print-only { display:none; }
+    @media print {
+      .no-print { display:none !important; }
+      .print-only { display:block; }
+      body { background:#fff; color:#000; }
+      #sidebar, .topbar { display:none !important; }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar" class="no-print">
+    <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+      <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+      <span class="brand-text">BECRP</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
+      <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item active" href="wms-contagem.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Contagem</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="page-header no-print">
+      <h1>WMS Contagem / Inventário Físico</h1>
+    </div>
+    <div class="print-only">
+      <h1>Contagem física</h1>
+      <p id="print-meta"></p>
+    </div>
+
+    <div class="pc-form no-print">
+      <div class="field">
+        <label>Tipo</label>
+        <select id="f-tipo" class="input">
+          <option value="location">Por localização</option>
+          <option value="cycle">Cíclica</option>
+          <option value="full">Completo</option>
+          <option value="spot">Pontual</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Armazém</label>
+        <input id="f-armazem" class="input" value="DC-01" placeholder="DC-01">
+      </div>
+      <div class="field">
+        <label>Localizações (vírgula)</label>
+        <input id="f-locs" class="input" placeholder="PCK-01, A01-01-01">
+      </div>
+      <div class="field">
+        <label>Produtos (vírgula, opcional)</label>
+        <input id="f-prods" class="input" placeholder="1, 2">
+      </div>
+      <div class="field">
+        <label>Observação</label>
+        <input id="f-obs" class="input" placeholder="ciclo mensal…">
+      </div>
+      <div class="actions">
+        <button class="btn" onclick="criar()">Abrir sessão</button>
+      </div>
+    </div>
+
+    <div class="pc-toolbar no-print">
+      <div class="field grow"><input id="q" type="text" placeholder="buscar…" class="input"></div>
+      <div class="field"><select id="status" class="input"><option value="">Status</option></select></div>
+      <div class="field"><select id="tipo" class="input"><option value="">Tipo</option></select></div>
+      <button class="btn" onclick="load()">Filtrar</button>
+      <button class="btn btn-secondary" onclick="window.print()">Imprimir</button>
+    </div>
+    <div id="msg" class="pc-msg no-print"></div>
+    <div class="pc-meta" id="meta"></div>
+    <div class="kpi" id="kpi"></div>
+    <table class="pc-table">
+      <thead><tr><th>ID</th><th>Tipo</th><th>Armazém</th><th>Status</th><th>Linhas</th><th>Diverg.</th><th>Acurácia</th><th class="no-print">Ações</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div id="detail" class="detail"></div>
+  </main>
+</div>
+
+<script src="../js/utils.js"></script>
+<script>
+const API = window.location.origin + '/api';
+const token = localStorage.getItem('auth_token') || '';
+let CAUSAS = {};
+
+async function api(path, method='GET', body) {
+  const opts = { method, headers: { 'X-Auth-Token': token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+function msg(txt, err) {
+  const el = document.getElementById('msg');
+  el.textContent = txt || '';
+  el.className = 'pc-msg ' + (err ? 'err' : 'ok');
+}
+
+function fillSelect(id, opts, keep) {
+  const sel = document.getElementById(id);
+  const cur = keep ? sel.value : '';
+  sel.innerHTML = '<option value="">' + (id === 'tipo' ? 'Tipo' : 'Status') + '</option>' +
+    Object.entries(opts || {}).map(([k,v]) => `<option value="${k}">${v}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+async function load() {
+  const q = document.getElementById('q').value;
+  const status = document.getElementById('status').value;
+  const tipo = document.getElementById('tipo').value;
+  const r = await api('/wms/contagens?q=' + encodeURIComponent(q) + (status ? '&status=' + status : '') + (tipo ? '&tipo=' + tipo : ''));
+  if (r.status !== 'ok') return msg(r.message, true);
+  fillSelect('status', r.status_opcoes, true);
+  fillSelect('tipo', r.tipos, true);
+  CAUSAS = r.causas || CAUSAS;
+  document.getElementById('meta').textContent = `Filtrado: ${r.filtrado || 0} / Total: ${r.total || 0}`;
+  const rows = r.sessoes || [];
+  const divs = rows.reduce((n, s) => n + ((s.resumo || {}).divergencias || 0), 0);
+  const pend = rows.filter(s => ['created','counting','review','pending_approval','approved'].includes(s.status)).length;
+  document.getElementById('kpi').innerHTML = `
+    <div class="kpi-card"><div class="kpi-value">${r.filtrado || 0}</div><div>Sessões</div></div>
+    <div class="kpi-card"><div class="kpi-value">${pend}</div><div>Abertas</div></div>
+    <div class="kpi-card"><div class="kpi-value">${divs}</div><div>Divergências</div></div>`;
+  document.getElementById('tb').innerHTML = rows.map(s => {
+    const rs = s.resumo || {};
+    const acoes = (s.acoes || []).map(a => `<button class="btn btn-sm" onclick="act('${s.id}', '${a}')">${a}</button>`).join('');
+    return `<tr>
+      <td><a href="#" onclick="openSess('${s.id}'); return false">${s.id}</a></td>
+      <td>${s.tipo_label || s.tipo}</td>
+      <td>${s.armazem}</td>
+      <td><span class="badge-sa">${s.status_label || s.status}</span></td>
+      <td>${rs.contadas || 0}/${rs.linhas || 0}</td>
+      <td class="${rs.divergencias ? 'diff-bad' : 'diff-ok'}">${rs.divergencias || 0}</td>
+      <td>${rs.acuracia == null ? '—' : rs.acuracia + '%'}</td>
+      <td class="act-btns no-print">${acoes}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function criar() {
+  const locs = document.getElementById('f-locs').value.split(',').map(s => s.trim()).filter(Boolean);
+  const prods = document.getElementById('f-prods').value.split(',').map(s => s.trim()).filter(Boolean);
+  const tipo = document.getElementById('f-tipo').value;
+  const body = {
+    tipo,
+    armazem: document.getElementById('f-armazem').value.trim(),
+    observacao: document.getElementById('f-obs').value.trim(),
+    incluir_zerados: !!prods.length,
+  };
+  if (locs.length) body.localizacoes = locs;
+  if (prods.length) body.produtos = prods;
+  const r = await api('/admin/wms/contagens', 'POST', body);
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Sessão ' + r.sessao.id + ' criada');
+  openSess(r.sessao.id);
+  load();
+}
+
+async function openSess(id) {
+  const r = await api('/wms/contagens/' + id);
+  if (r.status !== 'ok') return msg(r.message, true);
+  const s = r.sessao;
+  const rs = s.resumo || {};
+  document.getElementById('print-meta').textContent =
+    `${s.id} · ${s.tipo_label} · ${s.armazem} · ${s.status_label} · filtros: ${ (s.localizacoes || []).join(', ') }`;
+  const causaOpts = Object.entries(CAUSAS).map(([k,v]) => `<option value="${k}">${v}</option>`).join('');
+  const canCount = ['created','counting'].includes(s.status);
+  const lines = (s.linhas || []).map(l => {
+    const diff = l.divergencia;
+    const cls = diff == null ? '' : (Math.abs(diff) < 1e-9 ? 'diff-ok' : 'diff-bad');
+    return `<tr>
+      <td>${l.linha}</td>
+      <td>${l.loc_origem}</td>
+      <td>${l.produto_id} ${l.produto ? '— ' + l.produto : ''}</td>
+      <td>${l.qtd_sistema}</td>
+      <td>${canCount ? `<input type="number" step="0.001" id="qc-${l.linha}" class="input" style="width:90px" value="${l.qtd_contada == null ? '' : l.qtd_contada}">` : (l.qtd_contada == null ? '—' : l.qtd_contada)}</td>
+      <td class="${cls}">${diff == null ? '—' : diff}</td>
+      <td><span class="badge-sa">${l.status_label || l.status}</span></td>
+      <td class="no-print">${canCount || s.status === 'review' ? `<select id="ca-${l.linha}" class="input">${causaOpts}</select>` : (l.causa_label || l.causa || '')}</td>
+      <td class="no-print">${canCount ? `<button class="btn btn-sm" onclick="countLine('${s.id}', ${l.linha})">Contar</button>` : ''}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('detail').innerHTML = `
+    <h3>${s.id} <span class="badge-sa">${s.status_label}</span></h3>
+    <p>Armazém ${s.armazem} · Estab. ${s.estabelecimento_id || '—'} · Contadas ${rs.contadas}/${rs.linhas} · Divergências ${rs.divergencias} · Acurácia ${rs.acuracia == null ? '—' : rs.acuracia + '%'}</p>
+    ${s.observacao ? '<p>' + s.observacao + '</p>' : ''}
+    <table class="pc-table">
+      <thead><tr><th>Linha</th><th>Local</th><th>Produto</th><th>Sistema</th><th>Contado</th><th>Diff</th><th>Status</th><th class="no-print">Causa</th><th class="no-print"></th></tr></thead>
+      <tbody>${lines}</tbody>
+    </table>
+    <div class="pc-form no-print" style="margin-top:12px">
+      <div class="field"><label>Produto encontrado</label><input id="add-pid" class="input"></div>
+      <div class="field"><label>Local</label><input id="add-loc" class="input" placeholder="${(s.localizacoes || [])[0] || ''}"></div>
+      <div class="field"><label>Qtd</label><input id="add-qtd" type="number" step="0.001" class="input"></div>
+      <div class="actions"><button class="btn" onclick="addFound('${s.id}')">Incluir encontrado</button></div>
+    </div>
+    <div class="act-btns no-print" style="margin-top:10px">
+      ${(s.acoes || []).map(a => `<button class="btn" onclick="act('${s.id}', '${a}')">${a}</button>`).join('')}
+    </div>`;
+  (s.linhas || []).forEach(l => {
+    const sel = document.getElementById('ca-' + l.linha);
+    if (sel && l.causa) sel.value = l.causa;
+  });
+}
+
+async function countLine(id, linha) {
+  const qtd = document.getElementById('qc-' + linha).value;
+  const causa = (document.getElementById('ca-' + linha) || {}).value || '';
+  const r = await api('/admin/wms/contagens/' + id, 'POST', { action: 'count_line', linha, qtd_contada: qtd, causa });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Linha ' + linha + ' contada');
+  openSess(id); load();
+}
+
+async function addFound(id) {
+  const r = await api('/admin/wms/contagens/' + id, 'POST', {
+    action: 'add_line',
+    produto_id: document.getElementById('add-pid').value.trim(),
+    loc_origem: document.getElementById('add-loc').value.trim(),
+    qtd_contada: document.getElementById('add-qtd').value,
+  });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Item incluído');
+  openSess(id); load();
+}
+
+async function act(id, action) {
+  let motivo = '';
+  if (action === 'cancel' || action === 'reject') {
+    motivo = prompt('Motivo:') || '';
+    if (!motivo) return;
+  }
+  const r = await api('/admin/wms/contagens/' + id, 'POST', { action, motivo });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Ação ' + action + ' ok');
+  openSess(id); load();
+}
+
+(async function init() {
+  const m = await api('/wms/contagens/meta');
+  if (m.status === 'ok') CAUSAS = m.causas || {};
+  load();
+})();
+</script>
+<script src="../js/brand.js"></script>
+</body>
+</html>

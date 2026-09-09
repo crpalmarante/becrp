@@ -139,11 +139,6 @@ def _set_balance(balances, estabelecimento_id, produto_id, qty, *, location_id=N
     eid = str(estabelecimento_id or "").strip()
     pid = str(produto_id)
     q = max(0.0, _as_qty(qty))
-    # total por estabelecimento
-    lojas = balances.setdefault("por_estabelecimento", {})
-    loja = dict(lojas.get(eid) or {})
-    loja[pid] = q
-    lojas[eid] = loja
     if location_id:
         loc = str(location_id)
         locs = balances.setdefault("por_localizacao", {})
@@ -152,11 +147,27 @@ def _set_balance(balances, estabelecimento_id, produto_id, qty, *, location_id=N
         prod_map[pid] = q
         loc_map[loc] = prod_map
         locs[eid] = loc_map
+        return
+    lojas = balances.setdefault("por_estabelecimento", {})
+    loja = dict(lojas.get(eid) or {})
+    loja[pid] = q
+    lojas[eid] = loja
 
 
 def _apply_delta(balances, estabelecimento_id, produto_id, delta, *, location_id=None):
-    atual = inventory_balance(estabelecimento_id, produto_id, balances=balances, location_id=location_id)
-    _set_balance(balances, estabelecimento_id, produto_id, atual + _as_qty(delta), location_id=location_id)
+    d = _as_qty(delta)
+    if location_id:
+        atual_loc = inventory_balance(
+            estabelecimento_id, produto_id, balances=balances, location_id=location_id
+        )
+        _set_balance(
+            balances, estabelecimento_id, produto_id, atual_loc + d, location_id=location_id
+        )
+        atual_est = inventory_balance(estabelecimento_id, produto_id, balances=balances)
+        _set_balance(balances, estabelecimento_id, produto_id, atual_est + d)
+        return
+    atual = inventory_balance(estabelecimento_id, produto_id, balances=balances)
+    _set_balance(balances, estabelecimento_id, produto_id, atual + d)
 
 
 def rebuild_balances_from_ledger():
