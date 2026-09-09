@@ -178,7 +178,10 @@ def main() -> int:
         print(f"\n4) ALERTAS SYSLOG (hoje): {n_alerta}")
 
         # ── power key no boot atual ──────────────────────────────────────────
-        pk, _, _ = run('journalctl -b --no-pager 2>/dev/null | grep -i "power key pressed"')
+        # -t systemd-logind: varre só o log do logind (o journal -b inteiro
+        # é enorme e estoura o timeout do canal SSH)
+        pk, _, _ = run('journalctl -b -t systemd-logind --no-pager 2>/dev/null '
+                       '| grep -i "power key" | head -5')
         pks = [l for l in pk.splitlines() if l.strip()]
         print(f"\n5) POWER KEY (boot atual): {len(pks)} pressionamentos")
         for l in pks[-3:]:
@@ -191,9 +194,37 @@ def main() -> int:
         print(f"\n6) TIMER reboot-monitor: {timer}")
         print(f"   LOGIND: {' | '.join(l for l in logind.splitlines() if l.strip())}")
 
+        # ── BECRP (ERP — serviço systemd + health + guarda de dados) ─────────
+        print("\n7) BECRP (erp.palmarante.com.br → 8180)")
+        becrp_ok = True
+        svc, _, _ = run("systemctl is-active becrp; systemctl is-enabled becrp 2>/dev/null")
+        linhas_svc = [l.strip() for l in svc.splitlines() if l.strip()]
+        svc_active = linhas_svc[0] if linhas_svc else "unknown"
+        svc_enabled = linhas_svc[1] if len(linhas_svc) > 1 else "?"
+        print(f"   Serviço: {svc_active} (boot: {svc_enabled})")
+        if svc_active != "active":
+            print("   ❌ serviço becrp inativo!")
+            becrp_ok = False
+        else:
+            sha, _, _ = run("git -C /home/palmarante/becrp rev-parse --short HEAD 2>/dev/null")
+            print(f"   Deploy: {sha or '?'}")
+            health, _, _ = run(
+                "curl -s -m 5 -o /dev/null -w '%{http_code}' http://127.0.0.1:8180/")
+            guard, _, _ = run(
+                "curl -s -m 5 -o /dev/null -w '%{http_code}' "
+                "http://127.0.0.1:8180/data/users.json")
+            print(f"   Health /: {health} (esperado 200)")
+            print(f"   Guarda /data/users.json: {guard} (esperado 404)")
+            if health != "200":
+                print("   ❌ health check falhou — ERP fora do ar localmente")
+                becrp_ok = False
+            if guard != "404":
+                print("   ❌ guarda de dados sensíveis vazou (esperado 404)!")
+                becrp_ok = False
+
         # ── veredito (apenas cortes temporais; contagens do arquivo são info) ─
         reboot_vs_base = bool(base) and bool(boot_atual) and boot_atual != base
-        instavel = n_alerta > 0 or reboots_novos > 0 or reboot_vs_base
+        instavel = n_alerta > 0 or reboots_novos > 0 or reboot_vs_base or not becrp_ok
 
         print("\n" + "=" * 50)
         if instavel:
