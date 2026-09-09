@@ -48,4 +48,167 @@
     <nav class="sidebar-nav">
             <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
       <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
-<
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item active" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-contagem.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Contagem</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="page-header">
+      <h1>WMS Localizações</h1>
+    </div>
+    <div class="pc-form no-print" id="form-box">
+      <div class="field"><label>Código</label><input id="f-codigo" class="input" placeholder="A01-01-01"></div>
+      <div class="field"><label>Nome</label><input id="f-nome" class="input"></div>
+      <div class="field"><label>Armazém</label><input id="f-armazem" class="input" placeholder="DC-01"></div>
+      <div class="field"><label>Área</label><input id="f-area" class="input" placeholder="PCK"></div>
+      <div class="field"><label>Tipo</label><select id="f-tipo" class="input"></select></div>
+      <div class="field"><label>Capacidade (qtd)</label><input id="f-cap" type="number" class="input"></div>
+      <div class="actions"><button class="btn" onclick="criar()">Criar localização</button></div>
+    </div>
+    <div class="pc-toolbar no-print">
+      <div class="field grow"><input id="q" type="text" placeholder="buscar..." class="input"></div>
+      <div class="field"><input id="arm" class="input" placeholder="armazém"></div>
+      <div class="field"><select id="tipo" class="input"><option value="">Tipo</option></select></div>
+      <div class="field"><select id="status" class="input"><option value="">Status</option></select></div>
+      <button class="btn" onclick="load()">Filtrar</button>
+    </div>
+    <div id="msg" class="pc-msg no-print"></div>
+    <div class="pc-meta" id="meta"></div>
+    <table class="pc-table">
+      <thead><tr><th>Código</th><th>Nome</th><th>Armazém</th><th>Área</th><th>Tipo</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div id="detail" class="detail"></div>
+
+  </main>
+</div>
+
+<script>
+const API = window.location.origin + '/api';
+const token = localStorage.getItem('auth_token') || '';
+let PERM = { pode_escrever: false, pode_excluir: false, role: '' };
+
+async function api(path, method='GET', body) {
+  const opts = { method, headers: { 'X-Auth-Token': token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+function msg(txt, err) {
+  const el = document.getElementById('msg');
+  el.textContent = txt || '';
+  el.className = 'pc-msg ' + (err ? 'err' : 'ok');
+}
+
+function optMap(id, map, firstLabel) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">' + (firstLabel || '—') + '</option>' +
+    Object.entries(map || {}).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+
+async function load() {
+  const q = document.getElementById('q').value;
+  const armazem = document.getElementById('arm').value.trim();
+  const tipo = document.getElementById('tipo').value;
+  const status = document.getElementById('status').value;
+  const qs = new URLSearchParams();
+  if (q) qs.set('q', q);
+  if (armazem) qs.set('armazem', armazem);
+  if (tipo) qs.set('tipo', tipo);
+  if (status) qs.set('status', status);
+  const r = await api('/wms/localizacoes?' + qs.toString());
+  if (r.status !== 'ok') return msg(r.message, true);
+  PERM = r.permissoes || PERM;
+  document.getElementById('form-box').style.display = PERM.pode_escrever ? '' : 'none';
+  optMap('tipo', r.tipos, 'Tipo');
+  optMap('status', r.status_opcoes, 'Status');
+  optMap('f-tipo', r.tipos, 'Selecione…');
+  document.getElementById('meta').textContent = `Filtrado: ${r.filtrado || 0} / Total: ${r.total || 0}`;
+  document.getElementById('tb').innerHTML = (r.localizacoes || []).map(l => `<tr class="${l.status === 'blocked' ? 'blocked' : (l.status === 'inactive' ? 'inactive' : '')}">
+    <td><a href="#" onclick="openLoc('${esc(l.codigo)}'); return false">${esc(l.codigo)}</a></td>
+    <td>${esc(l.nome)}</td><td>${esc(l.armazem)}</td><td>${esc(l.area_nome || l.area)}</td>
+    <td>${esc(l.tipo)}</td><td><span class="badge-sa">${esc(l.status_label || l.status)}</span></td>
+    <td class="act-btns no-print">
+      ${PERM.pode_escrever ? `<select class="input" style="width:auto" onchange="setStatus('${esc(l.codigo)}', this.value)">
+        <option value="">status…</option>
+        ${Object.entries(r.status_opcoes || {}).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+      </select>` : ''}
+      ${PERM.pode_excluir ? `<button class="btn btn-sm" onclick="del('${esc(l.codigo)}')">Excluir</button>` : ''}
+    </td>
+  </tr>`).join('');
+}
+
+async function openLoc(cod) {
+  const r = await api('/wms/localizacoes/' + encodeURIComponent(cod));
+  if (r.status !== 'ok') return msg(r.message, true);
+  const l = r.localizacao;
+  document.getElementById('detail').innerHTML = `<h3>${esc(l.codigo)} — ${esc(l.nome)}</h3>
+    <p>Armazém ${esc(l.armazem)} · Área ${esc(l.area_nome || l.area)} · Tipo ${esc(l.tipo)} ·
+       Corredor ${esc(l.corredor || '—')} · Rack ${esc(l.rack || '—')} · Nível ${esc(l.nivel || '—')} · Posição ${esc(l.posicao || '—')}</p>
+    <p>Capacidade: ${l.capacidade_qtd == null ? '—' : l.capacidade_qtd} · Peso máx: ${l.peso_max_kg == null ? '—' : l.peso_max_kg + ' kg'}</p>
+    ${l.bloqueio_motivo ? '<p class="pc-msg err">Bloqueio: ' + esc(l.bloqueio_motivo) + '</p>' : ''}`;
+}
+
+async function criar() {
+  const body = {
+    codigo: document.getElementById('f-codigo').value.trim(),
+    nome: document.getElementById('f-nome').value.trim(),
+    armazem: document.getElementById('f-armazem').value.trim().toUpperCase(),
+    area: document.getElementById('f-area').value.trim().toUpperCase(),
+    tipo: document.getElementById('f-tipo').value,
+    capacidade_qtd: document.getElementById('f-cap').value,
+  };
+  if (!body.codigo) return msg('Código obrigatório', true);
+  const r = await api('/admin/wms/localizacoes', 'POST', body);
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Localização ' + r.localizacao.codigo + ' criada');
+  load();
+}
+
+async function setStatus(cod, status) {
+  if (!status) return;
+  let motivo = '';
+  if (status === 'blocked') {
+    motivo = prompt('Motivo do bloqueio:') || '';
+    if (!motivo) return;
+  }
+  const r = await api('/admin/wms/localizacoes/' + encodeURIComponent(cod), 'POST', { action: 'set_status', status, motivo });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Status atualizado');
+  load();
+}
+
+async function del(cod) {
+  if (!confirm('Excluir localização ' + cod + '?')) return;
+  const r = await api('/admin/wms/localizacoes/' + encodeURIComponent(cod), 'POST', { action: 'delete' });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Localização excluída');
+  document.getElementById('detail').innerHTML = '';
+  load();
+}
+
+(async function init() { load(); })();
+
+</script>
+<script src="../js/brand.js"></script>
+</body>
+</html>

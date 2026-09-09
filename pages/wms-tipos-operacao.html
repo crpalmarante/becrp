@@ -48,4 +48,153 @@
     <nav class="sidebar-nav">
             <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
       <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
-<
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-contagem.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Contagem</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="page-header">
+      <h1>WMS Tipos de Operação</h1>
+    </div>
+    <div class="pc-form no-print" id="form-box">
+      <div class="field"><label>Código</label><input id="f-codigo" class="input" placeholder="TRF-INT"></div>
+      <div class="field"><label>Nome</label><input id="f-nome" class="input"></div>
+      <div class="field"><label>Direção</label><select id="f-direcao" class="input"></select></div>
+      <div class="field"><label>Template</label><select id="f-template" class="input"></select></div>
+      <div class="field"><label>Loc. origem</label><select id="f-origem" class="input"></select></div>
+      <div class="field"><label>Loc. destino</label><select id="f-destino" class="input"></select></div>
+      <div class="field"><label>Workflow</label><input id="f-workflow" class="input" placeholder="ex.: padrao"></div>
+      <div class="actions"><button class="btn" onclick="criar()">Criar tipo</button></div>
+    </div>
+    <div class="pc-toolbar no-print">
+      <div class="field grow"><input id="q" type="text" placeholder="buscar..." class="input"></div>
+      <button class="btn" onclick="load()">Filtrar</button>
+    </div>
+    <div id="msg" class="pc-msg no-print"></div>
+    <div class="pc-meta" id="meta"></div>
+    <table class="pc-table">
+      <thead><tr><th>Código</th><th>Nome</th><th>Direção</th><th>Template</th><th>Origem → Destino</th><th>Tarefas</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div id="detail" class="detail"></div>
+
+  </main>
+</div>
+
+<script>
+const API = window.location.origin + '/api';
+const token = localStorage.getItem('auth_token') || '';
+let PERM = { pode_escrever: false, pode_excluir: false, role: '' };
+
+async function api(path, method='GET', body) {
+  const opts = { method, headers: { 'X-Auth-Token': token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+function msg(txt, err) {
+  const el = document.getElementById('msg');
+  el.textContent = txt || '';
+  el.className = 'pc-msg ' + (err ? 'err' : 'ok');
+}
+
+function optMap(id, map, firstLabel) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">' + (firstLabel || '—') + '</option>' +
+    Object.entries(map || {}).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+
+async function load() {
+  const q = document.getElementById('q').value;
+  const r = await api('/wms/tipos-operacao?q=' + encodeURIComponent(q));
+  if (r.status !== 'ok') return msg(r.message, true);
+  PERM = r.permissoes || PERM;
+  document.getElementById('form-box').style.display = PERM.pode_escrever ? '' : 'none';
+  optMap('f-direcao', r.direcoes, 'Selecione…');
+  optMap('f-template', r.templates, 'Selecione…');
+  optMap('f-origem', r.loc_tipos, '—');
+  optMap('f-destino', r.loc_tipos, '—');
+  document.getElementById('meta').textContent = `Filtrado: ${r.filtrado || 0} / Total: ${r.total || 0}`;
+  document.getElementById('tb').innerHTML = (r.tipos || []).map(t => `<tr class="${t.ativo === false ? 'inativo' : ''}">
+    <td><a href="#" onclick="openTipo('${esc(t.codigo)}'); return false">${esc(t.codigo)}</a></td>
+    <td>${esc(t.nome)}</td><td>${esc(t.direcao_label || t.direcao)}</td>
+    <td>${esc(t.template_label || t.template)}</td>
+    <td>${esc(t.origem_loc_tipo_label || t.origem_loc_tipo || '—')} → ${esc(t.destino_loc_tipo_label || t.destino_loc_tipo || '—')}</td>
+    <td>${t.gera_tarefas ? 'Sim' : 'Não'}</td>
+    <td><span class="badge-sa">${t.ativo !== false ? 'Ativo' : 'Inativo'}</span></td>
+    <td class="act-btns no-print">
+      ${PERM.pode_escrever ? `<button class="btn btn-sm" onclick="toggle('${esc(t.codigo)}', ${t.ativo !== false})">${t.ativo !== false ? 'Desativar' : 'Ativar'}</button>` : ''}
+      ${PERM.pode_excluir ? `<button class="btn btn-sm" onclick="del('${esc(t.codigo)}')">Excluir</button>` : ''}
+    </td>
+  </tr>`).join('');
+}
+
+async function openTipo(cod) {
+  const r = await api('/wms/tipos-operacao/' + encodeURIComponent(cod));
+  if (r.status !== 'ok') return msg(r.message, true);
+  const t = r.tipo;
+  document.getElementById('detail').innerHTML = `<h3>${esc(t.codigo)} — ${esc(t.nome)}</h3>
+    <p>${esc(t.descricao || '')}</p>
+    <p>Direção: ${esc(t.direcao_label || t.direcao)} · Template: ${esc(t.template_label || t.template)} ·
+       Origem: ${esc(t.origem_loc_tipo_label || '—')} · Destino: ${esc(t.destino_loc_tipo_label || '—')} ·
+       Workflow: ${esc(t.workflow || '—')}</p>
+    <p>Documentos: ${esc(t.documentos_txt || '—')}</p>`;
+}
+
+async function criar() {
+  const body = {
+    codigo: document.getElementById('f-codigo').value.trim(),
+    nome: document.getElementById('f-nome').value.trim(),
+    direcao: document.getElementById('f-direcao').value,
+    template: document.getElementById('f-template').value,
+    origem_loc_tipo: document.getElementById('f-origem').value,
+    destino_loc_tipo: document.getElementById('f-destino').value,
+    workflow: document.getElementById('f-workflow').value.trim(),
+  };
+  if (!body.codigo || !body.nome) return msg('Código e nome obrigatórios', true);
+  const r = await api('/admin/wms/tipos-operacao', 'POST', body);
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Tipo ' + r.tipo.codigo + ' criado');
+  load();
+}
+
+async function toggle(cod, ativo) {
+  const r = await api('/admin/wms/tipos-operacao/' + encodeURIComponent(cod), 'POST', { ativo: !ativo });
+  if (r.status !== 'ok') return msg(r.message, true);
+  openTipo(cod); load();
+}
+
+async function del(cod) {
+  if (!confirm('Excluir tipo ' + cod + '?')) return;
+  const r = await api('/admin/wms/tipos-operacao/' + encodeURIComponent(cod), 'POST', { action: 'delete' });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Tipo excluído');
+  document.getElementById('detail').innerHTML = '';
+  load();
+}
+
+(async function init() { load(); })();
+
+</script>
+<script src="../js/brand.js"></script>
+</body>
+</html>

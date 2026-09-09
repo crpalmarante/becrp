@@ -51,4 +51,162 @@
     <nav class="sidebar-nav">
             <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
       <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
-<
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item active" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-contagem.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Contagem</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="page-header">
+      <h1>WMS Operações</h1>
+    </div>
+    <div class="pc-form no-print" id="form-box">
+      <div class="field"><label>Tipo (código)</label><input id="f-tipo" class="input" placeholder="TRF-INT"></div>
+      <div class="field"><label>Armazém</label><input id="f-armazem" class="input" placeholder="DC-01"></div>
+      <div class="field"><label>Prioridade</label><select id="f-prioridade" class="input"></select></div>
+      <div class="field"><label>Data planejada</label><input id="f-data" type="date" class="input"></div>
+      <div class="field span2"><label>Observação</label><input id="f-obs" class="input"></div>
+      <div class="field span2"><label>Linhas (produto|qtd|loc_origem|loc_destino — 1 por linha)</label>
+        <textarea id="f-linhas" class="input" rows="3" placeholder="1|2|PCK-01|A01-01-01"></textarea></div>
+      <div class="actions"><button class="btn" onclick="criar()">Criar operação</button></div>
+    </div>
+    <div class="pc-toolbar no-print">
+      <div class="field grow"><input id="q" type="text" placeholder="buscar..." class="input"></div>
+      <div class="field"><select id="status" class="input"><option value="">Status</option></select></div>
+      <div class="field"><select id="prio" class="input"><option value="">Prioridade</option></select></div>
+      <button class="btn" onclick="load()">Filtrar</button>
+    </div>
+    <div id="msg" class="pc-msg no-print"></div>
+    <div class="pc-meta" id="meta"></div>
+    <table class="pc-table">
+      <thead><tr><th>ID</th><th>Tipo</th><th>Armazém</th><th>Prioridade</th><th>Planejada</th><th>Doc ref</th><th>Linhas</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div id="detail" class="detail"></div>
+
+  </main>
+</div>
+
+<script>
+const API = window.location.origin + '/api';
+const token = localStorage.getItem('auth_token') || '';
+let PERM = { pode_escrever: false, pode_excluir: false, role: '' };
+
+async function api(path, method='GET', body) {
+  const opts = { method, headers: { 'X-Auth-Token': token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+function msg(txt, err) {
+  const el = document.getElementById('msg');
+  el.textContent = txt || '';
+  el.className = 'pc-msg ' + (err ? 'err' : 'ok');
+}
+
+function optMap(id, map, firstLabel) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">' + (firstLabel || '—') + '</option>' +
+    Object.entries(map || {}).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+
+async function load() {
+  const q = document.getElementById('q').value;
+  const status = document.getElementById('status').value;
+  const prio = document.getElementById('prio').value;
+  const qs = new URLSearchParams();
+  if (q) qs.set('q', q);
+  if (status) qs.set('status', status);
+  if (prio) qs.set('prioridade', prio);
+  const r = await api('/wms/operacoes?' + qs.toString());
+  if (r.status !== 'ok') return msg(r.message, true);
+  PERM = r.permissoes || PERM;
+  document.getElementById('form-box').style.display = PERM.pode_escrever ? '' : 'none';
+  optMap('status', r.status_opcoes, 'Status');
+  optMap('prio', r.prioridades, 'Prioridade');
+  optMap('f-prioridade', r.prioridades, 'Selecione…');
+  document.getElementById('meta').textContent = `Filtrado: ${r.filtrado || 0} / Total: ${r.total || 0}`;
+  document.getElementById('tb').innerHTML = (r.operacoes || []).map(o => `<tr>
+    <td><a href="#" onclick="openOp('${esc(o.id)}'); return false">${esc(o.id)}</a></td>
+    <td>${esc(o.tipo)}</td><td>${esc(o.armazem)}</td>
+    <td>${esc(o.prioridade_label || o.prioridade)}</td>
+    <td>${esc(o.data_planejada || '—')}</td><td>${esc(o.documento_ref || '—')}</td>
+    <td>${o.linhas_count || 0}</td>
+    <td><span class="badge-sa">${esc(o.status_label || o.status)}</span></td>
+    <td class="act-btns no-print">
+      ${(o.acoes || []).map(a => `<button class="btn btn-sm" onclick="act('${esc(o.id)}','${a}')">${a}</button>`).join('')}
+    </td>
+  </tr>`).join('');
+}
+
+async function openOp(id) {
+  const r = await api('/wms/operacoes/' + encodeURIComponent(id));
+  if (r.status !== 'ok') return msg(r.message, true);
+  const o = r.operacao;
+  const lines = (o.linhas || []).map(l => `<tr><td>${esc(l.produto_id || l.produto)}</td><td>${esc(l.produto || '')}</td><td>${l.qtd}</td><td>${esc(l.loc_origem || '—')}</td><td>${esc(l.loc_destino || '—')}</td></tr>`).join('');
+  document.getElementById('detail').innerHTML = `<h3>${esc(o.id)} <span class="badge-sa">${esc(o.status_label || o.status)}</span></h3>
+    <p>${esc(o.armazem)} · Prioridade ${esc(o.prioridade_label || o.prioridade)} · Planejada ${esc(o.data_planejada || '—')} · Doc: ${esc(o.documento_ref || '—')}</p>
+    ${o.observacao ? '<p>' + esc(o.observacao) + '</p>' : ''}
+    <table class="pc-table"><thead><tr><th>Produto</th><th>Nome</th><th>Qtd</th><th>Origem</th><th>Destino</th></tr></thead><tbody>${lines}</tbody></table>
+    <div class="act-btns" style="margin-top:10px">
+      ${(o.acoes || []).map(a => `<button class="btn" onclick="act('${esc(o.id)}','${a}')">${a}</button>`).join('')}
+    </div>`;
+}
+
+async function criar() {
+  const raw = document.getElementById('f-linhas').value;
+  const linhas = raw.split('\n').map(s => s.trim()).filter(Boolean).map(s => {
+    const p = s.split('|').map(x => x.trim());
+    return { produto_id: p[0], qtd: p[1], loc_origem: p[2] || '', loc_destino: p[3] || '' };
+  });
+  const body = {
+    tipo: document.getElementById('f-tipo').value.trim().toUpperCase(),
+    armazem: document.getElementById('f-armazem').value.trim().toUpperCase(),
+    prioridade: document.getElementById('f-prioridade').value,
+    data_planejada: document.getElementById('f-data').value,
+    observacao: document.getElementById('f-obs').value.trim(),
+    linhas,
+  };
+  if (!body.tipo || !body.armazem) return msg('Tipo e armazém obrigatórios', true);
+  const r = await api('/admin/wms/operacoes', 'POST', body);
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Operação ' + r.operacao.id + ' criada');
+  openOp(r.operacao.id); load();
+}
+
+async function act(id, action) {
+  let motivo = '';
+  if (action === 'cancel') {
+    motivo = prompt('Motivo do cancelamento:') || '';
+    if (!motivo) return;
+  }
+  const r = await api('/admin/wms/operacoes/' + encodeURIComponent(id), 'POST', { action, motivo });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Ação ' + action + ' ok');
+  openOp(id); load();
+}
+
+(async function init() { load(); })();
+
+</script>
+<script src="../js/brand.js"></script>
+</body>
+</html>

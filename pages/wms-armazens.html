@@ -50,4 +50,193 @@
     <nav class="sidebar-nav">
             <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
       <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
-<
+      <a class="menu-item active" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-contagem.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Contagem</span></a>
+      <a class="menu-item" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="page-header">
+      <h1>WMS Armazéns</h1>
+    </div>
+    <div class="pc-form no-print" id="form-box">
+      <div class="field"><label>Código</label><input id="f-codigo" class="input" placeholder="DC-02"></div>
+      <div class="field"><label>Nome</label><input id="f-nome" class="input" placeholder="Centro de Distribuição 2"></div>
+      <div class="field"><label>Tipo</label><select id="f-tipo" class="input"></select></div>
+      <div class="field span2"><label>Endereço</label><input id="f-endereco" class="input"></div>
+      <div class="field"><label>Responsável</label><input id="f-responsavel" class="input"></div>
+      <div class="actions"><button class="btn" onclick="criar()">Criar armazém</button></div>
+    </div>
+    <div class="pc-toolbar no-print">
+      <div class="field grow"><input id="q" type="text" placeholder="buscar..." class="input"></div>
+      <div class="field"><select id="tipo" class="input"><option value="">Tipo</option></select></div>
+      <button class="btn" onclick="load()">Filtrar</button>
+    </div>
+    <div id="msg" class="pc-msg no-print"></div>
+    <div class="pc-meta" id="meta"></div>
+    <table class="pc-table">
+      <thead><tr><th>Código</th><th>Nome</th><th>Tipo</th><th>Áreas</th><th>Responsável</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div id="detail" class="detail"></div>
+
+  </main>
+</div>
+
+<script>
+const API = window.location.origin + '/api';
+const token = localStorage.getItem('auth_token') || '';
+let PERM = { pode_escrever: false, pode_excluir: false, role: '' };
+
+async function api(path, method='GET', body) {
+  const opts = { method, headers: { 'X-Auth-Token': token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+function msg(txt, err) {
+  const el = document.getElementById('msg');
+  el.textContent = txt || '';
+  el.className = 'pc-msg ' + (err ? 'err' : 'ok');
+}
+
+function optMap(id, map, firstLabel) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">' + (firstLabel || '—') + '</option>' +
+    Object.entries(map || {}).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+
+function areasBox(a) {
+  const rows = (a.areas || []).map(ar => `<tr>
+    <td>${esc(ar.codigo)}</td><td>${esc(ar.nome)}</td><td>${esc(ar.tipo_label || ar.tipo)}</td>
+    <td>${ar.ativo !== false ? 'Ativa' : 'Inativa'}</td>
+    <td class="no-print"><button class="btn btn-sm" onclick="toggleArea('${esc(a.codigo)}','${esc(ar.codigo)}', ${ar.ativo !== false})">${ar.ativo !== false ? 'Desativar' : 'Ativar'}</button></td>
+  </tr>`).join('');
+  return `<h4>Áreas de ${esc(a.nome || a.codigo)}</h4>
+    <table class="pc-table"><thead><tr><th>Código</th><th>Nome</th><th>Tipo</th><th>Status</th><th class="no-print"></th></tr></thead><tbody>${rows || '<tr><td colspan="5">Nenhuma área</td></tr>'}</tbody></table>
+    <div class="pc-form no-print" style="margin-top:10px">
+      <div class="field"><label>Área — código</label><input id="ar-codigo" class="input"></div>
+      <div class="field"><label>Área — nome</label><input id="ar-nome" class="input"></div>
+      <div class="field"><label>Área — tipo</label><select id="ar-tipo" class="input"></select></div>
+      <div class="actions"><button class="btn" onclick="addArea('${esc(a.codigo)}')">Adicionar área</button></div>
+    </div>`;
+}
+
+async function load() {
+  const q = document.getElementById('q').value;
+  const tipo = document.getElementById('tipo').value;
+  const r = await api('/wms/armazens?q=' + encodeURIComponent(q) + (tipo ? '&tipo=' + tipo : ''));
+  if (r.status !== 'ok') return msg(r.message, true);
+  PERM = r.permissoes || PERM;
+  document.getElementById('form-box').style.display = PERM.pode_escrever ? '' : 'none';
+  optMap('tipo', r.tipos, 'Tipo');
+  optMap('f-tipo', r.tipos, 'Selecione…');
+  document.getElementById('meta').textContent = `Filtrado: ${r.filtrado || 0} / Total: ${r.total || 0}`;
+  document.getElementById('tb').innerHTML = (r.armazens || []).map(a => `<tr class="${a.ativo === false ? 'inativo' : ''}">
+    <td><a href="#" onclick="openArm('${esc(a.codigo)}'); return false">${esc(a.codigo)}</a></td>
+    <td>${esc(a.nome)}</td><td>${esc(a.tipo_label || a.tipo)}</td>
+    <td>${a.areas_count || 0}</td><td>${esc(a.responsavel || '—')}</td>
+    <td><span class="badge-sa">${a.ativo !== false ? 'Ativo' : 'Inativo'}</span></td>
+    <td class="act-btns no-print">
+      ${PERM.pode_escrever ? `<button class="btn btn-sm" onclick="toggleAtivo('${esc(a.codigo)}', ${a.ativo !== false})">${a.ativo !== false ? 'Desativar' : 'Ativar'}</button>` : ''}
+      ${PERM.pode_excluir ? `<button class="btn btn-sm" onclick="del('${esc(a.codigo)}')">Excluir</button>` : ''}
+    </td>
+  </tr>`).join('');
+}
+
+async function openArm(cod) {
+  const r = await api('/wms/armazens/' + encodeURIComponent(cod));
+  if (r.status !== 'ok') return msg(r.message, true);
+  const a = r.armazem;
+  document.getElementById('detail').innerHTML =
+    `<h3>${esc(a.codigo)} — ${esc(a.nome)}</h3>
+     <p>${esc(a.tipo_label || a.tipo)} · ${esc(a.endereco || 'sem endereço')} · Resp.: ${esc(a.responsavel || '—')}</p>` +
+    areasBox(a);
+  optMap('ar-tipo', (window.__tiposArea || {}), 'Selecione…');
+}
+
+async function criar() {
+  const body = {
+    codigo: document.getElementById('f-codigo').value.trim(),
+    nome: document.getElementById('f-nome').value.trim(),
+    tipo: document.getElementById('f-tipo').value,
+    endereco: document.getElementById('f-endereco').value.trim(),
+    responsavel: document.getElementById('f-responsavel').value.trim(),
+  };
+  if (!body.codigo || !body.nome) return msg('Código e nome obrigatórios', true);
+  const r = await api('/admin/wms/armazens', 'POST', body);
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Armazém ' + r.armazem.codigo + ' criado');
+  load();
+}
+
+async function toggleAtivo(cod, ativo) {
+  const r = await api('/admin/wms/armazens/' + encodeURIComponent(cod), 'POST', { ativo: !ativo });
+  if (r.status !== 'ok') return msg(r.message, true);
+  openArm(cod); load();
+}
+
+async function toggleArea(cod, areaCod, ativo) {
+  const r = await api('/wms/armazens/' + encodeURIComponent(cod));
+  if (r.status !== 'ok') return msg(r.message, true);
+  const areas = (r.armazem.areas || []).map(ar =>
+    ar.codigo === areaCod ? { ...ar, ativo: !ativo } : ar);
+  const rr = await api('/admin/wms/armazens/' + encodeURIComponent(cod), 'POST', { action: 'set_areas', areas });
+  if (rr.status !== 'ok') return msg(rr.message, true);
+  openArm(cod); load();
+}
+
+async function addArea(cod) {
+  const area = {
+    codigo: document.getElementById('ar-codigo').value.trim(),
+    nome: document.getElementById('ar-nome').value.trim(),
+    tipo: document.getElementById('ar-tipo').value,
+    ativo: true,
+  };
+  if (!area.codigo) return msg('Código da área obrigatório', true);
+  const r = await api('/wms/armazens/' + encodeURIComponent(cod));
+  if (r.status !== 'ok') return msg(r.message, true);
+  const areas = (r.armazem.areas || []).filter(ar => ar.codigo !== area.codigo).concat([area]);
+  const rr = await api('/admin/wms/armazens/' + encodeURIComponent(cod), 'POST', { action: 'set_areas', areas });
+  if (rr.status !== 'ok') return msg(rr.message, true);
+  msg('Área ' + area.codigo + ' salva');
+  openArm(cod); load();
+}
+
+async function del(cod) {
+  if (!confirm('Excluir armazém ' + cod + '?')) return;
+  const r = await api('/admin/wms/armazens/' + encodeURIComponent(cod), 'POST', { action: 'delete' });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Armazém excluído');
+  document.getElementById('detail').innerHTML = '';
+  load();
+}
+
+(async function init() {
+  const m = await api('/wms/armazens/meta');
+  if (m.status === 'ok') window.__tiposArea = m.tipos_area || {};
+  load();
+})();
+
+</script>
+<script src="../js/brand.js"></script>
+</body>
+</html>

@@ -47,4 +47,206 @@
     <nav class="sidebar-nav">
             <a class="menu-item" href="wms-workspace.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Workspace</span></a>
       <a class="menu-item" href="wms-analytics.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Analytics</span></a>
-<
+      <a class="menu-item" href="wms-armazens.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg><span class="menu-label">Armazéns</span></a>
+      <a class="menu-item" href="wms-localizacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Localizações</span></a>
+      <a class="menu-item" href="wms-operacoes.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Operações</span></a>
+      <a class="menu-item" href="wms-tarefas.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-file-text"/></svg><span class="menu-label">Tarefas</span></a>
+      <a class="menu-item" href="wms-picking.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-cart"/></svg><span class="menu-label">Picking</span></a>
+      <a class="menu-item" href="wms-contagem.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Contagem</span></a>
+      <a class="menu-item active" href="wms-recebimento.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Recebimento</span></a>
+      <a class="menu-item" href="wms-expedicao.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-truck"/></svg><span class="menu-label">Expedição</span></a>
+      <a class="menu-item" href="estoque.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-box"/></svg><span class="menu-label">Estoque</span></a>
+      <a class="menu-item" href="../index4.html"><svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg><span class="menu-label">Dashboard</span></a>
+    </nav>
+  </aside>
+  <main id="main">
+    <div class="page-header">
+      <h1>WMS Recebimento</h1>
+    </div>
+    <div class="pc-form no-print" id="form-box">
+      <div class="field"><label>Armazém</label><input id="f-armazem" class="input" placeholder="DC-01"></div>
+      <div class="field"><label>Origem</label><select id="f-origem" class="input"></select></div>
+      <div class="field"><label>Doc ref</label><input id="f-doc" class="input" placeholder="pedido/compra…"></div>
+      <div class="field span2"><label>Linhas (produto|qtd|loc_destino — 1 por linha)</label>
+        <textarea id="f-linhas" class="input" rows="3" placeholder="WMS1|20|REC"></textarea></div>
+      <div class="actions"><button class="btn" onclick="criar()">Criar recebimento</button></div>
+    </div>
+    <div class="pc-toolbar no-print">
+      <div class="field grow"><input id="q" type="text" placeholder="buscar..." class="input"></div>
+      <div class="field"><select id="status" class="input"><option value="">Status</option></select></div>
+      <div class="field"><select id="origem" class="input"><option value="">Origem</option></select></div>
+      <button class="btn" onclick="load()">Filtrar</button>
+    </div>
+    <div id="msg" class="pc-msg no-print"></div>
+    <div class="pc-meta" id="meta"></div>
+    <table class="pc-table">
+      <thead><tr><th>ID</th><th>Doc ref</th><th>Armazém</th><th>Origem</th><th>Linhas</th><th>Diverg.</th><th>Status</th><th class="no-print">Ações</th></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+    <div id="detail" class="detail"></div>
+
+  </main>
+</div>
+
+<script>
+const API = window.location.origin + '/api';
+const token = localStorage.getItem('auth_token') || '';
+let PERM = { pode_escrever: false, pode_excluir: false, role: '' };
+
+async function api(path, method='GET', body) {
+  const opts = { method, headers: { 'X-Auth-Token': token, 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  return r.json();
+}
+
+function msg(txt, err) {
+  const el = document.getElementById('msg');
+  el.textContent = txt || '';
+  el.className = 'pc-msg ' + (err ? 'err' : 'ok');
+}
+
+function optMap(id, map, firstLabel) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">' + (firstLabel || '—') + '</option>' +
+    Object.entries(map || {}).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+
+async function load() {
+  const q = document.getElementById('q').value;
+  const status = document.getElementById('status').value;
+  const origem = document.getElementById('origem').value;
+  const qs = new URLSearchParams();
+  if (q) qs.set('q', q);
+  if (status) qs.set('status', status);
+  if (origem) qs.set('origem', origem);
+  const r = await api('/wms/recebimentos?' + qs.toString());
+  if (r.status !== 'ok') return msg(r.message, true);
+  PERM = r.permissoes || PERM;
+  document.getElementById('form-box').style.display = PERM.pode_escrever ? '' : 'none';
+  optMap('status', r.status_opcoes, 'Status');
+  optMap('origem', r.origens, 'Origem');
+  optMap('f-origem', r.origens, 'Selecione…');
+  document.getElementById('meta').textContent = `Filtrado: ${r.filtrado || 0} / Total: ${r.total || 0}`;
+  document.getElementById('tb').innerHTML = (r.recebimentos || []).map(rc => `<tr>
+    <td><a href="#" onclick="openRec('${esc(rc.id)}'); return false">${esc(rc.id)}</a></td>
+    <td>${esc(rc.documento_ref || '—')}</td><td>${esc(rc.armazem)}</td>
+    <td>${esc(rc.origem_label || rc.origem)}</td><td>${rc.linhas_count || 0}</td>
+    <td class="${rc.divergencias ? 'diff-bad' : 'diff-ok'}">${rc.divergencias || 0}</td>
+    <td><span class="badge-sa">${esc(rc.status_label || rc.status)}</span></td>
+    <td class="act-btns no-print">
+      ${(rc.acoes || []).map(a => `<button class="btn btn-sm" onclick="act('${esc(rc.id)}','${a}')">${a}</button>`).join('')}
+    </td>
+  </tr>`).join('');
+}
+
+async function openRec(id) {
+  const r = await api('/wms/recebimentos/' + encodeURIComponent(id));
+  if (r.status !== 'ok') return msg(r.message, true);
+  const rc = r.recebimento;
+  const canConfirm = ['arrived', 'unloading', 'checking'].includes(rc.status);
+  const canInspect = rc.status === 'inspection';
+  const canPutaway = rc.status === 'putaway';
+  const lines = (rc.linhas || []).map(l => {
+    const tools = [];
+    if (PERM.pode_escrever && canConfirm && (l.status || '') !== 'confirmed')
+      tools.push(`<input type="number" step="0.001" id="rc-${l.linha}" class="input" style="width:80px" placeholder="${l.qtd_esperada}">
+        <button class="btn btn-sm" onclick="confirmLine('${esc(rc.id)}', ${l.linha})">Receber</button>`);
+    if (PERM.pode_escrever && canInspect && l.inspecao === 'pending')
+      tools.push(`<button class="btn btn-sm" onclick="inspectLine('${esc(rc.id)}', ${l.linha}, 'approved')">Aprovar</button>
+        <button class="btn btn-sm" onclick="inspectLine('${esc(rc.id)}', ${l.linha}, 'rejected')">Rejeitar</button>`);
+    if (PERM.pode_escrever && canPutaway && l.inspecao === 'approved')
+      tools.push(`<input id="pw-${l.linha}" class="input" style="width:110px" placeholder="loc destino">
+        <button class="btn btn-sm" onclick="putawayLine('${esc(rc.id)}', ${l.linha})">Put away</button>`);
+    return `<tr>
+      <td>${l.linha}</td><td>${esc(l.produto_id || l.produto)}</td><td>${esc(l.produto || '')}</td>
+      <td>${l.qtd_esperada}</td><td>${l.qtd_recebida}</td><td>${l.qtd_aprovada}</td>
+      <td>${esc(l.loc_destino || '—')}</td><td><span class="badge-sa">${esc(l.inspecao_label || l.inspecao || '')}</span></td>
+      <td class="act-btns no-print">${tools.join(' ')}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('detail').innerHTML = `<h3>${esc(rc.id)} <span class="badge-sa">${esc(rc.status_label || rc.status)}</span></h3>
+    <p>${esc(rc.armazem)} · Origem ${esc(rc.origem_label || rc.origem)} · Doc: ${esc(rc.documento_ref || '—')} · Operador: ${esc(rc.operador || '—')}</p>
+    ${rc.observacao ? '<p>' + esc(rc.observacao) + '</p>' : ''}
+    <table class="pc-table"><thead><tr><th>#</th><th>Produto</th><th>Nome</th><th>Esperada</th><th>Recebida</th><th>Aprovada</th><th>Destino</th><th>Inspeção</th><th class="no-print"></th></tr></thead><tbody>${lines}</tbody></table>
+    <div class="act-btns" style="margin-top:10px">
+      ${(rc.acoes || []).map(a => `<button class="btn" onclick="act('${esc(rc.id)}','${a}')">${a}</button>`).join('')}
+    </div>`;
+}
+
+async function criar() {
+  const body = {
+    armazem: document.getElementById('f-armazem').value.trim().toUpperCase(),
+    origem: document.getElementById('f-origem').value,
+    documento_ref: document.getElementById('f-doc').value.trim(),
+    linhas: document.getElementById('f-linhas').value,
+  };
+  if (!body.armazem) return msg('Armazém obrigatório', true);
+  const r = await api('/admin/wms/recebimentos', 'POST', body);
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Recebimento ' + r.recebimento.id + ' criado');
+  openRec(r.recebimento.id); load();
+}
+
+async function confirmLine(id, linha) {
+  const qtd = document.getElementById('rc-' + linha).value;
+  const r = await api('/admin/wms/recebimentos/' + encodeURIComponent(id), 'POST',
+    { action: 'confirm_line', linha, qtd_recebida: qtd });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Linha ' + linha + ' recebida');
+  openRec(id); load();
+}
+
+async function inspectLine(id, linha, resultado) {
+  const r = await api('/admin/wms/recebimentos/' + encodeURIComponent(id), 'POST',
+    { action: 'inspect_line', linha, resultado });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Inspeção registrada');
+  openRec(id); load();
+}
+
+async function putawayLine(id, linha) {
+  const loc = document.getElementById('pw-' + linha).value.trim().toUpperCase();
+  if (!loc) return msg('Informe a localização de destino', true);
+  const r = await api('/admin/wms/recebimentos/' + encodeURIComponent(id), 'POST',
+    { action: 'putaway_line', linha, loc_destino: loc });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Put away registrado');
+  openRec(id); load();
+}
+
+async function act(id, action) {
+  let extra = {};
+  if (action === 'cancel') {
+    const motivo = prompt('Motivo:') || '';
+    if (!motivo) return;
+    extra.motivo = motivo;
+  }
+  if (['arrive', 'unload', 'start_check', 'start_inspect', 'start_putaway'].includes(action)) {
+    const veiculo = prompt('Veículo (opcional):') || '';
+    const operador = prompt('Operador (opcional):') || '';
+    if (veiculo) extra.veiculo = veiculo;
+    if (operador) extra.operador = operador;
+  }
+  const r = await api('/admin/wms/recebimentos/' + encodeURIComponent(id), 'POST', { action, ...extra });
+  if (r.status !== 'ok') return msg(r.message, true);
+  msg('Ação ' + action + ' ok');
+  openRec(id); load();
+}
+
+(async function init() { load(); })();
+
+</script>
+<script src="../js/brand.js"></script>
+</body>
+</html>
