@@ -43,6 +43,26 @@ Plano Referencial.xlsx
 dados/salarios*.dat
 dados/movimentacoes*.dat
 
+# Locks de arquivo JSON gerados em runtime
+**/*.json.lock
+
+# Dados runtime (estado mutável da aplicação — cada ambiente gera o seu)
+/data/titulos_ap.json
+dados/titulos_ap.json
+dados/pos_commission_payroll.json
+dados/accounting_integration_log.json
+dados/fiscal_reforma_history.json
+dados/quality_check_results.json
+dados/wms_receiving.json
+dados/atributos.dat
+dados/empresa.json
+data/inventory_balances.json
+data/inventory_movements.json
+data/partner_lookup_audit.json
+data/receiving_pending.json
+data/nfe_inbound/
+data/nfe_inbox/processed/
+
 # Backup files
 *.bak
 *.bak_*
