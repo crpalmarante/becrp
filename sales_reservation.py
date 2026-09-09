@@ -61,9 +61,9 @@ def reserve_for_order(pedido, usuario="", *, allow_partial=False):
     if not eid:
         try:
             import org_store
-            eid = org_store.estabelecimento_padrao_id() or "matriz"
+            eid = org_store.estabelecimento_padrao_id()
         except Exception:
-            eid = "matriz"
+            eid = ""
 
     linhas_in = (pedido or {}).get("itens") or []
     linhas = []
@@ -155,7 +155,13 @@ def reserve_stock(estabelecimento_id, linhas, *, usuario="", nota="", origem="ma
     linhas: [{produto_id, qtd}] — valida ATP por linha (não reserva além do disponível).
     Retorna a reserva criada (status active).
     """
-    eid = str(estabelecimento_id or "").strip() or "matriz"
+    eid = str(estabelecimento_id or "").strip()
+    if not eid:
+        try:
+            import org_store
+            eid = org_store.estabelecimento_padrao_id()
+        except Exception:
+            eid = ""
     seq = reservas_store.max_seq() + 1
     rid = f"SR-{seq:05d}"
     linhas_out = []

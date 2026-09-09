@@ -170,7 +170,7 @@ def _header_env(row, *, with_id=False):
     env = {
         "PEDIDO_ID": _clip(row.get("pedido_id"), 12),
         "PEDIDO_NUM": _clip(row.get("pedido_numero"), 12),
-        "ESTAB": _clip(row.get("estabelecimento_id") or "matriz", 16),
+        "ESTAB": _clip(row.get("estabelecimento_id"), 16),
         "STATUS": _clip(row.get("status") or "active", 12),
         "USUARIO": _clip(row.get("usuario"), 30),
         "SEQ": str(int(row.get("seq") or 0)),

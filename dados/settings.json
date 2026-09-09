@@ -1,7 +1,7 @@
 {
   "modulos": {
     "geral": {
-      "empresa_nome": "BECRP",
+      "empresa_nome": "",
       "moeda": "BRL",
       "idioma": "pt-BR",
       "fuso_horario": "America/Sao_Paulo",

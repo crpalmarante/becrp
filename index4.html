@@ -486,6 +486,19 @@ body{
     document.getElementById("user-role").textContent = user.role || "operador";
     greet(user.nome || user.usuario);
 
+    // Marca dinâmica — identidade da organização em vez de BECRP fixo
+    try {
+      const r = await fetch("/api/organizacao/nome", { headers: { "X-Auth-Token": token } });
+      if (r.ok) {
+        const data = await r.json();
+        if (data && data.status === "ok") {
+          const nome = data.empresa || data.organizacao || "BECRP";
+          const h1 = document.querySelector(".brand h1");
+          if (h1) h1.textContent = nome;
+        }
+      }
+    } catch (_) {}
+
     try {
       const svg = await (await fetch("img/icons.svg")).text();
       const wrap = document.createElement("div");

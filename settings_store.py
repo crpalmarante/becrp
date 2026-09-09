@@ -17,7 +17,9 @@ SETTINGS_FILE = os.path.join(BASE_DIR, "dados", "settings.json")
 
 DEFAULTS = {
     "geral": {
-        "empresa_nome": "BECRP",
+        # vazio = identidade vem de data/organizacao.json + matriz em
+        # data/empresas.json (org_store). Preenchido só para override manual.
+        "empresa_nome": "",
         "moeda": "BRL",
         "idioma": "pt-BR",
         "fuso_horario": "America/Sao_Paulo",

@@ -1569,11 +1569,52 @@ def _ferias_vencidas_alertas():
     return alertas
 
 
+# ── Guarda de arquivos estáticos (segurança) ─────────────────────────────
+# O handler herda de SimpleHTTPRequestHandler e, sem este bloqueio, serviria
+# sem autenticação: users.json (tokens/senhas), estabelecimentos_fiscal.json
+# (CSC/certificado), dados/empresa.json, certificados .pfx e fontes .py.
+# O frontend lê tudo pela API autenticada — nunca por caminho estático.
+_SENSITIVE_STATIC_PREFIXES = (
+    "data/", "dados/", "backups/", "uploads/", "cobol/",
+    ".git", "__pycache__/", ".pytest_cache/", ".cursor/",
+)
+_SENSITIVE_STATIC_EXTS = (
+    ".py", ".dat", ".pfx", ".p12", ".log", ".xls", ".xlsx", ".db", ".sqlite",
+)
+
+
+def _is_sensitive_static_path(path):
+    """True se o caminho NÃO pode ser servido como arquivo estático."""
+    clean = urllib.parse.unquote(urllib.parse.urlparse(path or "").path)
+    clean = clean.replace("\\", "/").lstrip("/")
+    parts = [p for p in clean.split("/") if p not in ("", ".")]
+    if ".." in parts:
+        return True  # travessia de diretório — bloqueia por precaução
+    rel = "/".join(parts).lower()
+    if ".bak" in rel:
+        return True
+    if rel in ("data", "dados", "backups", "uploads", "cobol", ".git"):
+        return True
+    return rel.startswith(_SENSITIVE_STATIC_PREFIXES) or rel.endswith(_SENSITIVE_STATIC_EXTS)
+
+
 class AuthHandler(http.server.SimpleHTTPRequestHandler):
+    def do_HEAD(self):
+        if _is_sensitive_static_path(urllib.parse.urlparse(self.path).path):
+            self.send_response(404)
+            self.end_headers()
+            return
+        super().do_HEAD()
+
 
     def do_GET(self):
         parsed = urllib.parse.urlparse(self.path)
         method = self.command  # handlers compartilhados checam method == "GET" aqui
+
+        # Dados sensíveis / fontes nunca por caminho estático (404, não 403,
+        # para não revelar existência). Frontend usa a API autenticada.
+        if _is_sensitive_static_path(parsed.path):
+            return self._json({"status": "error", "message": "Não encontrado"}, 404)
 
         if parsed.path == "/api/auth/me":
             token = self.headers.get("X-Auth-Token", "")
@@ -1712,6 +1753,19 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             if not current or current.get("role") != "admin":
                 return self._json({"status": "error", "message": "Acesso negado"}, 403)
             return self._json({"status": "ok", "organizacao": org_store.load_organizacao()})
+
+        if parsed.path == "/api/organizacao/nome":
+            # Identidade para marca dinâmica (qualquer usuário autenticado).
+            token = self.headers.get("X-Auth-Token", "")
+            if not self._find_user(token, load_users()):
+                return self._json({"status": "error", "message": "Não autenticado"}, 401)
+            org = org_store.load_organizacao()
+            estab = org_store.resolve_empresa_fiscal(org.get("estabelecimento_padrao"))
+            return self._json({
+                "status": "ok",
+                "organizacao": org.get("nome") or "",
+                "empresa": estab.get("nome_fantasia") or estab.get("nome") or "",
+            })
 
         if parsed.path == "/api/folha/empresa":
             token = self.headers.get("X-Auth-Token", "")
@@ -12349,13 +12403,18 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             print(f"[SERVER] {fmt} {args}")
 
 def seed_empresas():
+    """Bootstrap de estabelecimentos.
+
+    Nunca inventa CNPJ/IE fake: em instalação nova (sem empresas.json e sem
+    legado dados/empresa.json) cria apenas o estabelecimento vazio — a
+    identidade fiscal real é preenchida em Configurações > Empresas.
+    """
     empresas = load_empresas()
-    if not empresas:
-        empresas["matriz"] = {"nome":"Matriz","cnpj":"00.000.000/0001-00","ie":"123.456.789.000","cidade":"São Paulo","uf":"SP","ativo":True}
-        empresas["filial_sp"] = {"nome":"Filial São Paulo","cnpj":"00.000.000/0002-00","ie":"123.456.789.001","cidade":"São Paulo","uf":"SP","ativo":True}
-        empresas["filial_rj"] = {"nome":"Filial Rio de Janeiro","cnpj":"00.000.000/0003-00","ie":"123.456.789.002","cidade":"Rio de Janeiro","uf":"RJ","ativo":True}
-        save_empresas(empresas)
-        print("   ✓ Empresas padrão criadas")
+    if empresas:
+        return
+    empresas["matriz"] = {"nome": "Matriz", "tipo": "matriz", "ativo": True}
+    save_empresas(empresas)
+    print("   ✓ Estabelecimento padrão 'matriz' criado (sem dados fiscais — preencha em Empresas)")
 
 if __name__ == "__main__":
     os.chdir(BASE_DIR)

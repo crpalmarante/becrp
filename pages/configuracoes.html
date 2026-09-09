@@ -65,12 +65,19 @@ label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:4px}
 </div>
 <script src="../js/services/AuthService.js"></script>
 <script src="../js/auth/page-boot.js"></script>
+<script src="../js/brand.js"></script>
 <script>
 (function(){
   const API = "/api/settings";
   let modulos = [];
   let settings = {};
   let current = "geral";
+
+  function escapeHtml(s){
+    return String(s == null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;").replace(/'/g, "&#39;");
+  }
 
   async function api(path, opts={}){
     const token = AuthService.getToken();

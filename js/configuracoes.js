@@ -258,48 +258,26 @@
   }
 
   async function loadUsersList() {
+    // Fonte única: API autenticada (acesso estático a data/ é bloqueado pelo server)
     try {
       const data = await apiGet("/api/admin/users");
       cacheUsers = data.users || [];
       return cacheUsers;
     } catch {
-      try {
-        const r = await fetch("../data/users.json");
-        if (r.ok) {
-          const map = await r.json();
-          cacheUsers = Object.keys(map).map((id) => ({
-            id,
-            nome: map[id].nome,
-            usuario: map[id].usuario,
-            role: map[id].role,
-            ativo: map[id].ativo !== false,
-          }));
-          return cacheUsers;
-        }
-      } catch {
-        /* ignore */
-      }
+      /* ignore */
     }
     cacheUsers = [];
     return cacheUsers;
   }
 
   async function loadEstabsList() {
+    // Fonte única: API autenticada (acesso estático a data/ é bloqueado pelo server)
     try {
       const data = await apiGet("/api/admin/empresas");
       cacheEstabs = data.empresas || [];
       return cacheEstabs;
     } catch {
-      try {
-        const r = await fetch("../data/empresas.json");
-        if (r.ok) {
-          const map = await r.json();
-          cacheEstabs = Object.keys(map).map((id) => ({ id, ...map[id] }));
-          return cacheEstabs;
-        }
-      } catch {
-        /* ignore */
-      }
+      /* ignore */
     }
     cacheEstabs = [];
     return cacheEstabs;
@@ -386,18 +364,8 @@
       const data = await apiGet("/api/admin/pos/terminais");
       lista = data.terminais || [];
     } catch {
-      lista = loadTerminaisLocal();
-      if (!lista) {
-        try {
-          const r = await fetch("../data/pos_terminais.json");
-          if (r.ok) {
-            const data = await r.json();
-            lista = data.terminais || [];
-          }
-        } catch {
-          lista = [];
-        }
-      }
+      // Sem fallback estático — data/pos_terminais.json é bloqueado pelo server
+      lista = loadTerminaisLocal() || [];
     }
     cacheTerminais = lista;
     renderTerminaisTable();

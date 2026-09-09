@@ -765,6 +765,7 @@
     <script src="../js/masks.js"></script>
 <script src="../js/services/AuthService.js"></script>
 <script src="../js/auth/page-boot.js"></script>
+<script src="../js/brand.js"></script>
 <script src="../js/services/ProdutoCadastro.js"></script>
 <script src="../js/services/LookupService.js"></script>
 <script src="../js/components/DataGrid.js?v=4"></script>
@@ -1455,15 +1456,8 @@
         /* ignore */
       }
       if (!availAtEstabs.length) {
-        try {
-          const r = await fetch("../data/empresas.json");
-          if (r.ok) {
-            const map = await r.json();
-            availAtEstabs = Object.keys(map).map((id) => ({ id, ...map[id] }));
-          }
-        } catch {
-          availAtEstabs = [];
-        }
+        // Sem fallback estático — data/empresas.json é bloqueado pelo server
+        availAtEstabs = [];
       }
     }
     if (!box.dataset.ready) {

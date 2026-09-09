@@ -8,6 +8,7 @@ import json
 import os
 
 from modules.sped import sped_fiscal
+import org_store
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -29,7 +30,9 @@ def gerar(competencia=None):
     produtos = _load_json(os.path.join(BASE_DIR, "dados", "produtos.json"))
     contatos = _load_json(os.path.join(BASE_DIR, "data", "contatos.json"))
     inv = _load_json(os.path.join(BASE_DIR, "data", "inventory_balances.json"))
-    inventario = (inv.get("por_estabelecimento") or {}).get("matriz", {})
+    # Estabelecimento ativo = padrão da organização (org_store), não 'matriz' fixo
+    eid = org_store.estabelecimento_padrao_id() or "matriz"
+    inventario = (inv.get("por_estabelecimento") or {}).get(eid, {})
     return sped_fiscal.gerar_sped_fiscal(
         empresa=empresa,
         competencia=competencia,

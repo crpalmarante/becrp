@@ -668,6 +668,7 @@ table.pivot td.col-total{font-weight:600;background:rgba(255,255,255,.03)}
 
 <script src="../js/services/AuthService.js"></script>
 <script src="../js/auth/page-boot.js"></script>
+<script src="../js/brand.js"></script>
 <script src="../js/masks.js"></script>
 <script>
 (function () {
@@ -967,7 +968,7 @@ table.pivot td.col-total{font-weight:600;background:rgba(255,255,255,.03)}
       vendedor: (JSON.parse(localStorage.getItem("user_data") || "{}").nome) || "Admin",
       equipe: "",
       ref_cliente: "",
-      empresa: "BECRP Matriz",
+      empresa: "",
       condicao_pg: "",
       forma_pg: "",
       status: "rascunho",
