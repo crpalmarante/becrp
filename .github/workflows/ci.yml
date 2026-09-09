@@ -28,3 +28,33 @@ jobs:
       - name: Suíte completa (build COBOL + smokes + review da tela)
         # --force-build: o git não preserva mtimes no checkout — recompila tudo
         run: python3 scripts/run_ci.py --force-build
+
+  bootstrap:
+    # Prova de clone fresco: sem dados runtime versionados, loaders auto-criam
+    # tudo, servidor sobe limpo (docs/STARTER_KIT_RUNTIME_DATA.md)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instala GnuCOBOL (cobc) + libs do sistema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gnucobol \
+            libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf-2.0-0 \
+            libffi-dev shared-mime-info
+
+      - name: Instala dependências Python
+        run: |
+          pip install -r requirements.txt
+          pip install pytest
+
+      - name: Guarda — nenhum arquivo gitignore pode estar versionado
+        run: bash scripts/check_tracked_runtime.sh
+
+      - name: Bootstrap de clone fresco (testes + smoke do servidor)
+        run: bash scripts/bootstrap_check.sh
