@@ -114,9 +114,9 @@ def main():
         check("ler sem competência devolve a última versão",
               v_ult.get("competencia") == "2026/07", v_ult.get("competencia"))
         check("histórico 'versões' preserva as competências",
-              v_ult.get("versoes") == ["2026/08", "2026/07"]
-              or v_ult.get("versoes") == ["2026/07", "2026/08"]
-              or set(v_ult.get("versoes", [])) == {"2026/07", "2026/08"},
+              # invariante: o histórico mantém a versão semeada (mês corrente)
+              # E a versão salva neste teste — sem depender do mês da execução
+              set(v_ult.get("versoes") or []) >= {"2026/07", cfg.get("competencia")},
               v_ult.get("versoes"))
 
         print("\n3. Guard (Regra 2) — tabela de competência fechada é imutável")
