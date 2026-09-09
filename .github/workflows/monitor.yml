@@ -1,0 +1,41 @@
+name: Monitor Produção
+
+# Check diário de estabilidade + saúde do BECRP (scripts/check_producao.py):
+# uptime/reboots, reboot-monitor, power key e — seção 7 — becrp.service
+# (health 200 + guarda 404 de dados sensíveis). Falha do job = alerta por
+# e-mail do GitHub ao proprietário.
+#
+# Execução manual: gh workflow run monitor.yml (ou aba Actions → Run workflow)
+
+on:
+  schedule:
+    - cron: "0 9 * * *"   # 09:00 UTC = 06:00 BRT, todos os dias
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instala paramiko
+        run: pip install paramiko
+
+      - name: Check de produção (estabilidade + BECRP)
+        env:
+          PROD_HOST: ${{ secrets.PROD_HOST }}
+          PROD_USER: ${{ secrets.PROD_USER }}
+          PROD_PASS: ${{ secrets.PROD_PASS }}
+        run: python3 scripts/check_producao.py
+
+      - name: Resumo em falha
+        if: failure()
+        run: |
+          echo "::error::Produção INSTÁVEL ou inacessível — ver log acima."
+          echo "Verifique também de uma máquina com acesso: python3 scripts/check_producao.py"
+          exit 0
