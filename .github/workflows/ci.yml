@@ -58,3 +58,11 @@ jobs:
 
       - name: Bootstrap de clone fresco (testes + smoke do servidor)
         run: bash scripts/bootstrap_check.sh
+
+      - name: Upload do log do servidor fresco (em falha)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bootstrap-server-log
+          path: /tmp/becrp_fresh_server.log
+          if-no-files-found: ignore

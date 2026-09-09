@@ -16,14 +16,21 @@ SRC="$(cd "$(dirname "$0")/.." && pwd)"
 PORT="${PORT:-$((8900 + RANDOM % 100))}"
 SERVER_PID=""
 TMP=""
+LOG_KEEP="/tmp/becrp_fresh_server.log"
 
 cleanup() {
     [ -n "$SERVER_PID" ] && kill "$SERVER_PID" 2>/dev/null || true
+    # preserva o log do servidor fora do TMP (p/ artifact de CI em falha)
+    [ -f "$TMP/server.log" ] && cp "$TMP/server.log" "$LOG_KEEP" 2>/dev/null || true
     [ -n "$TMP" ] && rm -rf "$TMP"
 }
 trap cleanup EXIT
 
-fail() { echo "FAIL: $*" >&2; exit 1; }
+fail() {
+    echo "FAIL: $*" >&2
+    cp "$TMP/server.log" "$LOG_KEEP" 2>/dev/null || true
+    exit 1
+}
 
 # ── 1. Clone fresco ──────────────────────────────────────────────
 TMP="$(mktemp -d)"
