@@ -53,6 +53,16 @@ a cada push/PR:
 | `scripts/bootstrap_check.sh` | `bash scripts/bootstrap_check.sh` | Clona o repo em diretório temporário, confere que nenhum dado runtime vem versionado, roda a suíte completa de testes e sobe o servidor para smoke HTTP (páginas 200, API 401 sem token, dados sensíveis 404). `SKIP_SERVER=1` pula o smoke; `PORT=n` fixa a porta. |
 | `scripts/check_tracked_runtime.sh` | `bash scripts/check_tracked_runtime.sh` | Guarda rápida: falha (exit 1) se qualquer arquivo casado pelo `.gitignore` estiver versionado no git. Rode após criar qualquer arquivo novo de dados. |
 | `scripts/run_ci.py` | `python3 scripts/run_ci.py` | Suíte completa de CI local (build COBOL, seed idempotente, smokes, reviews). `--no-build` pula recompilação; `--browser` adiciona cenários visuais. |
+| `scripts/deploy_producao.sh` | `bash scripts/deploy_producao.sh` | Atualiza produção (slvdc01, serviço `becrp.service` na porta 8180) em um comando: bundle via SFTP → update in-place → testes → restart → health. Falha em qualquer etapa = rollback automático. Requer `~/.config/becrp_prod.json` (chmod 600) + `paramiko`. |
+
+## Produção
+
+O ERP roda no servidor **slvdc01** como serviço systemd (`becrp.service`, porta
+8180), atrás do nginx (`erp.palmarante.com.br` → 8180). Atualização:
+
+```bash
+bash scripts/deploy_producao.sh
+```
 
 ## Segurança e dados
 
