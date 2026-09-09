@@ -40,6 +40,10 @@ Resultados do smoke em clone fresco:
 | `dados/quality_check_results.json` | `quality_checks_store.py` | resultados de conferência (quality check) |
 | `dados/accounting_integration_log.json` | `accounting_integration.py` | log de eventos enviados ao contabilidade |
 | `dados/atributos.dat` | `cobol_bridge.py` | runtime COBOL (`gerir_atributos.cbl`); ausente → lista vazia |
+| `data/users.json` | server (setup wizard / seed CI) | ausente → fluxo de primeiro acesso (`/api/auth/check-setup`); **nunca versionar** (contém hashes/tokens) |
+| `dados/departamentos.dat` | COBOL (`departamento_incluir`) | auto-criado pelo programa na 1ª escrita |
+| `dados/cargos.dat` | COBOL (`cargo_incluir`) | auto-criado pelo programa na 1ª escrita |
+| `dados/funcionarios.dat` | COBOL (`funcionario_incluir`) | auto-criado pelo programa na 1ª escrita |
 | `*.json.lock` (qualquer diretório) | stores com escrita atômica | lock de concorrência durante escrita |
 | `data/nfe_inbound/` | `nfe_inbound.py` | inbox de XMLs NF-e recebidos |
 | `data/nfe_inbox/processed/` | processamento NF-e | XMLs já processados |

@@ -63,6 +63,13 @@ data/receiving_pending.json
 data/nfe_inbound/
 data/nfe_inbox/processed/
 
+# Seed CI / autenticação runtime — nunca versionar (carregam dados reais de
+# usuário e poluem o CI com "codigo ja cadastrado")
+/data/users.json
+dados/departamentos.dat
+dados/cargos.dat
+dados/funcionarios.dat
+
 # Backup files
 *.bak
 *.bak_*

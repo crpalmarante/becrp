@@ -47,6 +47,10 @@ RUNTIME_PATHS=(
     dados/fiscal_reforma_history.json
     dados/accounting_integration_log.json
     data/nfe_inbound
+    data/users.json
+    dados/departamentos.dat
+    dados/cargos.dat
+    dados/funcionarios.dat
 )
 present=0
 for f in "${RUNTIME_PATHS[@]}"; do

@@ -311,25 +311,37 @@ def seed():
         os.remove(os.path.join(ROOT, "dados/folha_auditoria.jsonl"))
     except OSError:
         pass
-    did = cobol_bridge.departamento_incluir({
+    # Idempotente: se o registro CI já existe (ex.: .dat restaurado de um
+    # snapshot com o seed antigo), reusa em vez de falhar com
+    # "codigo ja cadastrado".
+    deps = cobol_bridge.departamentos_listar()
+    dep_ci = next((d for d in deps if d.get("codigo") == "CI"), None)
+    did = dep_ci["id"] if dep_ci else cobol_bridge.departamento_incluir({
         "codigo": "CI", "descricao": "CI Pipeline",
         "centro_custo": "CC-CI", "responsavel": "CI"})
-    cid = cobol_bridge.cargo_incluir({
+    cargos = cobol_bridge.cargos_listar()
+    cargo_ci = next((c for c in cargos if c.get("codigo") == "CI"), None)
+    cid = cargo_ci["id"] if cargo_ci else cobol_bridge.cargo_incluir({
         "codigo": "CI", "descricao": "CI Cargo",
         "cbo": "0000-00", "salario_referencia": "3000.00"})
-    fid = cobol_bridge.funcionario_incluir({
-        "nome": "CI FUNCIONARIO", "usuario": "ci.func",
-        "senha": "x123", "cpf": "000.111.222-33",  # exclusivo: smokes usam 999.888.777-66
-        "data_nasc": "1990-01-01", "sexo": "M",
-        "nacionalidade": "Brasileira", "endereco": "Rua CI, 1",
-        "cep": "01000-000", "cidade": "Sao Paulo", "uf": "SP",
-        "ctps": "90001", "ctps_serie": "1", "ctps_uf": "SP",
-        "data_adm": "2026-01-05", "salario": "3000.00",
-        "forma_pagamento": "Mensalista", "banco": "BB",
-        "agencia": "0001", "conta": "12345",
-        "vt_optante": "S", "departamento_id": str(did),
-        "cargo_id": str(cid),
-    })
+    funcs_existentes = cobol_bridge.funcionarios_listar()
+    func_ci = next((f for f in funcs_existentes if f.get("usuario") == "ci.func"), None)
+    if func_ci:
+        fid = func_ci["id"]
+    else:
+        fid = cobol_bridge.funcionario_incluir({
+            "nome": "CI FUNCIONARIO", "usuario": "ci.func",
+            "senha": "x123", "cpf": "000.111.222-33",  # exclusivo: smokes usam 999.888.777-66
+            "data_nasc": "1990-01-01", "sexo": "M",
+            "nacionalidade": "Brasileira", "endereco": "Rua CI, 1",
+            "cep": "01000-000", "cidade": "Sao Paulo", "uf": "SP",
+            "ctps": "90001", "ctps_serie": "1", "ctps_uf": "SP",
+            "data_adm": "2026-01-05", "salario": "3000.00",
+            "forma_pagamento": "Mensalista", "banco": "BB",
+            "agencia": "0001", "conta": "12345",
+            "vt_optante": "S", "departamento_id": str(did),
+            "cargo_id": str(cid),
+        })
     if not (isinstance(did, int) and did > 0 and isinstance(cid, int) and cid > 0
             and isinstance(fid, int) and fid > 0):
         raise RuntimeError(f"seed falhou: dep={did} cargo={cid} func={fid}")

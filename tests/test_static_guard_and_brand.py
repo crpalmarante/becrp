@@ -111,20 +111,42 @@ class OrganizacaoNomeEndpointTest(_ServerMixin, unittest.TestCase):
     def setUpClass(cls):
         cls.port = cls._start_server()
         os.chdir(BASE_DIR)
+        # backup do users.json p/ restaurar após a classe (em clone fresco o
+        # arquivo não existe e o teste cria um admin temporário)
+        cls._users_path = os.path.join(BASE_DIR, "data", "users.json")
+        cls._users_backup = (
+            open(cls._users_path, "rb").read()
+            if os.path.exists(cls._users_path) else None
+        )
 
     @classmethod
     def tearDownClass(cls):
         cls._stop_server()
+        if cls._users_backup is not None:
+            with open(cls._users_path, "wb") as f:
+                f.write(cls._users_backup)
+        elif os.path.exists(cls._users_path):
+            os.remove(cls._users_path)
 
     def _token_admin(self):
         users = server.load_users()
-        for u in users.values():
-            if u.get("role") == "admin" and u.get("ativo", True):
-                if not u.get("token"):
-                    u["token"] = server.make_token()
-                    server.save_users(users)
-                return u["token"]
-        self.fail("nenhum admin no users.json para o teste")
+        if isinstance(users, dict):
+            for u in users.values():
+                if isinstance(u, dict) and u.get("role") == "admin" and u.get("ativo", True):
+                    if not u.get("token"):
+                        u["token"] = server.make_token()
+                        server.save_users(users)
+                    return u["token"]
+        # clone fresco: sem users.json — cria admin temporário para o teste
+        users = users if isinstance(users, dict) else {}
+        tok = server.make_token()
+        users["__test_admin"] = {
+            "usuario": "test_admin", "nome": "Teste Admin",
+            "email": "test_admin@test.local", "senha": "x",
+            "role": "admin", "empresas": {}, "ativo": True, "token": tok,
+        }
+        server.save_users(users)
+        return tok
 
     def test_401_sem_token(self):
         code, body = _request(f"http://127.0.0.1:{self.port}/api/organizacao/nome")
