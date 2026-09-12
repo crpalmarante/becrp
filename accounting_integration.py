@@ -24,7 +24,9 @@ DEFAULT_CONFIG = {
     "domains": {
         "pos_sale": True,
         "receiving": True,
-        "inventory_adjust": False,
+        "inventory_adjust": True,
+        "fatura_venda": True,
+        "devolucao": True,
         # RFC-014: encargos da folha geram lançamentos no fechamento
         "folha": True,
     },
@@ -138,6 +140,8 @@ def _safe_float(v, default=0.0):
 
 def _map_forma_pg(forma_pg):
     s = str(forma_pg or "").strip().lower()
+    if any(x in s for x in ("credi", "prazo", "boleto", "uplic")):
+        return "sale_credit"
     if any(x in s for x in ("pix", "cart", "crédito", "credito", "débito", "debito", "banco", "transfer")):
         return "sale_bank"
     return "sale_cash"
@@ -303,6 +307,33 @@ def on_pos_sale(venda, forma_pg=None, actor=None):
     )
 
 
+def on_fatura_venda(fatura, actor=None):
+    """
+    Hook: fatura de venda emitida → gera lançamento de receita.
+    No regime Continental, COGS já foi reconhecido na compra.
+    """
+    fat = fatura if isinstance(fatura, dict) else {}
+    fid = fat.get("id") or fat.get("fatura_id") or ""
+    total = _safe_float(fat.get("total") or fat.get("valor_total"), 0)
+    if total <= 0:
+        return _with_message({
+            "ok": True, "skipped": True, "reason": "total zero",
+            "domain": "fatura_venda", "referencia": f"FAT-VENDA-{fid}",
+        })
+    forma = fat.get("forma_pg") or fat.get("payment_method") or "Dinheiro"
+    evento = _map_forma_pg(forma)
+    data = str(fat.get("data") or fat.get("emissao") or date.today().isoformat())[:10]
+    return publish(
+        domain="fatura_venda",
+        evento=evento,
+        valor=total,
+        referencia=f"FAT-VENDA-{fid}",
+        historico=f"Fatura venda #{fid} — receita",
+        data=data,
+        actor=actor,
+    )
+
+
 def _receiving_valor(rec):
     total = 0.0
     for it in (rec or {}).get("items") or []:
@@ -382,6 +413,61 @@ def on_inventory_adjust(movimento, actor=None):
         referencia=f"INV-ADJ-{mid}",
         historico=f"Ajuste estoque {mid}",
         data=str(mov.get("data") or date.today().isoformat())[:10],
+        actor=actor,
+    )
+
+
+def on_return_stock(devolucao, actor=None):
+    """
+    Hook: retorno físico de devolução → D:Estoque / C:COGS (regime Continental).
+    O custo unitário original deve ser informado em 'custo_unit'.
+    """
+    dev = devolucao if isinstance(devolucao, dict) else {}
+    did = dev.get("id") or dev.get("devolucao_id") or ""
+    qty = _safe_float(dev.get("qty") or dev.get("quantidade"), 0)
+    custo_unit = _safe_float(dev.get("custo_unit") or dev.get("custo_unitario") or dev.get("cost"), 0)
+    valor = qty * custo_unit
+    if valor <= 0:
+        return _with_message({
+            "ok": True, "skipped": True, "reason": "qty ou custo zero",
+            "domain": "devolucao", "referencia": f"DEV-STOCK-{did}",
+        })
+    data = str(dev.get("data") or date.today().isoformat())[:10]
+    return publish(
+        domain="devolucao",
+        evento="return_stock",
+        valor=valor,
+        referencia=f"DEV-STOCK-{did}",
+        historico=f"Devolução #{did} — retorno estoque ({qty} un × ${custo_unit})",
+        data=data,
+        actor=actor,
+    )
+
+
+def on_return_revenue(devolucao, actor=None):
+    """
+    Hook: nota de crédito (reversão receita) → D:Receita / C:Clientes.
+    """
+    dev = devolucao if isinstance(devolucao, dict) else {}
+    did = dev.get("id") or dev.get("devolucao_id") or ""
+    valor = _safe_float(dev.get("valor") or dev.get("total"), 0)
+    if valor <= 0:
+        return _with_message({
+            "ok": True, "skipped": True, "reason": "valor zero",
+            "domain": "devolucao", "referencia": f"DEV-REC-{did}",
+        })
+    data = str(dev.get("data") or date.today().isoformat())[:10]
+    cliente = dev.get("cliente") or dev.get("partner_id") or ""
+    hist = f"Devolução #{did} — nota de crédito"
+    if cliente:
+        hist += f" ({cliente})"
+    return publish(
+        domain="devolucao",
+        evento="return_revenue",
+        valor=valor,
+        referencia=f"DEV-REC-{did}",
+        historico=hist,
+        data=data,
         actor=actor,
     )
 

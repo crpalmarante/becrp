@@ -1,1238 +1,609 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Funcionarios - Palmarante Loja</title>
-<style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Segoe UI',Arial,sans-serif; background:#f0f2f5; color:#333; }
-header { background:#1a237e; color:#fff; padding:16px 24px; display:flex; justify-content:space-between; align-items:center; }
-header h1 { font-size:1.4rem; }
-header a { color:#ffd54f; text-decoration:none; font-size:.9rem; }
-main { padding:24px; max-width:1400px; margin:0 auto; }
-.card { background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); padding:20px; margin-bottom:20px; }
-.card h2 { font-size:1.1rem; margin-bottom:16px; color:#1a237e; }
-table { width:100%; border-collapse:collapse; font-size:.85rem; }
-th { background:#e8eaf6; text-align:left; padding:8px 10px; font-weight:600; border-bottom:2px solid #c5cae9; white-space:nowrap; }
-td { padding:6px 10px; border-bottom:1px solid #eee; }
-tr:hover td { background:#f5f5f5; }
-.form-row { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; align-items:center; }
-.form-row label { min-width:110px; font-weight:500; font-size:.9rem; }
-.form-row input, .form-row select { flex:1; padding:10px 12px; border:1px solid #ccc; border-radius:6px; font-size:.9rem; min-width:120px; }
-.form-row input:focus { border-color:#1a237e; outline:none; }
-.form-row .small { font-size:.75rem; color:#888; }
-.form-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; }
-@media(max-width:900px){.form-grid{grid-template-columns:1fr 1fr;}}
-@media(max-width:600px){.form-grid{grid-template-columns:1fr;}}
-.btn { padding:8px 20px; border:none; border-radius:4px; cursor:pointer; font-size:.9rem; font-weight:500; }
-.btn-primary { background:#1a237e; color:#fff; }
-.btn-primary:hover { background:#283593; }
-.btn-success { background:#2e7d32; color:#fff; }
-.btn-success:hover { background:#388e3c; }
-.btn-danger { background:#c62828; color:#fff; }
-.btn-danger:hover { background:#d32f2f; }
-.btn-warning { background:#f9a825; color:#333; }
-.btn-sm { padding:4px 10px; font-size:.8rem; }
-.toast { position:fixed; bottom:20px; right:20px; padding:12px 24px; border-radius:6px; color:#fff; font-weight:500; display:none; z-index:999; }
-.toast.success { background:#2e7d32; }
-.toast.error { background:#c62828; }
-.toast.info { background:#1565c0; }
-.schedule-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr 1fr; gap:6px; margin-top:8px; }
-.schedule-grid .day-card { background:#fafafa; border:1px solid #e0e0e0; border-radius:6px; padding:8px; text-align:center; }
-.schedule-grid .day-card h4 { font-size:.8rem; color:#1a237e; margin-bottom:6px; }
-.schedule-grid .day-card input { width:100%; padding:4px 6px; border:1px solid #ccc; border-radius:3px; font-size:.8rem; text-align:center; margin-bottom:3px; }
-.schedule-grid .day-card input:disabled { background:#eee; color:#999; }
-.schedule-grid .day-card label { font-size:.65rem; color:#666; display:block; margin-bottom:1px; }
-@media(max-width:900px){.schedule-grid{grid-template-columns:1fr 1fr 1fr;}}
-.switch-row { display:flex; gap:20px; align-items:center; margin:10px 0 6px; }
-.switch-row label { font-size:.85rem; font-weight:500; display:flex; align-items:center; gap:6px; cursor:pointer; }
-.switch-row input[type=checkbox] { width:auto; margin:0; cursor:pointer; }
-.photo-preview { width:80px; height:80px; object-fit:cover; border-radius:50%; border:2px solid #e0e0e0; margin-right:10px; }
-.photo-upload { display:flex; align-items:center; gap:10px; }
-.photo-upload input[type=file] { max-width:200px; }
-</style>
+<title>Funcionários - BECRP</title>
+<meta name="theme-color" content="#714B67">
+<link rel="stylesheet" href="../css/fonts.css">
+<link rel="stylesheet" href="../css/variaveis.css">
+<link rel="stylesheet" href="../css/reset.css">
+<link rel="stylesheet" href="../css/layout.css">
+<link rel="stylesheet" href="../css/icons.css">
+<link rel="stylesheet" href="../css/grid.css">
+<link rel="stylesheet" href="../css/forms.css">
+<link rel="stylesheet" href="../css/motion.css">
+<link rel="stylesheet" href="../css/responsive.css">
+<link rel="stylesheet" href="../css/themes.css">
 <link rel="stylesheet" href="../css/style.css">
+<style>
+.view{display:none}.view.active{display:flex;flex-direction:column;flex:1;min-height:0}
+.workspace-content{flex:1;overflow:auto}
+.workspace-header{margin-bottom:15px}
+.toolbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;margin:0 auto var(--space-4);max-width:920px;width:100%}
+.toolbar-center{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.toolbar .so-btn.primary{margin-left:0}
+.toolbar-left{display:flex;align-items:center;gap:8px}
+.so-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  border:1px solid var(--border-color);background:var(--surface-panel);
+  color:var(--text-primary);padding:0 12px;height:36px;line-height:1;
+  border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;
+}
+.so-btn .icon{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px}
+.so-btn .icon svg{width:18px;height:18px;fill:currentColor}
+.so-btn:hover{background:rgba(255,255,255,.08)}
+.so-btn.primary{background:rgba(20,184,166,.2);border-color:rgba(20,184,166,.45);color:#5eead4}
+.so-btn.ghost{opacity:.85}
+.so-btn.danger{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fca5a5}
+.so-btn.warning{background:rgba(245,158,11,.2);border-color:rgba(245,158,11,.45);color:#fcd34d}
+
+.pf-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.pf-bar .crumb{font-size:13px;color:var(--text-muted)}
+.pf-bar .crumb strong{color:var(--text-primary)}
+.pf-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.pf-header{
+  display:grid;grid-template-columns:140px 1fr auto;gap:20px;align-items:start;
+  background:var(--surface-panel);border:1px solid var(--border-color);
+  border-radius:var(--radius-panel);padding:16px;margin-bottom:14px;
+}
+@media(max-width:800px){.pf-header{grid-template-columns:1fr}}
+.pf-photo{
+  width:140px;height:140px;border-radius:14px;border:1px dashed var(--border-color);
+  background:rgba(0,0,0,.2);display:grid;place-items:center;color:var(--text-muted);
+  font-size:12px;text-align:center;cursor:pointer;overflow:hidden;position:relative;
+}
+.pf-photo img{width:100%;height:100%;object-fit:cover}
+.pf-photo input[type=file]{display:none}
+.pf-main .field{margin-bottom:10px}
+.pf-main label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.pf-main .row{display:grid;grid-template-columns:1fr 180px;gap:12px}
+@media(max-width:700px){.pf-main .row{grid-template-columns:1fr}}
+
+.pf-tabs{
+  display:flex;gap:4px;flex-wrap:wrap;overflow-x:auto;
+  border-bottom:1px solid var(--border-color);margin-bottom:14px;padding-bottom:0;
+}
+.pf-tab{
+  border:0;background:transparent;color:var(--text-muted);padding:10px 12px;
+  cursor:pointer;font-weight:600;font-size:13px;border-radius:8px 8px 0 0;white-space:nowrap;
+}
+.pf-tab.active{color:#5eead4;background:rgba(20,184,166,.12)}
+.pf-pane{display:none}
+.pf-pane.active{display:block}
+.pf-card{
+  background:var(--surface-panel);border:1px solid var(--border-color);
+  border-radius:var(--radius-panel);padding:16px;
+}
+.pf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px 16px}
+.pf-grid .full{grid-column:1/-1}
+.field label{display:block;font-size:11px;color:var(--text-muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.field .form-input, .field select.form-input, .field textarea.form-input{
+  width:100%;background:rgba(0,0,0,.2);border:1px solid var(--border-color);
+  border-radius:8px;color:var(--text-primary);padding:8px 10px;font-size:13px;
+}
+.field textarea.form-input{min-height:80px;resize:vertical}
+.field-hint{min-height:1.1em;margin-top:4px;font-size:11px;color:var(--text-muted)}
+.pf-section-title{
+  margin:18px 0 10px;font-size:13px;font-weight:700;color:var(--text-primary);
+  letter-spacing:.02em;
+}
+.pf-section-title:first-child{margin-top:0}
+
+.photo-preview{width:140px;height:140px;object-fit:cover;border-radius:14px;border:1px solid var(--border-color)}
+.photo-upload{display:flex;align-items:center;gap:10px}
+
+.schedule-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:8px}
+@media(max-width:900px){.schedule-grid{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:600px){.schedule-grid{grid-template-columns:repeat(2,1fr)}}
+.schedule-day{
+  background:var(--surface-panel);border:1px solid var(--border-color);border-radius:8px;
+  padding:8px;text-align:center;
+}
+.schedule-day h4{font-size:.8rem;color:var(--accent,#5eead4);margin-bottom:6px}
+.schedule-day label{font-size:.65rem;color:var(--text-muted);display:block;margin-bottom:1px}
+.schedule-day input[type=time]{
+  width:100%;padding:4px 6px;font-size:.8rem;text-align:center;
+  background:rgba(0,0,0,.2);border:1px solid var(--border-color);
+  border-radius:6px;color:var(--text-primary);margin-bottom:3px;
+}
+
+.emp-table{width:100%;border-collapse:collapse;font-size:13px}
+.emp-table th,.emp-table td{padding:8px 10px;border-bottom:1px solid var(--border-color);text-align:left;vertical-align:middle}
+.emp-table th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--text-muted);background:rgba(0,0,0,.15)}
+.emp-table tr:last-child td{border-bottom:0}
+.emp-table .photo-mini{width:32px;height:32px;object-fit:cover;border-radius:50%;border:1px solid var(--border-color)}
+.badge{display:inline-block;padding:2px 8px;border-radius:8px;font-size:.7rem;font-weight:600}
+.badge-info{background:rgba(20,184,166,.15);color:#5eead4;border:1px solid rgba(20,184,166,.3)}
+.badge-danger{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.3)}
+
+.dp-table{width:100%;border-collapse:collapse;font-size:13px}
+.dp-table th,.dp-table td{padding:6px 8px;border-bottom:1px solid var(--border-color);text-align:left}
+.dp-table th{font-size:11px;text-transform:uppercase;color:var(--text-muted);background:rgba(0,0,0,.15)}
+.dp-inline-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.dp-inline-form input,.dp-inline-form select{padding:6px 8px;border:1px solid var(--border-color);border-radius:6px;background:rgba(0,0,0,.2);color:var(--text-primary);font-size:13px}
+</style>
 </head>
 <body>
 
-<header>
-<h1>Funcionarios</h1>
-<a href="/index.html">&larr; Menu Principal</a>
-</header>
+<div id="app">
+    <aside id="sidebar">
+        <div class="sidebar-brand" onclick="location='../index4.html'" style="cursor:pointer">
+            <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+            <span class="brand-text">FiscalBrasil</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a class="menu-item" href="configuracoes.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-settings"/></svg>
+                <span class="menu-label">Configurações</span>
+            </a>
+            <a class="menu-item" href="usuarios.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="menu-label">Usuários</span>
+            </a>
+            <a class="menu-item" href="empresas.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-building"/></svg>
+                <span class="menu-label">Empresas</span>
+            </a>
+            <a class="menu-item" href="../index4.html">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-home"/></svg>
+                <span class="menu-label">Dashboard</span>
+            </a>
+        </nav>
+    </aside>
 
-<main>
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-brand">
+                <svg class="icon"><use href="../assets/images/icons.svg#icon-users"/></svg>
+                <span class="topbar-title">Funcionários</span>
+            </div>
+            <div class="topbar-user" style="margin-left:auto">
+                <span class="topbar-user-info">
+                    <span id="user-name-display">Administrador</span>
+                </span>
+            </div>
+        </header>
 
-<div class="card">
-<h2 id="form-titulo">Cadastrar Funcionario</h2>
+        <div class="workspace">
+            <div id="workspace-view" style="display:flex">
 
-<!-- Abas -->
-<div class="tabs" style="margin-bottom:16px">
-<button class="tab active" onclick="ativarAbaForm(this,'tab-pessoal')">Dados Pessoais</button>
-<button class="tab" onclick="ativarAbaForm(this,'tab-documentos')">Documentos</button>
-<button class="tab" onclick="ativarAbaForm(this,'tab-financeiro')">Financeiro</button>
-<button class="tab" onclick="ativarAbaForm(this,'tab-acesso')">Acesso</button>
-<button class="tab" onclick="ativarAbaForm(this,'tab-horarios')">Horarios</button>
-</div>
+<!-- ═══════════ VIEW LIST ═══════════ -->
+<div class="view active" id="view-list">
+    <div class="workspace-header">
+        <h2 class="workspace-title">Gerenciar Funcionários</h2>
+    </div>
+    <div class="workspace-content">
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <button class="so-btn primary" onclick="show('form')">+ Novo Funcionário</button>
+            </div>
+            <div class="toolbar-center">
+                <input type="text" class="form-input" id="busca-func" placeholder="Buscar funcionário..." style="max-width:280px">
+            </div>
+            <div></div>
+        </div>
 
-<!-- Aba 1: Dados Pessoais -->
-<div id="tab-pessoal" class="tab-content active">
-<div class="form-grid">
-<div class="form-row" style="grid-column:1/-1;flex-wrap:nowrap;">
-<div class="photo-upload">
-<img id="foto-preview" class="photo-preview" src="/img/sem-foto.png" alt="Foto">
-<div>
-<label style="font-size:.8rem;display:block;margin-bottom:4px;">Foto:</label>
-<input type="file" id="f-foto-input" accept="image/*" onchange="uploadFoto(this)">
-<input type="hidden" id="f-foto" value="">
-</div>
-</div>
-</div>
-<div class="form-row"><label>Nome:</label><input type="text" id="f-nome" placeholder="Nome completo"></div>
-<div class="form-row"><label>CPF:</label><input type="text" id="f-cpf" data-mask="cpf" placeholder="000.000.000-00" maxlength="14"></div>
-<div class="form-row"><label>RG:</label><input type="text" id="f-rg" placeholder="RG / Identidade"></div>
-<div class="form-row"><label>RG Orgao Emissor:</label><input type="text" id="f-rg-orgao" placeholder="Ex: SSP/SP"></div>
-<div class="form-row" style="grid-column:1/-1;display:flex;gap:10px;">
-<label style="min-width:auto;">RG UF:</label><input type="text" id="f-rg-uf" style="flex:none;width:60px;" maxlength="2" placeholder="SP">
-<label style="min-width:auto;margin-left:10px;">Titulo Eleitor:</label><input type="text" id="f-titulo-eleitor" style="flex:1;" placeholder="Numero do titulo">
-</div>
-<div class="form-row"><label>Sexo:</label>
-<select id="f-sexo"><option value="">Selecionar...</option>
-<option value="M">Masculino</option><option value="F">Feminino</option>
-</select></div>
-<div class="form-row"><label>Estado Civil:</label>
-<select id="f-estado-civil"><option value="">Selecionar...</option>
-<option value="Solteiro">Solteiro</option><option value="Casado">Casado</option>
-<option value="Divorciado">Divorciado</option><option value="Viuvo">Viuvo</option>
-<option value="Uniao Estavel">Uniao Estavel</option>
-</select></div>
-<div class="form-row"><label>Nacionalidade:</label><input type="text" id="f-nacionalidade" placeholder="Brasileira"></div>
-<div class="form-row"><label>Data Nasc.:</label><input type="date" id="f-data-nasc"></div>
-<div class="form-row"><label>Tipo Sanguineo:</label>
-<select id="f-tipo-sanguineo">
-<option value="">Selecionar...</option>
-<option value="A+">A+</option><option value="A-">A-</option>
-<option value="B+">B+</option><option value="B-">B-</option>
-<option value="AB+">AB+</option><option value="AB-">AB-</option>
-<option value="O+">O+</option><option value="O-">O-</option>
-</select></div>
-<div class="form-row"><label>Celular:</label><input type="text" id="f-celular" data-mask="tel" placeholder="(11) 99999-9999"></div>
-<div class="form-row"><label>Tel. Comercial:</label><input type="text" id="f-tel-comercial" data-mask="tel" placeholder="(11) 3333-4444"></div>
-<div class="form-row"><label>Email Particular:</label><input type="email" id="f-email-particular" placeholder="pessoal@email.com"></div>
-<div class="form-row"><label>Email Comercial:</label><input type="email" id="f-email" placeholder="comercial@empresa.com"></div>
-<div class="form-row"><label>Endereco:</label><input type="text" id="f-endereco" placeholder="Rua, numero, bairro"></div>
-<div class="form-row"><label>CEP:</label><input type="text" id="f-cep" data-mask="cep" maxlength="9" placeholder="00000-000"></div>
-<div class="form-row"><label>Cidade:</label><input type="text" id="f-cidade" placeholder="Cidade"></div>
-<div class="form-row"><label>UF:</label><input type="text" id="f-uf" maxlength="2" placeholder="SP"></div>
-<div class="form-row"><label>Emerg. Nome:</label><input type="text" id="f-contato-emerg-nome" placeholder="Nome do contato"></div>
-<div class="form-row"><label>Emerg. Tel.:</label><input type="text" id="f-contato-emerg-tel" data-mask="tel" placeholder="(11) 99999-9999"></div>
-<div class="form-row"><label>Curriculo:</label>
-<div style="display:flex;gap:6px;flex:1;align-items:center;">
-<input type="file" id="f-curriculo-input" accept=".pdf,.doc,.docx" onchange="uploadCurriculo(this)">
-<input type="hidden" id="f-curriculo" value="">
-<span id="curriculo-nome" style="font-size:.8rem;color:#666;"></span>
-</div>
-</div>
-</div>
+        <div style="overflow-x:auto;">
+            <table class="emp-table">
+                <thead><tr>
+                    <th>ID</th><th>Foto</th><th>Nome</th><th>Cargo</th><th>Celular</th><th>Email</th>
+                    <th>Tipo S.</th><th>Admissão</th><th>Vínculo</th><th>Salário</th><th>Banco</th><th>Pix</th>
+                    <th>Horário</th><th>Empresa</th><th>Supervisor</th><th>Usuário</th><th>Ações</th>
+                </tr></thead>
+                <tbody id="tabela-funcionarios"></tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
-<!-- Aba 2: Documentos -->
-<div id="tab-documentos" class="tab-content">
-<div class="form-grid">
-<div class="form-row"><label>PIS/NIS:</label><input type="text" id="f-pis" data-mask="pis" placeholder="000.00000.00-0"></div>
-<div class="form-row"><label>CTPS:</label><input type="text" id="f-ctps" placeholder="Numero"></div>
-<div class="form-row" style="grid-column:1/-1;display:flex;gap:10px;">
-<label style="min-width:auto;">CTPS Serie:</label><input type="text" id="f-ctps-serie" style="flex:none;width:120px;">
-<label style="min-width:auto;margin-left:10px;">UF:</label><input type="text" id="f-ctps-uf" style="flex:none;width:60px;" maxlength="2" placeholder="SP">
-</div>
-<div class="form-row"><label>Situacao Vinculo:</label>
-<select id="f-situacao-vinculo"><option value="">Selecionar...</option>
-<option value="Ativo">Ativo</option><option value="Afastado">Afastado</option>
-<option value="Aviso Previo">Aviso Previo</option><option value="Desligado">Desligado</option>
-</select></div>
-<div class="form-row"><label>Departamento:</label>
-<select id="f-departamento-id"><option value="">Selecionar...</option></select>
-</div>
-<div class="form-row"><label>Cargo:</label>
-<select id="f-cargo-id"><option value="">Selecionar...</option></select>
-</div>
-<div class="form-row"><label>Data Posse Cargo:</label><input type="date" id="f-data-posse-cargo"></div>
-<div class="form-row"><label>Exame Adm. Venc.:</label><input type="date" id="f-exame-adm-venc"></div>
-<div class="form-row"><label>CBO:</label><input type="text" id="f-cbo" data-mask="cbo" maxlength="7" placeholder="0000-00"></div>
-<div class="form-row"><label>Grau Instrucao:</label>
-<select id="f-grau-instrucao"><option value="">Selecionar...</option>
-<option value="Analfabeto">Analfabeto</option><option value="Fundamental">Fundamental</option>
-<option value="Medio">Medio</option><option value="Superior">Superior</option>
-<option value="Pos-Graduacao">Pos-Graduacao</option>
-</select></div>
-<div class="form-row"><label>Tipo Contrato:</label>
-<select id="f-tipo-contrato"><option value="">Selecionar...</option>
-<option value="CLT">CLT</option><option value="Estagio">Estagio</option>
-<option value="Experiencia">Experiencia</option><option value="Temporario">Temporario</option>
-<option value="PJ">PJ</option>
-</select></div>
-<div class="form-row"><label>Motivo Deslig.:</label>
-<select id="f-motivo-deslig"><option value="">N/A</option>
-<option value="Pediu Demissao">Pediu Demissao</option>
-<option value="Demitido sem justa">Demitido sem justa</option>
-<option value="Demitido com justa">Demitido com justa</option>
-<option value="APosentadoria">APosentadoria</option>
-<option value="Fim de contrato">Fim de contrato</option>
-<option value="Acordo">Acordo</option>
-</select></div>
-</div>
+<!-- ═══════════ VIEW FORM ═══════════ -->
+<div class="view" id="view-form">
+    <div class="workspace-header">
+        <div class="pf-bar">
+            <div class="crumb">Funcionários / <strong id="form-titulo">Novo Funcionário</strong></div>
+            <div class="pf-actions">
+                <button class="so-btn" onclick="show('list')">Voltar</button>
+                <button class="so-btn primary" onclick="salvarFuncionario()">Salvar</button>
+            </div>
+        </div>
+    </div>
+    <div class="workspace-content">
+
+        <!-- Header com foto e campos principais -->
+        <div class="pf-header">
+            <div class="pf-photo" onclick="document.getElementById('f-foto-input').click()">
+                <img id="foto-preview" src="/img/sem-foto.png" alt="Foto">
+                <input type="file" id="f-foto-input" accept="image/*" onchange="uploadFoto(this)">
+                <input type="hidden" id="f-foto" value="">
+            </div>
+            <div class="pf-main">
+                <div class="field">
+                    <label for="f-nome">Nome Completo</label>
+                    <input class="form-input" type="text" id="f-nome" placeholder="Nome completo do funcionário">
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label for="f-cpf">CPF</label>
+                        <input class="form-input" type="text" id="f-cpf" data-mask="cpf" placeholder="000.000.000-00" maxlength="14">
+                    </div>
+                    <div class="field">
+                        <label for="f-data-nasc">Data Nascimento</label>
+                        <input class="form-input" type="date" id="f-data-nasc">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="field">
+                        <label for="f-celular">Celular</label>
+                        <input class="form-input" type="text" id="f-celular" data-mask="tel" placeholder="(11) 99999-9999">
+                    </div>
+                    <div class="field">
+                        <label for="f-email-particular">Email</label>
+                        <input class="form-input" type="email" id="f-email-particular" placeholder="email@exemplo.com">
+                    </div>
+                </div>
+            </div>
+            <div class="pf-flags">
+                <div class="field">
+                    <label for="f-situacao-vinculo">Situação</label>
+                    <select class="form-input" id="f-situacao-vinculo">
+                        <option value="Ativo">Ativo</option><option value="Afastado">Afastado</option>
+                        <option value="Aviso Previo">Aviso Prévio</option><option value="Desligado">Desligado</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="f-departamento-id">Departamento</label>
+                    <select class="form-input" id="f-departamento-id"><option value="">Selecionar...</option></select>
+                </div>
+                <div class="field">
+                    <label for="f-cargo-id">Cargo</label>
+                    <select class="form-input" id="f-cargo-id"><option value="">Selecionar...</option></select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="pf-tabs" role="tablist">
+            <button type="button" class="pf-tab active" data-tab="pessoal">Dados Pessoais</button>
+            <button type="button" class="pf-tab" data-tab="documento">Documentos</button>
+            <button type="button" class="pf-tab" data-tab="financeiro">Financeiro</button>
+            <button type="button" class="pf-tab" data-tab="horarios">Horários</button>
+            <button type="button" class="pf-tab" data-tab="dependentes">Dependentes</button>
+            <button type="button" class="pf-tab" data-tab="filiais">Filiais</button>
+            <button type="button" class="pf-tab" data-tab="historico">Histórico</button>
+        </div>
+
+        <!-- Tab: Dados Pessoais -->
+        <div class="pf-pane active" id="tab-pessoal">
+            <div class="pf-card">
+                <div class="pf-grid">
+                    <div class="field"><label for="f-rg">RG</label><input class="form-input" type="text" id="f-rg" placeholder="RG / Identidade"></div>
+                    <div class="field"><label for="f-rg-orgao">Órgão Emissor</label><input class="form-input" type="text" id="f-rg-orgao" placeholder="SSP/SP"></div>
+                    <div class="field"><label for="f-rg-uf">UF</label><input class="form-input" type="text" id="f-rg-uf" maxlength="2" placeholder="SP"></div>
+                    <div class="field"><label for="f-titulo-eleitor">Título Eleitor</label><input class="form-input" type="text" id="f-titulo-eleitor" placeholder="Número do título"></div>
+                    <div class="field"><label for="f-sexo">Sexo</label>
+                        <select class="form-input" id="f-sexo"><option value="">Selecionar...</option>
+                            <option value="M">Masculino</option><option value="F">Feminino</option>
+                        </select></div>
+                    <div class="field"><label for="f-estado-civil">Estado Civil</label>
+                        <select class="form-input" id="f-estado-civil"><option value="">Selecionar...</option>
+                            <option value="Solteiro">Solteiro</option><option value="Casado">Casado</option>
+                            <option value="Divorciado">Divorciado</option><option value="Viuvo">Viúvo</option>
+                            <option value="Uniao Estavel">União Estável</option>
+                        </select></div>
+                    <div class="field"><label for="f-nacionalidade">Nacionalidade</label><input class="form-input" type="text" id="f-nacionalidade" placeholder="Brasileira"></div>
+                    <div class="field"><label for="f-tipo-sanguineo">Tipo Sanguíneo</label>
+                        <select class="form-input" id="f-tipo-sanguineo"><option value="">Selecionar...</option>
+                            <option value="A+">A+</option><option value="A-">A-</option>
+                            <option value="B+">B+</option><option value="B-">B-</option>
+                            <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                            <option value="O+">O+</option><option value="O-">O-</option>
+                        </select></div>
+                    <div class="field"><label for="f-tel-comercial">Tel. Comercial</label><input class="form-input" type="text" id="f-tel-comercial" data-mask="tel" placeholder="(11) 3333-4444"></div>
+                    <div class="field"><label for="f-email">Email Comercial</label><input class="form-input" type="email" id="f-email" placeholder="comercial@empresa.com"></div>
+                    <div class="field full"><label for="f-endereco">Endereço</label><input class="form-input" type="text" id="f-endereco" placeholder="Rua, número, bairro"></div>
+                    <div class="field"><label for="f-cep">CEP</label><input class="form-input" type="text" id="f-cep" data-mask="cep" maxlength="9" placeholder="00000-000"></div>
+                    <div class="field"><label for="f-cidade">Cidade</label><input class="form-input" type="text" id="f-cidade" placeholder="Cidade"></div>
+                    <div class="field"><label for="f-uf">UF</label><input class="form-input" type="text" id="f-uf" maxlength="2" placeholder="SP"></div>
+                    <div class="field"><label for="f-contato-emerg-nome">Emerg. Nome</label><input class="form-input" type="text" id="f-contato-emerg-nome" placeholder="Nome do contato"></div>
+                    <div class="field"><label for="f-contato-emerg-tel">Emerg. Tel.</label><input class="form-input" type="text" id="f-contato-emerg-tel" data-mask="tel" placeholder="(11) 99999-9999"></div>
+                    <div class="field"><label for="f-curriculo">Currículo</label>
+                        <div style="display:flex;gap:6px;align-items:center;">
+                            <input type="file" id="f-curriculo-input" accept=".pdf,.doc,.docx" onchange="uploadCurriculo(this)" style="font-size:12px">
+                            <input type="hidden" id="f-curriculo" value="">
+                            <span id="curriculo-nome" style="font-size:.75rem;color:var(--text-muted)"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="pf-section-title">Vínculo</h4>
+                <div class="pf-grid">
+                    <div class="field"><label for="f-empresa-id">Empresa</label>
+                        <select class="form-input" id="f-empresa-id"><option value="">Selecionar...</option></select></div>
+                    <div class="field"><label for="f-filial-id">Filial</label>
+                        <select class="form-input" id="f-filial-id"><option value="0">Matriz</option></select></div>
+                    <div class="field"><label for="f-supervisor-id">Supervisor</label>
+                        <select class="form-input" id="f-supervisor-id"><option value="">Nenhum</option></select></div>
+                    <div class="field"><label for="f-data-adm">Data Admissão</label><input class="form-input" type="date" id="f-data-adm"></div>
+                    <div class="field"><label for="f-data-dem">Data Demissão</label><input class="form-input" type="date" id="f-data-dem"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Documentos -->
+        <div class="pf-pane" id="tab-documento">
+            <div class="pf-card">
+                <div class="pf-grid">
+                    <div class="field"><label for="f-pis">PIS/NIS</label><input class="form-input" type="text" id="f-pis" data-mask="pis" placeholder="000.00000.00-0"></div>
+                    <div class="field"><label for="f-ctps">CTPS</label><input class="form-input" type="text" id="f-ctps" placeholder="Número"></div>
+                    <div class="field"><label for="f-ctps-serie">CTPS Série</label><input class="form-input" type="text" id="f-ctps-serie"></div>
+                    <div class="field"><label for="f-ctps-uf">CTPS UF</label><input class="form-input" type="text" id="f-ctps-uf" maxlength="2" placeholder="SP"></div>
+                    <div class="field"><label for="f-cbo">CBO</label><input class="form-input" type="text" id="f-cbo" data-mask="cbo" maxlength="7" placeholder="0000-00"></div>
+                    <div class="field"><label for="f-grau-instrucao">Grau Instrução</label>
+                        <select class="form-input" id="f-grau-instrucao"><option value="">Selecionar...</option>
+                            <option value="Analfabeto">Analfabeto</option><option value="Fundamental">Fundamental</option>
+                            <option value="Medio">Médio</option><option value="Superior">Superior</option>
+                            <option value="Pos-Graduacao">Pós-Graduação</option>
+                        </select></div>
+                    <div class="field"><label for="f-tipo-contrato">Tipo Contrato</label>
+                        <select class="form-input" id="f-tipo-contrato"><option value="">Selecionar...</option>
+                            <option value="CLT">CLT</option><option value="Estagio">Estágio</option>
+                            <option value="Experiencia">Experiência</option><option value="Temporario">Temporário</option>
+                            <option value="PJ">PJ</option>
+                        </select></div>
+                    <div class="field"><label for="f-motivo-deslig">Motivo Deslig.</label>
+                        <select class="form-input" id="f-motivo-deslig"><option value="">N/A</option>
+                            <option value="Pediu Demissao">Pediu Demissão</option>
+                            <option value="Demitido sem justa">Demitido sem justa</option>
+                            <option value="Demitido com justa">Demitido com justa</option>
+                            <option value="Aposentadoria">Aposentadoria</option>
+                            <option value="Fim de contrato">Fim de contrato</option>
+                            <option value="Acordo">Acordo</option>
+                        </select></div>
+                    <div class="field"><label for="f-data-posse-cargo">Data Posse Cargo</label><input class="form-input" type="date" id="f-data-posse-cargo"></div>
+                    <div class="field"><label for="f-exame-adm-venc">Exame Adm. Venc.</label><input class="form-input" type="date" id="f-exame-adm-venc"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Financeiro -->
+        <div class="pf-pane" id="tab-financeiro">
+            <div class="pf-card">
+                <h4 class="pf-section-title">Remuneração</h4>
+                <div class="pf-grid">
+                    <div class="field"><label for="f-salario">Salário (R$)</label><input class="form-input" type="text" id="f-salario" data-mask="moeda" inputmode="decimal" placeholder="R$ 0,00"></div>
+                    <div class="field"><label for="f-forma-pagamento">Forma Pagamento</label>
+                        <select class="form-input" id="f-forma-pagamento"><option value="">Selecionar...</option>
+                            <option value="Mensalista">Mensalista</option><option value="Horista">Horista</option>
+                            <option value="Diarista">Diarista</option><option value="Comissao">Comissão</option>
+                        </select></div>
+                    <div class="field"><label for="f-meio-pagamento">Meio Pagamento</label>
+                        <select class="form-input" id="f-meio-pagamento"><option value="">Selecionar...</option>
+                            <option value="Deposito">Depósito</option><option value="TED">TED</option>
+                            <option value="Pix">Pix</option><option value="Dinheiro">Dinheiro</option><option value="Cheque">Cheque</option>
+                        </select></div>
+                    <div class="field"><label for="f-carga-horaria">Carga Hor. Mensal</label><input class="form-input" type="number" id="f-carga-horaria" min="0" max="500" placeholder="220"></div>
+                </div>
+
+                <h4 class="pf-section-title">Dados Bancários</h4>
+                <div class="pf-grid">
+                    <div class="field"><label for="f-banco">Banco</label><input class="form-input" type="text" id="f-banco" placeholder="Banco do Brasil"></div>
+                    <div class="field"><label for="f-agencia">Agência</label><input class="form-input" type="text" id="f-agencia" placeholder="1234-5"></div>
+                    <div class="field"><label for="f-conta">Conta</label><input class="form-input" type="text" id="f-conta" placeholder="12345-6"></div>
+                    <div class="field"><label for="f-conta-digito">Dígito</label><input class="form-input" type="text" id="f-conta-digito" maxlength="3" placeholder="0"></div>
+                    <div class="field"><label for="f-conta-tipo">Tipo Conta</label>
+                        <select class="form-input" id="f-conta-tipo"><option value="">Selecione</option>
+                            <option value="corrente">Corrente</option><option value="poupanca">Poupança</option><option value="pagamento">Pagamento</option>
+                        </select></div>
+                    <div class="field"><label for="f-pix">Pix</label><input class="form-input" type="text" id="f-pix" placeholder="CPF, CNPJ, email ou telefone"></div>
+                </div>
+
+                <h4 class="pf-section-title">Benefícios</h4>
+                <div class="pf-grid">
+                    <div class="field"><label for="f-vt-optante">Optante VT</label>
+                        <select class="form-input" id="f-vt-optante"><option value="">Não</option><option value="S">Sim</option></select></div>
+                    <div class="field"><label for="f-vt-desconto">Vale-Transporte (R$)</label><input class="form-input" type="text" id="f-vt-desconto" data-mask="moeda" inputmode="decimal" value="0" placeholder="R$ 0,00"></div>
+                    <div class="field"><label for="f-vt-dias">VT Dias/mês</label><input class="form-input" type="number" id="f-vt-dias" min="0" max="31" value="22" placeholder="22"></div>
+                    <div class="field"><label for="f-vr">Vale-Refeição (R$)</label><input class="form-input" type="text" id="f-vr" data-mask="moeda" inputmode="decimal" value="0" placeholder="R$ 0,00"></div>
+                    <div class="field"><label for="f-plano-saude">Plano Saúde</label><input class="form-input" type="text" id="f-plano-saude" placeholder="Nome do plano"></div>
+                    <div class="field"><label for="f-plano-saude-valor">Plano Saúde (R$)</label><input class="form-input" type="text" id="f-plano-saude-valor" data-mask="moeda" inputmode="decimal" value="0" placeholder="R$ 0,00"></div>
+                </div>
+
+                <h4 class="pf-section-title">Pensão Alimentícia</h4>
+                <div class="pf-grid">
+                    <div class="field"><label for="f-pensao-tipo">Tipo</label>
+                        <select class="form-input" id="f-pensao-tipo" onchange="togglePensaoMask()"><option value="">Nenhuma</option>
+                            <option value="P">Percentual do salário</option><option value="V">Valor fixo</option>
+                        </select></div>
+                    <div class="field"><label for="f-pensao-valor">Pensão (R$ ou %)</label><input class="form-input" type="number" id="f-pensao-valor" step="0.01" min="0" value="0" placeholder="0.00"></div>
+                </div>
+
+                <h4 class="pf-section-title">Observações</h4>
+                <div class="pf-grid"><div class="field full"><textarea class="form-input" id="f-observacoes" placeholder="Observações gerais"></textarea></div></div>
+            </div>
+        </div>
+
+        <!-- Tab: Horários -->
+        <div class="pf-pane" id="tab-horarios">
+            <div class="pf-card">
+                <div style="display:flex;gap:20px;align-items:center;margin-bottom:12px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                        <input type="checkbox" id="f-trab-sab" onchange="toggleFimDeSemana()" style="width:auto"> Trabalha Sábado
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;">
+                        <input type="checkbox" id="f-trab-dom" onchange="toggleFimDeSemana()" style="width:auto"> Trabalha Domingo
+                    </label>
+                </div>
+                <div class="schedule-grid">
+                    <div class="schedule-day"><h4>Segunda</h4>
+                        <label>Entrada</label><input type="time" id="f-seg-ent" value="08:00">
+                        <label>Almoço</label><input type="time" id="f-seg-alm" value="12:00">
+                        <label>Saída</label><input type="time" id="f-seg-sai" value="18:00">
+                    </div>
+                    <div class="schedule-day"><h4>Terça</h4>
+                        <label>Entrada</label><input type="time" id="f-ter-ent" value="08:00">
+                        <label>Almoço</label><input type="time" id="f-ter-alm" value="12:00">
+                        <label>Saída</label><input type="time" id="f-ter-sai" value="18:00">
+                    </div>
+                    <div class="schedule-day"><h4>Quarta</h4>
+                        <label>Entrada</label><input type="time" id="f-qua-ent" value="08:00">
+                        <label>Almoço</label><input type="time" id="f-qua-alm" value="12:00">
+                        <label>Saída</label><input type="time" id="f-qua-sai" value="18:00">
+                    </div>
+                    <div class="schedule-day"><h4>Quinta</h4>
+                        <label>Entrada</label><input type="time" id="f-qui-ent" value="08:00">
+                        <label>Almoço</label><input type="time" id="f-qui-alm" value="12:00">
+                        <label>Saída</label><input type="time" id="f-qui-sai" value="18:00">
+                    </div>
+                    <div class="schedule-day"><h4>Sexta</h4>
+                        <label>Entrada</label><input type="time" id="f-sex-ent" value="08:00">
+                        <label>Almoço</label><input type="time" id="f-sex-alm" value="12:00">
+                        <label>Saída</label><input type="time" id="f-sex-sai" value="18:00">
+                    </div>
+                    <div class="schedule-day"><h4>Sábado</h4>
+                        <label>Entrada</label><input type="time" id="f-sab-ent" value="08:00">
+                        <label>Saída</label><input type="time" id="f-sab-sai" value="12:00">
+                    </div>
+                    <div class="schedule-day"><h4>Domingo</h4>
+                        <label>Entrada</label><input type="time" id="f-dom-ent" value="08:00">
+                        <label>Saída</label><input type="time" id="f-dom-sai" value="12:00">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Dependentes -->
+        <div class="pf-pane" id="tab-dependentes">
+            <div class="pf-card">
+                <div style="overflow-x:auto;">
+                    <table class="dp-table">
+                        <thead><tr><th>ID</th><th>Nome</th><th>CPF</th><th>Nascimento</th><th>Grau</th><th>IRRF</th><th>Sal. Família</th><th>Ações</th></tr></thead>
+                        <tbody id="tabela-dependentes"></tbody>
+                    </table>
+                </div>
+                <div class="dp-inline-form">
+                    <input type="hidden" id="dp-id" value="">
+                    <input type="text" id="dp-nome" placeholder="Nome">
+                    <input type="text" id="dp-cpf" data-mask="cpf" placeholder="CPF" style="width:140px">
+                    <input type="date" id="dp-data-nasc">
+                    <select id="dp-tipo">
+                        <option value="">Grau</option><option value="filho">Filho(a)</option><option value="conjuge">Cônjuge</option>
+                        <option value="pai">Pai</option><option value="mae">Mãe</option><option value="outro">Outro</option>
+                    </select>
+                    <label style="font-size:.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="dp-irrf" style="width:auto"> IRRF</label>
+                    <label style="font-size:.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="dp-sal-familia" style="width:auto"> Sal. Família</label>
+                    <button class="so-btn primary" onclick="salvarDependente()">Salvar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Filiais -->
+        <div class="pf-pane" id="tab-filiais">
+            <div class="pf-card">
+                <div class="pf-grid">
+                    <div class="field"><label for="fl-nome">Nome</label><input class="form-input" type="text" id="fl-nome" placeholder="Nome da filial"></div>
+                    <div class="field"><label for="fl-endereco">Endereço</label><input class="form-input" type="text" id="fl-endereco" placeholder="Endereço"></div>
+                    <div class="field"><label for="fl-responsavel">Responsável</label><input class="form-input" type="text" id="fl-responsavel" placeholder="Responsável"></div>
+                    <div class="field"><label for="fl-empresa-id">Empresa</label>
+                        <select class="form-input" id="fl-empresa-id"><option value="">Selecionar...</option></select></div>
+                </div>
+                <input type="hidden" id="fl-id" value="">
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                    <button class="so-btn primary" onclick="salvarFilial()">Salvar Filial</button>
+                    <button class="so-btn" onclick="limparFormFilial()">Limpar</button>
+                </div>
+                <div style="overflow-x:auto;margin-top:16px;">
+                    <table class="dp-table">
+                        <thead><tr><th>ID</th><th>Nome</th><th>Endereço</th><th>Responsável</th><th>Empresa</th><th>Ações</th></tr></thead>
+                        <tbody id="tabela-filiais"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Histórico -->
+        <div class="pf-pane" id="tab-historico">
+            <div class="pf-card">
+                <h4 class="pf-section-title">Histórico Salarial</h4>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Registra cada alteração salarial com data de início de vigência (RFC-002 §3.3).</p>
+                <div style="overflow-x:auto;">
+                    <table class="dp-table">
+                        <thead><tr><th>ID</th><th>Salário</th><th>Início</th><th>Fim</th><th>Status</th></tr></thead>
+                        <tbody id="tabela-salarios"></tbody>
+                    </table>
+                </div>
+                <div class="dp-inline-form">
+                    <input type="text" id="sl-salario" data-mask="moeda" inputmode="decimal" placeholder="Salário R$" style="width:140px">
+                    <input type="date" id="sl-data-inicio">
+                    <button class="so-btn primary" onclick="salvarSalario()">Registrar Salário</button>
+                </div>
+            </div>
+            <div class="pf-card" style="margin-top:14px;">
+                <h4 class="pf-section-title">Movimentações Contratuais</h4>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Alterações de cargo e departamento com data de vigência (RFC-002 §3.3 / RFC-016).</p>
+                <div style="display:flex;gap:8px;margin-bottom:10px;">
+                    <select class="form-input" id="mv-tipo" onchange="carregarMovimentacoes()" style="max-width:160px">
+                        <option value="cargo">Cargo</option><option value="departamento">Departamento</option>
+                    </select>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="dp-table">
+                        <thead><tr><th>ID</th><th>Tipo</th><th>Valor (ID)</th><th>Início</th><th>Fim</th><th>Status</th></tr></thead>
+                        <tbody id="tabela-movimentacoes"></tbody>
+                    </table>
+                </div>
+                <div class="dp-inline-form">
+                    <input type="text" id="mv-valor-referencia" inputmode="numeric" placeholder="ID cargo/departamento" style="width:180px">
+                    <input type="date" id="mv-data-inicio">
+                    <button class="so-btn primary" onclick="salvarMovimentacao()">Registrar</button>
+                </div>
+            </div>
+        </div>
+
+        <input type="hidden" id="f-id" value="">
+    </div>
 </div>
 
-<!-- Aba 3: Financeiro -->
-<div id="tab-financeiro" class="tab-content">
-<div class="form-grid">
-<div class="form-row"><label>Salario (R$):</label><input type="text" id="f-salario" data-mask="moeda" inputmode="decimal" placeholder="R$ 0,00"></div>
-<div class="form-row"><label>Forma Pagamento:</label>
-<select id="f-forma-pagamento"><option value="">Selecionar...</option>
-<option value="Mensalista">Mensalista</option><option value="Horista">Horista</option>
-<option value="Diarista">Diarista</option><option value="Comissao">Comissao</option>
-</select></div>
-<div class="form-row"><label>Meio Pagamento:</label>
-<select id="f-meio-pagamento"><option value="">Selecionar...</option>
-<option value="Deposito">Deposito</option><option value="TED">TED</option>
-<option value="Pix">Pix</option><option value="Dinheiro">Dinheiro</option><option value="Cheque">Cheque</option>
-</select></div>
-<div class="form-row"><label>Carga Hor. Mensal:</label><input type="number" id="f-carga-horaria" min="0" max="500" placeholder="Ex: 220"></div>
-<div class="form-row"><label>Banco:</label><input type="text" id="f-banco" placeholder="Ex: Banco do Brasil"></div>
-<div class="form-row"><label>Agencia:</label><input type="text" id="f-agencia" placeholder="Ex: 1234-5"></div>
-<div class="form-row"><label>Conta:</label><input type="text" id="f-conta" placeholder="Ex: 12345-6"></div>
-<div class="form-row" style="grid-column:1/-1;display:flex;gap:10px;">
-<label style="min-width:auto;">Digito:</label><input type="text" id="f-conta-digito" style="width:60px;flex:none;" maxlength="3" placeholder="0">
-<label style="min-width:auto;margin-left:10px;">Tipo:</label>
-<select id="f-conta-tipo" style="width:150px;flex:none;">
-<option value="">Selecione</option><option value="corrente">Corrente</option><option value="poupanca">Poupanca</option><option value="pagamento">Pagamento</option>
-</select>
-</div>
-<div class="form-row"><label>Pix:</label><input type="text" id="f-pix" placeholder="CPF, CNPJ, email ou telefone"></div>
-<h3 style="font-size:.9rem;color:#1a237e;margin:6px 0;grid-column:1/-1;">Beneficios</h3>
-<div class="form-row"><label>Optante VT:</label>
-<select id="f-vt-optante"><option value="">Nao</option><option value="S">Sim</option></select></div>
-<div class="form-row"><label>Vale-Transporte (R$):</label><input type="text" id="f-vt-desconto" data-mask="moeda" inputmode="decimal" value="0" placeholder="R$ 0,00"></div>
-<div class="form-row"><label>VT Dias/mes:</label><input type="number" id="f-vt-dias" min="0" max="31" value="22" placeholder="22"></div>
-<div class="form-row"><label>Vale-Refeicao (R$):</label><input type="text" id="f-vr" data-mask="moeda" inputmode="decimal" value="0" placeholder="R$ 0,00"></div>
-<div class="form-row"><label>Plano Saude:</label><input type="text" id="f-plano-saude" placeholder="Nome do plano"></div>
-<div class="form-row"><label>Plano Saude (R$):</label><input type="text" id="f-plano-saude-valor" data-mask="moeda" inputmode="decimal" value="0" placeholder="R$ 0,00"></div>
-<h3 style="font-size:.9rem;color:#1a237e;margin:6px 0;grid-column:1/-1;">Pensao Alimenticia</h3>
-<div class="form-row"><label>Tipo:</label>
-<select id="f-pensao-tipo" onchange="togglePensaoMask()"><option value="">Nenhuma</option>
-<option value="P">Percentual do salario</option><option value="V">Valor fixo</option>
-</select></div>
-<div class="form-row"><label>Pensao (R$ ou %):</label><input type="number" id="f-pensao-valor" step="0.01" min="0" value="0" placeholder="0.00"></div>
-<h3 style="font-size:.9rem;color:#1a237e;margin:6px 0;grid-column:1/-1;">Observacoes</h3>
-<div class="form-row" style="grid-column:1/-1;"><textarea id="f-observacoes" style="width:100%;min-height:60px;" placeholder="Observacoes gerais"></textarea></div>
-</div>
-</div>
+            </div><!-- workspace-view -->
 
-<!-- Aba 4: Acesso -->
-<div id="tab-acesso" class="tab-content">
-<div class="form-grid">
-<div class="form-row"><label>Usuario:</label><input type="text" id="f-usuario" placeholder="Usuario de login"></div>
-<div class="form-row"><label>Senha:</label><input type="password" id="f-senha" placeholder="********"></div>
-<div class="form-row"><label>Cargo:</label>
-<select id="f-cargo"><option value="">Selecionar...</option>
-<option value="caixa">Caixa</option><option value="vendedor">Vendedor</option><option value="gerente">Gerente</option>
-</select></div>
-<div class="form-row"><label>Filial:</label>
-<select id="f-filial-id"><option value="0">Matriz</option></select></div>
-<div class="form-row"><label>Empresa:</label><input type="text" id="f-empresa" readonly placeholder="(herdada da filial)"></div>
-<div class="form-row"><label>Supervisor (gerente):</label>
-<select id="f-supervisor-id"><option value="">Nenhum</option></select></div>
-<div class="form-row"><label>Data Adm.:</label><input type="date" id="f-data-adm"></div>
-<div class="form-row"><label>Data Dem.:</label><input type="date" id="f-data-dem"></div>
-</div>
-</div>
-
-<!-- Aba 5: Horarios -->
-<div id="tab-horarios" class="tab-content">
-<div class="switch-row">
-<label><input type="checkbox" id="f-trab-sab" onchange="toggleFimDeSemana()"> Trabalha Sabado</label>
-<label><input type="checkbox" id="f-trab-dom" onchange="toggleFimDeSemana()"> Trabalha Domingo</label>
-</div>
-<div class="schedule-grid" id="schedule-grid">
-<div class="day-card">
-<h4>Segunda</h4>
-<label>Entrada</label><input type="time" id="f-seg-ent" value="08:00">
-<label>Almoco</label><input type="time" id="f-seg-alm" value="12:00">
-<label>Saida</label><input type="time" id="f-seg-sai" value="18:00">
-</div>
-<div class="day-card">
-<h4>Terca</h4>
-<label>Entrada</label><input type="time" id="f-ter-ent" value="08:00">
-<label>Almoco</label><input type="time" id="f-ter-alm" value="12:00">
-<label>Saida</label><input type="time" id="f-ter-sai" value="18:00">
-</div>
-<div class="day-card">
-<h4>Quarta</h4>
-<label>Entrada</label><input type="time" id="f-qua-ent" value="08:00">
-<label>Almoco</label><input type="time" id="f-qua-alm" value="12:00">
-<label>Saida</label><input type="time" id="f-qua-sai" value="18:00">
-</div>
-<div class="day-card">
-<h4>Quinta</h4>
-<label>Entrada</label><input type="time" id="f-qui-ent" value="08:00">
-<label>Almoco</label><input type="time" id="f-qui-alm" value="12:00">
-<label>Saida</label><input type="time" id="f-qui-sai" value="18:00">
-</div>
-<div class="day-card">
-<h4>Sexta</h4>
-<label>Entrada</label><input type="time" id="f-sex-ent" value="08:00">
-<label>Almoco</label><input type="time" id="f-sex-alm" value="12:00">
-<label>Saida</label><input type="time" id="f-sex-sai" value="18:00">
-</div>
-<div class="day-card">
-<h4>Sabado</h4>
-<label>Entrada</label><input type="time" id="f-sab-ent" value="08:00">
-<label>Saida</label><input type="time" id="f-sab-sai" value="12:00">
-</div>
-<div class="day-card">
-<h4>Domingo</h4>
-<label>Entrada</label><input type="time" id="f-dom-ent" value="08:00">
-<label>Saida</label><input type="time" id="f-dom-sai" value="12:00">
-</div>
-</div>
-</div>
-
-<input type="hidden" id="f-id" value="">
-<div style="display:flex;gap:8px;margin-top:14px;">
-<button class="btn btn-success" onclick="salvarFuncionario()">Salvar</button>
-<button class="btn" style="background:#f5f5f5;" onclick="limparForm()">Limpar</button>
-</div>
-</div>
-
-<div class="card">
-<h2>Filiais</h2>
-<div class="form-grid">
-<div class="form-row"><label>Nome:</label><input type="text" id="fl-nome" placeholder="Nome da filial"></div>
-<div class="form-row"><label>Endereco:</label><input type="text" id="fl-endereco" placeholder="Endereco"></div>
-<div class="form-row"><label>Responsavel:</label><input type="text" id="fl-responsavel" placeholder="Responsavel"></div>
-<div class="form-row"><label>Empresa:</label>
-<select id="fl-empresa-id"><option value="">Selecionar...</option></select></div>
-</div>
-<input type="hidden" id="fl-id" value="">
-<div style="display:flex;gap:8px;margin-top:10px;">
-<button class="btn btn-success" onclick="salvarFilial()">Salvar Filial</button>
-<button class="btn" style="background:#f5f5f5;" onclick="limparFormFilial()">Limpar</button>
-</div>
-<div style="overflow-x:auto;margin-top:16px;">
-<table><thead><tr><th>ID</th><th>Nome</th><th>Endereco</th><th>Responsavel</th><th>Empresa</th><th>Acoes</th></tr></thead>
-<tbody id="tabela-filiais"></tbody>
-</table>
-</div>
-</div>
-
-<div class="card">
-<h2>Funcionarios Cadastrados</h2>
-<div style="overflow-x:auto;">
-<table><thead><tr>
-<th>ID</th><th>Foto</th><th>Nome</th><th>Cargo</th><th>Celular</th><th>Email</th>
-<th>Tipo Sanguineo</th><th>Data Adm.</th><th>Vinculo</th><th>Salario</th><th>Banco</th><th>Pix</th>
-<th>Horario</th><th>Empresa</th><th>Supervisor</th><th>Acoes</th>
-</tr></thead>
-<tbody id="tabela-funcionarios"></tbody>
-</table>
-</div>
-</div>
-
-<div class="card" id="card-dependentes" style="display:none;">
-<h2>Dependentes</h2>
-<div style="margin-bottom:10px;">
-<select id="dp-funcionario-id" onchange="carregarDependentes()"><option value="">Selecionar funcionario...</option></select>
-</div>
-<div style="overflow-x:auto;">
-<table><thead><tr><th>ID</th><th>Nome</th><th>CPF</th><th>Data Nasc</th><th>Grau</th><th>IRRF</th><th>Sal. Familia</th><th>Acoes</th></tr></thead>
-<tbody id="tabela-dependentes"></tbody>
-</table>
-</div>
-<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;" id="dp-form">
-<input type="hidden" id="dp-id" value="">
-<input type="text" id="dp-nome" placeholder="Nome" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
-<input type="text" id="dp-cpf" data-mask="cpf" placeholder="CPF" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:140px;">
-<input type="date" id="dp-data-nasc" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
-<select id="dp-tipo" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
-<option value="">Grau</option><option value="filho">Filho(a)</option><option value="conjuge">Conjuge</option><option value="pai">Pai</option><option value="mae">Mae</option><option value="outro">Outro</option>
-</select>
-<label style="font-size:.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="dp-irrf" style="width:auto;"> IRRF</label>
-<label style="font-size:.8rem;display:flex;align-items:center;gap:4px;"><input type="checkbox" id="dp-sal-familia" style="width:auto;"> Sal. Familia</label>
-<button class="btn btn-sm btn-success" onclick="salvarDependente()">Salvar</button>
-</div>
-</div>
-
-<div class="card" id="card-salarios" style="display:none;">
-<h2>Historico de Salarios (vigencia)</h2>
-<p style="font-size:.8rem;color:#666;margin-bottom:10px;">Registra cada alteracao salarial com data de inicio de vigencia (RFC-002 §3.3). O salario vigente de uma competencia e usado no processamento da folha.</p>
-<div style="margin-bottom:10px;">
-<select id="sl-funcionario-id" onchange="carregarSalarios()"><option value="">Selecionar funcionario...</option></select>
-</div>
-<div style="overflow-x:auto;">
-<table><thead><tr><th>ID</th><th>Salario</th><th>Vigencia Inicio</th><th>Vigencia Fim</th><th>Status</th></tr></thead>
-<tbody id="tabela-salarios"></tbody>
-</table>
-</div>
-<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;" id="sl-form">
-<input type="text" id="sl-salario" data-mask="moeda" inputmode="decimal" placeholder="Salario R$" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:140px;">
-<input type="date" id="sl-data-inicio" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
-<button class="btn btn-sm btn-success" onclick="salvarSalario()">Registrar Salario</button>
-</div>
-</div>
-
-<div class="card" id="card-movimentacoes" style="display:none;">
-<h2>Movimentacoes Contratuais (cargo/departamento)</h2>
-<p style="font-size:.8rem;color:#666;margin-bottom:10px;">Alteracoes de cargo e departamento com data de vigencia (RFC-002 §3.3 / RFC-016). Sao independentes do salario.</p>
-<div style="margin-bottom:10px;">
-<select id="mv-funcionario-id" onchange="carregarMovimentacoes()"><option value="">Selecionar funcionario...</option></select>
-<select id="mv-tipo" onchange="carregarMovimentacoes()">
-<option value="cargo">Cargo</option>
-<option value="departamento">Departamento</option>
-</select>
-</div>
-<div style="overflow-x:auto;">
-<table><thead><tr><th>ID</th><th>Tipo</th><th>Valor (id)</th><th>Vigencia Inicio</th><th>Vigencia Fim</th><th>Status</th></tr></thead>
-<tbody id="tabela-movimentacoes"></tbody>
-</table>
-</div>
-<div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;" id="mv-form">
-<input type="text" id="mv-valor-referencia" inputmode="numeric" placeholder="Id do cargo/departamento" style="padding:6px;border:1px solid #ccc;border-radius:4px;width:200px;">
-<input type="date" id="mv-data-inicio" style="padding:6px;border:1px solid #ccc;border-radius:4px;">
-<button class="btn btn-sm btn-success" onclick="salvarMovimentacao()">Registrar Movimentacao</button>
-</div>
-</div>
-</main>
+            <div class="status-bar" style="border-radius:0 0 var(--radius-panel) var(--radius-panel)">
+                <div class="status-bar-left">
+                    <span id="status-user-info">Usuário: Administrador</span>
+                </div>
+                <div class="status-bar-right">
+                    <span>Versão 1.0.0</span>
+                </div>
+            </div>
+        </div><!-- workspace -->
+    </div><!-- main-area -->
+</div><!-- app -->
 
 <div id="toast" class="toast"></div>
 
-<script src="../js/masks.js"></script>
-
-<script>
-const CARGO_LABEL = {caixa:'Caixa', vendedor:'Vendedor', gerente:'Gerente'};
-const DAYS = ['seg','ter','qua','qui','sex','sab','dom'];
-let filiais = [];
-let empresas = [];
-let empresaLabels = [];
-
-function mostrarToast(msg, tipo) {
-const t = document.getElementById('toast');
-t.textContent = msg;
-t.className = 'toast ' + tipo;
-t.style.display = 'block';
-setTimeout(() => t.style.display = 'none', 3000);
-}
-
-function toggleFimDeSemana() {
-const trabSab = document.getElementById('f-trab-sab').checked;
-const trabDom = document.getElementById('f-trab-dom').checked;
-['f-sab-ent','f-sab-sai'].forEach(id => document.getElementById(id).disabled = !trabSab);
-['f-dom-ent','f-dom-sai'].forEach(id => document.getElementById(id).disabled = !trabDom);
-}
-
-function getTime(id) { return document.getElementById(id).value || ''; }
-
-function togglePensaoMask() {
-const tipo = document.getElementById('f-pensao-tipo').value;
-const el = document.getElementById('f-pensao-valor');
-if (tipo === 'V') {
-el.type = 'text';
-el.setAttribute('data-mask', 'moeda');
-el.value = (el.value && Number(el.value) > 0) ? Mascaras.fmtMoeda(String(Math.round(Number(el.value) * 100))) : 'R$ 0,00';
-Mascaras.aplicar('f-pensao-valor');
-} else {
-el.removeAttribute('data-mask');
-el.type = 'number';
-el.value = (el.value && Mascaras.limparMoeda(el.value)) ? Mascaras.limparMoeda(el.value) : '0';
-}
-}
-
-async function uploadFoto(input) {
-const file = input.files[0];
-if (!file) return;
-const ext = file.name.split('.').pop() || 'jpg';
-const reader = new FileReader();
-reader.onload = async function(e) {
-const base64 = e.target.result.split(',')[1];
-try {
-const r = await fetch('/api/funcionario/upload', {
-method:'POST', headers:{'Content-Type':'application/json'},
-body:JSON.stringify({type:'foto',data:base64,ext:ext})
-});
-const data = await r.json();
-if (data.status === 'ok') {
-document.getElementById('f-foto').value = data.filename;
-document.getElementById('foto-preview').src = data.url;
-} else mostrarToast(data.mensagem||'Erro upload', 'error');
-} catch(e) { mostrarToast('Erro ao enviar foto', 'error'); }
-};
-reader.readAsDataURL(file);
-}
-
-async function uploadCurriculo(input) {
-const file = input.files[0];
-if (!file) return;
-const ext = file.name.split('.').pop() || 'pdf';
-const reader = new FileReader();
-reader.onload = async function(e) {
-const base64 = e.target.result.split(',')[1];
-try {
-const r = await fetch('/api/funcionario/upload', {
-method:'POST', headers:{'Content-Type':'application/json'},
-body:JSON.stringify({type:'curriculo',data:base64,ext:ext})
-});
-const data = await r.json();
-if (data.status === 'ok') {
-document.getElementById('f-curriculo').value = data.filename;
-document.getElementById('curriculo-nome').textContent = file.name;
-} else mostrarToast(data.mensagem||'Erro upload', 'error');
-} catch(e) { mostrarToast('Erro ao enviar curriculo', 'error'); }
-};
-reader.readAsDataURL(file);
-}
-
-function ativarAbaForm(btn, id) {
-document.querySelectorAll('#tab-pessoal,#tab-documentos,#tab-financeiro,#tab-acesso,#tab-horarios').forEach(el => el.classList.remove('active'));
-document.querySelectorAll('.tabs .tab').forEach(el => el.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-btn.classList.add('active');
-}
-
-function limparForm() {
-['f-id','f-nome','f-cpf','f-rg','f-data-nasc','f-celular','f-tel-comercial','f-email','f-email-particular',
-'f-endereco','f-usuario','f-senha','f-data-adm','f-data-dem','f-salario','f-foto','f-contato-emerg-nome','f-contato-emerg-tel','f-curriculo','f-tipo-sanguineo','f-banco','f-agencia','f-conta','f-conta-digito','f-conta-tipo','f-pix','f-pis','f-ctps','f-ctps-serie','f-ctps-uf','f-cbo','f-grau-instrucao','f-tipo-contrato','f-motivo-deslig','f-vt-desconto','f-vt-dias','f-vr','f-plano-saude','f-plano-saude-valor','f-rg-orgao','f-rg-uf','f-titulo-eleitor','f-sexo','f-estado-civil','f-nacionalidade','f-cep','f-cidade','f-uf','f-situacao-vinculo','f-departamento','f-data-posse-cargo','f-exame-adm-venc','f-forma-pagamento','f-meio-pagamento','f-carga-horaria','f-pensao-tipo','f-pensao-valor','f-observacoes','f-vt-optante'].forEach(id => {
-const el = document.getElementById(id);
-if (el) el.value = '';
-});
-document.getElementById('foto-preview').src = '/img/sem-foto.png';
-document.getElementById('curriculo-nome').textContent = '';
-document.getElementById('f-filial-id').value = '0';
-document.getElementById('f-empresa').value = '';
-document.getElementById('f-supervisor-id').value = '';
-document.getElementById('f-cargo').value = '';
-document.getElementById('f-trab-sab').checked = false;
-document.getElementById('f-trab-dom').checked = false;
-['f-seg-ent','f-seg-alm','f-seg-sai','f-ter-ent','f-ter-alm','f-ter-sai',
-'f-qua-ent','f-qua-alm','f-qua-sai','f-qui-ent','f-qui-alm','f-qui-sai',
-'f-sex-ent','f-sex-alm','f-sex-sai'].forEach(id => document.getElementById(id).value = '08:00');
-['f-sab-ent','f-dom-ent'].forEach(id => document.getElementById(id).value = '08:00');
-['f-sab-sai','f-dom-sai'].forEach(id => document.getElementById(id).value = '12:00');
-document.getElementById('form-titulo').textContent = 'Cadastrar Funcionario';
-toggleFimDeSemana();
-togglePensaoMask();
-}
-
-async function carregarFiliais() {
-try {
-const r = await fetch('/api/filiais');
-const data = await r.json();
-filiais = data.filiais || [];
-const sel = document.getElementById('f-filial-id');
-sel.innerHTML = '<option value="0">Matriz</option>' + filiais.map(f =>
-'<option value="' + f.id + '">' + f.nome + '</option>'
-).join('');
-sel.addEventListener('change', mostrarEmpresaDaFilial);
-mostrarEmpresaDaFilial();
-} catch(e) {}
-}
-
-function mostrarEmpresaDaFilial() {
-const sel = document.getElementById('f-filial-id');
-const id = sel.value;
-const f = filiais.find(x => String(x.id) === String(id));
-const emp = document.getElementById('f-empresa');
-emp.value = (f && f.empresa_id) ? empresaLabel(f.empresa_id) : 'Matriz';
-}
-
-async function carregarSupervisores() {
-try {
-const r = await fetch('/api/funcionarios');
-const data = await r.json();
-const funcs = data.funcionarios || [];
-const sel = document.getElementById('f-supervisor-id');
-const atual = sel.value;
-sel.innerHTML = '<option value="">Nenhum</option>' + funcs
-.filter(f => (f.permissoes || '').trim().toLowerCase() === 'gerente')
-.map(f => '<option value="' + f.id + '">' + (f.nome || 'Func. ' + f.id) + '</option>').join('');
-if (atual) sel.value = atual;
-} catch(e) {}
-}
-
-async function carregarEmpresas() {
-try {
-const token = localStorage.getItem('auth_token') || '';
-const r = await fetch('/api/auth/minhas-empresas', { headers: { 'X-Auth-Token': token } });
-const data = await r.json();
-empresas = data.empresas || [];
-empresaLabels = empresas.map(e => e.nome_fantasia || e.nome_razao || e.nome || e.id || '');
-const sel = document.getElementById('fl-empresa-id');
-const atual = sel.value;
-sel.innerHTML = '<option value="">Selecionar...</option>' + empresas.map((e, i) =>
-'<option value="' + (i + 1) + '">' + empresaLabels[i] + '</option>').join('');
-if (atual) sel.value = atual;
-} catch(e) {}
-}
-
-function empresaLabel(empresaId) {
-if (!empresaId) return 'Matriz';
-const i = parseInt(empresaId, 10) - 1;
-return empresaLabels[i] || ('Empresa #' + empresaId);
-}
-
-async function carregarFiliaisTabela() {
-try {
-const r = await fetch('/api/filiais');
-const data = await r.json();
-filiais = data.filiais || [];
-const tbody = document.getElementById('tabela-filiais');
-if (filiais.length === 0) {
-tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">Nenhuma filial</td></tr>';
-} else {
-tbody.innerHTML = filiais.map(f =>
-'<tr><td>' + f.id + '</td><td>' + (f.nome || '') + '</td><td>' + (f.endereco || '') + '</td><td>' + (f.responsavel || '') + '</td><td>' + empresaLabel(f.empresa_id) + '</td>' +
-'<td style="white-space:nowrap;">' +
-'<button class="btn btn-sm btn-primary" onclick="editarFilial(' + f.id + ')">Editar</button> ' +
-'<button class="btn btn-sm btn-danger" onclick="excluirFilial(' + f.id + ')">Excluir</button>' +
-'</td></tr>').join('');
-}
-} catch(e) { mostrarToast('Erro ao carregar filiais', 'error'); }
-}
-
-function limparFormFilial() {
-document.getElementById('fl-id').value = '';
-document.getElementById('fl-nome').value = '';
-document.getElementById('fl-endereco').value = '';
-document.getElementById('fl-responsavel').value = '';
-document.getElementById('fl-empresa-id').value = '';
-}
-
-async function salvarFilial() {
-const id = document.getElementById('fl-id').value;
-const isEdit = id !== '';
-const nome = document.getElementById('fl-nome').value.trim();
-if (!nome) { mostrarToast('Nome da filial obrigatorio', 'error'); return; }
-const params = new URLSearchParams();
-params.set('nome', nome);
-params.set('endereco', document.getElementById('fl-endereco').value.trim());
-params.set('responsavel', document.getElementById('fl-responsavel').value.trim());
-params.set('empresa_id', document.getElementById('fl-empresa-id').value);
-if (isEdit) params.set('id', id);
-const endpoint = isEdit ? '/api/filial/alterar' : '/api/filial/incluir';
-try {
-const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
-const data = await r.json();
-if (data.status === 'ok' || data.id) { mostrarToast('Filial salva!', 'success'); limparFormFilial(); carregarFiliaisTabela(); carregarFiliais(); }
-else mostrarToast(data.message || data.mensagem || 'Erro', 'error');
-} catch(e) { mostrarToast('Erro ao salvar filial', 'error'); }
-}
-
-function editarFilial(id) {
-const f = filiais.find(x => String(x.id) === String(id));
-if (!f) { mostrarToast('Filial nao encontrada', 'error'); return; }
-document.getElementById('fl-id').value = f.id;
-document.getElementById('fl-nome').value = f.nome || '';
-document.getElementById('fl-endereco').value = f.endereco || '';
-document.getElementById('fl-responsavel').value = f.responsavel || '';
-document.getElementById('fl-empresa-id').value = f.empresa_id || '';
-window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-async function excluirFilial(id) {
-if (!confirm('Excluir filial #' + id + '?')) return;
-const params = new URLSearchParams(); params.set('id', id);
-try {
-const r = await fetch('/api/filial/excluir', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params });
-const data = await r.json();
-if (data.status === 'ok') { mostrarToast('Filial excluida!', 'success'); carregarFiliaisTabela(); carregarFiliais(); }
-else mostrarToast(data.message || data.mensagem || 'Erro', 'error');
-} catch(e) { mostrarToast('Erro ao excluir filial', 'error'); }
-}
-
-function formatHorario(func) {
-if (!func) return '-';
-const dias = [];
-DAYS.forEach(d => {
-const ent = func[d + '_ent'];
-const sai = func[d + '_sai'];
-if (ent || sai) {
-const label = {seg:'2',ter:'3',qua:'4',qui:'5',sex:'6',sab:'S',dom:'D'}[d];
-dias.push(label + ' ' + (ent || '--') + '-' + (sai || '--'));
-}
-});
-if (dias.length === 0) return '2-6 08:00-18:00';
-return dias.join(' ');
-}
-
-async function carregarFuncionarios() {
-try {
-const r = await fetch('/api/funcionarios');
-const data = await r.json();
-const tbody = document.getElementById('tabela-funcionarios');
-const funcs = data.funcionarios || [];
-if (funcs.length === 0) {
-tbody.innerHTML = '<tr><td colspan="16" style="text-align:center;color:#888;padding:30px;">Nenhum funcionario cadastrado</td></tr>';
-return;
-}
-tbody.innerHTML = funcs.map(f => {
-const cargo = f.cargo_nome || CARGO_LABEL[f.permissoes] || f.permissoes || '---';
-const salario = f.salario ? 'R$ ' + parseFloat(f.salario).toFixed(2) : '-';
-const horario = formatHorario(f);
-const fotoUrl = f.foto ? '/uploads/funcionarios/' + f.foto : '/img/sem-foto.png';
-const tipoS = f.tipo_sanguineo || '-';
-const bancoLabel = f.banco ? (f.conta ? f.banco.substr(0,10) : f.banco.substr(0,10)) : '-';
-const pixLabel = f.pix ? (f.pix.length > 12 ? f.pix.substr(0,10)+'...' : f.pix) : '-';
-const desligado = (f.situacao_vinculo || '').trim() === 'desligado';
-return '<tr>' +
-'<td>' + f.id + '</td>' +
-'<td><img src="' + fotoUrl + '" style="width:32px;height:32px;object-fit:cover;border-radius:50%;border:1px solid #ddd;"></td>' +
-'<td>' + (f.nome || '') + (desligado ? ' <span style="display:inline-block;background:#c62828;color:#fff;font-size:.6rem;padding:1px 6px;border-radius:8px;vertical-align:middle;">DESLIGADO</span>' : '') + '</td>' +
-'<td>' + cargo + '</td>' +
-'<td>' + (f.celular || '') + '</td>' +
-'<td>' + (f.email || '') + '</td>' +
-'<td>' + tipoS + '</td>' +
-'<td>' + (f.data_adm || '') + '</td>' +
-'<td>' + (desligado ? '<span style="color:#c62828;font-weight:600;">Desligado</span><div style="font-size:.7rem;color:#888;">' + (f.data_dem || '') + '</div>' : '<span style="color:#2e7d32;">Ativo</span>') + '</td>' +
-'<td>' + salario + '</td>' +
-'<td style="font-size:.75rem;">' + bancoLabel + '</td>' +
-'<td style="font-size:.75rem;">' + pixLabel + '</td>' +
-'<td style="font-size:.75rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + horario + '">' + horario + '</td>' +
-'<td>' + (f.empresa_nome || (f.empresa_id ? 'Empresa #' + f.empresa_id : 'Matriz')) + '</td>' +
-'<td>' + (f.supervisor_nome || '') + '</td>' +
-'<td style="white-space:nowrap;">' +
-'<button class="btn btn-sm btn-primary" onclick="editarFuncionario(' + f.id + ')">Editar</button> ' +
-(desligado
-? '<button class="btn btn-sm btn-success" onclick="reativarFuncionario(' + f.id + ')">Reativar</button>'
-: '<button class="btn btn-sm btn-warning" onclick="abrirModalDesligar(' + f.id + ',\'' + (f.nome || '').replace(/'/g,'') + '\')">Desligar</button>') + ' ' +
-'<button class="btn btn-sm btn-danger" onclick="excluirFuncionario(' + f.id + ')">Excluir</button>' +
-'</td></tr>';
-}).join('');
-} catch(e) { mostrarToast('Erro ao carregar funcionarios', 'error'); }
-}
-
-async function salvarFuncionario() {
-const id = document.getElementById('f-id').value;
-const isEdit = id !== '';
-const nome = document.getElementById('f-nome').value.trim();
-const usuario = document.getElementById('f-usuario').value.trim();
-const senha = document.getElementById('f-senha').value;
-const cargo = document.getElementById('f-cargo').value;
-
-if (!nome) { mostrarToast('Nome obrigatorio', 'error'); return; }
-if (!usuario) { mostrarToast('Usuario obrigatorio', 'error'); return; }
-if (!cargo) { mostrarToast('Selecione um cargo', 'error'); return; }
-if (!isEdit && !senha) { mostrarToast('Senha obrigatoria para novo funcionario', 'error'); return; }
-const cpfVal = document.getElementById('f-cpf').value.trim();
-if (cpfVal) {
-const cpfOk = Mascaras.validarCPF(cpfVal);
-if (cpfOk === false) { mostrarToast('CPF invalido', 'error'); return; }
-}
-const obrigatorios = {
-'f-data-nasc': 'Data de nascimento', 'f-sexo': 'Sexo', 'f-nacionalidade': 'Nacionalidade',
-'f-endereco': 'Endereco', 'f-cep': 'CEP', 'f-cidade': 'Cidade', 'f-uf': 'UF',
-'f-ctps': 'Numero CTPS', 'f-data-adm': 'Data de admissao',
-'f-departamento-id': 'Departamento', 'f-cargo-id': 'Cargo',
-'f-forma-pagamento': 'Forma de pagamento', 'f-salario': 'Salario'
-};
-for (const [id, label] of Object.entries(obrigatorios)) {
-const el = document.getElementById(id);
-if (!el.value) { mostrarToast(label + ' e obrigatorio', 'error'); return; }
-}
-
-const params = new URLSearchParams();
-params.set('nome', nome);
-params.set('usuario', usuario);
-params.set('permissoes', cargo);
-params.set('cpf', document.getElementById('f-cpf').value.trim());
-params.set('rg', document.getElementById('f-rg').value.trim());
-params.set('data_nasc', document.getElementById('f-data-nasc').value);
-params.set('celular', document.getElementById('f-celular').value.trim());
-params.set('email_particular', document.getElementById('f-email-particular').value.trim());
-params.set('tel_comercial', document.getElementById('f-tel-comercial').value.trim());
-params.set('email', document.getElementById('f-email').value.trim());
-params.set('endereco', document.getElementById('f-endereco').value.trim());
-params.set('data_adm', document.getElementById('f-data-adm').value);
-params.set('data_dem', document.getElementById('f-data-dem').value);
-params.set('salario', Mascaras.limparMoeda(document.getElementById('f-salario').value) || '0');
-params.set('filial_id', document.getElementById('f-filial-id').value);
-params.set('supervisor_id', document.getElementById('f-supervisor-id').value);
-params.set('trab_sab', document.getElementById('f-trab-sab').checked ? 'S' : 'N');
-params.set('trab_dom', document.getElementById('f-trab-dom').checked ? 'S' : 'N');
-params.set('foto', document.getElementById('f-foto').value);
-params.set('contato_emerg_nome', document.getElementById('f-contato-emerg-nome').value.trim());
-params.set('contato_emerg_tel', document.getElementById('f-contato-emerg-tel').value.trim());
-params.set('curriculo', document.getElementById('f-curriculo').value);
-params.set('tipo_sanguineo', document.getElementById('f-tipo-sanguineo').value);
-params.set('banco', document.getElementById('f-banco').value.trim());
-params.set('agencia', document.getElementById('f-agencia').value.trim());
-params.set('conta', document.getElementById('f-conta').value.trim());
-params.set('conta_digito', document.getElementById('f-conta-digito').value.trim());
-params.set('conta_tipo', document.getElementById('f-conta-tipo').value);
-params.set('pix', document.getElementById('f-pix').value.trim());
-params.set('pis', document.getElementById('f-pis').value.trim());
-params.set('ctps', document.getElementById('f-ctps').value.trim());
-params.set('ctps_serie', document.getElementById('f-ctps-serie').value.trim());
-params.set('ctps_uf', document.getElementById('f-ctps-uf').value.trim());
-params.set('cbo', document.getElementById('f-cbo').value.trim());
-params.set('grau_instrucao', document.getElementById('f-grau-instrucao').value);
-params.set('tipo_contrato', document.getElementById('f-tipo-contrato').value);
-params.set('motivo_deslig', document.getElementById('f-motivo-deslig').value);
-params.set('vt_desconto', Mascaras.limparMoeda(document.getElementById('f-vt-desconto').value));
-params.set('vt_dias', document.getElementById('f-vt-dias').value || '0');
-params.set('vr', Mascaras.limparMoeda(document.getElementById('f-vr').value) || '0');
-params.set('plano_saude', document.getElementById('f-plano-saude').value.trim());
-params.set('plano_saude_valor', Mascaras.limparMoeda(document.getElementById('f-plano-saude-valor').value) || '0');
-params.set('sexo', document.getElementById('f-sexo').value);
-params.set('estado_civil', document.getElementById('f-estado-civil').value);
-params.set('nacionalidade', document.getElementById('f-nacionalidade').value.trim());
-params.set('rg_orgao', document.getElementById('f-rg-orgao').value.trim());
-params.set('rg_uf', document.getElementById('f-rg-uf').value.trim());
-params.set('titulo_eleitor', document.getElementById('f-titulo-eleitor').value.trim());
-params.set('cep', document.getElementById('f-cep').value.trim());
-params.set('cidade', document.getElementById('f-cidade').value.trim());
-params.set('uf', document.getElementById('f-uf').value.trim());
-params.set('situacao_vinculo', document.getElementById('f-situacao-vinculo').value);
-params.set('departamento_id', document.getElementById('f-departamento-id').value);
-params.set('cargo_id', document.getElementById('f-cargo-id').value);
-params.set('data_posse_cargo', document.getElementById('f-data-posse-cargo').value);
-params.set('forma_pagamento', document.getElementById('f-forma-pagamento').value);
-params.set('meio_pagamento', document.getElementById('f-meio-pagamento').value);
-params.set('carga_horaria', document.getElementById('f-carga-horaria').value || '0');
-params.set('exame_adm_venc', document.getElementById('f-exame-adm-venc').value);
-params.set('observacoes', document.getElementById('f-observacoes').value.trim());
-params.set('pensao_tipo', document.getElementById('f-pensao-tipo').value);
-const pvEl = document.getElementById('f-pensao-valor');
-params.set('pensao_valor', pvEl.getAttribute('data-mask') === 'moeda' ? Mascaras.limparMoeda(pvEl.value) : (pvEl.value || '0'));
-params.set('vt_optante', document.getElementById('f-vt-optante').value);
-['seg','ter','qua','qui','sex'].forEach(d => {
-params.set(d + '_ent', getTime('f-' + d + '-ent'));
-params.set(d + '_alm', getTime('f-' + d + '-alm'));
-params.set(d + '_sai', getTime('f-' + d + '-sai'));
-});
-params.set('sab_ent', getTime('f-sab-ent'));
-params.set('sab_sai', getTime('f-sab-sai'));
-params.set('dom_ent', getTime('f-dom-ent'));
-params.set('dom_sai', getTime('f-dom-sai'));
-if (senha) params.set('senha', senha);
-
-const endpoint = isEdit ? '/api/funcionario/alterar' : '/api/funcionario/incluir';
-if (isEdit) params.set('id', id);
-
-try {
-const r = await fetch(endpoint, {
-method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params
-});
-const data = await r.json();
-if (data.status === 'ok' || data.id) {
-mostrarToast(isEdit ? 'Funcionario atualizado!' : 'Funcionario cadastrado!', 'success');
-limparForm();
-carregarFuncionarios();
-} else {
-mostrarToast(data.mensagem || 'Erro', 'error');
-}
-} catch(e) { mostrarToast('Erro de conexao', 'error'); }
-}
-
-async function editarFuncionario(id) {
-try {
-const r = await fetch('/api/funcionarios');
-const data = await r.json();
-const func = (data.funcionarios || []).find(f => f.id === id);
-if (!func) { mostrarToast('Funcionario nao encontrado', 'error'); return; }
-
-document.getElementById('f-id').value = id;
-document.getElementById('f-nome').value = func.nome || '';
-document.getElementById('f-cpf').value = func.cpf || '';
-document.getElementById('f-rg').value = func.rg || '';
-document.getElementById('f-data-nasc').value = func.data_nasc || '';
-document.getElementById('f-celular').value = func.celular || '';
-document.getElementById('f-email-particular').value = func.email_particular || '';
-document.getElementById('f-tel-comercial').value = func.tel_comercial || '';
-document.getElementById('f-email').value = func.email || '';
-document.getElementById('f-endereco').value = func.endereco || '';
-document.getElementById('f-usuario').value = func.usuario || '';
-document.getElementById('f-senha').value = '';
-document.getElementById('f-cargo').value = func.permissoes || '';
-document.getElementById('f-filial-id').value = func.filial_id || '0';
-document.getElementById('f-empresa').value = func.empresa_nome || (func.empresa_id ? 'Empresa #' + func.empresa_id : '');
-document.getElementById('f-supervisor-id').value = func.supervisor_id || '';
-document.getElementById('f-data-adm').value = func.data_adm || '';
-document.getElementById('f-data-dem').value = func.data_dem || '';
-document.getElementById('f-salario').value = func.salario ? Mascaras.fmtMoeda(String(Math.round(Number(func.salario) * 100))) : '';
-document.getElementById('f-foto').value = func.foto || '';
-document.getElementById('f-contato-emerg-nome').value = func.contato_emerg_nome || '';
-document.getElementById('f-contato-emerg-tel').value = func.contato_emerg_tel || '';
-document.getElementById('f-curriculo').value = func.curriculo || '';
-document.getElementById('f-tipo-sanguineo').value = func.tipo_sanguineo || '';
-document.getElementById('f-banco').value = func.banco || '';
-document.getElementById('f-agencia').value = func.agencia || '';
-document.getElementById('f-conta').value = func.conta || '';
-document.getElementById('f-conta-digito').value = func.conta_digito || '';
-document.getElementById('f-conta-tipo').value = func.conta_tipo || '';
-document.getElementById('f-pix').value = func.pix || '';
-document.getElementById('f-pis').value = func.pis || '';
-document.getElementById('f-ctps').value = func.ctps || '';
-document.getElementById('f-ctps-serie').value = func.ctps_serie || '';
-document.getElementById('f-ctps-uf').value = func.ctps_uf || '';
-document.getElementById('f-cbo').value = func.cbo || '';
-document.getElementById('f-grau-instrucao').value = func.grau_instrucao || '';
-document.getElementById('f-tipo-contrato').value = func.tipo_contrato || '';
-document.getElementById('f-motivo-deslig').value = func.motivo_deslig || '';
-document.getElementById('f-vt-desconto').value = func.vt_desconto ? Mascaras.fmtMoeda(String(Math.round(Number(func.vt_desconto) * 100))) : 'R$ 0,00';
-document.getElementById('f-vt-dias').value = func.vt_dias || '22';
-document.getElementById('f-vt-optante').value = func.vt_optante || '';
-document.getElementById('f-vr').value = func.vr ? Mascaras.fmtMoeda(String(Math.round(Number(func.vr) * 100))) : 'R$ 0,00';
-document.getElementById('f-plano-saude').value = func.plano_saude || '';
-document.getElementById('f-plano-saude-valor').value = func.plano_saude_valor ? Mascaras.fmtMoeda(String(Math.round(Number(func.plano_saude_valor) * 100))) : 'R$ 0,00';
-document.getElementById('f-rg-orgao').value = func.rg_orgao || '';
-document.getElementById('f-rg-uf').value = func.rg_uf || '';
-document.getElementById('f-titulo-eleitor').value = func.titulo_eleitor || '';
-document.getElementById('f-sexo').value = func.sexo || '';
-document.getElementById('f-estado-civil').value = func.estado_civil || '';
-document.getElementById('f-nacionalidade').value = func.nacionalidade || '';
-document.getElementById('f-cep').value = func.cep || '';
-document.getElementById('f-cidade').value = func.cidade || '';
-document.getElementById('f-uf').value = func.uf || '';
-document.getElementById('f-situacao-vinculo').value = func.situacao_vinculo || '';
-document.getElementById('f-departamento-id').value = func.departamento_id || '';
-document.getElementById('f-cargo-id').value = func.cargo_id || '';
-document.getElementById('f-departamento').value = func.departamento || '';
-document.getElementById('f-data-posse-cargo').value = func.data_posse_cargo || '';
-document.getElementById('f-forma-pagamento').value = func.forma_pagamento || '';
-document.getElementById('f-meio-pagamento').value = func.meio_pagamento || '';
-document.getElementById('f-carga-horaria').value = func.carga_horaria || '';
-document.getElementById('f-exame-adm-venc').value = func.exame_adm_venc || '';
-document.getElementById('f-observacoes').value = func.observacoes || '';
-document.getElementById('f-pensao-tipo').value = func.pensao_tipo || '';
-document.getElementById('f-pensao-valor').value = func.pensao_valor || '0';
-togglePensaoMask();
-document.getElementById('foto-preview').src = func.foto ? '/uploads/funcionarios/' + func.foto : '/img/sem-foto.png';
-document.getElementById('curriculo-nome').textContent = func.curriculo ? 'Curriculo anexado' : '';
-document.getElementById('f-trab-sab').checked = func.trab_sab === 'S';
-document.getElementById('f-trab-dom').checked = func.trab_dom === 'S';
-['seg','ter','qua','qui','sex'].forEach(d => {
-document.getElementById('f-' + d + '-ent').value = func[d + '_ent'] || '08:00';
-document.getElementById('f-' + d + '-alm').value = func[d + '_alm'] || '12:00';
-document.getElementById('f-' + d + '-sai').value = func[d + '_sai'] || '18:00';
-});
-document.getElementById('f-sab-ent').value = func.sab_ent || '08:00';
-document.getElementById('f-sab-sai').value = func.sab_sai || '12:00';
-document.getElementById('f-dom-ent').value = func.dom_ent || '08:00';
-document.getElementById('f-dom-sai').value = func.dom_sai || '12:00';
-document.getElementById('form-titulo').textContent = 'Editar Funcionario #' + id;
-toggleFimDeSemana();
-} catch(e) { mostrarToast('Erro ao carregar dados', 'error'); }
-}
-
-async function excluirFuncionario(id) {
-if (!confirm('Excluir funcionario #' + id + '?')) return;
-const params = new URLSearchParams();
-params.set('id', String(id));
-try {
-const r = await fetch('/api/funcionario/excluir', {
-method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: params
-});
-const data = await r.json();
-if (data.status === 'ok') { mostrarToast('Funcionario excluido!', 'success'); carregarFuncionarios(); }
-else { mostrarToast(data.mensagem || 'Erro', 'error'); }
-} catch(e) { mostrarToast('Erro de conexao', 'error'); }
-}
-
-function verificarAcesso() {
-try {
-const saved = localStorage.getItem('pos_usuario');
-if (saved) {
-const user = JSON.parse(saved);
-if (user.tipo === 'usuario') return;
-if ((user.permissoes || '').trim() !== 'gerente') {
-document.querySelector('.card h2').textContent = 'Acesso restrito';
-document.getElementById('tabela-funcionarios').innerHTML = '<tr><td colspan="15" style="text-align:center;color:#888;padding:40px;">Apenas gerentes podem gerenciar funcionarios</td></tr>';
-document.querySelector('.card:first-child').style.display = 'none';
-}
-}
-} catch(e) {}
-}
-
-toggleFimDeSemana();
-carregarEmpresas();
-carregarFiliais();
-carregarFiliaisTabela();
-carregarSupervisores();
-verificarAcesso();
-carregarFuncionarios();
-carregarDepartamentos();
-carregarCargos();
-
-// ---- Dependentes ----
-let dependentesFuncId = '';
-
-async function carregarDependentes() {
-    dependentesFuncId = document.getElementById('dp-funcionario-id').value;
-    if (!dependentesFuncId) { document.getElementById('tabela-dependentes').innerHTML = ''; return; }
-    document.getElementById('card-dependentes').style.display = 'block';
-    try {
-        const r = await fetch('/api/dependentes?funcionario_id=' + dependentesFuncId);
-        const data = await r.json();
-        const deps = data.dependentes || [];
-        const tbody = document.getElementById('tabela-dependentes');
-        if (deps.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">Nenhum dependente</td></tr>';
-        } else {
-            tbody.innerHTML = deps.map(d =>
-                '<tr><td>' + d.id + '</td><td>' + (d.nome || '') + '</td><td>' + (d.cpf || '') + '</td><td>' + (d.data_nasc || '') + '</td>' +
-                '<td>' + (d.grau_parentesco || d.tipo || '') + '</td>' +
-                '<td>' + (d.irrf === 'S' ? '✅' : '') + '</td>' +
-                '<td>' + (d.sal_familia === 'S' ? '✅' : '') + '</td>' +
-                '<td><button class="btn btn-sm btn-primary" onclick="editarDependente(' + d.id + ')">Editar</button> ' +
-                '<button class="btn btn-sm btn-danger" onclick="excluirDependente(' + d.id + ')">Excluir</button></td></tr>'
-            ).join('');
-        }
-    } catch(e) {}
-}
-
-function editarDependente(id) {
-    fetch('/api/dependentes?funcionario_id=' + dependentesFuncId).then(r=>r.json()).then(data => {
-        const d = (data.dependentes||[]).find(x => x.id == id);
-        if (!d) return;
-        document.getElementById('dp-id').value = d.id;
-        document.getElementById('dp-nome').value = d.nome || '';
-        document.getElementById('dp-cpf').value = d.cpf || '';
-        document.getElementById('dp-data-nasc').value = d.data_nasc || '';
-        document.getElementById('dp-tipo').value = d.grau_parentesco || d.tipo || '';
-        document.getElementById('dp-irrf').checked = d.irrf === 'S';
-        document.getElementById('dp-sal-familia').checked = d.sal_familia === 'S';
-    });
-}
-
-async function salvarDependente() {
-    const id = document.getElementById('dp-id').value;
-    const isEdit = id !== '';
-    const params = new URLSearchParams();
-    if (!dependentesFuncId) { mostrarToast('Selecione funcionario','error'); return; }
-    params.set('funcionario_id', dependentesFuncId);
-    params.set('nome', document.getElementById('dp-nome').value.trim());
-    params.set('cpf', document.getElementById('dp-cpf').value.trim());
-    params.set('data_nasc', document.getElementById('dp-data-nasc').value);
-    params.set('grau_parentesco', document.getElementById('dp-tipo').value);
-    params.set('irrf', document.getElementById('dp-irrf').checked ? 'S' : 'N');
-    params.set('sal_familia', document.getElementById('dp-sal-familia').checked ? 'S' : 'N');
-    if (isEdit) params.set('id', id);
-    const endpoint = isEdit ? '/api/dependente/alterar' : '/api/dependente/incluir';
-    try {
-        const r = await fetch(endpoint, {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params});
-        const data = await r.json();
-        if (data.status === 'ok' || data.id) { mostrarToast('Dependente salvo!','success'); document.getElementById('dp-id').value=''; document.getElementById('dp-nome').value=''; document.getElementById('dp-cpf').value=''; document.getElementById('dp-data-nasc').value=''; document.getElementById('dp-tipo').value=''; document.getElementById('dp-irrf').checked=false; document.getElementById('dp-sal-familia').checked=false; carregarDependentes(); }
-        else mostrarToast(data.mensagem||'Erro','error');
-    } catch(e) { mostrarToast('Erro','error'); }
-}
-
-async function excluirDependente(id) {
-    if (!confirm('Excluir dependente #' + id + '?')) return;
-    const params = new URLSearchParams(); params.set('id', id);
-    try {
-        const r = await fetch('/api/dependente/excluir', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params});
-        const data = await r.json();
-        if (data.status === 'ok') { mostrarToast('Dependente excluido!','success'); carregarDependentes(); }
-        else mostrarToast(data.mensagem||'Erro','error');
-    } catch(e) { mostrarToast('Erro','error'); }
-}
-
-// populate dependentes selector
-setTimeout(() => {
-    const sel = document.getElementById('dp-funcionario-id');
-    if (sel) {
-        fetch('/api/funcionarios').then(r=>r.json()).then(data => {
-            sel.innerHTML = '<option value="">Selecionar funcionario...</option>' + (data.funcionarios||[]).map(f => '<option value="'+f.id+'">#'+f.id+' - '+f.nome+'</option>').join('');
-        });
-    }
-}, 500);
-
-async function carregarDepartamentos() {
-    try {
-        const r = await fetch('/api/departamentos?ativos=1');
-        const data = await r.json();
-        const sel = document.getElementById('f-departamento-id');
-        if (!sel) return;
-        sel.innerHTML = '<option value="">Selecionar...</option>' + (data.departamentos||[]).map(d => '<option value="'+d.id+'">'+d.descricao+'</option>').join('');
-    } catch(e) {}
-}
-
-async function carregarCargos() {
-    try {
-        const r = await fetch('/api/cargos?ativos=1');
-        const data = await r.json();
-        const sel = document.getElementById('f-cargo-id');
-        if (!sel) return;
-        sel.innerHTML = '<option value="">Selecionar...</option>' + (data.cargos||[]).map(c => '<option value="'+c.id+'">'+c.descricao+'</option>').join('');
-    } catch(e) {}
-}
-let desligarId = null;
-function abrirModalDesligar(id, nome){
-desligarId = id;
-document.getElementById('desligar-nome').textContent = nome + ' (#' + id + ')';
-document.getElementById('desligar-data').value = new Date().toISOString().slice(0,10);
-document.getElementById('desligar-motivo').value = '';
-document.getElementById('modal-desligar').style.display = 'flex';
-}
-function fecharModalDesligar(){
-document.getElementById('modal-desligar').style.display = 'none';
-desligarId = null;
-}
-async function confirmarDesligar(){
-if(!desligarId) return;
-const motivo = document.getElementById('desligar-motivo').value;
-const dataDem = document.getElementById('desligar-data').value;
-if(!motivo){ mostrarToast('Selecione o motivo','error'); return; }
-try{
-const params = new URLSearchParams();
-params.set('id', desligarId);
-params.set('motivo', motivo);
-params.set('data_dem', dataDem);
-const r = await fetch('/api/funcionarios/desligar', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params });
-const data = await r.json();
-if(data.status==='ok'){ mostrarToast(data.message||'Funcionario desligado!','success'); fecharModalDesligar(); carregarFuncionarios(); }
-else mostrarToast(data.message||'Erro','error');
-}catch(e){ mostrarToast('Erro','error'); }
-}
-async function reativarFuncionario(id){
-if(!confirm('Reativar funcionario #'+id+'?')) return;
-try{
-const params = new URLSearchParams(); params.set('id', id);
-const r = await fetch('/api/funcionarios/reativar', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params });
-const data = await r.json();
-if(data.status==='ok'){ mostrarToast(data.message||'Reativado!','success'); carregarFuncionarios(); }
-else mostrarToast(data.message||'Erro','error');
-}catch(e){ mostrarToast('Erro','error'); }
-}
-
-// ---- Historico de Salarios (RFC-002 §3.3) ----
-let salariosFuncId = '';
-
-function fmtSalarioValor(v) {
-    if (typeof Mascaras !== 'undefined' && Mascaras.fmtMoeda) {
-        return Mascaras.fmtMoeda(String(Math.round(Number(v) * 100)));
-    }
-    return Number(v).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
-}
-
-async function carregarSalarios() {
-    salariosFuncId = document.getElementById('sl-funcionario-id').value;
-    if (!salariosFuncId) { document.getElementById('tabela-salarios').innerHTML = ''; return; }
-    document.getElementById('card-salarios').style.display = 'block';
-    try {
-        const r = await fetch('/api/funcionario/salario/listar?funcionario_id=' + salariosFuncId);
-        const data = await r.json();
-        const itens = data.salarios || [];
-        const tbody = document.getElementById('tabela-salarios');
-        if (itens.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#888;padding:20px;">Nenhum registro salarial</td></tr>';
-        } else {
-            tbody.innerHTML = itens.map(s =>
-                '<tr><td>' + s.id + '</td><td>' + fmtSalarioValor(s.salario) + '</td><td>' + (s.data_inicio || '') + '</td>' +
-                '<td>' + (s.data_fim || '-') + '</td><td>' + (s.status || '') + '</td></tr>'
-            ).join('');
-        }
-    } catch(e) {}
-}
-
-async function salvarSalario() {
-    if (!salariosFuncId) { mostrarToast('Selecione funcionario','error'); return; }
-    const sal = document.getElementById('sl-salario').value;
-    const dataInicio = document.getElementById('sl-data-inicio').value;
-    if (!sal || !dataInicio) { mostrarToast('Informe salario e data de inicio','error'); return; }
-    const valor = (typeof Mascaras !== 'undefined' && Mascaras.limparMoeda) ? Mascaras.limparMoeda(sal) : sal.replace(/[^\d.]/g, '');
-    const params = new URLSearchParams();
-    params.set('funcionario_id', salariosFuncId);
-    params.set('salario', valor);
-    params.set('data_inicio', dataInicio);
-    try {
-        const r = await fetch('/api/funcionario/salario/incluir', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params});
-        const data = await r.json();
-        if (data.status === 'ok' || data.id) { mostrarToast('Salario registrado!','success'); document.getElementById('sl-salario').value=''; document.getElementById('sl-data-inicio').value=''; carregarSalarios(); }
-        else mostrarToast(data.mensagem||data.message||'Erro','error');
-    } catch(e) { mostrarToast('Erro','error'); }
-}
-
-setTimeout(() => {
-    const sel = document.getElementById('sl-funcionario-id');
-    if (sel) {
-        fetch('/api/funcionarios').then(r=>r.json()).then(data => {
-            sel.innerHTML = '<option value="">Selecionar funcionario...</option>' + (data.funcionarios||[]).map(f => '<option value="'+f.id+'">#'+f.id+' - '+f.nome+'</option>').join('');
-        });
-    }
-}, 600);
-
-// ---- Movimentações Contratuais (RFC-016/RFC-002 §3.3) ----
-let movimentacoesFuncId = '';
-
-async function carregarMovimentacoes() {
-    movimentacoesFuncId = document.getElementById('mv-funcionario-id').value;
-    const tipo = document.getElementById('mv-tipo').value;
-    if (!movimentacoesFuncId) { document.getElementById('tabela-movimentacoes').innerHTML = ''; return; }
-    document.getElementById('card-movimentacoes').style.display = 'block';
-    try {
-        const r = await fetch('/api/funcionario/movimentacao/listar?funcionario_id=' + movimentacoesFuncId + '&tipo=' + tipo);
-        const data = await r.json();
-        const itens = data.movimentacoes || [];
-        const tbody = document.getElementById('tabela-movimentacoes');
-        if (itens.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;padding:20px;">Nenhuma movimentacao deste tipo</td></tr>';
-        } else {
-            tbody.innerHTML = itens.map(m =>
-                '<tr><td>' + m.id + '</td><td>' + (m.tipo || '') + '</td><td>' + (m.valor_referencia || '') + '</td>' +
-                '<td>' + (m.data_inicio || '') + '</td><td>' + (m.data_fim || '-') + '</td><td>' + (m.status || '') + '</td></tr>'
-            ).join('');
-        }
-    } catch(e) {}
-}
-
-async function salvarMovimentacao() {
-    if (!movimentacoesFuncId) { mostrarToast('Selecione funcionario','error'); return; }
-    const tipo = document.getElementById('mv-tipo').value;
-    const valor = document.getElementById('mv-valor-referencia').value;
-    const dataInicio = document.getElementById('mv-data-inicio').value;
-    if (!valor || !dataInicio) { mostrarToast('Informe id do cargo/departamento e data de inicio','error'); return; }
-    const params = new URLSearchParams();
-    params.set('funcionario_id', movimentacoesFuncId);
-    params.set('tipo', tipo);
-    params.set('valor_referencia', valor);
-    params.set('data_inicio', dataInicio);
-    try {
-        const r = await fetch('/api/funcionario/movimentacao/incluir', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:params});
-        const data = await r.json();
-        if (data.status === 'ok' || data.id) { mostrarToast('Movimentacao registrada!','success'); document.getElementById('mv-valor-referencia').value=''; document.getElementById('mv-data-inicio').value=''; carregarMovimentacoes(); }
-        else mostrarToast(data.mensagem||data.message||'Erro','error');
-    } catch(e) { mostrarToast('Erro','error'); }
-}
-
-setTimeout(() => {
-    const sel = document.getElementById('mv-funcionario-id');
-    if (sel) {
-        fetch('/api/funcionarios').then(r=>r.json()).then(data => {
-            sel.innerHTML = '<option value="">Selecionar funcionario...</option>' + (data.funcionarios||[]).map(f => '<option value="'+f.id+'">#'+f.id+' - '+f.nome+'</option>').join('');
-        });
-    }
-}, 700);
-</script>
 <div id="modal-desligar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;align-items:center;justify-content:center;">
-<div style="background:#fff;border-radius:8px;padding:20px;width:360px;max-width:90%;box-shadow:0 4px 20px rgba(0,0,0,.2);">
-<h3 style="margin:0 0 4px;color:#1a237e;">Desligar Funcionario</h3>
-<p id="desligar-nome" style="color:#666;font-size:.9rem;margin:0 0 14px;"></p>
-<div class="form-row"><label>Data Demissao:</label><input type="date" id="desligar-data"></div>
-<div class="form-row"><label>Motivo:</label>
-<select id="desligar-motivo">
+<div style="background:var(--surface-panel);border:1px solid var(--border-color);border-radius:14px;padding:20px;width:360px;max-width:90%;box-shadow:0 24px 60px rgba(0,0,0,.45);">
+<h3 style="margin:0 0 4px;color:var(--text-primary);font-size:15px;">Desligar Funcionário</h3>
+<p id="desligar-nome" style="color:var(--text-muted);font-size:.9rem;margin:0 0 14px;"></p>
+<div class="field"><label for="desligar-data">Data Demissão</label><input class="form-input" type="date" id="desligar-data"></div>
+<div class="field" style="margin-top:10px;"><label for="desligar-motivo">Motivo</label>
+<select class="form-input" id="desligar-motivo">
 <option value="">Selecionar...</option>
 <option value="sem-justa-causa">Sem justa causa</option>
 <option value="com-justa-causa">Com justa causa</option>
-<option value="pedido-demissao">Pedido de demissao</option>
+<option value="pedido-demissao">Pedido de demissão</option>
 <option value="acordo">Acordo entre as partes</option>
-<option value="termino-contrato">Termino de contrato</option>
+<option value="termino-contrato">Término de contrato</option>
 </select></div>
 <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end;">
-<button class="btn btn-sm btn-success" onclick="confirmarDesligar()">Desligar</button>
-<button class="btn btn-sm" style="background:#f5f5f5;color:#333;" onclick="fecharModalDesligar()">Cancelar</button>
+<button class="so-btn primary" onclick="confirmarDesligar()">Desligar</button>
+<button class="so-btn" onclick="fecharModalDesligar()">Cancelar</button>
 </div>
 </div>
 </div>
-<footer style="text-align:center;padding:16px 0;margin-top:32px;font-size:.8rem;color:#999;border-top:1px solid #e0e0e0">Powered by <strong>COBOL</strong> &mdash; Palmarante Loja</footer>
+
+<script src="../js/masks.js"></script>
+<script src="../js/funcionarios.js"></script>
 <script src="../js/brand.js"></script>
 </body>
 </html>

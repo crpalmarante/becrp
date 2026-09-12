@@ -1,0 +1,41 @@
+No **BECRP**, existe uma distinção fundamental entre **Funcionário** e **Usuário**, que são entidades separadas, mas que podem ser vinculadas para determinar as funções e permissões de uma pessoa na empresa.
+
+### 👤 Funcionário vs. Usuário: Conceitos Distintos
+
+A base do sistema de RH do **BECRP** é a separação entre esses dois modelos:
+
+*   **Funcionário (`hr.employee`)**: Representa a pessoa física que possui um contrato de trabalho com a empresa. É o registro central para informações de RH, como departamento, cargo, currículo, contato de emergência e alocação de equipamentos. Por padrão, um funcionário **não pode fazer login** no sistema.
+*   **Usuário (`res.users`)**: Representa uma identidade de acesso ao sistema. É a conta que pode fazer login no **BCERP** e à qual são atribuídos direitos de acesso (grupos) para realizar ações nos diferentes aplicativos (Vendas, Estoque, Financeiro, etc.). Nem todo usuário é um funcionário (por exemplo, um parceiro externo), e nem todo funcionário precisa ser um usuário.
+
+### 🔗 Como Vincular um Funcionário a um Usuário
+
+Para que um funcionário interaja com o sistema, ele precisa ser vinculado a uma conta de usuário. Essa vinculação é o passo principal para determinar suas funções.
+
+O processo é direto:
+1.  **Crie o Usuário**: Se ainda não existir, vá em **Configurações > Usuários e Empresas > Usuários** e crie uma nova conta, definindo o nome e e-mail.
+2.  **Vincule ao Funcionário**: Acesse o aplicativo **Funcionários**, abra o perfil do funcionário desejado e, na aba **Informações de Trabalho**, localize o campo **Usuário Relacionado**. Selecione a conta de usuário que você criou ou outra existente. Uma vez salvado, o funcionário e o usuário estarão conectados.
+
+Para agilizar esse processo, especialmente em grandes empresas, existem módulos no **BCERP Apps Store** que permitem vincular usuários e funcionários com um clique diretamente do formulário do usuário ou do funcionário.
+
+### 🏢 Determinando Funções e Responsabilidades
+
+Após vincular o usuário, você pode definir suas funções de duas maneiras principais:
+
+*   **Funções Organizacionais**: No próprio cadastro do **Funcionário**, você define sua posição na estrutura da empresa, como **Departamento**, **Cargo** e **Gerente**. Essas informações são cruciais para a hierarquia e para direcionar aprovações de solicitações (como férias).
+*   **Funções no Sistema (Permissões)**: Na conta de **Usuário**, você atribui os **direitos de acesso** (grupos). Por exemplo, para que um funcionário atue como vendedor, ele precisa estar no grupo "Vendedor" ou "Vendas: Usuário". Isso permite que ele apareça na lista de vendedores em cotações e pedidos e acesse os dados de clientes e vendas que lhe são permitidos.
+
+### 🏢 Gestão Multiempresa e Acesso
+
+O **BCERP** foi projetado para operar com múltiplas empresas em uma única base de dados. A vinculação de funcionários e usuários funciona da seguinte forma nesse cenário:
+*   **Vinculação por Empresa**: Cada registro de funcionário é associado a uma empresa específica. A vinculação a um usuário também é feita dentro do contexto de uma empresa, garantindo que um mesmo usuário possa ter funções diferentes em empresas distintas (ex: Gerente na Empresa A, Vendedor na Empresa B).
+*   **Visibilidade e Aprovações**: As permissões de um usuário (como gerente) podem ser estendidas para visualizar e aprovar solicitações de funcionários de outras empresas, desde que configurado corretamente nos direitos de acesso e nas empresas permitidas para o seu usuário.
+
+### ⚙️ Gerenciando o Ciclo de Vida do Colaborador
+
+O **BCERP** trata o funcionário como um ativo que passa por um ciclo de vida completo, gerenciado pelo aplicativo de RH:
+
+*   **Onboarding (Integração)**: O sistema permite criar planos de integração personalizáveis, garantindo que novos funcionários recebam treinamento e equipamentos necessários desde o primeiro dia.
+*   **Gestão Contínua**: Durante o contrato, o perfil do funcionário centraliza informações de presença, desempenho, certificações, habilidades e ativos da empresa, como notebooks e celulares.
+*   **Offboarding (Desligamento)**: O processo de desligamento é estruturado para garantir que todas as etapas sejam cumpridas, incluindo a devolução de equipamentos, a transferência de conhecimento e, crucialmente, a **remoção controlada do acesso do usuário** aos sistemas da empresa.
+
+Espero que este apanhado geral ajude a clarear o funcionamento do **BCERP**. Se você estiver planejando uma implementação, um bom ponto de partida é definir claramente quais funcionários precisarão de acesso ao sistema e quais serão suas permissões específicas.

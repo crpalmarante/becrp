@@ -116,6 +116,14 @@
                     <label>Descrição</label>
                     <textarea class="form-input" id="edit-descricao" rows="3"></textarea>
                 </div>
+                <div class="field">
+                    <label>Imagem</label>
+                    <div class="upload-wrapper" style="display:flex;flex-direction:column;gap:8px;">
+                        <input type="file" id="edit-imagem-file" accept="image/*">
+                        <input type="text" id="edit-imagem" class="form-input" readonly placeholder="Clique para selecionar imagem">
+                        <span class="upload-text">ou arraste uma imagem aqui</span>
+                    </div>
+                </div>
                 <div class="form-error" id="form-error"></div>
             </form>
         </div>
@@ -276,13 +284,14 @@ async function load() {
     async function save() {
         const nome = document.getElementById("edit-nome").value.trim();
         const descricao = document.getElementById("edit-descricao").value.trim();
+        const imagem = document.getElementById("edit-imagem").value.trim();
         const errEl = document.getElementById("form-error");
         errEl.classList.remove("visible");
 
         if (!nome) { errEl.textContent = "Nome é obrigatório"; errEl.classList.add("visible"); return; }
 
         const pai = document.getElementById("edit-pai").value || "";
-        const payload = { nome, descricao };
+        const payload = { nome, descricao, imagem };
         if (pai) payload.pai_id = Number(pai);
 
         let data;
@@ -306,6 +315,49 @@ async function load() {
         closeModal();
         load();
     }
+
+    async function toggle(id) {
+        await window.api("/api/admin/categorias/"+id, {
+            method: "POST",
+            body: JSON.stringify({ action: "toggle" })
+        });
+        load();
+    }
+
+    // Função para upload de imagem
+    async function uploadImagem(file) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64 = e.target.result.split(',')[1];
+            const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+            const upData = { data: base64, ext: ext };
+            
+            const upResponse = await window.api('/api/funcionario/upload', {
+                method: 'POST',
+                body: JSON.stringify(upData)
+            });
+            
+            if (upResponse.status === 'ok') {
+                // Preencher o campo de imagem com a URL retornada
+                document.getElementById('edit-imagem').value = upResponse.url;
+                // Limpar o input de arquivo para permitir novo upload
+                document.getElementById('edit-imagem-file').value = '';
+            } else {
+                alert('Erro no upload: ' + upResponse.message);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Event listener para o input de arquivo
+    document.getElementById('edit-imagem-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            uploadImagem(file);
+        } else {
+            alert('Por favor, selecione um arquivo de imagem.');
+        }
+    });
 
     async function toggle(id) {
         await window.api("/api/admin/categorias/"+id, {

@@ -56,8 +56,10 @@
        01 ws-i               PIC 9(2).
        01 ws-duplicado       PIC X(1).
        01 ws-pai-id-in       PIC X(10).
-       01 ws-pai-id          PIC 9(5).
-       01 ws-tem-filho       PIC X(1).
+01 ws-pai-id          PIC 9(5).
+        01 ws-tem-filho       PIC X(1).
+        01 ws-imagem          PIC X(255).
+        01 ws-pai-arq         PIC 9(5).
 
        PROCEDURE DIVISION.
            ACCEPT ws-acao FROM ENVIRONMENT "ACAO"
@@ -137,10 +139,15 @@
                        AT END EXIT PERFORM
                    END-READ
                    MOVE ct-nome TO ws-nome-arq
+                   MOVE ct-pai-id TO ws-pai-arq
                    IF ws-nome-arq NOT = SPACES
                        PERFORM normalizar-arq
                        IF ws-nome-arq-cmp = ws-nome-cmp THEN
-                           MOVE "S" TO ws-duplicado
+                           IF ws-pai-id NOT = 0 THEN
+                               IF ws-pai-arq = ws-pai-id THEN
+                                   MOVE "S" TO ws-duplicado
+                               END-IF
+                           END-IF
                        END-IF
                    END-IF
                END-PERFORM
@@ -205,10 +212,15 @@
                        END-READ
                        IF ct-id NOT = ws-id THEN
                            MOVE ct-nome TO ws-nome-arq
+                           MOVE ct-pai-id TO ws-pai-arq
                            IF ws-nome-arq NOT = SPACES
                                PERFORM normalizar-arq
                                IF ws-nome-arq-cmp = ws-nome-cmp THEN
-                                   MOVE "S" TO ws-duplicado
+                                   IF ws-pai-id NOT = 0 THEN
+                                       IF ws-pai-arq = ws-pai-id THEN
+                                           MOVE "S" TO ws-duplicado
+                                       END-IF
+                                   END-IF
                                END-IF
                            END-IF
                        END-IF

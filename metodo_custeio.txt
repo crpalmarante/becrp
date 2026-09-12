@@ -1,0 +1,103 @@
+## COGS no BECRP 19: detalhamento por método de custeio
+
+### Resumo rápido
+
+| Método | Lógica do COGS | Melhor para |
+|---|---|---|
+| **Standard Cost** | Custo fixo manual, diferenças de compra vão para conta separada | Produção estável, custos previsíveis |
+| **AVCO** | Média ponderada recalculada a cada entrada | Alto volume, produtos homogêneos |
+| **FIFO** | Camadas de custo individuais, consome as mais antigas primeiro | Rastreabilidade, preços flutuantes |
+
+---
+
+### 1. Standard Cost (Custo Padrão)
+
+**Como funciona**: Você define manualmente um custo fixo no cadastro do produto. Todas as entradas e saídas são valorizadas por esse valor, independentemente do preço real pago ao fornecedor.
+
+**Exemplo numérico**:
+
+| Operação | Custo Unitário | Qtd | Delta Valor | Valor Estoque |
+|---|---|---|---|---|
+| Início | $10 | 0 | — | $0 |
+| Recebe 8 @ $10 | $10 | 8 | +$80 | $80 |
+| Recebe 4 @ $16 | $10 | 12 | +$40 | $120 |
+| Entrega 10 | $10 | 2 | −$100 | $20 |
+
+**No COGS**: A venda de 10 unidades gera COGS de **$100** (10 × $10), mesmo que o custo real de compra tenha sido maior.
+
+**Conta de diferença de preço**: Se a fatura do fornecedor vier a $16/unidade mas o padrão é $10, a diferença de $6/unidade vai para a **Price Difference Account** configurada na categoria do produto. Isso mantém o estoque e o COGS "limpos" no valor padrão, enquanto a variação de compra fica visível separadamente.
+
+---
+
+### 2. AVCO (Average Cost / Custo Médio Ponderado)
+
+**Como funciona**: O sistema mantém um **custo médio ponderado** que é recalculado a cada nova entrada. Saídas são valorizadas pelo custo médio vigente **sem alterar a média**.
+
+**Exemplo numérico**:
+
+| Operação | Custo Médio | Qtd | Delta Valor | Valor Estoque |
+|---|---|---|---|---|
+| Início | — | 0 | — | $0 |
+| Recebe 8 @ $10 | $10 | 8 | +$80 | $80 |
+| Recebe 4 @ $16 | **$12** | 12 | +$64 | $144 |
+| Entrega 10 | $12 | 2 | −$120 | $24 |
+| Recebe 2 @ $6 | **$12** | 4 | +$24 | $48 |
+
+**Cálculo da média após a segunda entrada**: ($80 + $64) ÷ 12 = **$12/unidade**.
+
+**No COGS**: A entrega de 10 unidades gera COGS de **$120** (10 × $12). O custo médio **não muda** com a saída — só a próxima entrada recalcula.
+
+**Ponto importante**: A média **não é recalculada** após uma saída. Ela permanece $12 até que uma nova entrada ocorra.
+
+---
+
+### 3. FIFO (First In, First Out)
+
+**Como funciona**: Cada entrada cria uma **camada de custo** própria. As saídas consomem as camadas mais antigas primeiro, cada uma com seu custo original.
+
+**Exemplo numérico**:
+
+| Operação | Camadas Ativas | Qtd | Delta Valor | Valor Estoque |
+|---|---|---|---|---|
+| Início | — | 0 | — | $0 |
+| Recebe 8 @ $10 | Camada A: 8@$10 | 8 | +$80 | $80 |
+| Recebe 4 @ $16 | A: 8@$10; B: 4@$16 | 12 | +$64 | $144 |
+| **Entrega 10** | A consumida (8), B parcial (2) | 2 | −$112 | $32 |
+| Recebe 2 @ $6 | B: 2@$16; C: 2@$6 | 4 | +$12 | $44 |
+
+**Cálculo do COGS na entrega de 10 unidades**: (8 × $10) + (2 × $16) = **$112**.
+
+**No COGS**: O valor depende de **quais camadas foram consumidas**, não de uma média. Isso reflete com mais precisão o custo real dos itens que saíram.
+
+---
+
+### 4. Mudança crítica no BECRP 19: Perpetual (at invoicing)
+
+A partir do BECRP 19, o método **Perpetual (at invoicing)** substituiu o lançamento contábil em tempo real a cada movimento de estoque. Agora:
+
+- Os lançamentos contábeis de estoque e COGS são gerados **no momento da fatura** (cliente ou fornecedor), não a cada recebimento/entrega.
+- Isso simplifica o livro razão e melhora a auditabilidade, mas **cria uma defasagem temporal** entre o movimento físico e o reconhecimento contábil.
+- No fechamento do período, entradas de acrual fazem a reconciliação entre os movimentos físicos e os lançamentos financeiros.
+
+**Impacto nos métodos de custeio**: Independentemente de ser Standard, AVCO ou FIFO, o cálculo do COGS continua o mesmo — o que muda é **quando** ele é lançado contabilmente (na fatura, não no movimento).
+
+---
+
+### 5. Caso especial: POS
+
+Se o seu fluxo de vendas incluir **POS**, o COGS e a baixa de estoque **não são lançados por venda individual**. Eles são agrupados e lançados **em lote no fechamento da sessão do POS**, desde que:
+
+- A contabilidade anglo-saxônica esteja ativa;
+- A categoria do produto use valuation **Automated** (não Manual);
+- Os produtos sejam **Storable** (não Consumable ou Service).
+
+---
+
+### Resumo final
+
+| Método | COGS na venda | Variação de compra |
+|---|---|---|
+| **Standard** | Custo fixo × Qtd | Vai para Price Difference Account |
+| **AVCO** | Custo médio vigente × Qtd | Incorpora à média na próxima entrada |
+| **FIFO** | Soma das camadas consumidas | Cada camada mantém seu custo original |
+

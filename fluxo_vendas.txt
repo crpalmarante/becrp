@@ -1,0 +1,64 @@
+Você tem razão, me desculpe. Vou refazer a resposta em **português**, mantendo o conteúdo complementar sobre o fluxo no **BECRP**.
+
+---
+
+### 1. No BECRP, a forma de configurar a "Avaliação Automática de Estoque" mudou
+
+No BECRP, a opção tradicional **"Automated"** foi substituída em várias versões por **"Perpetual (at invoicing)"** — ou seja, **perpétuo no momento da fatura**.
+
+Isso significa:
+
+- **A quantidade em estoque é atualizada em tempo real**, mas **os lançamentos contábeis só são gerados quando a fatura do fornecedor ou a fatura do cliente é lançada**.
+- O recebimento e a entrega em si não geram mais lançamentos imediatos. O sistema alinha a variação de estoque com o valor contábil por meio de ajustes no fechamento do período.
+
+**Caminho de configuração**: Estoque → Configuração → Categoria de Produto → Método de custeio (FIFO/AVCO) → Avaliação de Estoque → escolher **Perpetual (at invoicing)**. Em seguida, definir as contas: Conta de Avaliação de Estoque, Conta de Entrada, Conta de Saída e Conta de Despesa (COGS).
+
+### 2. A lógica contábil dos ajustes manuais de estoque mudou
+
+No BECRP, se a categoria do produto usar **Perpetual (at invoicing)**, **os ajustes manuais de estoque não geram mais lançamentos automáticos**.
+
+Para gerar lançamentos de estoque inicial ou ajustes, é necessário:
+
+- Definir a **Inventory Variation Account** na localização de ajuste de estoque da categoria do produto;
+- Ou usar o modo **Perpetual (Automated)**, caso essa versão ainda ofereça essa opção.
+
+### 3. O conceito de "trânsito de entrada" no lado de compras/contas a pagar
+
+No ciclo completo, a conta **"Stock Input" (trânsito de entrada)** é o ponto-chave da contabilidade anglo-saxônica:
+
+- **No recebimento**: débito na Conta de Avaliação de Estoque, crédito na Conta de Trânsito de Entrada;
+- **No lançamento da fatura do fornecedor**: débito na Conta de Trânsito de Entrada, crédito em **Contas a Pagar** — é aqui que a obrigação com o fornecedor realmente nasce.
+
+Isso explica por que a "entrada em contas a pagar" que você mencionou não aparece diretamente no fluxo de vendas: **o contas a pagar é gerado pelo lado de compras, através da fatura do fornecedor**, enquanto o lado de vendas gera apenas contas a receber e a baixa de COGS.
+
+### 4. Sugestão de incluir o ciclo de devoluções/notas de crédito
+
+Um fluxo de vendas completo também deve prever **devoluções ou abatimentos**:
+
+- Na devolução do cliente, criar uma **ordem de devolução** a partir do pedido de venda, e o estoque é reincorporado;
+- Emitir uma **nota de crédito (Credit Note)** para abater a conta a receber;
+- Se houver COGS envolvido, o sistema reverte o valor conforme o método de custeio original.
+
+### 5. Diferenças contábeis do POS (se houver cenário de varejo)
+
+Se o fluxo no BECRP incluir **vendas via POS**, é importante saber: os lançamentos contábeis de estoque do POS **não são gerados em tempo real por venda**, mas sim **em lote no fechamento da sessão do POS**, desde que a avaliação perpétua e o mapeamento correto de contas estejam habilitados.
+
+### 6. Three-Way Matching (conciliação de três vias) como controle interno
+
+No lado de compras (formação do contas a pagar), é possível habilitar o **3-Way Matching**: o sistema compara automaticamente **pedido de compra, recebimento e fatura do fornecedor** em quantidade e valor. Se houver divergência (por exemplo, quantidade faturada maior que a recebida), o campo **"Should Be Paid"** da fatura mostra **Exception**, bloqueando pagamentos indevidos.
+
+Embora não seja uma etapa direta do fluxo de vendas, isso garante a exatidão e a prevenção de fraudes na **entrada em contas a pagar**.
+
+---
+
+**Resumo do que acrescentamos ao fluxo original:**
+
+| Complemento | Impacto no fluxo |
+|---|---|
+| Perpetual (at invoicing) no BECRP | Lançamentos contábeis só na fatura, não no recebimento/entrega |
+| Ajustes manuais sem lançamento automático | Exige configuração extra de conta de variação |
+| Stock Input como conta de trânsito | Explica a separação entre estoque e contas a pagar |
+| Devoluções e notas de crédito | Fecha o ciclo de vendas com reversão |
+| POS em lote no fechamento | Evita expectativa de lançamento por venda |
+| Three-Way Matching | Controle interno do contas a pagar |
+

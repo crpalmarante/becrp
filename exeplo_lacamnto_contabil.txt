@@ -1,0 +1,241 @@
+# Exemplo completo com lançamentos contábeis — BECRP
+
+Vamos usar um cenário único e aplicar os três métodos de custeio, mostrando **todos os lançamentos** (estoque, COGS, contas a pagar, contas a receber).
+
+---
+
+## Cenário base
+
+**Produto**: Camiseta (Storable, categoria com contabilidade anglo-saxônica ativa)
+
+**Operações do período**:
+
+1. Compra 8 unidades @ $10 = $80 (fatura do fornecedor)
+2. Compra 4 unidades @ $16 = $64 (fatura do fornecedor)
+3. Venda 10 unidades @ $50 = $500 (fatura do cliente)
+4. Compra 2 unidades @ $6 = $12 (fatura do fornecedor)
+
+**Contas contábeis envolvidas**:
+
+| Código | Conta | Tipo |
+|---|---|---|
+| 1.1.01 | Estoque | Ativo |
+| 1.1.02 | Stock Input (trânsito entrada) | Ativo |
+| 1.1.03 | Stock Output (trânsito saída) | Ativo |
+| 2.1.01 | Contas a Pagar | Passivo |
+| 2.1.02 | Contas a Receber | Ativo |
+| 4.1.01 | Receita de Vendas | Receita |
+| 5.1.01 | COGS | Despesa |
+| 5.1.02 | Price Difference | Despesa |
+
+**Premissa**: Como estamos no BECRP com **Perpetual (at invoicing)**, os lançamentos contábeis são gerados **no momento da fatura**, não no recebimento/entrega físico.
+
+---
+
+## Método 1: Standard Cost (Custo Padrão = $10)
+
+### Operação 1 — Compra 8 @ $10, fatura do fornecedor
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 1.1.01 Estoque | $80 | |
+| 2.1.01 Contas a Pagar | | $80 |
+
+### Operação 2 — Compra 4 @ $16, fatura do fornecedor
+
+Custo padrão = $10, então: 4 × $10 = $40 para estoque; diferença = 4 × $6 = $24 vai para Price Difference.
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 1.1.01 Estoque | $40 | |
+| 5.1.02 Price Difference | $24 | |
+| 2.1.01 Contas a Pagar | | $64 |
+
+### Operação 3 — Venda 10 @ $50, fatura do cliente
+
+**Receita**:
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 2.1.02 Contas a Receber | $500 | |
+| 4.1.01 Receita de Vendas | | $500 |
+
+**COGS** (10 × $10 = $100):
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 5.1.01 COGS | $100 | |
+| 1.1.01 Estoque | | $100 |
+
+### Operação 4 — Compra 2 @ $6, fatura do fornecedor
+
+Custo padrão = $10, então: 2 × $10 = $20 para estoque; diferença = 2 × (−$4) = −$8 vai para Price Difference (crédito).
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 1.1.01 Estoque | $20 | |
+| 5.1.02 Price Difference | | $8 |
+| 2.1.01 Contas a Pagar | | $12 |
+
+### Saldo final — Standard
+
+| Conta | Saldo |
+|---|---|
+| Estoque | $80 + $40 − $100 + $20 = **$40** |
+| COGS | **$100** |
+| Price Difference | $24 − $8 = **$16** (despesa líquida) |
+| Contas a Pagar | $80 + $64 + $12 = **$156** |
+| Contas a Receber | **$500** |
+| Receita | **$500** |
+
+---
+
+## Método 2: AVCO (Custo Médio Ponderado)
+
+### Operação 1 — Compra 8 @ $10
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 1.1.01 Estoque | $80 | |
+| 2.1.01 Contas a Pagar | | $80 |
+
+Custo médio após: **$10**
+
+### Operação 2 — Compra 4 @ $16
+
+Novo custo médio: ($80 + $64) ÷ 12 = **$12**
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 1.1.01 Estoque | $64 | |
+| 2.1.01 Contas a Pagar | | $64 |
+
+### Operação 3 — Venda 10 @ $50
+
+**Receita**:
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 2.1.02 Contas a Receber | $500 | |
+| 4.1.01 Receita de Vendas | | $500 |
+
+**COGS** (10 × $12 = $120):
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 5.1.01 COGS | $120 | |
+| 1.1.01 Estoque | | $120 |
+
+Custo médio **permanece $12** após a saída.
+
+### Operação 4 — Compra 2 @ $6
+
+Novo custo médio: ($24 + $12) ÷ 4 = **$9**
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 1.1.01 Estoque | $12 | |
+| 2.1.01 Contas a Pagar | | $12 |
+
+### Saldo final — AVCO
+
+| Conta | Saldo |
+|---|---|
+| Estoque | $80 + $64 − $120 + $12 = **$36** |
+| COGS | **$120** |
+| Contas a Pagar | **$156** |
+| Contas a Receber | **$500** |
+| Receita | **$500** |
+
+---
+
+## Método 3: FIFO (Primeiro que Entra, Primeiro que Sai)
+
+### Operação 1 — Compra 8 @ $10
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 1.1.01 Estoque | $80 | |
+| 2.1.01 Contas a Pagar | | $80 |
+
+Camadas: **A = 8 @ $10**
+
+### Operação 2 — Compra 4 @ $16
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 1.1.01 Estoque | $64 | |
+| 2.1.01 Contas a Pagar | | $64 |
+
+Camadas: **A = 8 @ $10; B = 4 @ $16**
+
+### Operação 3 — Venda 10 @ $50
+
+**Receita**:
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 2.1.02 Contas a Receber | $500 | |
+| 4.1.01 Receita de Vendas | | $500 |
+
+**COGS** (8 × $10 + 2 × $16 = $112):
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 5.1.01 COGS | $112 | |
+| 1.1.01 Estoque | | $112 |
+
+Camadas restantes: **B = 2 @ $16**
+
+### Operação 4 — Compra 2 @ $6
+
+| Conta | Débito | Crédito |
+|---|---|---|
+| 1.1.01 Estoque | $12 | |
+| 2.1.01 Contas a Pagar | | $12 |
+
+Camadas: **B = 2 @ $16; C = 2 @ $6**
+
+### Saldo final — FIFO
+
+| Conta | Saldo |
+|---|---|
+| Estoque | $80 + $64 − $112 + $12 = **$44** |
+| COGS | **$112** |
+| Contas a Pagar | **$156** |
+| Contas a Receber | **$500** |
+| Receita | **$500** |
+
+---
+
+## Comparativo final dos três métodos
+
+| Item | Standard | AVCO | FIFO |
+|---|---|---|---|
+| Receita | $500 | $500 | $500 |
+| COGS | $100 | $120 | $112 |
+| Lucro Bruto | $400 | $380 | $388 |
+| Estoque Final | $40 | $36 | $44 |
+| Price Difference | $16 | — | — |
+| Contas a Pagar | $156 | $156 | $156 |
+| Contas a Receber | $500 | $500 | $500 |
+
+**Verificação contábil** (Ativo = Passivo + PL + Resultado):
+
+- **Standard**: Estoque $40 + Receber $500 = Pagar $156 + Receita $500 − COGS $100 − Price Diff $16 → $540 = $540 ✓
+- **AVCO**: Estoque $36 + Receber $500 = Pagar $156 + Receita $500 − COGS $120 → $536 = $536 ✓
+- **FIFO**: Estoque $44 + Receber $500 = Pagar $156 + Receita $500 − COGS $112 → $544 = $544 ✓
+
+---
+
+## Observações importantes no BECRP
+
+1. **Perpetual (at invoicing)**: Todos os lançamentos acima foram gerados **no momento da fatura** (do fornecedor ou do cliente). Se fosse Automated puro, os lançamentos de estoque ocorreriam no recebimento/entrega, e a fatura lançaria apenas Contas a Pagar/Receber.
+
+2. **Stock Input/Output**: Em cenários mais completos, apareceriam as contas de trânsito (1.1.02 e 1.1.03) como intermediárias entre o recebimento e a fatura. Simplifiquei aqui para focar no COGS.
+
+3. **Price Difference**: Só existe no método Standard. Nos métodos AVCO e FIFO, a diferença de preço é absorvida diretamente no custo do estoque.
+
+4. **Ordem dos lançamentos**: No BECRP 19 com Perpetual (at invoicing), o COGS e a baixa de estoque são lançados **junto com a fatura do cliente**, não na entrega física.
+
+Se quiser, posso montar a **versão com Stock Input/Output explícitos** ou um **exemplo com devolução e nota de crédito** para fechar o ciclo completo.

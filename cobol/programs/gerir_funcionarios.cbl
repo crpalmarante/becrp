@@ -55,6 +55,7 @@
            05 fn-data-adm        PIC X(10).
            05 fn-data-dem        PIC X(10).
            05 fn-salario         PIC 9(7)V99.
+           05 fn-empresa-id     PIC 9(3).
            05 fn-filial-id       PIC 9(3).
            05 fn-trab-sab       PIC X.
            05 fn-trab-dom       PIC X.
@@ -224,6 +225,7 @@
         01 ws-id-ed           PIC ZZZ9.
         01 ws-total-ed        PIC ZZZ9.
         01 ws-salario-j       PIC Z(6)9.99.
+        01 ws-empresa-j       PIC ZZ9.
         01 ws-filial-j        PIC ZZ9.
         01 ws-vt-desc-j       PIC Z(2)9.99.
         01 ws-vt-dias-j       PIC Z9.
@@ -255,6 +257,8 @@
        01 ws-data-dem        PIC X(10).
        01 ws-salario-ed      PIC X(12).
        01 ws-salario         PIC 9(7)V99.
+       01 ws-empresa-id      PIC X(5).
+       01 ws-empresa-id-num  PIC 9(3).
        01 ws-filial-id       PIC X(5).
        01 ws-filial-id-num   PIC 9(3).
        01 ws-trab-sab       PIC X.
@@ -375,6 +379,7 @@
            ACCEPT ws-data-adm FROM ENVIRONMENT "DATA_ADM"
            ACCEPT ws-data-dem FROM ENVIRONMENT "DATA_DEM"
            ACCEPT ws-salario-ed FROM ENVIRONMENT "SALARIO"
+           ACCEPT ws-empresa-id FROM ENVIRONMENT "EMPRESA_ID"
            ACCEPT ws-filial-id FROM ENVIRONMENT "FILIAL_ID"
            ACCEPT ws-trab-sab FROM ENVIRONMENT "TRAB_SAB"
            ACCEPT ws-trab-dom FROM ENVIRONMENT "TRAB_DOM"
@@ -454,7 +459,9 @@
                DISPLAY "ERRO: senha obrigatoria" STOP RUN END-IF
            IF ws-salario-ed NOT = SPACES THEN
                COMPUTE ws-salario = FUNCTION NUMVAL(ws-salario-ed) END-IF
-            IF ws-filial-id NOT = SPACES THEN
+            IF ws-empresa-id NOT = SPACES THEN
+                COMPUTE ws-empresa-id-num = FUNCTION NUMVAL(ws-empresa-id) END-IF
+             IF ws-filial-id NOT = SPACES THEN
                 COMPUTE ws-filial-id-num = FUNCTION NUMVAL(ws-filial-id) END-IF
             IF ws-vt-desconto-ed NOT = SPACES THEN
                 COMPUTE ws-vt-desconto = FUNCTION NUMVAL(ws-vt-desconto-ed) END-IF
@@ -513,7 +520,11 @@
            MOVE ws-data-adm TO fn-data-adm
            MOVE ws-data-dem TO fn-data-dem
            MOVE ws-salario TO fn-salario
-            MOVE ws-filial-id-num TO fn-filial-id
+            IF ws-empresa-id NOT = SPACES THEN
+                COMPUTE ws-empresa-id-num = FUNCTION NUMVAL(ws-empresa-id)
+                MOVE ws-empresa-id-num TO fn-empresa-id
+            END-IF
+             MOVE ws-filial-id-num TO fn-filial-id
             MOVE ws-trab-sab TO fn-trab-sab
             MOVE ws-trab-dom TO fn-trab-dom
             MOVE ws-seg-ent TO fn-seg-ent
@@ -718,6 +729,9 @@
                    IF ws-salario-ed NOT = SPACES THEN
                        COMPUTE ws-salario = FUNCTION NUMVAL(ws-salario-ed)
                        MOVE ws-salario TO fn-salario END-IF
+                    IF ws-empresa-id NOT = SPACES THEN
+                        COMPUTE ws-empresa-id-num = FUNCTION NUMVAL(ws-empresa-id)
+                        MOVE ws-empresa-id-num TO fn-empresa-id END-IF
                     IF ws-filial-id NOT = SPACES THEN
                         COMPUTE ws-filial-id-num = FUNCTION NUMVAL(ws-filial-id)
                         MOVE ws-filial-id-num TO fn-filial-id END-IF
@@ -1418,7 +1432,8 @@
                ELSE DISPLAY "," END-IF
                MOVE fn-id TO ws-id-ed
                MOVE fn-salario TO ws-salario-j
-               MOVE fn-filial-id TO ws-filial-j
+                MOVE fn-empresa-id TO ws-empresa-j
+                MOVE fn-filial-id TO ws-filial-j
                 MOVE fn-vt-desconto TO ws-vt-desc-j
                 MOVE fn-vt-dias TO ws-vt-dias-j
                 MOVE fn-vr TO ws-vr-j
@@ -1444,6 +1459,7 @@
                       ',"data_adm":"' FUNCTION TRIM(fn-data-adm) '"'
                       ',"data_dem":"' FUNCTION TRIM(fn-data-dem) '"'
                        ',"salario":' FUNCTION TRIM(ws-salario-j)
+                       ',"empresa_id":' FUNCTION TRIM(ws-empresa-j)
                        ',"filial_id":' FUNCTION TRIM(ws-filial-j)
                        ',"trab_sab":"' FUNCTION TRIM(fn-trab-sab) '"'
                        ',"trab_dom":"' FUNCTION TRIM(fn-trab-dom) '"'

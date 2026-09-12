@@ -419,7 +419,7 @@ def atributos_excluir(id_val):
 _FUNCIONARIO_ENV_KEYS = [
     "NOME", "USUARIO", "SENHA", "PERMISSOES", "CPF", "RG", "DATA_NASC",
     "CELULAR", "EMAIL", "ENDERECO", "DATA_ADM", "DATA_DEM", "SALARIO",
-    "FILIAL_ID", "TRAB_SAB", "TRAB_DOM",
+    "EMPRESA_ID", "FILIAL_ID", "TRAB_SAB", "TRAB_DOM",
     "SEG_ENT", "SEG_ALM", "SEG_SAI",
     "TER_ENT", "TER_ALM", "TER_SAI",
     "QUA_ENT", "QUA_ALM", "QUA_SAI",

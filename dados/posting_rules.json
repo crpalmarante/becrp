@@ -1,5 +1,5 @@
 {
-  "atualizado_em": "2026-08-11T15:24:47",
+  "atualizado_em": "2026-09-11T16:23:13",
   "regras": [
     {
       "codigo": "SALE_CASH",
@@ -27,15 +27,15 @@
     },
     {
       "codigo": "PURCHASE",
-      "nome": "Compra a prazo (fornecedor)",
+      "nome": "Compra (regime Continental — custo na entrada)",
       "evento": "purchase",
       "diario": "COM",
-      "conta_debito": "1.01.03.01.01",
+      "conta_debito": "3.01.01.03.01.02",
       "conta_credito": "2.01.01.03.01",
       "auto_post": false,
       "ativo": true,
       "origem": "manual",
-      "atualizado_em": "2026-08-11T15:24:47"
+      "atualizado_em": "2026-09-10T00:00:00"
     },
     {
       "codigo": "INV_ADJ_UP",
@@ -108,7 +108,79 @@
       "ativo": true,
       "origem": "manual",
       "atualizado_em": "2026-08-11T15:24:47"
+    },
+    {
+      "codigo": "INV_ADJ_DOWN",
+      "nome": "Ajuste estoque (-)",
+      "evento": "inventory_adjust_down",
+      "diario": "EST",
+      "conta_debito": "3.01.01.05.01.99",
+      "conta_credito": "1.01.03.01.01",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-09-10T00:00:00"
+    },
+    {
+      "codigo": "COMMISSION_PAYABLE",
+      "nome": "Comissão de venda a pagar (fornecedor/vendedor)",
+      "evento": "commission_payable",
+      "diario": "GER",
+      "conta_debito": "3.01.01.07.01.03",
+      "conta_credito": "2.01.01.03.01",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-09-11T16:23:13"
+    },
+    {
+      "codigo": "COMMISSION_PAYABLE_REV",
+      "nome": "Estorno de fatura de comissão a pagar",
+      "evento": "commission_payable_reversal",
+      "diario": "GER",
+      "conta_debito": "2.01.01.03.01",
+      "conta_credito": "3.01.01.07.01.03",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-09-11T16:23:13"
+    },
+    {
+      "codigo": "SALE_CREDIT",
+      "nome": "Venda a prazo (fatura/crediário)",
+      "evento": "sale_credit",
+      "diario": "VEN",
+      "conta_debito": "1.01.02.02.01",
+      "conta_credito": "3.01.01.01.01.05",
+      "auto_post": true,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-09-10T00:00:00"
+    },
+    {
+      "codigo": "RETURN_STOCK",
+      "nome": "Devolução — retorno ao estoque",
+      "evento": "return_stock",
+      "diario": "VEN",
+      "conta_debito": "1.01.03.01.01",
+      "conta_credito": "3.01.01.03.01.02",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-09-10T00:00:00"
+    },
+    {
+      "codigo": "RETURN_REVENUE",
+      "nome": "Devolução — nota de crédito (reversão receita)",
+      "evento": "return_revenue",
+      "diario": "VEN",
+      "conta_debito": "3.01.01.01.01.05",
+      "conta_credito": "1.01.02.02.01",
+      "auto_post": false,
+      "ativo": true,
+      "origem": "manual",
+      "atualizado_em": "2026-09-10T00:00:00"
     }
   ],
-  "total": 9
+  "total": 15
 }

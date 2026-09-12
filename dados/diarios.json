@@ -1,29 +1,29 @@
 {
-  "atualizado_em": "2026-09-03T08:16:01",
+  "atualizado_em": "2026-09-11T17:26:49",
   "diarios": [
     {
       "codigo": "VEN",
       "nome": "Diário de Vendas",
       "tipo": "sales",
       "prefixo": "VEN",
-      "proximo": 1,
+      "proximo": 12,
       "conta_padrao": "3.01.01.01.01.05",
       "ativo": true,
-      "usos": 0,
+      "usos": 7,
       "origem": "manual",
-      "atualizado_em": "2026-08-05T00:41:37"
+      "atualizado_em": "2026-09-11T17:26:49"
     },
     {
       "codigo": "COM",
       "nome": "Diário de Compras",
       "tipo": "purchase",
       "prefixo": "COM",
-      "proximo": 2,
+      "proximo": 6,
       "conta_padrao": "2.01.01.03.01",
       "ativo": true,
       "usos": 0,
       "origem": "manual",
-      "atualizado_em": "2026-09-03T08:16:01"
+      "atualizado_em": "2026-09-11T17:26:49"
     },
     {
       "codigo": "CXA",

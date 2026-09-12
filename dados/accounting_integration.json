@@ -3,8 +3,10 @@
   "domains": {
     "pos_sale": true,
     "receiving": true,
-    "inventory_adjust": false,
+    "inventory_adjust": true,
+    "fatura_venda": true,
+    "devolucao": true,
     "folha": true
   },
-  "atualizado_em": "2026-08-05T00:41:37"
+  "atualizado_em": "2026-09-10T00:00:00"
 }

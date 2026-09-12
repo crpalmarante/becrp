@@ -5665,17 +5665,31 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             func_map = {str(f.get("id")): f for f in funcs}
             dep_map = {str(d.get("id")): d for d in cobol_bridge.departamentos_listar()}
             car_map = {str(c.get("id")): c for c in cobol_bridge.cargos_listar()}
+            # Load users to find linked user for each employee
+            users = load_users()
+            user_by_func = {}
+            for uid, u in users.items():
+                fid = str(u.get("funcionario_id") or "")
+                if fid:
+                    user_by_func[fid] = {"user_id": uid, "usuario": u.get("usuario", ""), "nome": u.get("nome", ""), "role": u.get("role", "")}
             for f in funcs:
                 filial = filial_map.get(str(f.get("filial_id") or 0))
                 f["filial_nome"] = (filial or {}).get("nome", "Matriz")
-                f["empresa_id"] = (filial or {}).get("empresa_id", 0)
-                f["empresa_nome"] = self._empresa_nome(f.get("empresa_id") or (filial or {}).get("empresa_id", 0))
+                # Prefer direct empresa_id from employee, fallback to filial's empresa_id
+                empresa_id = f.get("empresa_id") or (filial or {}).get("empresa_id", 0)
+                f["empresa_id"] = empresa_id
+                f["empresa_nome"] = self._empresa_nome(empresa_id)
                 sup = func_map.get(str(f.get("supervisor_id") or 0))
                 f["supervisor_nome"] = (sup or {}).get("nome", "") if f.get("supervisor_id") else ""
                 dep = dep_map.get(str(f.get("departamento_id") or 0))
                 f["departamento_nome"] = (dep or {}).get("descricao", "")
                 car = car_map.get(str(f.get("cargo_id") or 0))
                 f["cargo_nome"] = (car or {}).get("descricao", "")
+                # Add linked user info
+                linked_user = user_by_func.get(str(f.get("id") or ""))
+                f["usuario_vinculado"] = linked_user.get("usuario") if linked_user else ""
+                f["usuario_nome"] = linked_user.get("nome") if linked_user else ""
+                f["usuario_role"] = linked_user.get("role") if linked_user else ""
             return self._json({"status": "ok", "funcionarios": funcs})
 
         if parsed.path == "/api/departamentos":
@@ -12072,6 +12086,13 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
                                    "message": f"Faturamento requer status aprovado (atual: {atual})"}, 400)
             return self._b2b_faturar(pedidos, target, body)
 
+        if action == "devolver":
+            atual = target.get("status") or "rascunho"
+            if atual != "faturado":
+                return self._json({"status": "error",
+                                   "message": f"Devolução requer status faturado (atual: {atual})"}, 400)
+            return self._b2b_devolver(pedidos, target, body)
+
         if action == "autorizar_nfe":
             try:
                 payload = dict(body or {})
@@ -12359,6 +12380,12 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
         smart = target.setdefault("smart", {})
         smart["faturas"] = max(int(smart.get("faturas") or 0), 1)
 
+        # Contabilidade: receita + COGS (perpetual at invoicing)
+        try:
+            accounting_integration.on_fatura_venda(fatura, actor=(body or {}).get("usuario"))
+        except Exception:
+            pass
+
         # NF-e 55 rascunho — best-effort (não desfaz fatura/AR)
         nfe_info = None
         try:
@@ -12405,6 +12432,70 @@ class AuthHandler(http.server.SimpleHTTPRequestHandler):
             "estoque": "na_entrega",
             "source": "cobol:faturas_venda.dat",
             "message": "Fatura e AR criados — estoque será baixado na saída da entrega",
+        })
+
+    def _b2b_devolver(self, pedidos, target, body):
+        """
+        Devolução de pedido faturado → gera lançamentos contábeis:
+          1. Retorno ao estoque: D:Estoque / C:COGS
+          2. Nota de crédito: D:Receita / C:Clientes
+        """
+        body = body or {}
+        itens = target.get("itens") or []
+        if not itens:
+            return self._json({"status": "error", "message": "Pedido sem itens"}, 400)
+
+        # Itens a devolver (do body ou todos)
+        devolver = body.get("itens") or body.get("items") or []
+        if not devolver:
+            # Devolução total: usa todos os itens do pedido
+            devolver = [{"produto_id": i.get("produto_id"), "qtd": i.get("qtd"), "preco": i.get("preco")} for i in itens]
+
+        total_receita = 0.0
+        total_cogs = 0.0
+        for d in devolver:
+            qtd = _safe_float(d.get("qtd"), 0)
+            preco = _safe_float(d.get("preco"), 0)
+            custo = _safe_float(d.get("custo") or d.get("custo_unitario"), 0)
+            total_receita += qtd * preco
+            total_cogs += qtd * custo
+
+        total_receita = round(total_receita, 2)
+        total_cogs = round(total_cogs, 2)
+
+        if total_receita <= 0:
+            return self._json({"status": "error", "message": "Valor da devolução zero"}, 400)
+
+        # Gerar lançamentos contábeis
+        did = target.get("id")
+        data = datetime.now().strftime("%Y-%m-%d")
+        actor = body.get("usuario") or ""
+
+        # 1. Retorno ao estoque: D:Estoque / C:COGS
+        r_stock = {"ok": True, "skipped": True, "reason": "sem custo"}
+        if total_cogs > 0:
+            r_stock = accounting_integration.on_return_stock({
+                "id": did,
+                "qty": sum(_safe_float(d.get("qtd"), 0) for d in devolver),
+                "custo_unit": total_cogs / max(sum(_safe_float(d.get("qtd"), 0) for d in devolver), 1),
+                "data": data,
+            }, actor=actor)
+
+        # 2. Nota de crédito: D:Receita / C:Clientes
+        r_revenue = accounting_integration.on_return_revenue({
+            "id": did,
+            "valor": total_receita,
+            "cliente": target.get("razao_social") or target.get("cliente_id") or "",
+            "data": data,
+        }, actor=actor)
+
+        return self._json({
+            "status": "ok",
+            "estoque": r_stock,
+            "receita": r_revenue,
+            "total_receita": total_receita,
+            "total_cogs": total_cogs,
+            "message": f"Devolução registrada — nota de crédito R$ {total_receita:,.2f}",
         })
 
     def _is_admin(self, token):
